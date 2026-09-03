@@ -1,5 +1,4 @@
 video:
-  # Frames are downscaled to fit inside these bounds before analysis.
   max_width: 1920
   max_height: 1080
 
@@ -8,25 +7,37 @@ paths:
   manifest_output: "./manifests"
 
 extraction:
-  # How often detectors run, not how often frames are saved.
   analysis_fps: 6
-
-  # Signal values at or above these thresholds count as a detection.
   scene_threshold: 0.72
   ssim_threshold: 0.80
   motion_threshold: 0.75
   hud_threshold: 0.20
-
   min_event_gap_seconds: 0.75
   context_before_seconds: 1.5
   context_after_seconds: 1.0
   max_frames_per_minute: 90
   save_jpeg_quality: 92
-
-  # Normalized HUD regions. These are deliberately conservative defaults.
-  # Coordinates are x1, y1, x2, y2 in [0, 1].
   hud:
     killfeed: [0.68, 0.02, 0.99, 0.30]
     special_gauge: [0.35, 0.00, 0.65, 0.12]
     objective_timer: [0.40, 0.00, 0.60, 0.15]
     death_text: [0.20, 0.25, 0.80, 0.70]
+
+vision:
+  enabled_detectors: ["timer"]
+  hud_cadence_fps: 2.0
+  timer:
+    roi: [0.40, 0.00, 0.60, 0.15]
+    template_dir: "./calibration/templates"
+    match_threshold: 0.55
+    min_usable_confidence: 0.50
+  state_fusion:
+    smoothing_window: 5
+    max_hold_duration: 2.0
+    dedupe_tolerance_seconds: 0.05
+  events:
+    debounce_ms: 300
+
+coach:
+  provider: openai
+  model: gpt-4o-mini
