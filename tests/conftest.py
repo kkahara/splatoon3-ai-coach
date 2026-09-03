@@ -6,7 +6,13 @@ import cv2
 import numpy as np
 import pytest
 
-from splatoon3_ai_coach.config.models import ExtractionConfig, HudRegions
+from splatoon3_ai_coach.config.models import (
+    ExtractionConfig,
+    HudRegions,
+    TimerDetectorConfig,
+    VisionConfig,
+)
+from splatoon3_ai_coach.vision.glyphs import GLYPH_HEIGHT, GLYPH_WIDTH
 
 FRAME_SIZE = (320, 180)
 SOURCE_FPS = 30
@@ -30,6 +36,42 @@ def extraction_config() -> ExtractionConfig:
             special_gauge=(0.35, 0.00, 0.65, 0.12),
             objective_timer=(0.40, 0.00, 0.60, 0.15),
             death_text=(0.20, 0.25, 0.80, 0.70),
+        ),
+    )
+
+
+@pytest.fixture
+def timer_template_dir(tmp_path: Path) -> Path:
+    """Minimal calibrated templates for timer detector tests."""
+    template_dir = tmp_path / "templates"
+    for symbol in [*(str(d) for d in range(10)), "colon"]:
+        symbol_dir = template_dir / symbol
+        symbol_dir.mkdir(parents=True)
+        glyph = np.zeros((GLYPH_HEIGHT, GLYPH_WIDTH), dtype=np.uint8)
+        cv2.putText(
+            glyph,
+            symbol if symbol != "colon" else ":",
+            (4, GLYPH_HEIGHT - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            255,
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.imwrite(str(symbol_dir / "sample.png"), glyph)
+    return template_dir
+
+
+@pytest.fixture
+def vision_config(timer_template_dir: Path) -> VisionConfig:
+    return VisionConfig(
+        enabled_detectors=["timer"],
+        hud_cadence_fps=2.0,
+        timer=TimerDetectorConfig(
+            roi=(0.40, 0.00, 0.60, 0.15),
+            template_dir=timer_template_dir,
+            match_threshold=0.55,
+            min_usable_confidence=0.50,
         ),
     )
 

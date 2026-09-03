@@ -1,0 +1,77 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "s3-coach: analyze",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "analyze",
+                "/Users/kenjikahara/Movies/2026-07-07 23-49-06.mov",
+                "--out",
+                "${workspaceFolder}/analysis/2026-07-07 23-49-06",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "s3-coach: extract",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "extract",
+                "/Users/kenjikahara/Movies/2026-07-07 23-49-06.mov",
+                "--out",
+                "${workspaceFolder}/frames/2026-07-07 23-49-06.mov",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "s3-coach: inspect",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "inspect",
+                "/Users/kenjikahara/Movies/2026-07-07 23-49-06.mov",
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "s3-coach: calibrate-timer",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "calibrate-timer",
+                "/Users/kenjikahara/Movies/2026-07-07 23-49-06.mov",
+                "--out",
+                "${workspaceFolder}/calibration/2026-07-07 23-49-06",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

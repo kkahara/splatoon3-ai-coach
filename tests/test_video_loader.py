@@ -1,14 +1,20 @@
-"""Tests for video ingestion."""
+"""Example tests for the video loader.
+
+This file is intentionally readable for contributors: it shows how to open a
+video, read metadata, and iterate decoded frames without touching the rest of
+the pipeline.
+"""
 
 from pathlib import Path
 
 import pytest
 
-from splatoon3_ai_coach.io.video import VideoLoader
+from splatoon3_ai_coach.exceptions import VideoLoadError
+from splatoon3_ai_coach.media.video import VideoLoader
 
 
 def test_missing_video_raises() -> None:
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(VideoLoadError, match="not found"):
         VideoLoader(Path("does-not-exist.mp4")).open()
 
 
@@ -16,7 +22,7 @@ def test_unsupported_format_raises(tmp_path: Path) -> None:
     path = tmp_path / "sample.txt"
     path.write_text("not a video", encoding="utf-8")
 
-    with pytest.raises(ValueError, match="Unsupported video format"):
+    with pytest.raises(VideoLoadError, match="Unsupported video format"):
         VideoLoader(path).open()
 
 

@@ -1,0 +1,2 @@
+# YOLO training datasets live here, outside the installable package.
+# Add dataset YAML files and label directories as training progresses.

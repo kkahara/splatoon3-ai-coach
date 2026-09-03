@@ -1,14 +1,10 @@
-"""Configuration schema for the whole application.
-
-Every tunable value the pipeline reads is declared here, so `configs/*.yaml`
-is validated in one place instead of being unpacked at the point of use.
-"""
+"""Configuration schema for the whole application."""
 
 from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator
 
-NormalizedBox = tuple[float, float, float, float]
+from splatoon3_ai_coach.types import NormalizedBox
 
 
 class VideoConfig(BaseModel):
@@ -61,8 +57,48 @@ class ExtractionConfig(BaseModel):
 
     @property
     def analysis_step_seconds(self) -> float:
-        """Minimum spacing between frames handed to the detectors."""
+        """Minimum spacing between frames handed to the change triggers."""
         return 1.0 / self.analysis_fps
+
+
+class TimerDetectorConfig(BaseModel):
+    """Settings for calibrated timer template matching."""
+
+    roi: NormalizedBox
+    template_dir: Path
+    match_threshold: float = Field(default=0.55, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+
+
+class StateFusionConfig(BaseModel):
+    """Settings for temporal state fusion."""
+
+    smoothing_window: int = Field(default=5, ge=1)
+    max_hold_duration: float = Field(default=2.0, gt=0)
+    dedupe_tolerance_seconds: float = Field(default=0.05, ge=0)
+
+
+class EventFusionConfig(BaseModel):
+    """Settings for state-to-event transitions."""
+
+    debounce_ms: int = Field(default=300, ge=0)
+
+
+class VisionConfig(BaseModel):
+    """Settings for the semantic vision layer (Phase 3)."""
+
+    enabled_detectors: list[str] = Field(default_factory=lambda: ["timer"])
+    timer: TimerDetectorConfig
+    hud_cadence_fps: float = Field(default=2.0, gt=0)
+    state_fusion: StateFusionConfig = Field(default_factory=StateFusionConfig)
+    events: EventFusionConfig = Field(default_factory=EventFusionConfig)
+
+
+class CoachConfig(BaseModel):
+    """Settings for the LLM coaching layer (Phase 5)."""
+
+    provider: str = "openai"
+    model: str = "gpt-4o-mini"
 
 
 class AppConfig(BaseModel):
@@ -71,3 +107,5 @@ class AppConfig(BaseModel):
     video: VideoConfig
     paths: PathsConfig
     extraction: ExtractionConfig
+    vision: VisionConfig
+    coach: CoachConfig = Field(default_factory=CoachConfig)

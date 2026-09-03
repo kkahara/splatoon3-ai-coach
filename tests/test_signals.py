@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from splatoon3_ai_coach.analysis.signals import (
+from splatoon3_ai_coach.extraction.signals import (
     crop_region,
     grayscale_histogram,
     histogram_difference,

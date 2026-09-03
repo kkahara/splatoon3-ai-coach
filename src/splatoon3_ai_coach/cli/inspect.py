@@ -2,18 +2,27 @@
 
 from pathlib import Path
 
+import typer
 from rich.console import Console
 from rich.table import Table
 
-from splatoon3_ai_coach.io.video import VideoLoader
+from splatoon3_ai_coach.exceptions import S3CoachError, VideoLoadError
+from splatoon3_ai_coach.media.video import VideoLoader
 
 console = Console()
 
 
 def inspect(video: Path) -> None:
     """Inspect a video and print its media metadata."""
-    with VideoLoader(video) as loader:
-        metadata = loader.open()
+    try:
+        with VideoLoader(video) as loader:
+            metadata = loader.open()
+    except VideoLoadError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    except S3CoachError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
 
     table = Table(title="Video")
     table.add_column("Property")

@@ -2,7 +2,7 @@
 
 These functions are pure and stateless: they return raw numbers and make no
 decision about whether a number is interesting. Thresholding lives in
-`detectors.py`.
+`triggers.py`.
 """
 
 import cv2
@@ -37,11 +37,7 @@ def histogram_difference(previous: np.ndarray, current: np.ndarray) -> float:
 
 
 def ssim_score(previous: np.ndarray, current: np.ndarray) -> float:
-    """Return a lightweight SSIM-like similarity score, 1.0 for identical frames.
-
-    This avoids a scikit-image dependency and is meant as a fast screening
-    signal rather than a scientific image-quality metric.
-    """
+    """Return a lightweight SSIM-like similarity score, 1.0 for identical frames."""
     a = _prepare_gray(previous, COMPARISON_SIZE)
     b = _prepare_gray(current, COMPARISON_SIZE)
 
@@ -49,7 +45,6 @@ def ssim_score(previous: np.ndarray, current: np.ndarray) -> float:
     var_a, var_b = a.var(), b.var()
     covariance = float(((a - mean_a) * (b - mean_b)).mean())
 
-    # Stabilizing constants from the standard SSIM formulation for 8-bit input.
     c1, c2 = 6.5025, 58.5225
     numerator = (2 * mean_a * mean_b + c1) * (2 * covariance + c2)
     denominator = (mean_a**2 + mean_b**2 + c1) * (var_a + var_b + c2)

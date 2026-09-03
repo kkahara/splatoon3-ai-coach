@@ -1,66 +1,68 @@
 """Selection of meaningful frames from a decoded video stream.
 
-The extractor walks the video once and keeps a frame only when a detector
+The extractor walks the video once and keeps a frame only when a change trigger
 fires. It never saves every Nth frame: `analysis_fps` controls how often
-detectors run, not how often frames are kept.
+triggers run, not how often frames are kept.
 """
 
 from collections import deque
 
 from loguru import logger
 
-from splatoon3_ai_coach.analysis.detectors import FrameDetectors
-from splatoon3_ai_coach.analysis.models import (
-    Detection,
-    Event,
-    EventType,
+from splatoon3_ai_coach.config.models import ExtractionConfig
+from splatoon3_ai_coach.extraction.models import (
+    ChangeTrigger,
     ExtractionResult,
     SelectedFrame,
+    TriggerEvent,
+    TriggerType,
 )
-from splatoon3_ai_coach.analysis.signals import grayscale_histogram
-from splatoon3_ai_coach.config.models import ExtractionConfig
-from splatoon3_ai_coach.io.video import VideoFrame, VideoLoader
+from splatoon3_ai_coach.extraction.sampler import FrameSampler
+from splatoon3_ai_coach.extraction.signals import grayscale_histogram
+from splatoon3_ai_coach.extraction.triggers import ChangeTriggerPipeline
+from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader
 
 RATE_LIMIT_WINDOW_SECONDS = 60.0
 
 
 class MeaningfulFrameExtractor:
-    """Detect candidate events and retain representative evidence frames."""
+    """Detect candidate triggers and retain representative evidence frames."""
 
     def __init__(self, config: ExtractionConfig) -> None:
         self.config = config
-        self.detectors = FrameDetectors(config)
+        self.triggers = ChangeTriggerPipeline(config)
+        self.sampler = FrameSampler(config.analysis_step_seconds)
 
     def extract(self, loader: VideoLoader) -> ExtractionResult:
-        """Walk the video and return the frames and events worth keeping."""
+        """Walk the video and return the frames and triggers worth keeping."""
         result = ExtractionResult()
         previous: VideoFrame | None = None
         previous_histogram = None
         last_event_time = -float("inf")
         recent_timestamps: deque[float] = deque()
 
-        for video_frame in self._analysis_frames(loader):
+        for video_frame in self.sampler.sample(loader.frames()):
             histogram = grayscale_histogram(video_frame.image)
 
             if previous is None:
                 self._record(
                     result,
                     video_frame,
-                    [Detection(EventType.KEYFRAME, 1.0)],
+                    [ChangeTrigger(TriggerType.KEYFRAME, 1.0)],
                     recent_timestamps,
                 )
                 last_event_time = video_frame.timestamp
             else:
-                detections = self.detectors.detect(
+                fired = self.triggers.evaluate(
                     previous.image,
                     video_frame.image,
                     previous_histogram,
                     histogram,
                 )
                 gap = video_frame.timestamp - last_event_time
-                if detections and gap >= self.config.min_event_gap_seconds:
+                if fired and gap >= self.config.min_event_gap_seconds:
                     if self._within_rate_limit(video_frame.timestamp, recent_timestamps):
-                        self._record(result, video_frame, detections, recent_timestamps)
+                        self._record(result, video_frame, fired, recent_timestamps)
                         last_event_time = video_frame.timestamp
                     else:
                         logger.debug(
@@ -72,22 +74,11 @@ class MeaningfulFrameExtractor:
             previous_histogram = histogram
 
         logger.info(
-            "Selected {} frames from {} events",
+            "Selected {} frames from {} triggers",
             len(result.frames),
-            len(result.events),
+            len(result.trigger_events),
         )
         return result
-
-    def _analysis_frames(self, loader: VideoLoader):
-        """Decimate the decoded stream down to the configured analysis rate."""
-        step = self.config.analysis_step_seconds
-        last_analyzed = -float("inf")
-
-        for video_frame in loader.frames():
-            if video_frame.timestamp - last_analyzed < step:
-                continue
-            last_analyzed = video_frame.timestamp
-            yield video_frame
 
     def _within_rate_limit(
         self,
@@ -104,30 +95,33 @@ class MeaningfulFrameExtractor:
         self,
         result: ExtractionResult,
         video_frame: VideoFrame,
-        detections: list[Detection],
+        triggers: list[ChangeTrigger],
         recent_timestamps: deque[float],
     ) -> None:
-        """Append one frame and its event, keyed to the strongest detection."""
-        strongest = detections[0]
+        """Append one frame and its trigger event."""
+        strongest = triggers[0]
         result.frames.append(
             SelectedFrame(
                 timestamp=video_frame.timestamp,
                 image=video_frame.image,
-                event_type=strongest.event_type,
+                trigger_type=strongest.trigger_type,
                 confidence=strongest.confidence,
                 source_frame_index=video_frame.frame_index,
+                source_pts=video_frame.source_pts,
+                source_time_base_num=video_frame.source_time_base_num,
+                source_time_base_den=video_frame.source_time_base_den,
             )
         )
-        result.events.append(
-            Event(
+        result.trigger_events.append(
+            TriggerEvent(
                 timestamp=video_frame.timestamp,
-                event_type=strongest.event_type,
+                trigger_type=strongest.trigger_type,
                 confidence=strongest.confidence,
                 context_start=max(
                     video_frame.timestamp - self.config.context_before_seconds, 0.0
                 ),
                 context_end=video_frame.timestamp + self.config.context_after_seconds,
-                signals={d.event_type: d.confidence for d in detections},
+                signals={t.trigger_type: t.confidence for t in triggers},
                 frame_indices=[len(result.frames) - 1],
             )
         )

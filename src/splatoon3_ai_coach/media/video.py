@@ -13,6 +13,8 @@ import cv2
 import numpy as np
 from pydantic import BaseModel, Field
 
+from splatoon3_ai_coach.exceptions import VideoLoadError
+
 SUPPORTED_SUFFIXES = frozenset({".mp4", ".mov", ".mkv", ".avi", ".klv"})
 
 
@@ -36,6 +38,9 @@ class VideoFrame:
     timestamp: float
     frame_index: int
     image: np.ndarray
+    source_pts: int | None = None
+    source_time_base_num: int | None = None
+    source_time_base_den: int | None = None
 
 
 class VideoLoader:
@@ -55,24 +60,22 @@ class VideoLoader:
         self._metadata: VideoMetadata | None = None
 
     def open(self) -> VideoMetadata:
-        """Open the container and return validated video metadata.
-
-        Safe to call more than once; the container is opened only on the first
-        call and the metadata is cached afterwards.
-        """
+        """Open the container and return validated video metadata."""
         if self._metadata is not None:
             return self._metadata
 
         if not self.path.exists():
-            raise FileNotFoundError(self.path)
+            raise VideoLoadError(f"Video not found: {self.path}")
 
         if self.path.suffix.lower() not in SUPPORTED_SUFFIXES:
-            raise ValueError(f"Unsupported video format: {self.path.suffix or '<none>'}")
+            raise VideoLoadError(
+                f"Unsupported video format: {self.path.suffix or '<none>'}"
+            )
 
         self._container = av.open(str(self.path))
         video_streams = self._container.streams.video
         if not video_streams:
-            raise ValueError(f"No video stream found in {self.path}")
+            raise VideoLoadError(f"No video stream found in {self.path}")
 
         self._video_stream = video_streams[0]
         self._metadata = VideoMetadata(
@@ -103,13 +106,22 @@ class VideoLoader:
         for index, frame in enumerate(self._container.decode(self._video_stream)):
             if frame.pts is not None and frame.time_base is not None:
                 timestamp = float(frame.pts * frame.time_base)
+                pts = int(frame.pts)
+                tb_num = int(frame.time_base.numerator)
+                tb_den = int(frame.time_base.denominator)
             else:
                 timestamp = index / fallback_rate
+                pts = None
+                tb_num = None
+                tb_den = None
 
             yield VideoFrame(
                 timestamp=max(timestamp, 0.0),
                 frame_index=index,
                 image=self._downscale(frame.to_ndarray(format="bgr24")),
+                source_pts=pts,
+                source_time_base_num=tb_num,
+                source_time_base_den=tb_den,
             )
 
     def close(self) -> None:
@@ -132,7 +144,7 @@ class VideoLoader:
         for rate in (self._video_stream.average_rate, self._video_stream.guessed_rate):
             if rate and float(rate) > 0:
                 return float(rate)
-        raise ValueError(f"Could not determine FPS for {self.path}")
+        raise VideoLoadError(f"Could not determine FPS for {self.path}")
 
     def _read_duration_seconds(self) -> float:
         assert self._container is not None

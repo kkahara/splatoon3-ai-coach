@@ -5,12 +5,11 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from splatoon3_ai_coach.analysis.extractor import MeaningfulFrameExtractor
-from splatoon3_ai_coach.analysis.manifest import save_manifest
 from splatoon3_ai_coach.config import load_config
-from splatoon3_ai_coach.io.video import VideoLoader
+from splatoon3_ai_coach.config.paths import resolve_config_path
+from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
+from splatoon3_ai_coach.extraction.pipeline import run_extraction
 
-DEFAULT_CONFIG_PATH = Path("./configs/default.yaml")
 console = Console()
 
 
@@ -21,32 +20,25 @@ def extract(
         "--out",
         help="Output directory. Defaults to paths.frame_output from the config.",
     ),
-    config_path: Path = typer.Option(
-        DEFAULT_CONFIG_PATH,
+    config_path: Path | None = typer.Option(
+        None,
         "--config",
         help="Path to a YAML configuration file.",
     ),
 ) -> None:
     """Extract meaningful gameplay frames and write a JSON manifest."""
-    config = load_config(config_path)
+    try:
+        config = load_config(resolve_config_path(config_path))
+        manifest = run_extraction(video, config, output_dir=out)
+    except ConfigError as exc:
+        console.print(f"[red]Configuration error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    except S3CoachError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
     output_dir = out or config.paths.frame_output
-
-    loader = VideoLoader(
-        video,
-        max_width=config.video.max_width,
-        max_height=config.video.max_height,
-    )
-    with loader:
-        extractor = MeaningfulFrameExtractor(config.extraction)
-        result = extractor.extract(loader)
-
-    manifest = save_manifest(
-        video,
-        result,
-        output_dir,
-        config.extraction.save_jpeg_quality,
-    )
     console.print(
         f"Extracted [bold]{len(manifest.frames)}[/bold] frames "
-        f"from [bold]{len(manifest.events)}[/bold] events into {output_dir}."
+        f"from [bold]{len(manifest.trigger_events)}[/bold] triggers into {output_dir}."
     )
