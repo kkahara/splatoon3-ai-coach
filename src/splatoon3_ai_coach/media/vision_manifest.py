@@ -22,8 +22,13 @@ def hash_extraction_manifest(path: Path) -> str:
 def hash_vision_config(config: VisionConfig) -> str:
     """Hash a portable semantic view of the vision configuration."""
     payload = config.model_dump(mode="json")
-    template_dir = payload["timer"]["template_dir"]
-    payload["timer"]["template_dir"] = Path(template_dir).name
+    payload["timer"]["template_dir"] = Path(payload["timer"]["template_dir"]).name
+    for key in ("death", "splat"):
+        section = payload.get(key) or {}
+        template_dir = section.get("template_dir")
+        if template_dir:
+            section["template_dir"] = Path(template_dir).name
+            payload[key] = section
     return sha256_hex(canonical_json(payload))
 
 

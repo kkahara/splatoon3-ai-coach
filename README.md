@@ -34,7 +34,7 @@ src/splatoon3_ai_coach/
 ├── config/       schema, YAML loader, path resolution, CoachSettings (env)
 ├── media/        video decode, manifest read/write
 ├── extraction/   triggers, sampler, extractor, pipeline
-├── vision/       BaseDetector protocol, registry, hud, yolo
+├── vision/       detectors, readings, state fusion, events, pipeline
 ├── analysis/     GameSession, metrics (Phase 4)
 ├── coach/        LLM provider, prompts, coaching output (Phase 5)
 └── cli/          thin commands wired to pipeline modules

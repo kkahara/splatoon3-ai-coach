@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-from pathlib import Path
 from typing import Any
 
 
@@ -26,11 +25,3 @@ def sha256_hex(data: bytes | str) -> str:
 def sha256_prefix(data: bytes | str, length: int = 12) -> str:
     """Return a stable prefix of a SHA-256 hex digest."""
     return sha256_hex(data)[:length]
-
-
-def portable_path(path: Path, base: Path) -> str:
-    """Return a POSIX relative path from base, or the path name if outside base."""
-    try:
-        return path.resolve().relative_to(base.resolve()).as_posix()
-    except ValueError:
-        return path.name

@@ -20,16 +20,47 @@ extraction:
   hud:
     killfeed: [0.68, 0.02, 0.99, 0.30]
     special_gauge: [0.35, 0.00, 0.65, 0.12]
-    objective_timer: [0.40, 0.00, 0.60, 0.15]
+    objective_timer: [0.470, 0.045, 0.530, 0.095]
     death_text: [0.20, 0.25, 0.80, 0.70]
 
 vision:
-  enabled_detectors: ["timer"]
+  # UI/OCR language. Primary detectors use language-neutral cues; text/OCR
+  # assets resolve under template_dir/<language>/ when present.
+  language: en
+  ocr:
+    engine: tesseract
+    tesseract_languages:
+      en: eng
+      ja: jpn
+  enabled_detectors: ["timer", "death", "splat"]
   hud_cadence_fps: 2.0
   timer:
-    roi: [0.40, 0.00, 0.60, 0.15]
-    template_dir: "./calibration/templates"
+    roi: [0.470, 0.045, 0.530, 0.095]
+    template_dir: "../calibration/templates"
     match_threshold: 0.55
+    min_usable_confidence: 0.50
+  death:
+    # 1080p pixels: ouch [880:940, 20:200], banner [980:1050, 660:1260]
+    ouch_roi: [0.0104167, 0.8148148, 0.1041667, 0.8703704]
+    banner_roi: [0.34375, 0.9074074, 0.65625, 0.9722222]
+    template_dir: "../calibration/templates/death"
+    ouch_match_threshold: 0.55
+    banner_match_threshold: 0.55
+    ouch_white_ratio: 0.12
+    ouch_max_saturation: 0.30
+    ouch_max_yellow_ratio: 0.15
+    banner_dark_threshold: 0.72
+    debounce_seconds: 3.0
+    min_usable_confidence: 0.50
+  splat:
+    # 1080p pixels: [918:1058, 672:1248] — percent ROI, not absolute 378:702
+    banner_roi: [0.35, 0.85, 0.65, 0.98]
+    template_dir: "../calibration/templates/splat"
+    skull_match_threshold: 0.55
+    white_value_threshold: 230
+    adjacent_color_min_ratio: 0.20
+    adjacent_min_saturation: 50
+    debounce_seconds: 1.75
     min_usable_confidence: 0.50
   state_fusion:
     smoothing_window: 5

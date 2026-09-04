@@ -48,3 +48,17 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
                 path = Path(template_dir)
                 if not path.is_absolute():
                     timer["template_dir"] = str((config_dir / path).resolve())
+        death = vision.get("death")
+        if isinstance(death, dict):
+            template_dir = death.get("template_dir")
+            if template_dir is not None:
+                path = Path(template_dir)
+                if not path.is_absolute():
+                    death["template_dir"] = str((config_dir / path).resolve())
+        splat = vision.get("splat")
+        if isinstance(splat, dict):
+            template_dir = splat.get("template_dir")
+            if template_dir is not None:
+                path = Path(template_dir)
+                if not path.is_absolute():
+                    splat["template_dir"] = str((config_dir / path).resolve())

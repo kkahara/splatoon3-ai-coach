@@ -34,7 +34,33 @@ class TimerReading(BaseModel):
     seconds_remaining: float = Field(ge=0)
 
 
-Reading = Annotated[TimerReading, Field(discriminator="kind")]
+class DeathReading(BaseModel):
+    """Per-frame death-UI observation. Not a semantic DEATH event."""
+
+    kind: Literal["death"] = "death"
+    detected: bool = False
+    ouch_detected: bool = False
+    ouch_white_score: float = Field(default=0.0, ge=0, le=1)
+    banner_detected: bool = False
+    banner_dark_score: float = Field(default=0.0, ge=0, le=1)
+
+
+class SplatReading(BaseModel):
+    """Per-frame local-kill banner observation. Not a semantic SPLAT event."""
+
+    kind: Literal["splat"] = "splat"
+    detected: bool = False
+    skull_score: float = Field(default=0.0, ge=0, le=1)
+    adjacent_color_score: float = Field(default=0.0, ge=0, le=1)
+    # Future: victim identity (not extracted in v1).
+    victim_name: str | None = None
+    victim_name_confidence: float = Field(default=0.0, ge=0, le=1)
+
+
+Reading = Annotated[
+    TimerReading | DeathReading | SplatReading,
+    Field(discriminator="kind"),
+]
 
 
 class SourceFrameReference(BaseModel):
@@ -78,6 +104,8 @@ class GameStateSnapshot(BaseModel):
 
     timestamp: float = Field(ge=0)
     match_time_remaining: float | None = None
+    player_alive: bool | None = None
+    player_splatted: bool | None = None
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None

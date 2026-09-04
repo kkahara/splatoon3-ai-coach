@@ -9,9 +9,8 @@ from loguru import logger
 from splatoon3_ai_coach.config.models import TimerDetectorConfig
 from splatoon3_ai_coach.media.video import VideoLoader
 from splatoon3_ai_coach.vision.glyphs import normalize_glyph
-from splatoon3_ai_coach.vision.timer import crop_roi, segment_glyphs
-
-MIN_GLYPH_SCORE = 0.15
+from splatoon3_ai_coach.vision.roi import crop_roi
+from splatoon3_ai_coach.vision.timer import segment_glyphs
 
 
 def calibrate_timer(

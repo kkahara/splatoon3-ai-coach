@@ -21,6 +21,26 @@
             "justMyCode": true
         },
         {
+            "name": "s3-coach: analyze, --reuse-extraction",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "analyze",
+                "/Users/kenjikahara/Movies/2026-07-07 23-49-06.mov",
+                "--out",
+                "${workspaceFolder}/analysis/2026-07-07 23-49-06",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml",
+                "--reuse-extraction"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "s3-coach: extract",
             "type": "debugpy",
             "request": "launch",
@@ -29,9 +49,9 @@
             "args": [
                 "-v",
                 "extract",
-                "/Users/kenjikahara/Movies/2026-07-07 23-49-06.mov",
+                "/Users/kenjikahara/Movies/2026-07-07 23-30-14.mov",
                 "--out",
-                "${workspaceFolder}/frames/2026-07-07 23-49-06.mov",
+                "${workspaceFolder}/frames/2026-07-07 23-30-14.mov",
                 "--config",
                 "${workspaceFolder}/configs/default.yaml"
             ],
@@ -67,7 +87,9 @@
                 "--out",
                 "${workspaceFolder}/calibration/2026-07-07 23-49-06",
                 "--config",
-                "${workspaceFolder}/configs/default.yaml"
+                "${workspaceFolder}/configs/default.yaml",
+                "--sample-fps",
+                "0.08"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",

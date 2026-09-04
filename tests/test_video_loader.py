@@ -13,6 +13,17 @@ from splatoon3_ai_coach.exceptions import VideoLoadError
 from splatoon3_ai_coach.media.video import VideoLoader
 
 
+def test_media_package_import_does_not_circular_fail() -> None:
+    """Package root must stay importable without pulling extraction/pipeline."""
+    import splatoon3_ai_coach.media as media
+
+    assert media is not None
+    # Submodule import used by callers after slim package __init__.
+    from splatoon3_ai_coach.media.video import VideoLoader as Loader
+
+    assert Loader is VideoLoader
+
+
 def test_missing_video_raises() -> None:
     with pytest.raises(VideoLoadError, match="not found"):
         VideoLoader(Path("does-not-exist.mp4")).open()

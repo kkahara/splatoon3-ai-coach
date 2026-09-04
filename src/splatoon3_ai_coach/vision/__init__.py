@@ -1,31 +1,30 @@
-"""Vision layer: pluggable detectors, state fusion, and events."""
+"""Vision layer: pluggable detectors, state fusion, and events.
+
+Import concrete modules (``vision.pipeline``, ``vision.models``, …) rather
+than relying on this package root. Keeping ``__init__`` light avoids pulling
+the full analysis pipeline on every vision import.
+"""
 
 from splatoon3_ai_coach.vision.base import BaseDetector
-from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.models import (
+    DeathReading,
     GameEvent,
     GameEventType,
     GameStateSnapshot,
+    SplatReading,
     TimerReading,
     VisionFrameResult,
     VisionManifest,
 )
-from splatoon3_ai_coach.vision.pipeline import run_vision
-from splatoon3_ai_coach.vision.registry import build_detectors
-from splatoon3_ai_coach.vision.state import fuse_timer_state
-from splatoon3_ai_coach.vision.timer import TimerDetector
 
 __all__ = [
     "BaseDetector",
+    "DeathReading",
     "GameEvent",
     "GameEventType",
     "GameStateSnapshot",
-    "TimerDetector",
+    "SplatReading",
     "TimerReading",
     "VisionFrameResult",
     "VisionManifest",
-    "build_detectors",
-    "fuse_timer_state",
-    "infer_events",
-    "run_vision",
 ]

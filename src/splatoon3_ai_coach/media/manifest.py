@@ -12,7 +12,7 @@ from splatoon3_ai_coach.extraction.models import (
     ManifestFrame,
     SelectedFrame,
 )
-from splatoon3_ai_coach.vision.canonical import portable_path
+from splatoon3_ai_coach.paths import portable_path
 
 MANIFEST_FILENAME = "manifest.json"
 

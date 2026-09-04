@@ -15,5 +15,12 @@ class BaseDetector(Protocol):
     run_on_evidence: bool
     cadence_fps: float | None
 
-    def detect(self, image: np.ndarray) -> tuple[Reading | None, float]:
-        """Run detection on one frame image."""
+    def detect(
+        self,
+        image: np.ndarray,
+        timestamp: float | None = None,
+    ) -> tuple[Reading | None, float]:
+        """Run detection on one frame image.
+
+        ``timestamp`` is optional so detectors can debounce across frames.
+        """

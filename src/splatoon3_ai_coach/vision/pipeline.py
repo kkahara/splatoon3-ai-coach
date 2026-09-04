@@ -17,7 +17,7 @@ from splatoon3_ai_coach.media.vision_manifest import (
     hash_vision_config,
     save_vision_manifest,
 )
-from splatoon3_ai_coach.vision.canonical import portable_path
+from splatoon3_ai_coach.paths import portable_path
 from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.ids import (
     compute_analysis_id,
@@ -32,7 +32,7 @@ from splatoon3_ai_coach.vision.models import (
 )
 from splatoon3_ai_coach.vision.provenance import detector_version, package_version
 from splatoon3_ai_coach.vision.registry import build_detectors
-from splatoon3_ai_coach.vision.state import fuse_timer_state
+from splatoon3_ai_coach.vision.state import fuse_game_state
 
 
 @dataclass(frozen=True)
@@ -91,7 +91,10 @@ def run_vision(
             if scheduled_frame.source == "evidence" and not detector.run_on_evidence:
                 continue
 
-            reading, score = detector.detect(scheduled_frame.image)
+            reading, score = detector.detect(
+                scheduled_frame.image,
+                scheduled_frame.timestamp,
+            )
             if reading is None:
                 continue
             version = detector_versions[detector.name]
@@ -126,10 +129,12 @@ def run_vision(
             )
         )
 
-    state_snapshots = fuse_timer_state(
+    state_snapshots = fuse_game_state(
         frame_results,
         config.vision.timer,
         config.vision.state_fusion,
+        config.vision.death,
+        config.vision.splat,
     )
     game_events = infer_events(state_snapshots, config.vision.events)
 

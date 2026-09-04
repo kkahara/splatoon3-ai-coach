@@ -1,12 +1,6 @@
-"""Media input and output."""
+"""Media input and output.
 
-from splatoon3_ai_coach.media.manifest import load_manifest, save_manifest
-from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader, VideoMetadata
-
-__all__ = [
-    "VideoFrame",
-    "VideoLoader",
-    "VideoMetadata",
-    "load_manifest",
-    "save_manifest",
-]
+Import concrete modules (``media.video``, ``media.manifest``) rather than
+relying on this package root. Keeping ``__init__`` empty avoids circular
+imports with extraction.
+"""

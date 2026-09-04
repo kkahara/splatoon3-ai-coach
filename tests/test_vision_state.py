@@ -9,7 +9,7 @@ from splatoon3_ai_coach.vision.models import (
     VisionFrameResult,
 )
 from splatoon3_ai_coach.vision.state import fuse_timer_state
-from splatoon3_ai_coach.vision.timer import parse_timer_display
+from splatoon3_ai_coach.vision.timer import extract_timer_display, parse_timer_display
 
 
 def timer_config() -> TimerDetectorConfig:
@@ -48,6 +48,15 @@ def frame_result(
 def test_parse_timer_display() -> None:
     assert parse_timer_display("2:07") == 127.0
     assert parse_timer_display("bad") is None
+
+
+def test_extract_timer_display_strips_trailing_noise() -> None:
+    assert extract_timer_display("1:301") == "1:30"
+    assert extract_timer_display("2:571") == "2:57"
+    assert extract_timer_display("1291") == "1:29"
+    assert extract_timer_display("129") == "1:29"
+    assert extract_timer_display("1:25") == "1:25"
+    assert extract_timer_display("12") is None
 
 
 def test_low_confidence_observation_is_retained_but_not_accepted() -> None:
