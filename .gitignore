@@ -218,6 +218,18 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-analysis/*
-frames/*
-calibration/*
+# Local run outputs: keep directory shells in git, ignore contents.
+# Exception: checked-in vision templates under calibration/templates/.
+analysis/**
+!analysis/.gitkeep
+
+frames/**
+!frames/.gitkeep
+
+calibration/**
+!calibration/.gitkeep
+!calibration/templates/
+!calibration/templates/**
+# Negating templates/** re-includes junk; keep OS junk out.
+calibration/templates/**/.DS_Store
+
