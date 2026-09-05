@@ -3,7 +3,8 @@
 Usage::
 
     python -m splatoon3_ai_coach.inspect_frame --time 16.25
-    python -m splatoon3_ai_coach.inspect_frame --time 16.25 --out analysis/2026-07-07\\ 23-49-06
+    python -m splatoon3_ai_coach.inspect_frame --time 16.25 \\
+        --out analysis/2026-07-07\\ 23-49-06
     python -m splatoon3_ai_coach.inspect_frame --time 16.25 --context 2 --no-open
 
 This module does not run detectors or change manifests. It only reads an
@@ -44,7 +45,10 @@ def neighboring_frames(
     """Return up to ``context`` frames before and after ``matched`` in time order."""
     if context <= 0:
         return [], []
-    ordered = sorted(frames, key=lambda frame: (frame.timestamp, frame.source_frame_index))
+    ordered = sorted(
+        frames,
+        key=lambda frame: (frame.timestamp, frame.source_frame_index),
+    )
     try:
         index = next(
             i
@@ -141,7 +145,10 @@ def run(
         if matched.path.exists():
             open_image(matched.path)
         else:
-            print(f"warning: frame file missing, not opening: {matched.path}", file=sys.stderr)
+            print(
+                f"warning: frame file missing, not opening: {matched.path}",
+                file=sys.stderr,
+            )
 
     return matched
 

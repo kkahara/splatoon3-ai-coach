@@ -62,3 +62,10 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
                 path = Path(template_dir)
                 if not path.is_absolute():
                     splat["template_dir"] = str((config_dir / path).resolve())
+        respawn = vision.get("respawn")
+        if isinstance(respawn, dict):
+            template_dir = respawn.get("template_dir")
+            if template_dir is not None:
+                path = Path(template_dir)
+                if not path.is_absolute():
+                    respawn["template_dir"] = str((config_dir / path).resolve())

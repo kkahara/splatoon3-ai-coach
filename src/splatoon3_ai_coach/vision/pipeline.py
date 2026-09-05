@@ -135,6 +135,9 @@ def run_vision(
         config.vision.state_fusion,
         config.vision.death,
         config.vision.splat,
+        config.vision.respawn,
+        config.vision.active_gameplay,
+        config.vision.lifecycle,
     )
     game_events = infer_events(state_snapshots, config.vision.events)
 

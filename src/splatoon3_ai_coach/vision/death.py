@@ -1,4 +1,4 @@
-"""Death-screen detector: Ouch text plus Splatted banner cues."""
+"""Death-screen detector: Ouch glyph plus supporting banner cues."""
 
 from __future__ import annotations
 
@@ -153,6 +153,11 @@ class DeathDetector:
                 "Death detector has no templates under {}; using heuristics and OCR",
                 config.template_dir,
             )
+        if config.ouch_require_glyph and not self._ouch_templates:
+            logger.warning(
+                "DeathDetector ouch_require_glyph=True but no Ouch templates loaded; "
+                "only OCR can assert strong Ouch"
+            )
 
     def detect(
         self,
@@ -176,7 +181,7 @@ class DeathDetector:
         return timestamp - self._last_positive_at < self.config.debounce_seconds
 
     def _observe(self, image: np.ndarray) -> tuple[DeathReading, float]:
-        """Score Ouch and banner cues without applying debounce."""
+        """Score Ouch glyph + supporting banner cues without applying debounce."""
         ouch_roi = crop_roi(image, self.config.ouch_roi)
         banner_roi = crop_roi(image, self.config.banner_roi)
 
@@ -190,11 +195,13 @@ class DeathDetector:
             and ouch_sat <= self.config.ouch_max_saturation
             and ouch_yellow <= self.config.ouch_max_yellow_ratio
         )
-        ouch_detected = (
-            ouch_heuristic
-            or ouch_template >= self.config.ouch_match_threshold
-            or ouch_ocr
+        ouch_glyph = (
+            ouch_template >= self.config.ouch_match_threshold or ouch_ocr
         )
+        if self.config.ouch_require_glyph:
+            ouch_detected = ouch_glyph
+        else:
+            ouch_detected = ouch_glyph or ouch_heuristic
 
         banner_dark_score = float(np.clip(1.0 - _mean_luma(banner_roi), 0.0, 1.0))
         banner_template = _best_template_score(banner_roi, self._banner_templates)
@@ -202,18 +209,24 @@ class DeathDetector:
         banner_detected = (
             banner_template >= self.config.banner_match_threshold or banner_ocr
         )
-        detected = ouch_detected and (
+        banner_ok = (
             banner_detected or banner_dark_score >= self.config.banner_dark_threshold
         )
+        detected = ouch_detected and banner_ok
 
-        ouch_score = max(ouch_white, ouch_template, 1.0 if ouch_ocr else 0.0)
-        confidence = _confidence(detected, ouch_score, banner_dark_score, banner_detected)
+        ouch_score = max(ouch_template, 1.0 if ouch_ocr else 0.0, ouch_white * 0.5)
+        confidence = _confidence(
+            detected, ouch_score, banner_dark_score, banner_detected, ouch_template
+        )
         return (
             DeathReading(
                 detected=detected,
                 ouch_detected=ouch_detected,
+                ouch_template_score=float(np.clip(ouch_template, 0.0, 1.0)),
                 ouch_white_score=float(np.clip(ouch_white, 0.0, 1.0)),
+                ouch_heuristic=ouch_heuristic,
                 banner_detected=banner_detected,
+                banner_template_score=float(np.clip(banner_template, 0.0, 1.0)),
                 banner_dark_score=banner_dark_score,
             ),
             confidence,
@@ -225,9 +238,12 @@ def _confidence(
     ouch_score: float,
     banner_dark_score: float,
     banner_detected: bool,
+    ouch_template: float,
 ) -> float:
     """Combine cue strengths into a detector score in [0, 1]."""
     banner_score = max(banner_dark_score, 1.0 if banner_detected else 0.0)
+    # Weight glyph match more heavily than darkness when scoring positives.
+    glyph = max(ouch_template, ouch_score)
     if detected:
-        return float(np.clip(0.5 * ouch_score + 0.5 * banner_score, 0.0, 1.0))
-    return float(np.clip(1.0 - max(ouch_score, banner_score * 0.5), 0.0, 1.0))
+        return float(np.clip(0.65 * glyph + 0.35 * banner_score, 0.0, 1.0))
+    return float(np.clip(1.0 - max(glyph, banner_score * 0.5), 0.0, 1.0))

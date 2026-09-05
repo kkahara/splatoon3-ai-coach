@@ -37,6 +37,7 @@ packages = ["src/splatoon3_ai_coach"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tools"]
 addopts = "-ra"
 
 [tool.ruff]
@@ -48,3 +49,5 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.lint.per-file-ignores]
 # Typer declares CLI options as function-call defaults by design.
 "src/splatoon3_ai_coach/cli/*.py" = ["B008"]
+# Repo-root tools package mirrors production style but stays outside vision/.
+"tools/vision_manifest_viewer/*.py" = ["E501"]

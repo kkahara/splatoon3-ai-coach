@@ -16,6 +16,8 @@ class GameEventType(StrEnum):
 
     SPLAT = "splat"
     DEATH = "death"
+    RESPAWN = "respawn"
+    ACTIVE_AGAIN = "active_again"
     SPECIAL_USED = "special_used"
     SPECIAL_READY = "special_ready"
     OBJECTIVE_UPDATE = "objective_update"
@@ -24,6 +26,11 @@ class GameEventType(StrEnum):
     BOMB_DETECTED = "bomb_detected"
     ZONE_DETECTED = "zone_detected"
     TOWER_DETECTED = "tower_detected"
+
+
+PlayerLifecycle = Literal["unknown", "alive", "dead", "countdown", "respawned"]
+RespawnEvidenceType = Literal["template", "ocr", "heuristic"]
+RespawnCountdownValue = Literal[1, 2, 3, 4]
 
 
 class TimerReading(BaseModel):
@@ -39,9 +46,14 @@ class DeathReading(BaseModel):
 
     kind: Literal["death"] = "death"
     detected: bool = False
+    # Strong Ouch: template match and/or OCR (drives death when require_glyph).
     ouch_detected: bool = False
+    ouch_template_score: float = Field(default=0.0, ge=0, le=1)
     ouch_white_score: float = Field(default=0.0, ge=0, le=1)
+    # White-pixel HUD heuristic only; never sufficient alone when require_glyph.
+    ouch_heuristic: bool = False
     banner_detected: bool = False
+    banner_template_score: float = Field(default=0.0, ge=0, le=1)
     banner_dark_score: float = Field(default=0.0, ge=0, le=1)
 
 
@@ -57,8 +69,39 @@ class SplatReading(BaseModel):
     victim_name_confidence: float = Field(default=0.0, ge=0, le=1)
 
 
+class RespawnReading(BaseModel):
+    """Per-frame respawn/waiting-UI observation. Not a RESPAWN event."""
+
+    kind: Literal["respawn"] = "respawn"
+    detected: bool = False
+    confidence: float = Field(default=0.0, ge=0, le=1)
+    countdown_value: RespawnCountdownValue | None = None
+    template_score: float = Field(default=0.0, ge=0, le=1)
+    ocr_text: str | None = None
+    evidence_type: RespawnEvidenceType | None = None
+    # Plate metrics retained for diagnostics / heuristic fallback.
+    presence_score: float = Field(default=0.0, ge=0, le=1)
+    dark_frac: float = Field(default=0.0, ge=0, le=1)
+    bright_frac: float = Field(default=0.0, ge=0, le=1)
+    p95: float = Field(default=0.0, ge=0, le=1)
+    yellow_frac: float = Field(default=0.0, ge=0, le=1)
+    mean_sat: float = Field(default=0.0, ge=0, le=1)
+    mean_val: float = Field(default=0.0, ge=0, le=1)
+
+
+class ActiveGameplayReading(BaseModel):
+    """Per-frame positive normal-gameplay observation. Not an ACTIVE_AGAIN event."""
+
+    kind: Literal["active_gameplay"] = "active_gameplay"
+    detected: bool = False
+    score: float = Field(default=0.0, ge=0, le=1)
+    weapon_edge_frac: float = Field(default=0.0, ge=0, le=1)
+    weapon_luma_std: float = Field(default=0.0, ge=0, le=1)
+    hud_edge_frac: float = Field(default=0.0, ge=0, le=1)
+
+
 Reading = Annotated[
-    TimerReading | DeathReading | SplatReading,
+    TimerReading | DeathReading | SplatReading | RespawnReading | ActiveGameplayReading,
     Field(discriminator="kind"),
 ]
 
@@ -106,6 +149,11 @@ class GameStateSnapshot(BaseModel):
     match_time_remaining: float | None = None
     player_alive: bool | None = None
     player_splatted: bool | None = None
+    countdown_present: bool | None = None
+    active_gameplay: bool | None = None
+    player_lifecycle: PlayerLifecycle = "unknown"
+    # Episode latch for respawn anti-FP diagnostics (viewer / debugging).
+    countdown_confirmed_this_death_episode: bool | None = None
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None

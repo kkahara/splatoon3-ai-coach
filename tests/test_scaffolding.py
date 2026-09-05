@@ -26,6 +26,17 @@ def test_splat_detector_is_registered_when_enabled(vision_config: VisionConfig) 
     assert {detector.name for detector in detectors} == {"timer", "splat"}
 
 
+def test_respawn_and_active_detectors_register_when_enabled(
+    vision_config: VisionConfig,
+) -> None:
+    vision_config.enabled_detectors = ["respawn", "active_gameplay"]
+    detectors = build_detectors(vision_config)
+    assert {detector.name for detector in detectors} == {
+        "respawn",
+        "active_gameplay",
+    }
+
+
 def test_timer_reading_has_display_and_seconds() -> None:
     reading = TimerReading(display="2:07", seconds_remaining=127.0)
     assert reading.display == "2:07"
@@ -34,6 +45,8 @@ def test_timer_reading_has_display_and_seconds() -> None:
 
 def test_game_event_types_are_distinct_from_trigger_types() -> None:
     assert GameEventType.DEATH.value == "death"
+    assert GameEventType.RESPAWN.value == "respawn"
+    assert GameEventType.ACTIVE_AGAIN.value == "active_again"
 
 
 def test_coach_system_prompt_loads_from_package() -> None:

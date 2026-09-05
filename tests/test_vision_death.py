@@ -92,18 +92,29 @@ def _result(
 
 
 def test_death_detector_confirms_ouch_and_dark_banner() -> None:
-    detector = DeathDetector(DeathDetectorConfig())
+    # Synthetic white block is not a glyph; allow legacy heuristic for unit fixture.
+    detector = DeathDetector(DeathDetectorConfig(ouch_require_glyph=False))
     reading, score = detector.detect(_death_1080(), timestamp=1.0)
     assert reading is not None
     assert reading.kind == "death"
     assert reading.ouch_detected
+    assert reading.ouch_heuristic
     assert reading.detected
     assert reading.banner_dark_score >= 0.72
-    assert score >= 0.5
+    assert score >= 0.4
+
+
+def test_white_heuristic_alone_is_not_ouch_when_glyph_required() -> None:
+    detector = DeathDetector(DeathDetectorConfig(ouch_require_glyph=True))
+    reading, _ = detector.detect(_death_1080(), timestamp=1.0)
+    assert reading is not None
+    assert reading.ouch_heuristic
+    assert not reading.ouch_detected
+    assert not reading.detected
 
 
 def test_yellow_ink_in_ouch_roi_is_not_ouch() -> None:
-    detector = DeathDetector(DeathDetectorConfig())
+    detector = DeathDetector(DeathDetectorConfig(ouch_require_glyph=False))
     reading, _ = detector.detect(_yellow_ink_1080(), timestamp=1.0)
     assert reading is not None
     assert not reading.ouch_detected
@@ -111,7 +122,9 @@ def test_yellow_ink_in_ouch_roi_is_not_ouch() -> None:
 
 
 def test_death_detector_debounces_repeat_positives() -> None:
-    detector = DeathDetector(DeathDetectorConfig(debounce_seconds=3.0))
+    detector = DeathDetector(
+        DeathDetectorConfig(debounce_seconds=3.0, ouch_require_glyph=False)
+    )
     first, _ = detector.detect(_death_1080(), timestamp=10.0)
     suppressed, _ = detector.detect(_death_1080(), timestamp=11.0)
     later, _ = detector.detect(_death_1080(), timestamp=13.1)
@@ -126,6 +139,25 @@ def test_alive_frame_is_not_detected() -> None:
     assert reading is not None
     assert not reading.detected
     assert not reading.ouch_detected
+
+
+def test_death_detector_accepts_strong_template_match(tmp_path, monkeypatch) -> None:
+    """Glyph path: template score above threshold + dark banner → detected."""
+    detector = DeathDetector(DeathDetectorConfig(ouch_require_glyph=True))
+
+    def fake_template(roi, templates):  # noqa: ANN001
+        return 0.95
+
+    monkeypatch.setattr(
+        "splatoon3_ai_coach.vision.death._best_template_score",
+        fake_template,
+    )
+    reading, score = detector.detect(_death_1080(), timestamp=1.0)
+    assert reading is not None
+    assert reading.ouch_detected
+    assert reading.ouch_template_score == pytest.approx(0.95)
+    assert reading.detected
+    assert score >= 0.5
 
 
 def test_fusion_combines_timer_and_death_evidence() -> None:

@@ -3,13 +3,19 @@
 from collections import deque
 
 from splatoon3_ai_coach.config.models import (
+    ActiveGameplayDetectorConfig,
     DeathDetectorConfig,
+    LifecycleFusionConfig,
+    RespawnDetectorConfig,
     SplatDetectorConfig,
     StateFusionConfig,
     TimerDetectorConfig,
 )
+from splatoon3_ai_coach.vision.lifecycle import (
+    LifecycleFuser,
+    extract_lifecycle_observation,
+)
 from splatoon3_ai_coach.vision.models import (
-    DeathReading,
     DetectorResult,
     GameStateSnapshot,
     SourceFrameReference,
@@ -35,18 +41,23 @@ def fuse_game_state(
     fusion_config: StateFusionConfig,
     death_config: DeathDetectorConfig | None = None,
     splat_config: SplatDetectorConfig | None = None,
+    respawn_config: RespawnDetectorConfig | None = None,
+    active_gameplay_config: ActiveGameplayDetectorConfig | None = None,
+    lifecycle_config: LifecycleFusionConfig | None = None,
 ) -> list[GameStateSnapshot]:
     """Fuse detector readings into domain snapshots. Does not emit game events."""
     death_cfg = death_config or DeathDetectorConfig()
     splat_cfg = splat_config or SplatDetectorConfig()
+    respawn_cfg = respawn_config or RespawnDetectorConfig()
+    active_cfg = active_gameplay_config or ActiveGameplayDetectorConfig()
+    lifecycle_cfg = lifecycle_config or LifecycleFusionConfig()
+    lifecycle = LifecycleFuser(lifecycle_cfg)
+
     snapshots: list[GameStateSnapshot] = []
     timer_values: deque[float] = deque(maxlen=fusion_config.smoothing_window)
     last_timer: float | None = None
     last_timer_at: float | None = None
     last_timer_ids: list[str] = []
-    last_alive: bool | None = None
-    last_alive_at: float | None = None
-    last_alive_ids: list[str] = []
     last_splatted: bool | None = None
     last_splatted_at: float | None = None
     last_splatted_ids: list[str] = []
@@ -64,14 +75,17 @@ def fuse_game_state(
                 last_timer_ids,
             )
         )
-        alive, last_alive, last_alive_at, last_alive_ids = _fuse_death_frame(
+        obs = extract_lifecycle_observation(
             frame,
-            death_cfg,
-            fusion_config,
-            last_alive,
-            last_alive_at,
-            last_alive_ids,
+            death_config=death_cfg,
+            respawn_config=respawn_cfg,
+            active_config=active_cfg,
+            timer_config=timer_config,
         )
+        # Held timer from fusion also counts as in-match context.
+        if remaining is not None:
+            obs.match_context = True
+        life = lifecycle.step(frame.timestamp, obs)
         splatted, last_splatted, last_splatted_at, last_splatted_ids = (
             _fuse_splat_frame(
                 frame,
@@ -86,14 +100,20 @@ def fuse_game_state(
             GameStateSnapshot(
                 timestamp=frame.timestamp,
                 match_time_remaining=remaining,
-                player_alive=alive,
+                player_alive=life.player_alive,
                 player_splatted=splatted,
+                countdown_present=life.countdown_present,
+                active_gameplay=life.active_gameplay,
+                player_lifecycle=life.player_lifecycle,
+                countdown_confirmed_this_death_episode=(
+                    life.countdown_confirmed_this_death_episode
+                ),
                 quality=quality,
                 evidence_ids=_combined_evidence(
                     remaining,
                     timer_ids,
-                    alive,
-                    last_alive_ids,
+                    life.player_alive,
+                    life.evidence_ids,
                     splatted,
                     last_splatted_ids,
                 ),
@@ -148,34 +168,6 @@ def _hold_timer(
     return None, "unknown", [], last_value, last_at, last_ids
 
 
-def _fuse_death_frame(
-    frame: VisionFrameResult,
-    death_config: DeathDetectorConfig,
-    fusion_config: StateFusionConfig,
-    last_alive: bool | None,
-    last_at: float | None,
-    last_ids: list[str],
-) -> tuple[bool | None, bool | None, float | None, list[str]]:
-    """Fuse player_alive from death-UI readings.
-
-    Rules for this phase:
-    - ``detected`` death UI → ``player_alive = False``
-    - non-detection does **not** assert alive (no explicit alive detector yet)
-    - otherwise preserve the previous alive value indefinitely
-    """
-    _ = fusion_config
-    best = _best_death(frame)
-    if best is not None and best.confidence >= death_config.min_usable_confidence:
-        reading = best.reading
-        assert isinstance(reading, DeathReading)
-        if reading.detected:
-            return False, False, frame.timestamp, [best.id]
-
-    if last_alive is not None:
-        return last_alive, last_alive, last_at, last_ids
-    return None, None, last_at, []
-
-
 def _fuse_splat_frame(
     frame: VisionFrameResult,
     splat_config: SplatDetectorConfig,
@@ -215,17 +207,6 @@ def _best_timer(frame: VisionFrameResult) -> DetectorResult | None:
     return max(results, key=lambda item: item.confidence) if results else None
 
 
-def _best_death(frame: VisionFrameResult) -> DetectorResult | None:
-    """Highest-confidence death result on a frame, if any."""
-    results = [
-        detection
-        for detection in frame.detections
-        if detection.detector_name == "death"
-        and isinstance(detection.reading, DeathReading)
-    ]
-    return max(results, key=lambda item: item.confidence) if results else None
-
-
 def _best_splat(frame: VisionFrameResult) -> DetectorResult | None:
     """Highest-confidence splat result on a frame, if any."""
     results = [
@@ -241,7 +222,7 @@ def _combined_evidence(
     remaining: float | None,
     timer_ids: list[str],
     alive: bool | None,
-    death_ids: list[str],
+    life_ids: list[str],
     splatted: bool | None,
     splat_ids: list[str],
 ) -> list[str]:
@@ -250,7 +231,7 @@ def _combined_evidence(
     if remaining is not None:
         ids.extend(timer_ids)
     if alive is not None:
-        ids.extend(death_ids)
+        ids.extend(life_ids)
     if splatted is not None:
         ids.extend(splat_ids)
     seen: set[str] = set()

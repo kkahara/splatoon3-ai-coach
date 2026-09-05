@@ -118,7 +118,6 @@ def _adjacent_color_score(
         return 0.0
     x0, y0, x1, y1 = skull_box
     width = max(8, x1 - x0)
-    height = max(8, y1 - y0)
     ax0 = x1 + 1
     ax1 = min(roi.shape[1], ax0 + width)
     ay0 = max(0, y0 - 2)
