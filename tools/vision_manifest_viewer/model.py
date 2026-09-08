@@ -164,6 +164,7 @@ class ObservationView(BaseModel):
     player_alive: bool | None = None
     countdown_present: bool | None = None
     active_gameplay: bool | None = None
+    match_phase: str | None = None
     latch: bool | None = None
     source: str | None = None
     layer: LayerName = "observation"
@@ -258,6 +259,21 @@ class ManifestSummary(BaseModel):
     death_suppressed: int = 0
 
 
+class ScenarioEvidenceView(BaseModel):
+    """Joined Scenario metadata plus ScenarioContext facts for display."""
+
+    scenario_id: str
+    scenario_type: str = ""
+    start_time: float | None = None
+    end_time: float | None = None
+    outcome: str | None = None
+    event_ids: list[str] = Field(default_factory=list)
+    timeline: dict[str, Any] | None = None
+    map: dict[str, Any] | None = None
+    combat: dict[str, Any] | None = None
+    recovery: dict[str, Any] | None = None
+
+
 class ManifestView(BaseModel):
     """Normalized viewer payload derived from a vision manifest."""
 
@@ -278,6 +294,8 @@ class ManifestView(BaseModel):
     death_thresholds: dict[str, float] = Field(default_factory=dict)
     analysis_dir: str = ""
     manifest_path: str = ""
+    scenario_evidence: list[ScenarioEvidenceView] = Field(default_factory=list)
+    review_video_url: str = ""
     ground_truth_labels: list[str] = Field(
         default_factory=lambda: [
             "unknown",

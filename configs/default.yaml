@@ -24,15 +24,17 @@ extraction:
     death_text: [0.20, 0.25, 0.80, 0.70]
 
 vision:
-  # UI/OCR language. Primary detectors use language-neutral cues; text/OCR
-  # assets resolve under template_dir/<language>/ when present.
+  # Analysis-level UI language (en|ja). Text/OCR template packs load only from
+  # template_dir/<language>/ (respawn, splat, death/ouch, death/splatted).
+  # Selected once per analysis; never inferred per frame.
   language: en
   ocr:
     engine: tesseract
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay"]
+  # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
     roi: [0.470, 0.045, 0.530, 0.095]
@@ -56,33 +58,53 @@ vision:
     debounce_seconds: 3.0
     min_usable_confidence: 0.50
   splat:
-    # 1080p pixels: [918:1058, 672:1248] — percent ROI, not absolute 378:702
-    banner_roi: [0.35, 0.85, 0.65, 0.98]
+    # Tall enough for a 3-stack local-kill banner; do not widen into the kill-feed.
+    banner_roi: [0.35, 0.80, 0.65, 0.98]
     template_dir: "../calibration/templates/splat"
-    skull_match_threshold: 0.55
+    # Real local-kill icons ~0.95; kill-feed skulls ~0.60–0.70.
+    skull_match_threshold: 0.80
+    # 「をたおした」/Splatted on the local banner; kill-feed names score ~0.3–0.5.
+    text_match_threshold: 0.70
     white_value_threshold: 230
     adjacent_color_min_ratio: 0.20
     adjacent_min_saturation: 50
-    debounce_seconds: 1.75
+    debounce_seconds: 0.0
     min_usable_confidence: 0.50
   respawn:
-    # Same BR ROI as former countdown (1080p ~[972:1074, 1498:1910])
-    roi: [0.78, 0.90, 0.995, 0.995]
+    # BR plate covers EN “Respawn in N” (~y=0.83) and JA 「復活まであと」 (~y=0.90)
+    roi: [0.840, 0.825, 1.000, 0.950]
     template_dir: "../calibration/templates/respawn"
     match_threshold: 0.60
-    support_match_threshold: 0.38
+    support_match_threshold: 0.55
     dark_frac_min: 0.25
     bright_frac_min: 0.08
     p95_min: 0.75
     yellow_frac_digit_box_min: 0.12
     min_usable_confidence: 0.50
     debounce_seconds: 0.0
+    hold_seconds: 2.0
   active_gameplay:
+    # Evidence only: BL HUD chrome. Weapon/center feed return_control.
+    # Match phase (intro / opening countdown / in_match) lives in lifecycle.
     weapon_roi: [0.32, 0.48, 0.68, 0.90]
     hud_roi: [0.01, 0.78, 0.22, 0.98]
+    center_roi: [0.46, 0.40, 0.54, 0.62]
     weapon_edge_min: 0.035
     weapon_luma_std_min: 0.08
     hud_edge_min: 0.020
+    center_edge_min: 0.045
+    min_usable_confidence: 0.50
+    debounce_seconds: 0.0
+  map_overlay:
+    # Top-left close “X” (1080p ~[27:341, 19:182])
+    map_roi: [0.0208, 0.0324, 0.1536, 0.1620]
+    tank_roi: [0.46, 0.40, 0.54, 0.62]
+    periphery_roi: [0.02, 0.02, 0.98, 0.98]
+    template_dir: "../calibration/templates/map_overlay"
+    match_threshold: 0.70
+    map_edge_min: 0.045
+    tank_edge_max: 0.055
+    periphery_blur_min: 0.55
     min_usable_confidence: 0.50
     debounce_seconds: 0.0
   state_fusion:
@@ -92,13 +114,31 @@ vision:
   lifecycle:
     countdown_present_min_observations: 2
     countdown_absent_min_observations: 2
-    active_again_min_observations: 3
+    # Unused: RESPAWNED arms awaiting_control directly (plate end == no control).
+    awaiting_control_absent_min_observations: 2
+    active_again_min_observations: 2
+    active_again_max_gap_observations: 1
+    # HUD+timer mid-tier cannot fire until this long after latch arm.
+    active_again_mid_tier_delay_seconds: 2.5
+    # Plate-less deaths (water / wipeout) may leave DEAD after this delay.
+    dead_skip_countdown_min_seconds: 6.5
+    dead_skip_countdown_min_observations: 3
     max_respawn_observation_seconds: 30.0
     stale_to_unknown: true
     death_requires_match_context: true
     match_context_hold_seconds: 20.0
+    opening_clock_seconds: [180, 300]
   events:
     debounce_ms: 300
+    splat_absent_min_observations: 2
+    splat_fingerprint_max_distance: 10
+    splat_slot_nearby: 0.18
+
+scenarios:
+  post_death_follow_seconds: 8.0
+  post_death_max_seconds: 30.0
+  engagement_gap_seconds: 3.0
+  engagement_include_following_death_seconds: 2.0
 
 coach:
   provider: openai

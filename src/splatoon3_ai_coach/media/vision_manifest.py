@@ -23,7 +23,7 @@ def hash_vision_config(config: VisionConfig) -> str:
     """Hash a portable semantic view of the vision configuration."""
     payload = config.model_dump(mode="json")
     payload["timer"]["template_dir"] = Path(payload["timer"]["template_dir"]).name
-    for key in ("death", "splat", "respawn"):
+    for key in ("death", "splat", "respawn", "map_overlay"):
         section = payload.get(key) or {}
         template_dir = section.get("template_dir")
         if template_dir:

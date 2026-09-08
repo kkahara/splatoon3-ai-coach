@@ -242,6 +242,17 @@ def build_death_episodes(
                     )
                     has_respawn = True
                     break
+                if phase == "awaiting_control":
+                    steps.append(
+                        EpisodeStep(
+                            timestamp=ts,
+                            label="AWAITING CONTROL",
+                            detail="lifecycle = awaiting_control (internal)",
+                            kind="awaiting_control",
+                        )
+                    )
+                    has_respawn = True
+                    break
 
         steps.sort(key=lambda step: step.timestamp)
         end = steps[-1].timestamp if steps else death_at
@@ -283,6 +294,7 @@ def _event_category(event_type: str) -> str:
         "respawn": "lifecycle",
         "active_again": "lifecycle",
         "splat": "splat",
+        "map_overlay": "other",
     }
     return mapping.get(event_type, "lifecycle")
 

@@ -6,6 +6,7 @@ from splatoon3_ai_coach.config.models import (
     ActiveGameplayDetectorConfig,
     DeathDetectorConfig,
     LifecycleFusionConfig,
+    MapOverlayDetectorConfig,
     RespawnDetectorConfig,
     SplatDetectorConfig,
     StateFusionConfig,
@@ -19,6 +20,7 @@ from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     GameStateSnapshot,
     SourceFrameReference,
+    SplatBannerInstance,
     SplatReading,
     StateQuality,
     TimerReading,
@@ -44,12 +46,14 @@ def fuse_game_state(
     respawn_config: RespawnDetectorConfig | None = None,
     active_gameplay_config: ActiveGameplayDetectorConfig | None = None,
     lifecycle_config: LifecycleFusionConfig | None = None,
+    map_overlay_config: MapOverlayDetectorConfig | None = None,
 ) -> list[GameStateSnapshot]:
     """Fuse detector readings into domain snapshots. Does not emit game events."""
     death_cfg = death_config or DeathDetectorConfig()
     splat_cfg = splat_config or SplatDetectorConfig()
     respawn_cfg = respawn_config or RespawnDetectorConfig()
     active_cfg = active_gameplay_config or ActiveGameplayDetectorConfig()
+    map_cfg = map_overlay_config or MapOverlayDetectorConfig()
     lifecycle_cfg = lifecycle_config or LifecycleFusionConfig()
     lifecycle = LifecycleFuser(lifecycle_cfg)
 
@@ -80,13 +84,15 @@ def fuse_game_state(
             death_config=death_cfg,
             respawn_config=respawn_cfg,
             active_config=active_cfg,
+            map_overlay_config=map_cfg,
             timer_config=timer_config,
         )
         # Held timer from fusion also counts as in-match context.
         if remaining is not None:
             obs.match_context = True
+            obs.timer_seconds = remaining
         life = lifecycle.step(frame.timestamp, obs)
-        splatted, last_splatted, last_splatted_at, last_splatted_ids = (
+        splatted, instances, last_splatted, last_splatted_at, last_splatted_ids = (
             _fuse_splat_frame(
                 frame,
                 splat_cfg,
@@ -102,11 +108,17 @@ def fuse_game_state(
                 match_time_remaining=remaining,
                 player_alive=life.player_alive,
                 player_splatted=splatted,
+                splat_instances=instances,
                 countdown_present=life.countdown_present,
                 active_gameplay=life.active_gameplay,
+                map_overlay_present=life.map_overlay_present,
+                match_phase=life.match_phase,
                 player_lifecycle=life.player_lifecycle,
                 countdown_confirmed_this_death_episode=(
                     life.countdown_confirmed_this_death_episode
+                ),
+                awaiting_control_confirmed_this_death_episode=(
+                    life.awaiting_control_confirmed_this_death_episode
                 ),
                 quality=quality,
                 evidence_ids=_combined_evidence(
@@ -175,25 +187,39 @@ def _fuse_splat_frame(
     last_splatted: bool | None,
     last_at: float | None,
     last_ids: list[str],
-) -> tuple[bool | None, bool | None, float | None, list[str]]:
+) -> tuple[
+    bool | None,
+    list[SplatBannerInstance],
+    bool | None,
+    float | None,
+    list[str],
+]:
     """Fuse transient ``player_splatted`` from kill-banner readings.
 
     Rules:
-    - usable ``detected`` → ``True``
-    - short hold after a positive → ``True``
+    - usable ``detected`` → ``True`` plus this-frame ``splat_instances``
+    - short hold after a positive → ``True`` with **empty** instances
     - expired / no cue → ``None`` (never assert ``False``)
+
+    Episodes must not see held banners as still present.
     """
     best = _best_splat(frame)
     if best is not None and best.confidence >= splat_config.min_usable_confidence:
         reading = best.reading
         assert isinstance(reading, SplatReading)
         if reading.detected:
-            return True, True, frame.timestamp, [best.id]
+            return (
+                True,
+                list(reading.instances),
+                True,
+                frame.timestamp,
+                [best.id],
+            )
 
     if last_splatted is True and last_at is not None:
         if frame.timestamp - last_at <= fusion_config.max_hold_duration:
-            return True, last_splatted, last_at, last_ids
-    return None, None, last_at, []
+            return True, [], last_splatted, last_at, last_ids
+    return None, [], None, last_at, []
 
 
 def _best_timer(frame: VisionFrameResult) -> DetectorResult | None:

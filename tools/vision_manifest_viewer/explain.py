@@ -114,6 +114,22 @@ def build_transitions(
                         ),
                     )
                 )
+        elif et == "splat":
+            transitions.append(
+                TransitionExplanation(
+                    id=f"event:splat:{ts}",
+                    timestamp=ts,
+                    event_type="splat",
+                    title="SPLAT",
+                    checks=[EvidenceCheck(ok=True, label="SplatReading rising edge")],
+                    meaning=(
+                        "Local kill confirmed. Orthogonal to death/respawn lifecycle."
+                    ),
+                    observation_id=_nearest(
+                        observations, ts, detector="splat", positive_only=True
+                    ),
+                )
+            )
     transitions.sort(key=lambda t: t.timestamp)
     return transitions
 
@@ -125,10 +141,16 @@ def build_lifecycle_marks(
     marks: list[LifecycleTransitionMark] = []
     for tr in transitions:
         event_label = (tr.event_type or tr.title).upper().replace("_", " ")
-        if tr.to_phase == "countdown":
+        phase_label = (tr.to_phase or "").upper()
+        if tr.event_type == "splat":
+            event_label = "SPLAT"
+            phase_label = "splat"
+        elif tr.to_phase == "countdown":
             event_label = "PRESENT"
         elif tr.from_phase == "countdown" and tr.to_phase == "respawned":
             event_label = "ABSENT / RESPAWN"
+        elif tr.from_phase == "respawned" and tr.to_phase == "awaiting_control":
+            event_label = "AWAITING CONTROL"
         elif tr.event_type == "active_again" or tr.to_phase == "alive":
             event_label = "ACTIVE_AGAIN"
         elif tr.event_type == "death" or tr.to_phase == "dead":
@@ -136,7 +158,7 @@ def build_lifecycle_marks(
         marks.append(
             LifecycleTransitionMark(
                 timestamp=tr.timestamp,
-                phase_label=(tr.to_phase or "").upper(),
+                phase_label=phase_label,
                 event_label=event_label,
                 transition_id=tr.id,
             )
@@ -383,7 +405,37 @@ def _explain_phase_change(
             ),
         )
 
-    if from_phase == "respawned" and to_phase == "alive":
+    if from_phase == "respawned" and to_phase == "awaiting_control":
+        sj = snap.get("awaiting_control_confirmed_this_death_episode")
+        return TransitionExplanation(
+            id=f"tr:{timestamp}:awaiting_control",
+            timestamp=timestamp,
+            from_phase=from_phase,
+            to_phase=to_phase,
+            title="AWAITING CONTROL",
+            checks=[
+                EvidenceCheck(
+                    ok=True,
+                    label="control absent sustained (awaiting_control_absent_min)",
+                ),
+                EvidenceCheck(
+                    ok=sj is not False,
+                    label="awaiting_control_confirmed_this_death_episode",
+                ),
+            ],
+            player_alive=False,
+            latch=True if latch_bool is None else latch_bool,
+            meaning=(
+                "Post-respawn control-return latch armed (not Super Jump detection). "
+                "ACTIVE_AGAIN requires control return from this phase only. "
+                "Map viewing is independent evidence and does not drive this transition."
+            ),
+            observation_id=_nearest(
+                observations, timestamp, detector="active_gameplay", positive_only=False
+            ),
+        )
+
+    if from_phase == "awaiting_control" and to_phase == "alive":
         return TransitionExplanation(
             id=f"tr:{timestamp}:active",
             timestamp=timestamp,
@@ -392,20 +444,55 @@ def _explain_phase_change(
             to_phase=to_phase,
             title="ACTIVE AGAIN",
             checks=[
-                EvidenceCheck(ok=True, label="ActiveGameplayReading detected"),
+                EvidenceCheck(ok=True, label="previous_phase == awaiting_control"),
                 EvidenceCheck(
                     ok=True,
-                    label=f"active persistence: {active_min}/{active_min} observations",
+                    label="return_control (weapon+center; HUD optional)",
+                ),
+                EvidenceCheck(
+                    ok=True,
+                    label=(
+                        f"control present: {active_min}/{active_min} "
+                        "(1-frame gap allowed)"
+                    ),
                 ),
                 EvidenceCheck(ok=True, label="no countdown conflict"),
                 EvidenceCheck(ok=True, label="no death conflict"),
             ],
             player_alive=True,
             latch=False,
-            meaning="Positive normal-gameplay evidence confirmed.",
+            meaning=(
+                "Control returned after post-respawn latch using soft return_control "
+                "with gap-tolerant streak. ACTIVE_AGAIN requires previous_phase == "
+                "awaiting_control."
+            ),
             observation_id=_nearest(
                 observations, timestamp, detector="active_gameplay", positive_only=True
             ),
+        )
+
+    if from_phase == "respawned" and to_phase == "alive":
+        return TransitionExplanation(
+            id=f"tr:{timestamp}:active_anomaly",
+            timestamp=timestamp,
+            event_type="active_again",
+            from_phase=from_phase,
+            to_phase=to_phase,
+            title="ACTIVE AGAIN (ANOMALY)",
+            checks=[
+                EvidenceCheck(
+                    ok=False,
+                    label="previous_phase == awaiting_control (required)",
+                ),
+            ],
+            player_alive=True,
+            latch=False,
+            meaning="Alive without SUPER_JUMP latch — violates ACTIVE_AGAIN invariant.",
+            observation_id=_nearest(
+                observations, timestamp, detector="active_gameplay", positive_only=True
+            ),
+            anomaly=True,
+            anomaly_message="ACTIVE without SUPER_JUMP latch",
         )
 
     if to_phase == "unknown":
@@ -486,6 +573,20 @@ def _transitions_from_events_only(
                     player_alive=True,
                     latch=False,
                     meaning="Positive normal-gameplay evidence confirmed.",
+                )
+            )
+        elif et == "splat":
+            out.append(
+                TransitionExplanation(
+                    id=f"event:splat:{ts}",
+                    timestamp=ts,
+                    event_type="splat",
+                    title="SPLAT",
+                    checks=[EvidenceCheck(ok=True, label="SPLAT event in manifest")],
+                    meaning="Local kill confirmed. Orthogonal to death/respawn lifecycle.",
+                    observation_id=_nearest(
+                        observations, ts, detector="splat", positive_only=True
+                    ),
                 )
             )
     return out

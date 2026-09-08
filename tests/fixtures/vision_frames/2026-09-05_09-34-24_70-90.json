@@ -1,0 +1,4442 @@
+{
+  "video_label": "2026-09-05 09-34-24",
+  "t0": 70.0,
+  "t1": 90.5,
+  "frame_results": [
+    {
+      "detections": [
+        {
+          "confidence": 0.9409590661525726,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4200:timer:timer@0.2.0+2157884:cf0a7fd66290",
+          "reading": {
+            "display": "4:11",
+            "kind": "timer",
+            "seconds_remaining": 251.0
+          }
+        },
+        {
+          "confidence": 0.7451930642127991,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4200:death:death@0.2.0+2157884:f3636743fe37",
+          "reading": {
+            "banner_dark_score": 0.17865957049486458,
+            "banner_detected": false,
+            "banner_template_score": 0.265375018119812,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2548069357872009,
+            "ouch_white_score": 0.06275045537340619
+          }
+        },
+        {
+          "confidence": 0.2927624434232712,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4200:splat:splat@0.2.0+2157884:eaedbf864eb8",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6505832076072693,
+            "text_score": 0.378095805644989,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7801251964066795,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4200:respawn:respawn@0.2.0+2157884:c8ebba7b648e",
+          "reading": {
+            "bright_frac": 0.02311207311207311,
+            "confidence": 0.7801251964066795,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.15550160805062765,
+            "mean_val": 0.6692784049646795,
+            "ocr_text": null,
+            "p95": 0.7098039388656616,
+            "presence_score": 0.2198748035933204,
+            "template_score": 0.5008108615875244,
+            "yellow_frac": 2.405002405002405e-05
+          }
+        },
+        {
+          "confidence": 0.9545370364211527,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4200:active_gameplay:active_gameplay@0.2.0+2157884:bbae4ee25b7e",
+          "reading": {
+            "center_control": false,
+            "center_edge_frac": 0.04274564959598467,
+            "detected": true,
+            "hud_edge_frac": 0.022194651226909293,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.9545370364211527,
+            "timer_present": false,
+            "weapon_edge_frac": 0.02192761559892131,
+            "weapon_luma_std": 0.1316523551940918
+          }
+        },
+        {
+          "confidence": 0.9275755658745766,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4200:map_overlay:map_overlay@0.2.0+2157884:a4b904ff5d23",
+          "reading": {
+            "center_tank_edge_frac": 0.04274564959598467,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.03523419449695442,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.07242443412542343
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4200",
+      "frame_path": "debug_snapshots/00004200_000070.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4200,
+      "source_pts": 4200,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 70.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9529386013746262,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4230:timer:timer@0.2.0+2157884:707bcd68deee",
+          "reading": {
+            "display": "4:10",
+            "kind": "timer",
+            "seconds_remaining": 250.0
+          }
+        },
+        {
+          "confidence": 0.8218660801649094,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4230:death:death@0.2.0+2157884:b9a5340c80a8",
+          "reading": {
+            "banner_dark_score": 0.20632436974789914,
+            "banner_detected": false,
+            "banner_template_score": 0.3299102187156677,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.17813391983509064,
+            "ouch_white_score": 0.05746812386156649
+          }
+        },
+        {
+          "confidence": 0.3123668164014816,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4230:splat:splat@0.2.0+2157884:5f595210d706",
+          "reading": {
+            "adjacent_color_score": 0.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6941484808921814,
+            "text_score": 0.3878767788410187,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4230:respawn:respawn@0.2.0+2157884:c29a57d17930",
+          "reading": {
+            "bright_frac": 0.9743386243386244,
+            "confidence": 0.55,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.18067217459374324,
+            "mean_val": 0.9335687406275642,
+            "ocr_text": null,
+            "p95": 0.929411768913269,
+            "presence_score": 0.571125117975568,
+            "template_score": 0.5131463408470154,
+            "yellow_frac": 0.0039442039442039445
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4230:active_gameplay:active_gameplay@0.2.0+2157884:fda1399a9379",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.07810043848763135,
+            "detected": false,
+            "hud_edge_frac": 0.01776031614741292,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.02629783815832255,
+            "weapon_luma_std": 0.13458435237407684
+          }
+        },
+        {
+          "confidence": 0.85039122402668,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4230:map_overlay:map_overlay@0.2.0+2157884:2ce854f57bd1",
+          "reading": {
+            "center_tank_edge_frac": 0.07810043848763135,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01606805293005671,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.14960877597332
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4230",
+      "frame_path": "debug_snapshots/00004230_000070.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4230,
+      "source_pts": 4230,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 70.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9529034942388535,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4260:timer:timer@0.2.0+2157884:707bcd68deee",
+          "reading": {
+            "display": "4:10",
+            "kind": "timer",
+            "seconds_remaining": 250.0
+          }
+        },
+        {
+          "confidence": 0.725428581237793,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4260:death:death@0.2.0+2157884:62d31500a8a9",
+          "reading": {
+            "banner_dark_score": 0.4423242763772175,
+            "banner_detected": false,
+            "banner_template_score": 0.30874601006507874,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.27457141876220703,
+            "ouch_white_score": 0.06357012750455374
+          }
+        },
+        {
+          "confidence": 0.2945861577987671,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4260:splat:splat@0.2.0+2157884:6fb67952c6bf",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6546359062194824,
+            "text_score": 0.3966140151023865,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.8410610220580218,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4260:respawn:respawn@0.2.0+2157884:64e2276a7f4e",
+          "reading": {
+            "bright_frac": 0.0,
+            "confidence": 0.8410610220580218,
+            "countdown_value": null,
+            "dark_frac": 0.0002886002886002886,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.2344858482113384,
+            "mean_val": 0.3886225466617624,
+            "ocr_text": null,
+            "p95": 0.529411792755127,
+            "presence_score": 0.1589389779419782,
+            "template_score": 0.3680404722690582,
+            "yellow_frac": 0.02085137085137085
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4260:active_gameplay:active_gameplay@0.2.0+2157884:c387293047d6",
+          "reading": {
+            "center_control": false,
+            "center_edge_frac": 0.04147706902732964,
+            "detected": true,
+            "hud_edge_frac": 0.02355022516312839,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.028306036708594454,
+            "weapon_luma_std": 0.14847104251384735
+          }
+        },
+        {
+          "confidence": 0.9004816263914108,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4260:map_overlay:map_overlay@0.2.0+2157884:476575668d70",
+          "reading": {
+            "center_tank_edge_frac": 0.04147706902732964,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.022684310018903593,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.09951837360858917
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4260",
+      "frame_path": "debug_snapshots/00004260_000071.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4260,
+      "source_pts": 4260,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 71.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9399372935295105,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4290:timer:timer@0.2.0+2157884:bde6e15700b4",
+          "reading": {
+            "display": "4:09",
+            "kind": "timer",
+            "seconds_remaining": 249.0
+          }
+        },
+        {
+          "confidence": 0.7252886593341827,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4290:death:death@0.2.0+2157884:c8579f404205",
+          "reading": {
+            "banner_dark_score": 0.443941923436041,
+            "banner_detected": false,
+            "banner_template_score": 0.16387876868247986,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.27471134066581726,
+            "ouch_white_score": 0.06284153005464481
+          }
+        },
+        {
+          "confidence": 0.26334115862846375,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4290:splat:splat@0.2.0+2157884:4cdc26aa55d1",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.5852025747299194,
+            "text_score": 0.39944174885749817,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7837174213156212,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4290:respawn:respawn@0.2.0+2157884:fb097c770b61",
+          "reading": {
+            "bright_frac": 0.003294853294853295,
+            "confidence": 0.7837174213156212,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.8681588056097861,
+            "mean_val": 0.793025493025493,
+            "ocr_text": null,
+            "p95": 0.7176470756530762,
+            "presence_score": 0.21628257868437883,
+            "template_score": 0.5557630658149719,
+            "yellow_frac": 0.00456950456950457
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4290:active_gameplay:active_gameplay@0.2.0+2157884:34eb9ea73dea",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.05292187198367392,
+            "detected": false,
+            "hud_edge_frac": 0.016025641025641024,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.8518353101967164,
+            "timer_present": false,
+            "weapon_edge_frac": 0.01661067086582046,
+            "weapon_luma_std": 0.09911854565143585
+          }
+        },
+        {
+          "confidence": 0.7585941851139069,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4290:map_overlay:map_overlay@0.2.0+2157884:60da7fcb55f7",
+          "reading": {
+            "center_tank_edge_frac": 0.05292187198367392,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01921865154379332,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.24140581488609314
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4290",
+      "frame_path": "debug_snapshots/00004290_000071.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4290,
+      "source_pts": 4290,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 71.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9392463266849518,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4320:timer:timer@0.2.0+2157884:bde6e15700b4",
+          "reading": {
+            "display": "4:09",
+            "kind": "timer",
+            "seconds_remaining": 249.0
+          }
+        },
+        {
+          "confidence": 0.6740891337394714,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4320:death:death@0.2.0+2157884:7b4813c722a7",
+          "reading": {
+            "banner_dark_score": 0.4426852474323063,
+            "banner_detected": false,
+            "banner_template_score": 0.3139013648033142,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.32591086626052856,
+            "ouch_white_score": 0.0802367941712204
+          }
+        },
+        {
+          "confidence": 0.2802436351776123,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4320:splat:splat@0.2.0+2157884:bf9dfc013e60",
+          "reading": {
+            "adjacent_color_score": 0.9659863945578231,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6227636337280273,
+            "text_score": 0.3250660002231598,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.8090089908065906,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4320:respawn:respawn@0.2.0+2157884:28b482cc538e",
+          "reading": {
+            "bright_frac": 0.013107263107263107,
+            "confidence": 0.8090089908065906,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.769491837138896,
+            "mean_val": 0.678749776004678,
+            "ocr_text": null,
+            "p95": 0.6235294342041016,
+            "presence_score": 0.1909910091934094,
+            "template_score": 0.4390082061290741,
+            "yellow_frac": 0.014213564213564213
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4320:active_gameplay:active_gameplay@0.2.0+2157884:e06089db90f3",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.05430076390612504,
+            "detected": true,
+            "hud_edge_frac": 0.04026514107159269,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.017767775744786652,
+            "weapon_luma_std": 0.11242229491472244
+          }
+        },
+        {
+          "confidence": 0.9148809239268303,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4320:map_overlay:map_overlay@0.2.0+2157884:ac1183a7c059",
+          "reading": {
+            "center_tank_edge_frac": 0.05430076390612504,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.03581180424280613,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.08511907607316971
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4320",
+      "frame_path": "debug_snapshots/00004320_000072.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4320,
+      "source_pts": 4320,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 72.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9520657360553741,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4350:timer:timer@0.2.0+2157884:21dd72f78bbf",
+          "reading": {
+            "display": "4:08",
+            "kind": "timer",
+            "seconds_remaining": 248.0
+          }
+        },
+        {
+          "confidence": 0.6339947283267975,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4350:death:death@0.2.0+2157884:75c131aa15a1",
+          "reading": {
+            "banner_dark_score": 0.44224089635854347,
+            "banner_detected": false,
+            "banner_template_score": 0.26590695977211,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3660052716732025,
+            "ouch_white_score": 0.0715846994535519
+          }
+        },
+        {
+          "confidence": 0.3238045871257782,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4350:splat:splat@0.2.0+2157884:c3fc5f6ae7e6",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.719565749168396,
+            "text_score": 0.39078518748283386,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.810466846606088,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4350:respawn:respawn@0.2.0+2157884:1a547ddf220d",
+          "reading": {
+            "bright_frac": 0.01216931216931217,
+            "confidence": 0.810466846606088,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7710790444123777,
+            "mean_val": 0.683086136811627,
+            "ocr_text": null,
+            "p95": 0.6196078658103943,
+            "presence_score": 0.18953315339391194,
+            "template_score": 0.3979744613170624,
+            "yellow_frac": 0.009716209716209716
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4350:active_gameplay:active_gameplay@0.2.0+2157884:1d9e83ad0830",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.08510520945368302,
+            "detected": true,
+            "hud_edge_frac": 0.0328898998253837,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.021098835244840842,
+            "weapon_luma_std": 0.1189347505569458
+          }
+        },
+        {
+          "confidence": 0.8831617534160614,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4350:map_overlay:map_overlay@0.2.0+2157884:fd5b8192c037",
+          "reading": {
+            "center_tank_edge_frac": 0.08510520945368302,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.008191556395715185,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.1168382465839386
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4350",
+      "frame_path": "debug_snapshots/00004350_000072.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4350,
+      "source_pts": 4350,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 72.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9523489624261856,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4380:timer:timer@0.2.0+2157884:21dd72f78bbf",
+          "reading": {
+            "display": "4:08",
+            "kind": "timer",
+            "seconds_remaining": 248.0
+          }
+        },
+        {
+          "confidence": 0.7190864980220795,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4380:death:death@0.2.0+2157884:26e499378f79",
+          "reading": {
+            "banner_dark_score": 0.40818067226890753,
+            "banner_detected": false,
+            "banner_template_score": 0.21923132240772247,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.28091350197792053,
+            "ouch_white_score": 0.3521857923497268
+          }
+        },
+        {
+          "confidence": 0.34607094526290894,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4380:splat:splat@0.2.0+2157884:146bad7af88f",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.7690465450286865,
+            "text_score": 0.3755708336830139,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.8222014187321518,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4380:respawn:respawn@0.2.0+2157884:14d3d6fe4ea5",
+          "reading": {
+            "bright_frac": 0.000505050505050505,
+            "confidence": 0.8222014187321518,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7908200586631959,
+            "mean_val": 0.6762603627309509,
+            "ocr_text": null,
+            "p95": 0.5921568870544434,
+            "presence_score": 0.17779858126784814,
+            "template_score": 0.3698757290840149,
+            "yellow_frac": 0.0006974506974506974
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4380:active_gameplay:active_gameplay@0.2.0+2157884:b810f00ee955",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.10286533741485343,
+            "detected": true,
+            "hud_edge_frac": 0.034969212388567227,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.032249118623969605,
+            "weapon_luma_std": 0.14945946633815765
+          }
+        },
+        {
+          "confidence": 0.8075002580881119,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4380:map_overlay:map_overlay@0.2.0+2157884:3fbc86f1f0ce",
+          "reading": {
+            "center_tank_edge_frac": 0.10286533741485343,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.035864314219701744,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.19249974191188812
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4380",
+      "frame_path": "debug_snapshots/00004380_000073.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4380,
+      "source_pts": 4380,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 73.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9450051784515381,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4410:timer:timer@0.2.0+2157884:ea8e1577694c",
+          "reading": {
+            "display": "4:07",
+            "kind": "timer",
+            "seconds_remaining": 247.0
+          }
+        },
+        {
+          "confidence": 0.6842828691005707,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4410:death:death@0.2.0+2157884:89c06dcfeae1",
+          "reading": {
+            "banner_dark_score": 0.2863059757236228,
+            "banner_detected": false,
+            "banner_template_score": 0.2629005014896393,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3157171308994293,
+            "ouch_white_score": 0.31493624772313294
+          }
+        },
+        {
+          "confidence": 0.28694760203361513,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4410:splat:splat@0.2.0+2157884:f563732bdf5d",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.637661337852478,
+            "text_score": 0.4386313259601593,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7457396051882551,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4410:respawn:respawn@0.2.0+2157884:c98fec1f0748",
+          "reading": {
+            "bright_frac": 0.05923520923520924,
+            "confidence": 0.7457396051882551,
+            "countdown_value": null,
+            "dark_frac": 4.81000481000481e-05,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.6078551151100171,
+            "mean_val": 0.7113619858717899,
+            "ocr_text": null,
+            "p95": 0.7882353067398071,
+            "presence_score": 0.2542603948117449,
+            "template_score": 0.5358225107192993,
+            "yellow_frac": 0.1360990860990861
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4410:active_gameplay:active_gameplay@0.2.0+2157884:781006f15be9",
+          "reading": {
+            "center_control": false,
+            "center_edge_frac": 0.015443589531452525,
+            "detected": true,
+            "hud_edge_frac": 0.05048938516680452,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.03737161873553619,
+            "weapon_luma_std": 0.201359823346138
+          }
+        },
+        {
+          "confidence": 0.8644750118255615,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4410:map_overlay:map_overlay@0.2.0+2157884:3c0cdd8643c7",
+          "reading": {
+            "center_tank_edge_frac": 0.015443589531452525,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.006616257088846881,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.13552498817443848
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4410",
+      "frame_path": "debug_snapshots/00004410_000073.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4410,
+      "source_pts": 4410,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 73.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9445135295391083,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4440:timer:timer@0.2.0+2157884:ea8e1577694c",
+          "reading": {
+            "display": "4:07",
+            "kind": "timer",
+            "seconds_remaining": 247.0
+          }
+        },
+        {
+          "confidence": 0.5711938142776489,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4440:death:death@0.2.0+2157884:3af2bc28556c",
+          "reading": {
+            "banner_dark_score": 0.2878851540616246,
+            "banner_detected": false,
+            "banner_template_score": 0.29887890815734863,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.4288061857223511,
+            "ouch_white_score": 0.07194899817850638
+          }
+        },
+        {
+          "confidence": 0.2750114232301712,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4440:splat:splat@0.2.0+2157884:5ffc4b007c2c",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6111364960670471,
+            "text_score": 0.5402564406394958,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7633587938572938,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4440:respawn:respawn@0.2.0+2157884:3110cd58028c",
+          "reading": {
+            "bright_frac": 0.022655122655122654,
+            "confidence": 0.7633587938572938,
+            "countdown_value": null,
+            "dark_frac": 0.0010822510822510823,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7971830348300936,
+            "mean_val": 0.7496311386507465,
+            "ocr_text": null,
+            "p95": 0.7647058963775635,
+            "presence_score": 0.23664120614270626,
+            "template_score": 0.43991971015930176,
+            "yellow_frac": 0.042039442039442036
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4440:active_gameplay:active_gameplay@0.2.0+2157884:f8b154e88b8b",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.11439287388654477,
+            "detected": true,
+            "hud_edge_frac": 0.045584045584045586,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.053634839375992144,
+            "weapon_luma_std": 0.1862536072731018
+          }
+        },
+        {
+          "confidence": 0.6754886507987976,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4440:map_overlay:map_overlay@0.2.0+2157884:73f62d695245",
+          "reading": {
+            "center_tank_edge_frac": 0.11439287388654477,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01570048309178744,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.3245113492012024
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4440",
+      "frame_path": "debug_snapshots/00004440_000074.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4440,
+      "source_pts": 4440,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 74.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9302753359079361,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4470:timer:timer@0.2.0+2157884:2133e0c51bb4",
+          "reading": {
+            "display": "4:06",
+            "kind": "timer",
+            "seconds_remaining": 246.0
+          }
+        },
+        {
+          "confidence": 0.5861437916755676,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4470:death:death@0.2.0+2157884:273805542985",
+          "reading": {
+            "banner_dark_score": 0.4303279178338002,
+            "banner_detected": false,
+            "banner_template_score": 0.23393961787223816,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.4138562083244324,
+            "ouch_white_score": 0.07213114754098361
+          }
+        },
+        {
+          "confidence": 0.303215816617012,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4470:splat:splat@0.2.0+2157884:6a5ca00b1feb",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6738129258155823,
+            "text_score": 0.2982248067855835,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7762544155608238,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4470:respawn:respawn@0.2.0+2157884:c092f28ffeb4",
+          "reading": {
+            "bright_frac": 0.01596921596921597,
+            "confidence": 0.7762544155608238,
+            "countdown_value": null,
+            "dark_frac": 0.02385762385762386,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.6157710626338077,
+            "mean_val": 0.6388649331786587,
+            "ocr_text": null,
+            "p95": 0.6980392336845398,
+            "presence_score": 0.22374558443917628,
+            "template_score": 0.4116527736186981,
+            "yellow_frac": 0.0018037518037518038
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4470:active_gameplay:active_gameplay@0.2.0+2157884:37684846e761",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.08182344667824935,
+            "detected": true,
+            "hud_edge_frac": 0.029903041999816193,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.041780092695894985,
+            "weapon_luma_std": 0.16077908873558044
+          }
+        },
+        {
+          "confidence": 0.8905136808753014,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4470:map_overlay:map_overlay@0.2.0+2157884:a5c4d3423605",
+          "reading": {
+            "center_tank_edge_frac": 0.08182344667824935,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.03964503255618568,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.10948631912469864
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4470",
+      "frame_path": "debug_snapshots/00004470_000074.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4470,
+      "source_pts": 4470,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 74.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9303351789712906,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4500:timer:timer@0.2.0+2157884:2133e0c51bb4",
+          "reading": {
+            "display": "4:06",
+            "kind": "timer",
+            "seconds_remaining": 246.0
+          }
+        },
+        {
+          "confidence": 0.6052583158016205,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4500:death:death@0.2.0+2157884:1b27b4edf3d0",
+          "reading": {
+            "banner_dark_score": 0.48413146591970113,
+            "banner_detected": false,
+            "banner_template_score": 0.22887073457241058,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3947416841983795,
+            "ouch_white_score": 0.072040072859745
+          }
+        },
+        {
+          "confidence": 0.2988804817199707,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4500:splat:splat@0.2.0+2157884:702683fd86b2",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6641788482666016,
+            "text_score": 0.3194141387939453,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5677334974043182,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4500:respawn:respawn@0.2.0+2157884:592810909203",
+          "reading": {
+            "bright_frac": 0.00012025012025012025,
+            "confidence": 0.5677334974043182,
+            "countdown_value": null,
+            "dark_frac": 0.707046657046657,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.4914609210687642,
+            "mean_val": 0.18690575219986985,
+            "ocr_text": null,
+            "p95": 0.49803921580314636,
+            "presence_score": 0.4322665025956818,
+            "template_score": 0.4121516942977905,
+            "yellow_frac": 0.0002886002886002886
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4500:active_gameplay:active_gameplay@0.2.0+2157884:81a0f3abbedf",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.1080223932048206,
+            "detected": true,
+            "hud_edge_frac": 0.028823178016726403,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.0528825618238268,
+            "weapon_luma_std": 0.2016003280878067
+          }
+        },
+        {
+          "confidence": 0.8413430154323578,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4500:map_overlay:map_overlay@0.2.0+2157884:a2b2a7973a13",
+          "reading": {
+            "center_tank_edge_frac": 0.1080223932048206,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.0,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.1586569845676422
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4500",
+      "frame_path": "debug_snapshots/00004500_000075.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4500,
+      "source_pts": 4500,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 75.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9048130810260773,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4530:timer:timer@0.2.0+2157884:398ba82a2228",
+          "reading": {
+            "display": "4:05",
+            "kind": "timer",
+            "seconds_remaining": 245.0
+          }
+        },
+        {
+          "confidence": 0.5959270298480988,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4530:death:death@0.2.0+2157884:34fbbfbdab0f",
+          "reading": {
+            "banner_dark_score": 0.5742028011204482,
+            "banner_detected": false,
+            "banner_template_score": 0.14641961455345154,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.40407297015190125,
+            "ouch_white_score": 0.07222222222222222
+          }
+        },
+        {
+          "confidence": 0.30749863386154175,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4530:splat:splat@0.2.0+2157884:759fdd3fe784",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6833302974700928,
+            "text_score": 0.281898558139801,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5819930381675131,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4530:respawn:respawn@0.2.0+2157884:c70ef9dde803",
+          "reading": {
+            "bright_frac": 0.09494949494949495,
+            "confidence": 0.5819930381675131,
+            "countdown_value": null,
+            "dark_frac": 0.2855699855699856,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7241885710513162,
+            "mean_val": 0.4723415292042743,
+            "ocr_text": null,
+            "p95": 0.9176470637321472,
+            "presence_score": 0.41800696183248687,
+            "template_score": 0.38348811864852905,
+            "yellow_frac": 0.10875420875420876
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4530:active_gameplay:active_gameplay@0.2.0+2157884:f2a55fac1c19",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.05068806706930311,
+            "detected": true,
+            "hud_edge_frac": 0.025962687253009833,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06067628476892966,
+            "weapon_luma_std": 0.23463581502437592
+          }
+        },
+        {
+          "confidence": 0.9299041256308556,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4530:map_overlay:map_overlay@0.2.0+2157884:15164d101aae",
+          "reading": {
+            "center_tank_edge_frac": 0.05068806706930311,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.009136735979836169,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.07009587436914444
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4530",
+      "frame_path": "debug_snapshots/00004530_000075.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4530,
+      "source_pts": 4530,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 75.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9047017097473145,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4560:timer:timer@0.2.0+2157884:398ba82a2228",
+          "reading": {
+            "display": "4:05",
+            "kind": "timer",
+            "seconds_remaining": 245.0
+          }
+        },
+        {
+          "confidence": 0.8700628847100688,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4560:death:death@0.2.0+2157884:41ae30fb1a4f",
+          "reading": {
+            "banner_dark_score": 0.7402540616246498,
+            "banner_detected": false,
+            "banner_template_score": 0.20993413031101227,
+            "detected": true,
+            "kind": "death",
+            "ouch_detected": true,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.9399599432945251,
+            "ouch_white_score": 0.10892531876138434
+          }
+        },
+        {
+          "confidence": 0.30980755984783176,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4560:splat:splat@0.2.0+2157884:bbf0d69ee6a5",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6884612441062927,
+            "text_score": 0.400810569524765,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.598673851854558,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4560:respawn:respawn@0.2.0+2157884:9eb0d373138f",
+          "reading": {
+            "bright_frac": 4.81000481000481e-05,
+            "confidence": 0.598673851854558,
+            "countdown_value": null,
+            "dark_frac": 0.8797498797498797,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.9049449678861443,
+            "mean_val": 0.2594324194324194,
+            "ocr_text": null,
+            "p95": 0.16470588743686676,
+            "presence_score": 0.401326148145442,
+            "template_score": 0.4480469822883606,
+            "yellow_frac": 0.0
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4560:active_gameplay:active_gameplay@0.2.0+2157884:13eeb153eacb",
+          "reading": {
+            "center_control": false,
+            "center_edge_frac": 0.030418355809271668,
+            "detected": false,
+            "hud_edge_frac": 0.015738443157797998,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.8727853693963605,
+            "timer_present": false,
+            "weapon_edge_frac": 0.025003665759258432,
+            "weapon_luma_std": 0.18813754618167877
+          }
+        },
+        {
+          "confidence": 0.8154376447200775,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4560:map_overlay:map_overlay@0.2.0+2157884:d1afb7e4f720",
+          "reading": {
+            "center_tank_edge_frac": 0.030418355809271668,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.0,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.18456235527992249
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4560",
+      "frame_path": "debug_snapshots/00004560_000076.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4560,
+      "source_pts": 4560,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 76.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9506770521402359,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4590:timer:timer@0.2.0+2157884:49db0a3ea53b",
+          "reading": {
+            "display": "4:04",
+            "kind": "timer",
+            "seconds_remaining": 244.0
+          }
+        },
+        {
+          "confidence": 0.3053399920463562,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4590:splat:splat@0.2.0+2157884:36418bd3936c",
+          "reading": {
+            "adjacent_color_score": 0.9404761904761905,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6785333156585693,
+            "text_score": 0.362723708152771,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5588235273957252,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4590:respawn:respawn@0.2.0+2157884:3306c7b59018",
+          "reading": {
+            "bright_frac": 0.0,
+            "confidence": 0.5588235273957252,
+            "countdown_value": null,
+            "dark_frac": 1.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.9708376953474993,
+            "mean_val": 0.2159446000622471,
+            "ocr_text": null,
+            "p95": 0.13725490868091583,
+            "presence_score": 0.4411764726042748,
+            "template_score": 0.4555908441543579,
+            "yellow_frac": 0.0
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4590:active_gameplay:active_gameplay@0.2.0+2157884:8ce60cd68121",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.11340007170237996,
+            "detected": false,
+            "hud_edge_frac": 0.011396011396011397,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.053070631211868134,
+            "weapon_luma_std": 0.23552915453910828
+          }
+        },
+        {
+          "confidence": 0.6332841217517853,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4590:map_overlay:map_overlay@0.2.0+2157884:84d053ba3fb9",
+          "reading": {
+            "center_tank_edge_frac": 0.11340007170237996,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.07225372820835958,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.3667158782482147
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4590",
+      "frame_path": "debug_snapshots/00004590_000076.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4590,
+      "source_pts": 4590,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 76.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9506053477525711,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4620:timer:timer@0.2.0+2157884:49db0a3ea53b",
+          "reading": {
+            "display": "4:04",
+            "kind": "timer",
+            "seconds_remaining": 244.0
+          }
+        },
+        {
+          "confidence": 0.2878461688756943,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4620:splat:splat@0.2.0+2157884:10b563c2f31f",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6396581530570984,
+            "text_score": 0.30965763330459595,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5857338060453684,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4620:respawn:respawn@0.2.0+2157884:dbb6b6af9867",
+          "reading": {
+            "bright_frac": 0.0012025012025012026,
+            "confidence": 0.5857338060453684,
+            "countdown_value": null,
+            "dark_frac": 0.7700577200577201,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.8908952267775797,
+            "mean_val": 0.3774872912127814,
+            "ocr_text": null,
+            "p95": 0.3529411852359772,
+            "presence_score": 0.4142661939546316,
+            "template_score": 0.5078974366188049,
+            "yellow_frac": 0.0
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4620:active_gameplay:active_gameplay@0.2.0+2157884:591e385b360c",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.09249607015802101,
+            "detected": false,
+            "hud_edge_frac": 0.011683209263854424,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06326462956705789,
+            "weapon_luma_std": 0.25510403513908386
+          }
+        },
+        {
+          "confidence": 0.5,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4620:map_overlay:map_overlay@0.2.0+2157884:df664a3b32c8",
+          "reading": {
+            "center_tank_edge_frac": 0.09249607015802101,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.07115101869355177,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.6370556950569153
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4620",
+      "frame_path": "debug_snapshots/00004620_000077.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4620,
+      "source_pts": 4620,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 77.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.951723724603653,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4650:timer:timer@0.2.0+2157884:e0a6c0a539fc",
+          "reading": {
+            "display": "4:03",
+            "kind": "timer",
+            "seconds_remaining": 243.0
+          }
+        },
+        {
+          "confidence": 0.28437970876693724,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4650:splat:splat@0.2.0+2157884:74dd8f3246b6",
+          "reading": {
+            "adjacent_color_score": 0.7135416666666666,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6319549083709717,
+            "text_score": 0.3538219630718231,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.558629429835061,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4650:respawn:respawn@0.2.0+2157884:133e4e9dcfb8",
+          "reading": {
+            "bright_frac": 0.0,
+            "confidence": 0.558629429835061,
+            "countdown_value": null,
+            "dark_frac": 0.9887205387205387,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.9985725603372663,
+            "mean_val": 0.3459178149374228,
+            "ocr_text": null,
+            "p95": 0.15294118225574493,
+            "presence_score": 0.44137057016493897,
+            "template_score": 0.5311315059661865,
+            "yellow_frac": 0.0
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4650:active_gameplay:active_gameplay@0.2.0+2157884:50493565b327",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.08209922506273959,
+            "detected": false,
+            "hud_edge_frac": 0.01064929693961952,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06787392338244388,
+            "weapon_luma_std": 0.2333349734544754
+          }
+        },
+        {
+          "confidence": 0.646699994802475,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4650:map_overlay:map_overlay@0.2.0+2157884:64bec6205306",
+          "reading": {
+            "center_tank_edge_frac": 0.08209922506273959,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.06836798991808443,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.353300005197525
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4650",
+      "frame_path": "debug_snapshots/00004650_000077.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4650,
+      "source_pts": 4650,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 77.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9521236568689346,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4680:timer:timer@0.2.0+2157884:e0a6c0a539fc",
+          "reading": {
+            "display": "4:03",
+            "kind": "timer",
+            "seconds_remaining": 243.0
+          }
+        },
+        {
+          "confidence": 0.29117768704891206,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4680:splat:splat@0.2.0+2157884:4e978a9bced8",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6470615267753601,
+            "text_score": 0.3787173926830292,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5807622726243697,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4680:respawn:respawn@0.2.0+2157884:0bea82eba0a1",
+          "reading": {
+            "bright_frac": 0.0,
+            "confidence": 0.5807622726243697,
+            "countdown_value": null,
+            "dark_frac": 0.9714766714766715,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7315976761074799,
+            "mean_val": 0.0847486065133124,
+            "ocr_text": null,
+            "p95": 0.102156862616539,
+            "presence_score": 0.4192377273756303,
+            "template_score": 0.2852734923362732,
+            "yellow_frac": 0.0006012506012506013
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4680:active_gameplay:active_gameplay@0.2.0+2157884:4b9b4e19bd10",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.12619618874272634,
+            "detected": true,
+            "hud_edge_frac": 0.02466455289035934,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.055964987217656845,
+            "weapon_luma_std": 0.18147101998329163
+          }
+        },
+        {
+          "confidence": 0.7565210163593292,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4680:map_overlay:map_overlay@0.2.0+2157884:68a94b9be2b9",
+          "reading": {
+            "center_tank_edge_frac": 0.12619618874272634,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.06364209199747953,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.24347898364067078
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4680",
+      "frame_path": "debug_snapshots/00004680_000078.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4680,
+      "source_pts": 4680,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 78.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9404763877391815,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4710:timer:timer@0.2.0+2157884:c972ba69e013",
+          "reading": {
+            "display": "4:02",
+            "kind": "timer",
+            "seconds_remaining": 242.0
+          }
+        },
+        {
+          "confidence": 0.3005598932504654,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4710:splat:splat@0.2.0+2157884:092f24e4ea45",
+          "reading": {
+            "adjacent_color_score": 0.7244897959183674,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6679108738899231,
+            "text_score": 0.3545131981372833,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5809038494096574,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4710:respawn:respawn@0.2.0+2157884:5dc95bed91d7",
+          "reading": {
+            "bright_frac": 0.001467051467051467,
+            "confidence": 0.5809038494096574,
+            "countdown_value": null,
+            "dark_frac": 0.5936988936988937,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7318050721972291,
+            "mean_val": 0.32719614445104644,
+            "ocr_text": null,
+            "p95": 0.6039215922355652,
+            "presence_score": 0.4190961505903425,
+            "template_score": 0.41070446372032166,
+            "yellow_frac": 0.047979797979797977
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4710:active_gameplay:active_gameplay@0.2.0+2157884:71d8e268c70e",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.15468409586056645,
+            "detected": true,
+            "hud_edge_frac": 0.03222360077198787,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.08981110183160458,
+            "weapon_luma_std": 0.1643524467945099
+          }
+        },
+        {
+          "confidence": 0.5869533717632294,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4710:map_overlay:map_overlay@0.2.0+2157884:9af8e3c57484",
+          "reading": {
+            "center_tank_edge_frac": 0.15468409586056645,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.09955891619407688,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.41304662823677063
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4710",
+      "frame_path": "debug_snapshots/00004710_000078.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4710,
+      "source_pts": 4710,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 78.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9406892210245132,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4740:timer:timer@0.2.0+2157884:c972ba69e013",
+          "reading": {
+            "display": "4:02",
+            "kind": "timer",
+            "seconds_remaining": 242.0
+          }
+        },
+        {
+          "confidence": 0.8400770294642292,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4740:death:death@0.2.0+2157884:4722e1fba03f",
+          "reading": {
+            "banner_dark_score": 0.5703849673202614,
+            "banner_detected": false,
+            "banner_template_score": 0.17521438002586365,
+            "detected": true,
+            "kind": "death",
+            "ouch_detected": true,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.985295832157135,
+            "ouch_white_score": 0.10765027322404372
+          }
+        },
+        {
+          "confidence": 0.2942079395055771,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4740:splat:splat@0.2.0+2157884:d140510e73b7",
+          "reading": {
+            "adjacent_color_score": 0.6156462585034014,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6537954211235046,
+            "text_score": 0.4177643954753876,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.9833948016166687,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4740:respawn:respawn@0.2.0+2157884:33a1eff969f4",
+          "reading": {
+            "bright_frac": 0.1704906204906205,
+            "confidence": 0.9833948016166687,
+            "countdown_value": null,
+            "dark_frac": 0.5149110149110149,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.6762730007828047,
+            "mean_val": 0.46899395448415054,
+            "ocr_text": null,
+            "p95": 0.9882352948188782,
+            "presence_score": 0.5535821805572556,
+            "template_score": 0.9833948016166687,
+            "yellow_frac": 0.12544492544492544
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4740:active_gameplay:active_gameplay@0.2.0+2157884:1d7b99cee95c",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.09103444472022283,
+            "detected": true,
+            "hud_edge_frac": 0.04249379652605459,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.07651236476535953,
+            "weapon_luma_std": 0.2322617769241333
+          }
+        },
+        {
+          "confidence": 0.5,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4740:map_overlay:map_overlay@0.2.0+2157884:f81641f5d8ed",
+          "reading": {
+            "center_tank_edge_frac": 0.09103444472022283,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.08118042428061331,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.6165159940719604
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4740",
+      "frame_path": "debug_snapshots/00004740_000079.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4740,
+      "source_pts": 4740,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 79.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.6962793183940243,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4770:death:death@0.2.0+2157884:730a086b7b20",
+          "reading": {
+            "banner_dark_score": 0.6074413632119514,
+            "banner_detected": false,
+            "banner_template_score": 0.20330242812633514,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.26137781143188477,
+            "ouch_white_score": 0.0
+          }
+        },
+        {
+          "confidence": 0.27688363194465637,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4770:splat:splat@0.2.0+2157884:ed98eaf6141c",
+          "reading": {
+            "adjacent_color_score": 0.3103448275862069,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6152969598770142,
+            "text_score": 0.4037120044231415,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.9882470369338989,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4770:respawn:respawn@0.2.0+2157884:90395bc60a89",
+          "reading": {
+            "bright_frac": 0.19187109187109186,
+            "confidence": 0.9882470369338989,
+            "countdown_value": null,
+            "dark_frac": 0.16962481962481962,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.5767530581256072,
+            "mean_val": 0.48726612530534097,
+            "ocr_text": null,
+            "p95": 0.9882352948188782,
+            "presence_score": 0.42188184385691885,
+            "template_score": 0.9882470369338989,
+            "yellow_frac": 0.20824915824915824
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4770:active_gameplay:active_gameplay@0.2.0+2157884:35668b5a616a",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.13471774082347426,
+            "detected": true,
+            "hud_edge_frac": 0.052212572373862697,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06470224471971286,
+            "weapon_luma_std": 0.20585866272449493
+          }
+        },
+        {
+          "confidence": 0.7910247296094894,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4770:map_overlay:map_overlay@0.2.0+2157884:3c6370315151",
+          "reading": {
+            "center_tank_edge_frac": 0.13471774082347426,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.05093467758874186,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.20897527039051056
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4770",
+      "frame_path": "debug_snapshots/00004770_000079.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4770,
+      "source_pts": 4770,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 79.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9502310901880264,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4800:timer:timer@0.2.0+2157884:47105c65457a",
+          "reading": {
+            "display": "4:01",
+            "kind": "timer",
+            "seconds_remaining": 241.0
+          }
+        },
+        {
+          "confidence": 0.3100747883319855,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4800:splat:splat@0.2.0+2157884:4af6646ac08f",
+          "reading": {
+            "adjacent_color_score": 0.9982993197278912,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6890550851821899,
+            "text_score": 0.4188559353351593,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.9434813261032104,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4800:respawn:respawn@0.2.0+2157884:caa1b8ca01ec",
+          "reading": {
+            "bright_frac": 0.26652236652236655,
+            "confidence": 0.9434813261032104,
+            "countdown_value": null,
+            "dark_frac": 0.32142857142857145,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.7136954040875609,
+            "mean_val": 0.6686475398240104,
+            "ocr_text": null,
+            "p95": 0.9843137264251709,
+            "presence_score": 0.5038222564556898,
+            "template_score": 0.9434813261032104,
+            "yellow_frac": 0.2054834054834055
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4800:active_gameplay:active_gameplay@0.2.0+2157884:4be7ae2b66f9",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.12763023634207551,
+            "detected": true,
+            "hud_edge_frac": 0.04990350151640474,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.07433841014427153,
+            "weapon_luma_std": 0.20906467735767365
+          }
+        },
+        {
+          "confidence": 0.8424583971500397,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4800:map_overlay:map_overlay@0.2.0+2157884:d416d5df2349",
+          "reading": {
+            "center_tank_edge_frac": 0.12763023634207551,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01932367149758454,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.15754160284996033
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4800",
+      "frame_path": "debug_snapshots/00004800_000080.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4800,
+      "source_pts": 4800,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 80.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9623240530490875,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4830:timer:timer@0.2.0+2157884:776ef2007a3e",
+          "reading": {
+            "display": "4:00",
+            "kind": "timer",
+            "seconds_remaining": 240.0
+          }
+        },
+        {
+          "confidence": 0.3213283449411392,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4830:splat:splat@0.2.0+2157884:d840d65d7644",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.7140629887580872,
+            "text_score": 0.41885465383529663,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.9121940732002258,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4830:respawn:respawn@0.2.0+2157884:ffe07030e91e",
+          "reading": {
+            "bright_frac": 0.29482924482924483,
+            "confidence": 0.9121940732002258,
+            "countdown_value": null,
+            "dark_frac": 0.28903318903318903,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.7393896009582284,
+            "mean_val": 0.7018110139678767,
+            "ocr_text": null,
+            "p95": 0.9843137264251709,
+            "presence_score": 0.49935616698960034,
+            "template_score": 0.9121940732002258,
+            "yellow_frac": 0.23924963924963924
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4830:active_gameplay:active_gameplay@0.2.0+2157884:c970d3e4f409",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.16270924684923196,
+            "detected": true,
+            "hud_edge_frac": 0.02521597279661796,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.08299916484441243,
+            "weapon_luma_std": 0.245077446103096
+          }
+        },
+        {
+          "confidence": 0.8552288711071014,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4830:map_overlay:map_overlay@0.2.0+2157884:59fd027a97d7",
+          "reading": {
+            "center_tank_edge_frac": 0.16270924684923196,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01848351186725478,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.14477112889289856
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4830",
+      "frame_path": "debug_snapshots/00004830_000080.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4830,
+      "source_pts": 4830,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 80.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.6841456115779645,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4860:death:death@0.2.0+2157884:5666c972e867",
+          "reading": {
+            "banner_dark_score": 0.631708776844071,
+            "banner_detected": false,
+            "banner_template_score": 0.21695435047149658,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3127802908420563,
+            "ouch_white_score": 0.0
+          }
+        },
+        {
+          "confidence": 0.28154523074626925,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4860:splat:splat@0.2.0+2157884:4d026a9c2c3e",
+          "reading": {
+            "adjacent_color_score": 0.31417624521072796,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6256560683250427,
+            "text_score": 0.4132196009159088,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.941211998462677,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4860:respawn:respawn@0.2.0+2157884:d960bfa4ccd7",
+          "reading": {
+            "bright_frac": 0.3043530543530544,
+            "confidence": 0.941211998462677,
+            "countdown_value": null,
+            "dark_frac": 0.04944684944684945,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.5433897329975762,
+            "mean_val": 0.7022744720783937,
+            "ocr_text": null,
+            "p95": 0.9803921580314636,
+            "presence_score": 0.40520230349409514,
+            "template_score": 0.941211998462677,
+            "yellow_frac": 0.5381433381433381
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4860:active_gameplay:active_gameplay@0.2.0+2157884:f620a9e82622",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.13711701276853921,
+            "detected": true,
+            "hud_edge_frac": 0.051592224979321755,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06290442887470754,
+            "weapon_luma_std": 0.23420117795467377
+          }
+        },
+        {
+          "confidence": 0.9239324927330017,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4860:map_overlay:map_overlay@0.2.0+2157884:21af5cf9df7c",
+          "reading": {
+            "center_tank_edge_frac": 0.13711701276853921,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.049201848351186725,
+            "periphery_blur": 0.0,
+            "present": true,
+            "template_score": 0.9239324927330017
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4860",
+      "frame_path": "debug_snapshots/00004860_000081.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4860,
+      "source_pts": 4860,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 81.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.6636420488357544,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4890:death:death@0.2.0+2157884:103f2c6c5671",
+          "reading": {
+            "banner_dark_score": 0.5781667600373483,
+            "banner_detected": false,
+            "banner_template_score": 0.20586144924163818,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3363579511642456,
+            "ouch_white_score": 0.0
+          }
+        },
+        {
+          "confidence": 0.2735726594924927,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4890:splat:splat@0.2.0+2157884:eddb97e27ada",
+          "reading": {
+            "adjacent_color_score": 0.32088122605363983,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6079392433166504,
+            "text_score": 0.40055733919143677,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.9609385132789612,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4890:respawn:respawn@0.2.0+2157884:3f9a9ff7f885",
+          "reading": {
+            "bright_frac": 0.34016354016354017,
+            "confidence": 0.9609385132789612,
+            "countdown_value": null,
+            "dark_frac": 0.04853294853294853,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.6974679568797216,
+            "mean_val": 0.7222455177357138,
+            "ocr_text": null,
+            "p95": 0.9764705896377563,
+            "presence_score": 0.4144034183535683,
+            "template_score": 0.9609385132789612,
+            "yellow_frac": 0.2640933140933141
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4890:active_gameplay:active_gameplay@0.2.0+2157884:c4fc20b232a5",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.14566614268773614,
+            "detected": true,
+            "hud_edge_frac": 0.05254572190056061,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06473412088717749,
+            "weapon_luma_std": 0.21853893995285034
+          }
+        },
+        {
+          "confidence": 0.9668527245521545,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4890:map_overlay:map_overlay@0.2.0+2157884:d48fe4b87ae2",
+          "reading": {
+            "center_tank_edge_frac": 0.14566614268773614,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.05970384373030876,
+            "periphery_blur": 0.0,
+            "present": true,
+            "template_score": 0.9668527245521545
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4890",
+      "frame_path": "debug_snapshots/00004890_000081.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4890,
+      "source_pts": 4890,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 81.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.6997606909430438,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4920:death:death@0.2.0+2157884:4d31f214839b",
+          "reading": {
+            "banner_dark_score": 0.6004786181139122,
+            "banner_detected": false,
+            "banner_template_score": 0.20310847461223602,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2511585056781769,
+            "ouch_white_score": 0.0
+          }
+        },
+        {
+          "confidence": 0.2743676394224167,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4920:splat:splat@0.2.0+2157884:c4b715b820a7",
+          "reading": {
+            "adjacent_color_score": 0.31896551724137934,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6097058653831482,
+            "text_score": 0.39928263425827026,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.9584115147590637,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4920:respawn:respawn@0.2.0+2157884:d2bdfc777dc6",
+          "reading": {
+            "bright_frac": 0.34016354016354017,
+            "confidence": 0.9584115147590637,
+            "countdown_value": null,
+            "dark_frac": 0.04728234728234728,
+            "detected": true,
+            "evidence_type": "template",
+            "kind": "respawn",
+            "mean_sat": 0.6952382838657348,
+            "mean_val": 0.724401814597893,
+            "ocr_text": null,
+            "p95": 0.9764705896377563,
+            "presence_score": 0.4139031778533278,
+            "template_score": 0.9584115147590637,
+            "yellow_frac": 0.2650793650793651
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4920:active_gameplay:active_gameplay@0.2.0+2157884:565eacee224f",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.14108822150519842,
+            "detected": true,
+            "hud_edge_frac": 0.05163817663817664,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.0648552503235431,
+            "weapon_luma_std": 0.21838723123073578
+          }
+        },
+        {
+          "confidence": 0.7927599251270294,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4920:map_overlay:map_overlay@0.2.0+2157884:081b6ecfa974",
+          "reading": {
+            "center_tank_edge_frac": 0.14108822150519842,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.055765595463137994,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.20724007487297058
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4920",
+      "frame_path": "debug_snapshots/00004920_000082.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4920,
+      "source_pts": 4920,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 82.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.7029143897996357,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4950:death:death@0.2.0+2157884:3226bbb64d65",
+          "reading": {
+            "banner_dark_score": 0.4954296918767507,
+            "banner_detected": false,
+            "banner_template_score": 0.20287933945655823,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2629221975803375,
+            "ouch_white_score": 0.5941712204007286
+          }
+        },
+        {
+          "confidence": 0.2924918353557587,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4950:splat:splat@0.2.0+2157884:89e0155b7f89",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6499818563461304,
+            "text_score": 0.38777396082878113,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5673024359857193,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4950:respawn:respawn@0.2.0+2157884:14d00c6a5f07",
+          "reading": {
+            "bright_frac": 0.45016835016835016,
+            "confidence": 0.5673024359857193,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": true,
+            "evidence_type": "hold",
+            "kind": "respawn",
+            "mean_sat": 0.2194974016542644,
+            "mean_val": 0.8838668666119646,
+            "ocr_text": null,
+            "p95": 0.9921568632125854,
+            "presence_score": 0.43269756401428067,
+            "template_score": 0.5570905804634094,
+            "yellow_frac": 0.005916305916305917
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4950:active_gameplay:active_gameplay@0.2.0+2157884:dd3eb1e44949",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.14282562532748683,
+            "detected": true,
+            "hud_edge_frac": 0.054154029960481576,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06445679823023519,
+            "weapon_luma_std": 0.27021101117134094
+          }
+        },
+        {
+          "confidence": 0.7203138768672943,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4950:map_overlay:map_overlay@0.2.0+2157884:a0bce8f0ce00",
+          "reading": {
+            "center_tank_edge_frac": 0.14282562532748683,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.04594622978365889,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.2796861231327057
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4950",
+      "frame_path": "debug_snapshots/00004950_000082.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 4950,
+      "source_pts": 4950,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 82.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.6931238615664845,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4980:death:death@0.2.0+2157884:09f645e1eda2",
+          "reading": {
+            "banner_dark_score": 0.5090654528478058,
+            "banner_detected": false,
+            "banner_template_score": 0.21673649549484253,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.26748761534690857,
+            "ouch_white_score": 0.6137522768670309
+          }
+        },
+        {
+          "confidence": 0.2688541173934937,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4980:splat:splat@0.2.0+2157884:7807660948b2",
+          "reading": {
+            "adjacent_color_score": 0.5507662835249042,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.5974535942077637,
+            "text_score": 0.3884388208389282,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5674106610939444,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4980:respawn:respawn@0.2.0+2157884:b26a320ae36f",
+          "reading": {
+            "bright_frac": 0.4498075998075998,
+            "confidence": 0.5674106610939444,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": true,
+            "evidence_type": "hold",
+            "kind": "respawn",
+            "mean_sat": 0.21909458732988146,
+            "mean_val": 0.8825716549245961,
+            "ocr_text": null,
+            "p95": 0.9921568632125854,
+            "presence_score": 0.43258933890605555,
+            "template_score": 0.5602784156799316,
+            "yellow_frac": 0.0018278018278018277
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4980:active_gameplay:active_gameplay@0.2.0+2157884:12b6cb797d09",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.13841317117564325,
+            "detected": true,
+            "hud_edge_frac": 0.053579634224795517,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.06430379262640494,
+            "weapon_luma_std": 0.2602928578853607
+          }
+        },
+        {
+          "confidence": 0.9053311347961426,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:4980:map_overlay:map_overlay@0.2.0+2157884:9da0df9e9fcc",
+          "reading": {
+            "center_tank_edge_frac": 0.13841317117564325,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.048886788489813066,
+            "periphery_blur": 0.0,
+            "present": true,
+            "template_score": 0.9053311347961426
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:4980",
+      "frame_path": "debug_snapshots/00004980_000083.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 4980,
+      "source_pts": 4980,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 83.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9041335880756378,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5010:timer:timer@0.2.0+2157884:8f31de547bb5",
+          "reading": {
+            "display": "3:57",
+            "kind": "timer",
+            "seconds_remaining": 237.0
+          }
+        },
+        {
+          "confidence": 0.6116572916507721,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5010:death:death@0.2.0+2157884:5572b80a9bd9",
+          "reading": {
+            "banner_dark_score": 0.5354981325863679,
+            "banner_detected": false,
+            "banner_template_score": 0.30293387174606323,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3883427083492279,
+            "ouch_white_score": 0.07276867030965392
+          }
+        },
+        {
+          "confidence": 0.30018998980522155,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5010:splat:splat@0.2.0+2157884:50e6b6b07ee1",
+          "reading": {
+            "adjacent_color_score": 0.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6670888662338257,
+            "text_score": 0.48255184292793274,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.8269529958502956,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5010:respawn:respawn@0.2.0+2157884:f3bd66036fc8",
+          "reading": {
+            "bright_frac": 9.62000962000962e-05,
+            "confidence": 0.8269529958502956,
+            "countdown_value": null,
+            "dark_frac": 0.0001924001924001924,
+            "detected": true,
+            "evidence_type": "hold",
+            "kind": "respawn",
+            "mean_sat": 0.1595228663856115,
+            "mean_val": 0.4020500051872601,
+            "ocr_text": null,
+            "p95": 0.5764706134796143,
+            "presence_score": 0.1730470041497044,
+            "template_score": 0.502452552318573,
+            "yellow_frac": 0.001443001443001443
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5010:active_gameplay:active_gameplay@0.2.0+2157884:bae3f2ba8d7c",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.08601527812250076,
+            "detected": true,
+            "hud_edge_frac": 0.11645299145299146,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.0644376725297564,
+            "weapon_luma_std": 0.1899992972612381
+          }
+        },
+        {
+          "confidence": 0.9432968683540821,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5010:map_overlay:map_overlay@0.2.0+2157884:8775b3a4ad5d",
+          "reading": {
+            "center_tank_edge_frac": 0.08601527812250076,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.018273471959672338,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.05670313164591789
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5010",
+      "frame_path": "debug_snapshots/00005010_000083.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5010,
+      "source_pts": 5010,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 83.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9047574400901794,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5040:timer:timer@0.2.0+2157884:8f31de547bb5",
+          "reading": {
+            "display": "3:57",
+            "kind": "timer",
+            "seconds_remaining": 237.0
+          }
+        },
+        {
+          "confidence": 0.7856391370296478,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5040:death:death@0.2.0+2157884:80c34ba02cdc",
+          "reading": {
+            "banner_dark_score": 0.3258991596638655,
+            "banner_detected": false,
+            "banner_template_score": 0.16632340848445892,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.21436086297035217,
+            "ouch_white_score": 0.35655737704918034
+          }
+        },
+        {
+          "confidence": 0.3134972333908081,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5040:splat:splat@0.2.0+2157884:244a801a03d0",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6966605186462402,
+            "text_score": 0.2948271930217743,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.5827794751460418,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5040:respawn:respawn@0.2.0+2157884:61e694b6a957",
+          "reading": {
+            "bright_frac": 0.4064213564213564,
+            "confidence": 0.5827794751460418,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": true,
+            "evidence_type": "hold",
+            "kind": "respawn",
+            "mean_sat": 0.23082628337530298,
+            "mean_val": 0.7790181931358402,
+            "ocr_text": null,
+            "p95": 0.9843137264251709,
+            "presence_score": 0.4172205248539582,
+            "template_score": 0.5568922162055969,
+            "yellow_frac": 0.1551948051948052
+          }
+        },
+        {
+          "confidence": 0.757279009098317,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5040:active_gameplay:active_gameplay@0.2.0+2157884:8483c0335d76",
+          "reading": {
+            "center_control": false,
+            "center_edge_frac": 0.014533520862634786,
+            "detected": true,
+            "hud_edge_frac": 0.024228012131237937,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.757279009098317,
+            "timer_present": false,
+            "weapon_edge_frac": 0.017047374360085937,
+            "weapon_luma_std": 0.15057875216007233
+          }
+        },
+        {
+          "confidence": 0.8328375965356827,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5040:map_overlay:map_overlay@0.2.0+2157884:1dd7cb899933",
+          "reading": {
+            "center_tank_edge_frac": 0.014533520862634786,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.0,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.16716240346431732
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5040",
+      "frame_path": "debug_snapshots/00005040_000084.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5040,
+      "source_pts": 5040,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 84.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8871367275714874,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5070:timer:timer@0.2.0+2157884:947d93751974",
+          "reading": {
+            "display": "3:56",
+            "kind": "timer",
+            "seconds_remaining": 236.0
+          }
+        },
+        {
+          "confidence": 0.6101967096328735,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5070:death:death@0.2.0+2157884:58bfbc618801",
+          "reading": {
+            "banner_dark_score": 0.4283059757236227,
+            "banner_detected": false,
+            "banner_template_score": 0.19423869252204895,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.38980329036712646,
+            "ouch_white_score": 0.07249544626593807
+          }
+        },
+        {
+          "confidence": 0.2993390589952469,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5070:splat:splat@0.2.0+2157884:8ee1b8c7f859",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6651979088783264,
+            "text_score": 0.3445095717906952,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5070:respawn:respawn@0.2.0+2157884:79dfca7f9de6",
+          "reading": {
+            "bright_frac": 0.9278980278980279,
+            "confidence": 0.55,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.21608399588791746,
+            "mean_val": 0.9220858444387856,
+            "ocr_text": null,
+            "p95": 0.9843137264251709,
+            "presence_score": 0.5736635262969596,
+            "template_score": 0.4331028163433075,
+            "yellow_frac": 0.11026936026936027
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5070:active_gameplay:active_gameplay@0.2.0+2157884:8993b7d38674",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.10046606546978848,
+            "detected": true,
+            "hud_edge_frac": 0.054797353184449955,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.056701326686089876,
+            "weapon_luma_std": 0.1472966969013214
+          }
+        },
+        {
+          "confidence": 0.855412170290947,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5070:map_overlay:map_overlay@0.2.0+2157884:5ac89fd93bb6",
+          "reading": {
+            "center_tank_edge_frac": 0.10046606546978848,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.015595463137996219,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.14458782970905304
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5070",
+      "frame_path": "debug_snapshots/00005070_000084.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5070,
+      "source_pts": 5070,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 84.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8872035592794418,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5100:timer:timer@0.2.0+2157884:947d93751974",
+          "reading": {
+            "display": "3:56",
+            "kind": "timer",
+            "seconds_remaining": 236.0
+          }
+        },
+        {
+          "confidence": 0.6869859993457794,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5100:death:death@0.2.0+2157884:836ebbefe718",
+          "reading": {
+            "banner_dark_score": 0.37170859010270774,
+            "banner_detected": false,
+            "banner_template_score": 0.17512372136116028,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3130140006542206,
+            "ouch_white_score": 0.0738615664845173
+          }
+        },
+        {
+          "confidence": 0.2983258277177811,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5100:splat:splat@0.2.0+2157884:b5635cc8a4bd",
+          "reading": {
+            "adjacent_color_score": 0.9479166666666666,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6629462838172913,
+            "text_score": 0.2860901653766632,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7920469343782676,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5100:respawn:respawn@0.2.0+2157884:3a359006d423",
+          "reading": {
+            "bright_frac": 0.006902356902356902,
+            "confidence": 0.7920469343782676,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.5254586952626168,
+            "mean_val": 0.6736179724415018,
+            "ocr_text": null,
+            "p95": 0.686274528503418,
+            "presence_score": 0.20795306562173246,
+            "template_score": 0.5444886088371277,
+            "yellow_frac": 0.03448773448773449
+          }
+        },
+        {
+          "confidence": 0.9485544505860586,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5100:active_gameplay:active_gameplay@0.2.0+2157884:da237e36a981",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.04820606160889109,
+            "detected": true,
+            "hud_edge_frac": 0.02690469625953497,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.9485544505860586,
+            "timer_present": false,
+            "weapon_edge_frac": 0.02151641303862754,
+            "weapon_luma_std": 0.09322236478328705
+          }
+        },
+        {
+          "confidence": 0.9055026769638062,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5100:map_overlay:map_overlay@0.2.0+2157884:5cfa6bbeef49",
+          "reading": {
+            "center_tank_edge_frac": 0.04820606160889109,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.007351396765385423,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.09449732303619385
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5100",
+      "frame_path": "debug_snapshots/00005100_000085.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5100,
+      "source_pts": 5100,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 85.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8926825970411301,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5130:timer:timer@0.2.0+2157884:3c8320cdd78e",
+          "reading": {
+            "display": "3:55",
+            "kind": "timer",
+            "seconds_remaining": 235.0
+          }
+        },
+        {
+          "confidence": 0.6864851117134094,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5130:death:death@0.2.0+2157884:51bc2ec44b77",
+          "reading": {
+            "banner_dark_score": 0.3713307189542484,
+            "banner_detected": false,
+            "banner_template_score": 0.20786574482917786,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3135148882865906,
+            "ouch_white_score": 0.07750455373406193
+          }
+        },
+        {
+          "confidence": 0.27249746918678286,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5130:splat:splat@0.2.0+2157884:228077261ba1",
+          "reading": {
+            "adjacent_color_score": 0.9897540983606558,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6055499315261841,
+            "text_score": 0.3034861087799072,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.8060487161381076,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5130:respawn:respawn@0.2.0+2157884:8cea5a03ff78",
+          "reading": {
+            "bright_frac": 0.003367003367003367,
+            "confidence": 0.8060487161381076,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7084251478369126,
+            "mean_val": 0.6840542681719152,
+            "ocr_text": null,
+            "p95": 0.6431372761726379,
+            "presence_score": 0.1939512838618924,
+            "template_score": 0.4994968771934509,
+            "yellow_frac": 0.015824915824915825
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5130:active_gameplay:active_gameplay@0.2.0+2157884:e9fa717a58b3",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.06491823170899864,
+            "detected": false,
+            "hud_edge_frac": 0.01586481021964893,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.03303327234359958,
+            "weapon_luma_std": 0.12662860751152039
+          }
+        },
+        {
+          "confidence": 0.9682635329663754,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5130:map_overlay:map_overlay@0.2.0+2157884:917f109b5eb1",
+          "reading": {
+            "center_tank_edge_frac": 0.06491823170899864,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.0017328292375551355,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.03173646703362465
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5130",
+      "frame_path": "debug_snapshots/00005130_000085.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5130,
+      "source_pts": 5130,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 85.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8927246183156967,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5160:timer:timer@0.2.0+2157884:3c8320cdd78e",
+          "reading": {
+            "display": "3:55",
+            "kind": "timer",
+            "seconds_remaining": 235.0
+          }
+        },
+        {
+          "confidence": 0.7212502956390381,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5160:death:death@0.2.0+2157884:6e45452a75a0",
+          "reading": {
+            "banner_dark_score": 0.43482166199813266,
+            "banner_detected": false,
+            "banner_template_score": 0.2196146696805954,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2787497043609619,
+            "ouch_white_score": 0.4040072859744991
+          }
+        },
+        {
+          "confidence": 0.2932713121175766,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5160:splat:splat@0.2.0+2157884:cf210c6d3bed",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.651714026927948,
+            "text_score": 0.2438390702009201,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.8099364730507895,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5160:respawn:respawn@0.2.0+2157884:518af51b8345",
+          "reading": {
+            "bright_frac": 0.0021404521404521405,
+            "confidence": 0.8099364730507895,
+            "countdown_value": null,
+            "dark_frac": 2.405002405002405e-05,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.487215101528827,
+            "mean_val": 0.6572021805355138,
+            "ocr_text": null,
+            "p95": 0.6313725709915161,
+            "presence_score": 0.19006352694921047,
+            "template_score": 0.4935179352760315,
+            "yellow_frac": 0.022366522366522368
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5160:active_gameplay:active_gameplay@0.2.0+2157884:7c8fb5450fde",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.11378616144066628,
+            "detected": true,
+            "hud_edge_frac": 0.05195983825016083,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.029482267288039425,
+            "weapon_luma_std": 0.1525011956691742
+          }
+        },
+        {
+          "confidence": 0.6655226647853851,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5160:map_overlay:map_overlay@0.2.0+2157884:40b8b3aab4b1",
+          "reading": {
+            "center_tank_edge_frac": 0.11378616144066628,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.006511237135055661,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.33447733521461487
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5160",
+      "frame_path": "debug_snapshots/00005160_000086.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5160,
+      "source_pts": 5160,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 86.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8676159381866455,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5190:timer:timer@0.2.0+2157884:c4d8eb64fec2",
+          "reading": {
+            "display": "3:54",
+            "kind": "timer",
+            "seconds_remaining": 234.0
+          }
+        },
+        {
+          "confidence": 0.6647085610200365,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5190:death:death@0.2.0+2157884:bc8eb73c5efc",
+          "reading": {
+            "banner_dark_score": 0.47018281979458454,
+            "banner_detected": false,
+            "banner_template_score": 0.197732612490654,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": true,
+            "ouch_template_score": 0.2619418203830719,
+            "ouch_white_score": 0.6705828779599271
+          }
+        },
+        {
+          "confidence": 0.28366162776947024,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5190:splat:splat@0.2.0+2157884:eaeac7f1069d",
+          "reading": {
+            "adjacent_color_score": 0.7976190476190477,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6303591728210449,
+            "text_score": 0.3172151744365692,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7652796831447497,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5190:respawn:respawn@0.2.0+2157884:0705a5f66cc0",
+          "reading": {
+            "bright_frac": 0.03338143338143338,
+            "confidence": 0.7652796831447497,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7778814286657424,
+            "mean_val": 0.7269206537833989,
+            "ocr_text": null,
+            "p95": 0.7490196228027344,
+            "presence_score": 0.2347203168552503,
+            "template_score": 0.46390947699546814,
+            "yellow_frac": 0.013588263588263589
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5190:active_gameplay:active_gameplay@0.2.0+2157884:ca39fd3fccf1",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.05250820440693858,
+            "detected": false,
+            "hud_edge_frac": 0.013532763532763533,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.6962495769269961,
+            "timer_present": false,
+            "weapon_edge_frac": 0.0012240448306419223,
+            "weapon_luma_std": 0.11562100797891617
+          }
+        },
+        {
+          "confidence": 0.6734201312065125,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5190:map_overlay:map_overlay@0.2.0+2157884:1eb30117ad54",
+          "reading": {
+            "center_tank_edge_frac": 0.05250820440693858,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.0,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.32657986879348755
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5190",
+      "frame_path": "debug_snapshots/00005190_000086.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5190,
+      "source_pts": 5190,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 86.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8679179549217224,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5220:timer:timer@0.2.0+2157884:c4d8eb64fec2",
+          "reading": {
+            "display": "3:54",
+            "kind": "timer",
+            "seconds_remaining": 234.0
+          }
+        },
+        {
+          "confidence": 0.6977598071098328,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5220:death:death@0.2.0+2157884:374c781c66de",
+          "reading": {
+            "banner_dark_score": 0.2501073762838468,
+            "banner_detected": false,
+            "banner_template_score": 0.14394938945770264,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": true,
+            "ouch_template_score": 0.30224019289016724,
+            "ouch_white_score": 0.2574681238615665
+          }
+        },
+        {
+          "confidence": 0.265379798412323,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5220:splat:splat@0.2.0+2157884:ed66bc272dad",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.5897328853607178,
+            "text_score": 0.27653244137763977,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.6878380415037081,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5220:respawn:respawn@0.2.0+2157884:405d37fcc07b",
+          "reading": {
+            "bright_frac": 0.1974025974025974,
+            "confidence": 0.6878380415037081,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.6904912806873591,
+            "mean_val": 0.8135394090296051,
+            "ocr_text": null,
+            "p95": 0.843137264251709,
+            "presence_score": 0.3121619584962919,
+            "template_score": 0.48656028509140015,
+            "yellow_frac": 0.13443963443963444
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5220:active_gameplay:active_gameplay@0.2.0+2157884:1a29b6a37361",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.06045062188025702,
+            "detected": true,
+            "hud_edge_frac": 0.03770333609043287,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.01585520569690865,
+            "weapon_luma_std": 0.11177263408899307
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5220:map_overlay:map_overlay@0.2.0+2157884:67fe129496ce",
+          "reading": {
+            "center_tank_edge_frac": 0.06045062188025702,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01596303297626549,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.0
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5220",
+      "frame_path": "debug_snapshots/00005220_000087.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5220,
+      "source_pts": 5220,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 87.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8839968889951706,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5250:timer:timer@0.2.0+2157884:a92eccc5de71",
+          "reading": {
+            "display": "3:53",
+            "kind": "timer",
+            "seconds_remaining": 233.0
+          }
+        },
+        {
+          "confidence": 0.6193141043186188,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5250:death:death@0.2.0+2157884:ce3666f7e0c3",
+          "reading": {
+            "banner_dark_score": 0.39259897292250234,
+            "banner_detected": false,
+            "banner_template_score": 0.24276289343833923,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3806858956813812,
+            "ouch_white_score": 0.07404371584699454
+          }
+        },
+        {
+          "confidence": 0.28447366654872897,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5250:splat:splat@0.2.0+2157884:15376cdd448a",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6321637034416199,
+            "text_score": 0.2883724868297577,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5250:respawn:respawn@0.2.0+2157884:53f70788872d",
+          "reading": {
+            "bright_frac": 0.9793410293410293,
+            "confidence": 0.55,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.18124145281008025,
+            "mean_val": 0.9384447651114317,
+            "ocr_text": null,
+            "p95": 0.9372549057006836,
+            "presence_score": 0.5749787805125138,
+            "template_score": 0.2970459461212158,
+            "yellow_frac": 0.0008658008658008658
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5250:active_gameplay:active_gameplay@0.2.0+2157884:1afa1a6a723f",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.04848183999338132,
+            "detected": false,
+            "hud_edge_frac": 0.01933416046319272,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.9515813047409507,
+            "timer_present": false,
+            "weapon_edge_frac": 0.020757760252969264,
+            "weapon_luma_std": 0.12505897879600525
+          }
+        },
+        {
+          "confidence": 0.9884876301512122,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5250:map_overlay:map_overlay@0.2.0+2157884:af5d2a36a92d",
+          "reading": {
+            "center_tank_edge_frac": 0.04848183999338132,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.00021003990758244065,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.011512369848787785
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5250",
+      "frame_path": "debug_snapshots/00005250_000087.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5250,
+      "source_pts": 5250,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 87.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8840281516313553,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5280:timer:timer@0.2.0+2157884:a92eccc5de71",
+          "reading": {
+            "display": "3:53",
+            "kind": "timer",
+            "seconds_remaining": 233.0
+          }
+        },
+        {
+          "confidence": 0.7208836376667023,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5280:death:death@0.2.0+2157884:a1a6343f10eb",
+          "reading": {
+            "banner_dark_score": 0.24923762838468722,
+            "banner_detected": false,
+            "banner_template_score": 0.19817134737968445,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.27911636233329773,
+            "ouch_white_score": 0.06539162112932605
+          }
+        },
+        {
+          "confidence": 0.28618510365486144,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5280:splat:splat@0.2.0+2157884:cbd16b178134",
+          "reading": {
+            "adjacent_color_score": 0.9268707482993197,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6359668970108032,
+            "text_score": 0.3076276183128357,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7913675917238499,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5280:respawn:respawn@0.2.0+2157884:f6ddcf2ae780",
+          "reading": {
+            "bright_frac": 0.013876863876863876,
+            "confidence": 0.7913675917238499,
+            "countdown_value": null,
+            "dark_frac": 0.005291005291005291,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.9187576983655414,
+            "mean_val": 0.9744707580001698,
+            "ocr_text": null,
+            "p95": 0.6745098233222961,
+            "presence_score": 0.20863240827615012,
+            "template_score": 0.554573655128479,
+            "yellow_frac": 0.9576719576719577
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5280:active_gameplay:active_gameplay@0.2.0+2157884:59553fffc7ef",
+          "reading": {
+            "center_control": false,
+            "center_edge_frac": 0.044400319902926005,
+            "detected": false,
+            "hud_edge_frac": 0.013854425144747726,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.9411051302398397,
+            "timer_present": false,
+            "weapon_edge_frac": 0.02542124355304513,
+            "weapon_luma_std": 0.12451530992984772
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5280:map_overlay:map_overlay@0.2.0+2157884:78cbaddec23c",
+          "reading": {
+            "center_tank_edge_frac": 0.044400319902926005,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.01260239445494644,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.0
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5280",
+      "frame_path": "debug_snapshots/00005280_000088.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5280,
+      "source_pts": 5280,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 88.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8387029469013214,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5310:timer:timer@0.2.0+2157884:c0d44b986a6e",
+          "reading": {
+            "display": "3:52",
+            "kind": "timer",
+            "seconds_remaining": 232.0
+          }
+        },
+        {
+          "confidence": 0.7503894418478012,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5310:death:death@0.2.0+2157884:d7dc46b35036",
+          "reading": {
+            "banner_dark_score": 0.34791400560224084,
+            "banner_detected": false,
+            "banner_template_score": 0.2141757309436798,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2496105581521988,
+            "ouch_white_score": 0.06475409836065574
+          }
+        },
+        {
+          "confidence": 0.27685954570770266,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5310:splat:splat@0.2.0+2157884:ed5e4843538c",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6152434349060059,
+            "text_score": 0.31950071454048157,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.754567661382878,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5310:respawn:respawn@0.2.0+2157884:4ce6cf031820",
+          "reading": {
+            "bright_frac": 0.04466089466089466,
+            "confidence": 0.754567661382878,
+            "countdown_value": null,
+            "dark_frac": 0.0006734006734006734,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7133533278631318,
+            "mean_val": 0.7309500231068858,
+            "ocr_text": null,
+            "p95": 0.772549033164978,
+            "presence_score": 0.24543233861712205,
+            "template_score": 0.4635770618915558,
+            "yellow_frac": 0.03542568542568542
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5310:active_gameplay:active_gameplay@0.2.0+2157884:ca25b540d297",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.1254240092661537,
+            "detected": false,
+            "hud_edge_frac": 0.016806819226174066,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": true,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.05024321515775515,
+            "weapon_luma_std": 0.18764790892601013
+          }
+        },
+        {
+          "confidence": 0.7756957858800888,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5310:map_overlay:map_overlay@0.2.0+2157884:a664f3784fe9",
+          "reading": {
+            "center_tank_edge_frac": 0.1254240092661537,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.02205419029615627,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.2243042141199112
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5310",
+      "frame_path": "debug_snapshots/00005310_000088.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5310,
+      "source_pts": 5310,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 88.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8388480842113495,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5340:timer:timer@0.2.0+2157884:c0d44b986a6e",
+          "reading": {
+            "display": "3:52",
+            "kind": "timer",
+            "seconds_remaining": 232.0
+          }
+        },
+        {
+          "confidence": 0.7377997040748596,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5340:death:death@0.2.0+2157884:ad295a5e9544",
+          "reading": {
+            "banner_dark_score": 0.2982950513538749,
+            "banner_detected": false,
+            "banner_template_score": 0.21048220992088318,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2622002959251404,
+            "ouch_white_score": 0.06375227686703097
+          }
+        },
+        {
+          "confidence": 0.288372203707695,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5340:splat:splat@0.2.0+2157884:584c64e72e14",
+          "reading": {
+            "adjacent_color_score": 0.9739583333333334,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6408271193504333,
+            "text_score": 0.3517303764820099,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7852661006223588,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5340:respawn:respawn@0.2.0+2157884:d91b76d9332e",
+          "reading": {
+            "bright_frac": 0.04126984126984127,
+            "confidence": 0.7852661006223588,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7957965273651548,
+            "mean_val": 0.7185227626404097,
+            "ocr_text": null,
+            "p95": 0.6745098233222961,
+            "presence_score": 0.21473389937764123,
+            "template_score": 0.40374135971069336,
+            "yellow_frac": 0.04461279461279461
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5340:active_gameplay:active_gameplay@0.2.0+2157884:e2738e581f6c",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.05863048454262155,
+            "detected": false,
+            "hud_edge_frac": 0.013670618509328186,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.9913513317223023,
+            "timer_present": false,
+            "weapon_edge_frac": 0.023020968142958235,
+            "weapon_luma_std": 0.15721188485622406
+          }
+        },
+        {
+          "confidence": 0.8592021763324738,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5340:map_overlay:map_overlay@0.2.0+2157884:afc61cc35eac",
+          "reading": {
+            "center_tank_edge_frac": 0.05863048454262155,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.03465658475110271,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.14079782366752625
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5340",
+      "frame_path": "debug_snapshots/00005340_000089.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5340,
+      "source_pts": 5340,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 89.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9076437652111053,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5370:timer:timer@0.2.0+2157884:52050723cc42",
+          "reading": {
+            "display": "3:51",
+            "kind": "timer",
+            "seconds_remaining": 231.0
+          }
+        },
+        {
+          "confidence": 0.7106558382511139,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5370:death:death@0.2.0+2157884:9d2ced0c46cf",
+          "reading": {
+            "banner_dark_score": 0.4142582633053221,
+            "banner_detected": false,
+            "banner_template_score": 0.2696150541305542,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.2893441617488861,
+            "ouch_white_score": 0.06256830601092896
+          }
+        },
+        {
+          "confidence": 0.2880712330341339,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5370:splat:splat@0.2.0+2157884:3c4add011418",
+          "reading": {
+            "adjacent_color_score": 0.9968434343434344,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6401582956314087,
+            "text_score": 0.3458964228630066,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7797106873088872,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5370:respawn:respawn@0.2.0+2157884:d8b86516b2d2",
+          "reading": {
+            "bright_frac": 0.01661856661856662,
+            "confidence": 0.7797106873088872,
+            "countdown_value": null,
+            "dark_frac": 2.405002405002405e-05,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.7978057889822596,
+            "mean_val": 0.728486546133605,
+            "ocr_text": null,
+            "p95": 0.7176470756530762,
+            "presence_score": 0.22028931269111285,
+            "template_score": 0.5262015461921692,
+            "yellow_frac": 0.012554112554112554
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5370:active_gameplay:active_gameplay@0.2.0+2157884:9c30028b58ab",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.06389785168638482,
+            "detected": false,
+            "hud_edge_frac": 0.0146011396011396,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 0.9899248682427945,
+            "timer_present": false,
+            "weapon_edge_frac": 0.019724972427115142,
+            "weapon_luma_std": 0.16522854566574097
+          }
+        },
+        {
+          "confidence": 0.9305050820112228,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5370:map_overlay:map_overlay@0.2.0+2157884:3796ecb4de28",
+          "reading": {
+            "center_tank_edge_frac": 0.06389785168638482,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.04489603024574669,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.06949491798877716
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5370",
+      "frame_path": "debug_snapshots/00005370_000089.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5370,
+      "source_pts": 5370,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 89.5
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.9079347848892212,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5400:timer:timer@0.2.0+2157884:52050723cc42",
+          "reading": {
+            "display": "3:51",
+            "kind": "timer",
+            "seconds_remaining": 231.0
+          }
+        },
+        {
+          "confidence": 0.7043260473588342,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5400:death:death@0.2.0+2157884:efaf717e8024",
+          "reading": {
+            "banner_dark_score": 0.5011114845938376,
+            "banner_detected": false,
+            "banner_template_score": 0.274498850107193,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": true,
+            "ouch_template_score": 0.2656625509262085,
+            "ouch_white_score": 0.5913479052823315
+          }
+        },
+        {
+          "confidence": 0.24865472316741943,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5400:splat:splat@0.2.0+2157884:9e567c08291e",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.5525660514831543,
+            "text_score": 0.19575490057468414,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7692267164334247,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5400:respawn:respawn@0.2.0+2157884:2d81842a6a53",
+          "reading": {
+            "bright_frac": 0.024146224146224145,
+            "confidence": 0.7692267164334247,
+            "countdown_value": null,
+            "dark_frac": 0.0,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.8614951569853531,
+            "mean_val": 0.8236662611172415,
+            "ocr_text": null,
+            "p95": 0.7450980544090271,
+            "presence_score": 0.23077328356657537,
+            "template_score": 0.3796725869178772,
+            "yellow_frac": 0.034800384800384804
+          }
+        },
+        {
+          "confidence": 1.0,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5400:active_gameplay:active_gameplay@0.2.0+2157884:bedee18a5942",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.0575825266815587,
+            "detected": true,
+            "hud_edge_frac": 0.03398125172318721,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.02168854434293656,
+            "weapon_luma_std": 0.1877976655960083
+          }
+        },
+        {
+          "confidence": 0.9612371250987053,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5400:map_overlay:map_overlay@0.2.0+2157884:8375d25d0305",
+          "reading": {
+            "center_tank_edge_frac": 0.0575825266815587,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.06642512077294686,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.03876287490129471
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5400",
+      "frame_path": "debug_snapshots/00005400_000090.000.jpg",
+      "source": "cadence",
+      "source_frame_index": 5400,
+      "source_pts": 5400,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 90.0
+    },
+    {
+      "detections": [
+        {
+          "confidence": 0.8937003165483475,
+          "detector_name": "timer",
+          "detector_version": "timer@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5430:timer:timer@0.2.0+2157884:f42e975362a9",
+          "reading": {
+            "display": "3:50",
+            "kind": "timer",
+            "seconds_remaining": 230.0
+          }
+        },
+        {
+          "confidence": 0.6231044828891754,
+          "detector_name": "death",
+          "detector_version": "death@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5430:death:death@0.2.0+2157884:a88dd8155229",
+          "reading": {
+            "banner_dark_score": 0.28748674136321195,
+            "banner_detected": false,
+            "banner_template_score": 0.18902091681957245,
+            "detected": false,
+            "kind": "death",
+            "ouch_detected": false,
+            "ouch_heuristic": false,
+            "ouch_template_score": 0.3768955171108246,
+            "ouch_white_score": 0.07240437158469945
+          }
+        },
+        {
+          "confidence": 0.2850306272506714,
+          "detector_name": "splat",
+          "detector_version": "splat@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5430:splat:splat@0.2.0+2157884:4a04ca4f36c3",
+          "reading": {
+            "adjacent_color_score": 1.0,
+            "detected": false,
+            "kind": "splat",
+            "skull_score": 0.6334013938903809,
+            "text_score": 0.28030887246131897,
+            "victim_name": null,
+            "victim_name_confidence": 0.0
+          }
+        },
+        {
+          "confidence": 0.7760546593112175,
+          "detector_name": "respawn",
+          "detector_version": "respawn@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5430:respawn:respawn@0.2.0+2157884:d9f7f6e8ffe5",
+          "reading": {
+            "bright_frac": 0.010101010101010102,
+            "confidence": 0.7760546593112175,
+            "countdown_value": null,
+            "dark_frac": 0.011111111111111112,
+            "detected": false,
+            "evidence_type": null,
+            "kind": "respawn",
+            "mean_sat": 0.4313670788180592,
+            "mean_val": 0.37930283224400874,
+            "ocr_text": null,
+            "p95": 0.7215686440467834,
+            "presence_score": 0.2239453406887825,
+            "template_score": 0.45785123109817505,
+            "yellow_frac": 0.005483405483405483
+          }
+        },
+        {
+          "confidence": 0.55,
+          "detector_name": "active_gameplay",
+          "detector_version": "active_gameplay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5430:active_gameplay:active_gameplay@0.2.0+2157884:af53c75a93ef",
+          "reading": {
+            "center_control": true,
+            "center_edge_frac": 0.07625272331154684,
+            "detected": false,
+            "hud_edge_frac": 0.017944122782832462,
+            "kind": "active_gameplay",
+            "ouch_veto_score": 0.0,
+            "return_control": false,
+            "score": 1.0,
+            "timer_present": false,
+            "weapon_edge_frac": 0.026849295855460708,
+            "weapon_luma_std": 0.17512889206409454
+          }
+        },
+        {
+          "confidence": 0.8581834733486176,
+          "detector_name": "map_overlay",
+          "detector_version": "map_overlay@0.2.0+2157884",
+          "id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:result:5430:map_overlay:map_overlay@0.2.0+2157884:0831ebaa2534",
+          "reading": {
+            "center_tank_edge_frac": 0.07625272331154684,
+            "kind": "map_overlay",
+            "map_edge_frac": 0.012182314639781559,
+            "periphery_blur": 0.0,
+            "present": false,
+            "template_score": 0.14181652665138245
+          }
+        }
+      ],
+      "frame_id": "d3492d5fd5e77c2728dda17edbfd39406e2c483d75b67ddc5209bd1cf0e1e69d:frame:5430",
+      "frame_path": "debug_snapshots/00005430_000090.500.jpg",
+      "source": "cadence",
+      "source_frame_index": 5430,
+      "source_pts": 5430,
+      "source_time_base_den": 60,
+      "source_time_base_num": 1,
+      "timestamp": 90.5
+    }
+  ]
+}

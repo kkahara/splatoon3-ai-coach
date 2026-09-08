@@ -32,6 +32,16 @@ def vision_view(
         "--no-open",
         help="Write HTML without opening a browser.",
     ),
+    video: Path | None = typer.Option(
+        None,
+        "--video",
+        help="Source video for Scenario Review (starts a local HTTP server).",
+    ),
+    port: int = typer.Option(
+        0,
+        "--port",
+        help="Preferred review HTTP port when --video is set (0 = auto).",
+    ),
 ) -> None:
     """Open a read-only Vision Manifest Viewer for Phase 2 diagnostics."""
     argv = [str(manifest)]
@@ -39,6 +49,10 @@ def vision_view(
         argv.extend(["--out", str(out)])
     if config_path is not None:
         argv.extend(["--config", str(config_path)])
+    if video is not None:
+        argv.extend(["--video", str(video)])
+        if port:
+            argv.extend(["--port", str(port)])
     if no_open:
         argv.append("--no-open")
     code = viewer_main(argv)

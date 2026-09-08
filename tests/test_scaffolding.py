@@ -26,14 +26,15 @@ def test_splat_detector_is_registered_when_enabled(vision_config: VisionConfig) 
     assert {detector.name for detector in detectors} == {"timer", "splat"}
 
 
-def test_respawn_and_active_detectors_register_when_enabled(
+def test_respawn_active_and_map_detectors_register_when_enabled(
     vision_config: VisionConfig,
 ) -> None:
-    vision_config.enabled_detectors = ["respawn", "active_gameplay"]
+    vision_config.enabled_detectors = ["respawn", "active_gameplay", "map_overlay"]
     detectors = build_detectors(vision_config)
     assert {detector.name for detector in detectors} == {
         "respawn",
         "active_gameplay",
+        "map_overlay",
     }
 
 
@@ -47,6 +48,8 @@ def test_game_event_types_are_distinct_from_trigger_types() -> None:
     assert GameEventType.DEATH.value == "death"
     assert GameEventType.RESPAWN.value == "respawn"
     assert GameEventType.ACTIVE_AGAIN.value == "active_again"
+    assert GameEventType.SPLAT.value == "splat"
+    assert GameEventType.MAP_OVERLAY.value == "map_overlay"
 
 
 def test_coach_system_prompt_loads_from_package() -> None:

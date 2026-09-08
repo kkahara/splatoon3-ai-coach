@@ -16,6 +16,14 @@ def test_default_config_is_valid() -> None:
     assert isinstance(config.extraction, ExtractionConfig)
     assert isinstance(config.vision, VisionConfig)
     assert config.extraction.analysis_fps > 0
+    assert config.vision.splat.skull_match_threshold == pytest.approx(0.80)
+    assert config.vision.splat.text_match_threshold == pytest.approx(0.70)
+    assert config.scenarios.post_death_follow_seconds == pytest.approx(8.0)
+    assert config.scenarios.post_death_max_seconds == pytest.approx(30.0)
+    assert config.scenarios.engagement_gap_seconds == pytest.approx(3.0)
+    assert config.scenarios.engagement_include_following_death_seconds == pytest.approx(
+        2.0
+    )
 
 
 def test_missing_config_raises() -> None:

@@ -1,23 +1,23 @@
-"""End-to-end vision analysis pipeline."""
+"""End-to-end cadence vision analysis pipeline."""
 
-from dataclasses import dataclass
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
+from time import perf_counter
 
 import cv2
-import numpy as np
 from loguru import logger
 
 from splatoon3_ai_coach.config.models import AppConfig
-from splatoon3_ai_coach.extraction.models import ExtractionManifest
-from splatoon3_ai_coach.media.manifest import load_manifest
+from splatoon3_ai_coach.extraction.sampler import FrameSampler
 from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader
 from splatoon3_ai_coach.media.video_identity import video_identity
 from splatoon3_ai_coach.media.vision_manifest import (
-    hash_extraction_manifest,
     hash_vision_config,
     save_vision_manifest,
 )
 from splatoon3_ai_coach.paths import portable_path
+from splatoon3_ai_coach.vision.base import BaseDetector
 from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.ids import (
     compute_analysis_id,
@@ -27,109 +27,132 @@ from splatoon3_ai_coach.vision.ids import (
 from splatoon3_ai_coach.vision.models import (
     AnalysisIdentity,
     DetectorResult,
+    GameEvent,
+    GameStateSnapshot,
     VisionFrameResult,
     VisionManifest,
+    VisionTimingMetrics,
 )
 from splatoon3_ai_coach.vision.provenance import detector_version, package_version
 from splatoon3_ai_coach.vision.registry import build_detectors
 from splatoon3_ai_coach.vision.state import fuse_game_state
 
+# Cadence-only runs keep the existing three-input analysis ID scheme
+# (video, extraction hash, vision config) with an empty extraction payload.
+CADENCE_EXTRACTION_SHA256 = ""
 
-@dataclass(frozen=True)
-class ScheduledFrame:
-    """A frame scheduled for vision analysis."""
 
-    timestamp: float
-    source: str
-    source_frame_index: int | None
-    source_pts: int | None
-    source_time_base_num: int | None
-    source_time_base_den: int | None
-    frame_path: str | None
-    image: np.ndarray
+@dataclass
+class CadenceScanStats:
+    """In-process counters for one cadence scan.
+
+    ``decode_seconds`` is ingest cost copied from ``VideoLoader``: PyAV
+    retrieval, BGR conversion, and optional downscale. Fake-frame tests
+    leave it at 0.
+    """
+
+    decoded_frame_count: int = 0
+    cadence_frame_count: int = 0
+    decode_seconds: float = 0.0
+    detector_seconds: dict[str, float] = field(default_factory=dict)
+    detector_invocations: dict[str, int] = field(default_factory=dict)
 
 
 def run_vision(
     video: Path,
     config: AppConfig,
-    extraction_manifest_path: Path,
     output_dir: Path,
     *,
     debug_persist_cadence_frames: bool = False,
 ) -> VisionManifest:
-    """Run Phase 3 vision analysis and write a vision manifest."""
-    extraction_manifest = load_manifest(extraction_manifest_path)
+    """Run cadence-only vision analysis and write a vision manifest."""
+    started = perf_counter()
     vid_identity = video_identity(video)
-    extraction_sha = hash_extraction_manifest(extraction_manifest_path)
     vision_sha = hash_vision_config(config.vision)
-    analysis_id = compute_analysis_id(vid_identity, extraction_sha, vision_sha)
-
-    scheduled = _schedule_frames(
-        video,
-        config,
-        extraction_manifest,
-        extraction_manifest_path.parent,
-        debug_persist_cadence_frames,
-        output_dir,
-    )
+    analysis_id = compute_analysis_id(vid_identity, CADENCE_EXTRACTION_SHA256, vision_sha)
     detectors = build_detectors(config.vision)
     detector_versions = {
         detector.name: detector_version(detector.name) for detector in detectors
     }
+    debug_dir = output_dir / "debug_snapshots" if debug_persist_cadence_frames else None
 
-    frame_results: list[VisionFrameResult] = []
-    for scheduled_frame in scheduled:
-        frame_id = make_frame_id(
-            analysis_id,
-            scheduled_frame.source_frame_index,
-            scheduled_frame.timestamp,
+    frame_results, scan_stats, video_duration = _scan_video(
+        video,
+        config,
+        detectors,
+        analysis_id,
+        detector_versions,
+        debug_dir,
+        output_dir,
+    )
+    temporal_started = perf_counter()
+    state_snapshots, game_events = _interpret_observations(frame_results, config)
+    timing = _build_timing(
+        video_duration,
+        scan_stats,
+        temporal_seconds=perf_counter() - temporal_started,
+        total_seconds=perf_counter() - started,
+    )
+    manifest = _build_manifest(
+        analysis_id,
+        vid_identity,
+        vision_sha,
+        detector_versions,
+        frame_results,
+        state_snapshots,
+        game_events,
+        timing,
+        language=config.vision.language.value,
+    )
+    save_vision_manifest(manifest, output_dir)
+    _log_completion(manifest, timing)
+    return manifest
+
+
+def observe_cadence_stream(
+    frames: Iterator[VideoFrame],
+    detectors: Sequence[BaseDetector],
+    *,
+    cadence_fps: float,
+    analysis_id: str,
+    detector_versions: dict[str, str],
+    debug_dir: Path | None = None,
+    output_dir: Path | None = None,
+) -> tuple[list[VisionFrameResult], CadenceScanStats]:
+    """Sample a decoded stream at ``cadence_fps`` and run all detectors per frame.
+
+    Each cadence frame is decoded once. All detectors receive that same in-memory
+    image. ``frame_path`` stays ``None`` unless ``debug_dir`` is set.
+    """
+    stats = CadenceScanStats()
+    sampler = FrameSampler(1.0 / cadence_fps)
+    if debug_dir is not None:
+        debug_dir.mkdir(parents=True, exist_ok=True)
+
+    results: list[VisionFrameResult] = []
+    # Pure timestamp filter over the already-decoded iterator (no seek/reopen).
+    for video_frame in sampler.sample(_pulled_frames(frames, stats)):
+        results.append(
+            _observe_cadence_frame(
+                video_frame,
+                detectors,
+                analysis_id,
+                detector_versions,
+                stats,
+                debug_dir,
+                output_dir,
+            )
         )
-        detections: list[DetectorResult] = []
-        for detector in detectors:
-            if scheduled_frame.source == "cadence" and detector.cadence_fps is None:
-                continue
-            if scheduled_frame.source == "evidence" and not detector.run_on_evidence:
-                continue
+        stats.cadence_frame_count += 1
+    return results, stats
 
-            reading, score = detector.detect(
-                scheduled_frame.image,
-                scheduled_frame.timestamp,
-            )
-            if reading is None:
-                continue
-            version = detector_versions[detector.name]
-            detections.append(
-                DetectorResult(
-                    id=make_result_id(
-                        analysis_id,
-                        scheduled_frame.source_frame_index,
-                        scheduled_frame.timestamp,
-                        detector.name,
-                        version,
-                        reading,
-                    ),
-                    detector_name=detector.name,
-                    detector_version=version,
-                    confidence=score,
-                    reading=reading,
-                )
-            )
 
-        frame_results.append(
-            VisionFrameResult(
-                frame_id=frame_id,
-                timestamp=scheduled_frame.timestamp,
-                source=scheduled_frame.source,  # type: ignore[arg-type]
-                source_frame_index=scheduled_frame.source_frame_index,
-                source_pts=scheduled_frame.source_pts,
-                source_time_base_num=scheduled_frame.source_time_base_num,
-                source_time_base_den=scheduled_frame.source_time_base_den,
-                frame_path=scheduled_frame.frame_path,
-                detections=detections,
-            )
-        )
-
-    state_snapshots = fuse_game_state(
+def _interpret_observations(
+    frame_results: list[VisionFrameResult],
+    config: AppConfig,
+) -> tuple[list[GameStateSnapshot], list[GameEvent]]:
+    """Fuse cadence readings into snapshots, then infer gameplay events."""
+    snapshots = fuse_game_state(
         frame_results,
         config.vision.timer,
         config.vision.state_fusion,
@@ -138,131 +161,242 @@ def run_vision(
         config.vision.respawn,
         config.vision.active_gameplay,
         config.vision.lifecycle,
+        config.vision.map_overlay,
     )
-    game_events = infer_events(state_snapshots, config.vision.events)
-
-    analysis = AnalysisIdentity(
-        analysis_id=analysis_id,
-        package_version=package_version(),
-        detector_versions=detector_versions,
-        extraction_manifest_sha256=extraction_sha,
-        vision_config_sha256=vision_sha,
-        video_identity=vid_identity,
-    )
-    manifest = VisionManifest(
-        analysis=analysis,
-        video_identity=vid_identity,
-        extraction_manifest_path=portable_path(
-            extraction_manifest_path,
-            output_dir,
-        ),
-        frame_results=frame_results,
-        state_snapshots=state_snapshots,
-        game_events=game_events,
-    )
-    save_vision_manifest(manifest, output_dir)
-    logger.info(
-        "Vision complete: {} frames, {} state snapshots, {} events",
-        len(frame_results),
-        len(state_snapshots),
-        len(game_events),
-    )
-    return manifest
+    return snapshots, infer_events(snapshots, config.vision.events)
 
 
-def _schedule_frames(
+def _scan_video(
     video: Path,
     config: AppConfig,
-    extraction_manifest: ExtractionManifest,
-    manifest_dir: Path,
-    debug_persist_cadence: bool,
+    detectors: Sequence[BaseDetector],
+    analysis_id: str,
+    detector_versions: dict[str, str],
+    debug_dir: Path | None,
     output_dir: Path,
-) -> list[ScheduledFrame]:
-    """Build deduplicated evidence and cadence frame schedule."""
-    evidence_by_index: dict[int, ScheduledFrame] = {}
-    evidence_by_time: list[ScheduledFrame] = []
-
-    for manifest_frame in extraction_manifest.frames:
-        image = cv2.imread(str(manifest_frame.path))
-        if image is None:
-            continue
-        scheduled = ScheduledFrame(
-            timestamp=manifest_frame.timestamp,
-            source="evidence",
-            source_frame_index=manifest_frame.source_frame_index,
-            source_pts=manifest_frame.source_pts,
-            source_time_base_num=manifest_frame.source_time_base_num,
-            source_time_base_den=manifest_frame.source_time_base_den,
-            frame_path=portable_path(manifest_frame.path, output_dir),
-            image=image,
-        )
-        evidence_by_index[manifest_frame.source_frame_index] = scheduled
-        evidence_by_time.append(scheduled)
-
-    tolerance = config.vision.state_fusion.dedupe_tolerance_seconds
-    cadence_step = 1.0 / config.vision.hud_cadence_fps
-    scheduled: list[ScheduledFrame] = list(evidence_by_index.values())
-    seen_indices = set(evidence_by_index.keys())
-    last_cadence = -float("inf")
-
-    cadence_dir = output_dir / "cadence_frames"
-    if debug_persist_cadence:
-        cadence_dir.mkdir(parents=True, exist_ok=True)
-
+) -> tuple[list[VisionFrameResult], CadenceScanStats, float]:
+    """Decode the video once and observe cadence frames in memory."""
     with VideoLoader(
         video,
         max_width=config.video.max_width,
         max_height=config.video.max_height,
     ) as loader:
-        for video_frame in loader.frames():
-            if video_frame.timestamp - last_cadence < cadence_step:
-                continue
-            last_cadence = video_frame.timestamp
-
-            if video_frame.frame_index in seen_indices:
-                continue
-
-            if _matches_evidence_by_time(video_frame, evidence_by_time, tolerance):
-                continue
-
-            frame_path = None
-            if debug_persist_cadence:
-                frame_path = portable_path(
-                    _write_cadence_frame(cadence_dir, video_frame),
-                    output_dir,
-                )
-
-            scheduled.append(
-                ScheduledFrame(
-                    timestamp=video_frame.timestamp,
-                    source="cadence",
-                    source_frame_index=video_frame.frame_index,
-                    source_pts=video_frame.source_pts,
-                    source_time_base_num=video_frame.source_time_base_num,
-                    source_time_base_den=video_frame.source_time_base_den,
-                    frame_path=frame_path,
-                    image=video_frame.image.copy(),
-                )
-            )
-
-    scheduled.sort(key=lambda item: (item.timestamp, item.source_frame_index or -1))
-    return scheduled
+        duration = loader.open().duration_seconds
+        results, stats = observe_cadence_stream(
+            loader.frames(),
+            detectors,
+            cadence_fps=config.vision.hud_cadence_fps,
+            analysis_id=analysis_id,
+            detector_versions=detector_versions,
+            debug_dir=debug_dir,
+            output_dir=output_dir,
+        )
+        stats.decode_seconds = loader.decode_seconds
+        stats.decoded_frame_count = loader.decoded_frame_count
+    return results, stats, duration
 
 
-def _matches_evidence_by_time(
+def _pulled_frames(
+    frames: Iterator[VideoFrame],
+    stats: CadenceScanStats,
+) -> Iterator[VideoFrame]:
+    """Count frames taken from an already-decoded iterator. Does not time them."""
+    for frame in frames:
+        stats.decoded_frame_count += 1
+        yield frame
+
+
+def _observe_cadence_frame(
     video_frame: VideoFrame,
-    evidence_frames: list[ScheduledFrame],
-    tolerance: float,
-) -> bool:
-    """Return whether a cadence frame overlaps an evidence frame by timestamp."""
-    for evidence in evidence_frames:
-        if abs(evidence.timestamp - video_frame.timestamp) <= tolerance:
-            return True
-    return False
+    detectors: Sequence[BaseDetector],
+    analysis_id: str,
+    detector_versions: dict[str, str],
+    stats: CadenceScanStats,
+    debug_dir: Path | None,
+    output_dir: Path | None,
+) -> VisionFrameResult:
+    """Run every detector on one already-decoded cadence frame."""
+    detections = _run_detectors(
+        video_frame,
+        detectors,
+        analysis_id,
+        detector_versions,
+        stats,
+    )
+    frame_path = _optional_debug_snapshot(video_frame, debug_dir, output_dir)
+    return VisionFrameResult(
+        frame_id=make_frame_id(
+            analysis_id,
+            video_frame.frame_index,
+            video_frame.timestamp,
+        ),
+        timestamp=video_frame.timestamp,
+        source="cadence",
+        source_frame_index=video_frame.frame_index,
+        source_pts=video_frame.source_pts,
+        source_time_base_num=video_frame.source_time_base_num,
+        source_time_base_den=video_frame.source_time_base_den,
+        frame_path=frame_path,
+        detections=detections,
+    )
 
 
-def _write_cadence_frame(output_dir: Path, frame: VideoFrame) -> Path:
-    """Persist one cadence debug frame."""
+def _run_detectors(
+    video_frame: VideoFrame,
+    detectors: Sequence[BaseDetector],
+    analysis_id: str,
+    detector_versions: dict[str, str],
+    stats: CadenceScanStats,
+) -> list[DetectorResult]:
+    """Run all detectors against the same in-memory frame image."""
+    detections: list[DetectorResult] = []
+    for detector in detectors:
+        started = perf_counter()
+        reading, score = detector.detect(video_frame.image, video_frame.timestamp)
+        elapsed = perf_counter() - started
+        stats.detector_seconds[detector.name] = (
+            stats.detector_seconds.get(detector.name, 0.0) + elapsed
+        )
+        stats.detector_invocations[detector.name] = (
+            stats.detector_invocations.get(detector.name, 0) + 1
+        )
+        if reading is None:
+            continue
+        version = detector_versions[detector.name]
+        detections.append(
+            DetectorResult(
+                id=make_result_id(
+                    analysis_id,
+                    video_frame.frame_index,
+                    video_frame.timestamp,
+                    detector.name,
+                    version,
+                    reading,
+                ),
+                detector_name=detector.name,
+                detector_version=version,
+                confidence=score,
+                reading=reading,
+            )
+        )
+    return detections
+
+
+def _optional_debug_snapshot(
+    video_frame: VideoFrame,
+    debug_dir: Path | None,
+    output_dir: Path | None,
+) -> str | None:
+    """Write an already-observed cadence frame when debug persistence is on."""
+    if debug_dir is None:
+        return None
+    snapshot = _write_debug_snapshot(debug_dir, video_frame)
+    if output_dir is None:
+        return snapshot.name
+    return portable_path(snapshot, output_dir)
+
+
+def _write_debug_snapshot(output_dir: Path, frame: VideoFrame) -> Path:
+    """Persist a cadence frame that was already decoded and observed."""
     path = output_dir / f"{frame.frame_index:08d}_{frame.timestamp:010.3f}.jpg"
     cv2.imwrite(str(path), frame.image)
     return path
+
+
+def _build_timing(
+    video_duration: float,
+    stats: CadenceScanStats,
+    *,
+    temporal_seconds: float,
+    total_seconds: float,
+) -> VisionTimingMetrics:
+    """Assemble persisted timing metrics for a cadence analysis run."""
+    detector_times = stats.detector_seconds
+    invocations = stats.detector_invocations
+    return VisionTimingMetrics(
+        video_duration_seconds=video_duration,
+        decoded_frame_count=stats.decoded_frame_count,
+        cadence_frame_count=stats.cadence_frame_count,
+        decode_seconds=stats.decode_seconds,
+        timer_detector_seconds=detector_times.get("timer", 0.0),
+        death_detector_seconds=detector_times.get("death", 0.0),
+        splat_detector_seconds=detector_times.get("splat", 0.0),
+        respawn_detector_seconds=detector_times.get("respawn", 0.0),
+        active_gameplay_detector_seconds=detector_times.get("active_gameplay", 0.0),
+        map_overlay_detector_seconds=detector_times.get("map_overlay", 0.0),
+        timer_detector_invocations=invocations.get("timer", 0),
+        death_detector_invocations=invocations.get("death", 0),
+        splat_detector_invocations=invocations.get("splat", 0),
+        respawn_detector_invocations=invocations.get("respawn", 0),
+        active_gameplay_detector_invocations=invocations.get("active_gameplay", 0),
+        map_overlay_detector_invocations=invocations.get("map_overlay", 0),
+        temporal_seconds=temporal_seconds,
+        total_seconds=total_seconds,
+    )
+
+
+def _build_manifest(
+    analysis_id: str,
+    vid_identity: str,
+    vision_sha: str,
+    detector_versions: dict[str, str],
+    frame_results: list[VisionFrameResult],
+    state_snapshots: list[GameStateSnapshot],
+    game_events: list[GameEvent],
+    timing: VisionTimingMetrics,
+    *,
+    language: str,
+) -> VisionManifest:
+    """Assemble the persisted vision manifest."""
+    analysis = AnalysisIdentity(
+        analysis_id=analysis_id,
+        package_version=package_version(),
+        detector_versions=detector_versions,
+        extraction_manifest_sha256=CADENCE_EXTRACTION_SHA256,
+        vision_config_sha256=vision_sha,
+        video_identity=vid_identity,
+        language=language,
+    )
+    return VisionManifest(
+        analysis=analysis,
+        video_identity=vid_identity,
+        extraction_manifest_path=None,
+        frame_results=frame_results,
+        state_snapshots=state_snapshots,
+        game_events=game_events,
+        timing=timing,
+    )
+
+
+def _log_completion(manifest: VisionManifest, timing: VisionTimingMetrics) -> None:
+    """Log frame counts and cadence timing."""
+    logger.info(
+        "Vision complete: {} frames, {} state snapshots, {} events",
+        len(manifest.frame_results),
+        len(manifest.state_snapshots),
+        len(manifest.game_events),
+    )
+    logger.info(
+        "Vision timing: decoded={} cadence={} decode={:.3f}s "
+        "timer={:.3f}s/{} death={:.3f}s/{} splat={:.3f}s/{} respawn={:.3f}s/{} "
+        "active={:.3f}s/{} map={:.3f}s/{} temporal={:.3f}s total={:.3f}s "
+        "realtime_factor={:.3f}",
+        timing.decoded_frame_count,
+        timing.cadence_frame_count,
+        timing.decode_seconds,
+        timing.timer_detector_seconds,
+        timing.timer_detector_invocations,
+        timing.death_detector_seconds,
+        timing.death_detector_invocations,
+        timing.splat_detector_seconds,
+        timing.splat_detector_invocations,
+        timing.respawn_detector_seconds,
+        timing.respawn_detector_invocations,
+        timing.active_gameplay_detector_seconds,
+        timing.active_gameplay_detector_invocations,
+        timing.map_overlay_detector_seconds,
+        timing.map_overlay_detector_invocations,
+        timing.temporal_seconds,
+        timing.total_seconds,
+        timing.realtime_factor,
+    )

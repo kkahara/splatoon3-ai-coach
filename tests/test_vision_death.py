@@ -6,6 +6,7 @@ import pytest
 from splatoon3_ai_coach.config.models import (
     DeathDetectorConfig,
     EventFusionConfig,
+    LifecycleFusionConfig,
     StateFusionConfig,
     TimerDetectorConfig,
 )
@@ -142,7 +143,7 @@ def test_alive_frame_is_not_detected() -> None:
 
 
 def test_death_detector_accepts_strong_template_match(tmp_path, monkeypatch) -> None:
-    """Glyph path: template score above threshold + dark banner → detected."""
+    """Glyph path: template score above threshold is sufficient."""
     detector = DeathDetector(DeathDetectorConfig(ouch_require_glyph=True))
 
     def fake_template(roi, templates):  # noqa: ANN001
@@ -157,6 +158,30 @@ def test_death_detector_accepts_strong_template_match(tmp_path, monkeypatch) -> 
     assert reading.ouch_detected
     assert reading.ouch_template_score == pytest.approx(0.95)
     assert reading.detected
+    assert score >= 0.5
+
+
+def test_strong_ouch_glyph_detects_without_dark_banner(monkeypatch) -> None:
+    """Kill-banner chrome in banner_roi must not veto a strong Ouch glyph."""
+    detector = DeathDetector(DeathDetectorConfig(ouch_require_glyph=True))
+
+    def fake_template(roi, templates):  # noqa: ANN001
+        return 0.95
+
+    monkeypatch.setattr(
+        "splatoon3_ai_coach.vision.death._best_template_score",
+        fake_template,
+    )
+    image = _blank_1080()
+    image[880:940, 20:200] = (40, 40, 40)
+    image[895:925, 35:175] = (255, 255, 255)
+    # Bright banner (splat feed / death-cam), not a dark splatted-by plate.
+    image[980:1050, 660:1260] = (180, 180, 180)
+    reading, score = detector.detect(image, timestamp=1.0)
+    assert reading is not None
+    assert reading.ouch_detected
+    assert reading.detected
+    assert reading.banner_dark_score < 0.72
     assert score >= 0.5
 
 
@@ -225,6 +250,7 @@ def test_fusion_preserves_dead_without_forcing_alive() -> None:
         _timer_config(),
         StateFusionConfig(max_hold_duration=0.5),
         DeathDetectorConfig(),
+        lifecycle_config=LifecycleFusionConfig(death_requires_match_context=False),
     )
     assert [s.player_alive for s in snapshots] == [False, False, False]
 

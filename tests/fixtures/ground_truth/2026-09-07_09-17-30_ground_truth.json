@@ -1,0 +1,306 @@
+{
+  "manifest_path": "analysis/2026-09-07 09-17-30/vision_manifest.json",
+  "video_label": "2026-09-07 09-17-30",
+  "exported_at": "2026-09-07T17:16:04.583Z",
+  "canonical_notes": "v5 in-match \u222a v6 end-of-match; last-write-wins on exact (detector, t0, t1). Added 89.0-89.5 real_map (v4) and 135.0-135.5 not_active (latch-exit hold). Dropped stale v1-v4 map windows (131.0, 160.5, 234.5).",
+  "label_meanings": {
+    "real_death": "DEATH event: first alive→dead transition in the episode. DeathReading.detected ≠ DEATH. Do not mark later Ouch frames in the same cycle (leave them unmarked, not not_a_death).",
+    "not_a_death": "Death detector false positive — Ouch UI when this was not a death episode."
+  },
+  "intervals": [
+    {
+      "t0": 89.0,
+      "t1": 89.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 122.5,
+      "t1": 123,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 123.5,
+      "t1": 124,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 127,
+      "t1": 127.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 128,
+      "t1": 128.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 129,
+      "t1": 129.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 130,
+      "t1": 130.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 130.5,
+      "t1": 131,
+      "detector": "map_overlay",
+      "label": "not_a_map_overlay"
+    },
+    {
+      "t0": 132.5,
+      "t1": 133,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 134,
+      "t1": 134.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 135.0,
+      "t1": 135.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 137,
+      "t1": 137.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 140.5,
+      "t1": 141,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 142,
+      "t1": 142.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 148,
+      "t1": 148.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 151.5,
+      "t1": 152,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 153.5,
+      "t1": 154,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 157.5,
+      "t1": 158,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 161,
+      "t1": 161.5,
+      "detector": "map_overlay",
+      "label": "not_a_map_overlay"
+    },
+    {
+      "t0": 165.5,
+      "t1": 166,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 169,
+      "t1": 169.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 169.5,
+      "t1": 170,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 177.5,
+      "t1": 178,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 178.5,
+      "t1": 179,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 180,
+      "t1": 180.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 181,
+      "t1": 181.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 182,
+      "t1": 182.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 183,
+      "t1": 183.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 184,
+      "t1": 184.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 185,
+      "t1": 185.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 186,
+      "t1": 186.5,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 191,
+      "t1": 191.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 201.5,
+      "t1": 202,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 204.5,
+      "t1": 205,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 222,
+      "t1": 222.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 222.5,
+      "t1": 223,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 223.5,
+      "t1": 224,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 224.5,
+      "t1": 225,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 229,
+      "t1": 229.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 231,
+      "t1": 231.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 232.5,
+      "t1": 233,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 234,
+      "t1": 234.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 237.5,
+      "t1": 238,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 243,
+      "t1": 243.5,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 245.5,
+      "t1": 246,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 246.5,
+      "t1": 247,
+      "detector": "active_gameplay",
+      "label": "not_active_gameplay"
+    },
+    {
+      "t0": 568.5,
+      "t1": 569,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 570.5,
+      "t1": 571,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    },
+    {
+      "t0": 570.5,
+      "t1": 571,
+      "detector": "splat",
+      "label": "real_splat"
+    }
+  ]
+}

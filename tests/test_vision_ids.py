@@ -30,3 +30,10 @@ def test_analysis_id_is_deterministic() -> None:
     first = compute_analysis_id("video", "extract", "vision")
     second = compute_analysis_id("video", "extract", "vision")
     assert first == second
+
+
+def test_cadence_only_analysis_id_uses_empty_extraction_hash() -> None:
+    first = compute_analysis_id("video", "", "vision")
+    second = compute_analysis_id("video", "", "vision")
+    assert first == second
+    assert first != compute_analysis_id("video", "extract", "vision")

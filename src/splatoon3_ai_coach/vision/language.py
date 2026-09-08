@@ -3,12 +3,17 @@
 Layout convention for detector template roots::
 
     calibration/templates/<detector>/
-      skull/                 # language-neutral visual cues (icons, glyphs)
-      en/                    # English text / keyword templates (optional)
-      ja/                    # Japanese text / keyword templates (optional)
+      en/   # English text / keyword templates
+      ja/   # Japanese text / keyword templates
 
-Prefer language-neutral assets for primary detection. Resolve localized
-subdirectories only when a detector needs text templates or OCR.
+    calibration/templates/death/
+      ouch/en/   ouch/ja/
+      splatted/en/   splatted/ja/
+
+Language is an analysis-level setting (``VisionConfig.language``). Detectors
+must not infer language from frames, OCR, or template scores. Resource
+selection is deterministic: only ``base_dir / {language}`` is used, with no
+fallback to the parent directory or the other language.
 """
 
 from __future__ import annotations
@@ -16,27 +21,35 @@ from __future__ import annotations
 from pathlib import Path
 
 from splatoon3_ai_coach.config.models import VisionConfig, VisionLanguage
+from splatoon3_ai_coach.exceptions import VisionError
 
 
-def resolve_localized_template_dir(
+def resolve_language_template_dir(
     base_dir: Path,
     language: VisionLanguage | str,
 ) -> Path:
-    """Return ``base_dir / language`` when it exists, otherwise ``base_dir``.
+    """Return ``base_dir / language``, requiring that directory to exist.
 
-    Language-neutral packs (e.g. splat skull icons) live directly under
-    ``base_dir``. Text templates for a locale live under a language subdirectory.
+    Raises:
+        VisionError: When the language subdirectory is missing.
     """
     code = language.value if isinstance(language, VisionLanguage) else str(language)
     localized = base_dir / code
-    if localized.is_dir():
-        return localized
-    return base_dir
+    if not localized.is_dir():
+        raise VisionError(
+            f"Language template directory not found for language={code!r}: "
+            f"{localized}"
+        )
+    return localized
+
+
+# Backward-compatible name used by older tests and docs.
+resolve_localized_template_dir = resolve_language_template_dir
 
 
 def localized_template_dir(config: VisionConfig, base_dir: Path) -> Path:
     """Resolve a detector template root for the active vision language."""
-    return resolve_localized_template_dir(base_dir, config.language)
+    return resolve_language_template_dir(base_dir, config.language)
 
 
 def ocr_tesseract_lang(config: VisionConfig) -> str:

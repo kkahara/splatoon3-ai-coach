@@ -1,0 +1,220 @@
+{
+  "manifest_path": "/Users/kenjikahara/splatoon3-ai-coach/analysis/2026-09-07 14-02-14/vision_manifest.json",
+  "video_label": "2026-09-07 14-02-14",
+  "exported_at": "2026-09-07T23:34:22.723Z",
+  "label_meanings": {
+    "real_death": "DEATH event: first alive→dead transition in the episode. DeathReading.detected ≠ DEATH. Do not mark later Ouch frames in the same cycle (leave them unmarked, not not_a_death).",
+    "not_a_death": "Death detector false positive — Ouch UI when this was not a death episode.",
+    "damage_recovery": "Death-like HUD without a death.",
+    "real_splat": "SPLAT event: first rising edge of a local kill. SplatReading.detected ≠ SPLAT. Do not mark later banner frames in the same kill (leave them unmarked, not not_a_splat).",
+    "not_a_splat": "Splat detector false positive — kill banner when you did not splat someone.",
+    "real_active_gameplay": "Fused ACTIVE state (in-match and alive), not HUD chrome.",
+    "not_active_gameplay": "Not the ACTIVE state (intro, death-cam, countdown, …).",
+    "real_respawn": "RESPAWN event — first enter respawned in the episode.",
+    "not_a_respawn": "Respawn detector false positive.",
+    "real_map_overlay": "The map was open.",
+    "not_a_map_overlay": "Map detector false positive.",
+    "real_timer": "Match timer was readable.",
+    "not_a_timer": "Timer detector false positive."
+  },
+  "intervals": [
+    {
+      "t0": 152.5,
+      "t1": 152.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 153,
+      "t1": 153,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 175,
+      "t1": 175,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 175.5,
+      "t1": 175.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 176,
+      "t1": 176,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 176.5,
+      "t1": 176.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 179.5,
+      "t1": 179.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 180,
+      "t1": 180,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 199.5,
+      "t1": 199.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 200.5,
+      "t1": 200.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 201,
+      "t1": 201,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 201.5,
+      "t1": 201.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 202,
+      "t1": 202,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 203.5,
+      "t1": 203.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 206,
+      "t1": 206,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 207,
+      "t1": 207,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 208,
+      "t1": 208,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 220.5,
+      "t1": 220.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 221,
+      "t1": 221,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 221.5,
+      "t1": 221.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 222,
+      "t1": 222,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 247.5,
+      "t1": 247.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 249.5,
+      "t1": 249.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 250,
+      "t1": 250,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 251,
+      "t1": 251,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 252.5,
+      "t1": 252.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 253,
+      "t1": 253,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 283.5,
+      "t1": 283.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 284.5,
+      "t1": 284.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 285,
+      "t1": 285,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 286,
+      "t1": 286,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 286.5,
+      "t1": 286.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 296,
+      "t1": 296,
+      "detector": "active_gameplay",
+      "label": "real_active_gameplay"
+    }
+  ]
+}

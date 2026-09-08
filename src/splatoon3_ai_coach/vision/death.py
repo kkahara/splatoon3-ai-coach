@@ -8,7 +8,8 @@ import cv2
 import numpy as np
 from loguru import logger
 
-from splatoon3_ai_coach.config.models import DeathDetectorConfig
+from splatoon3_ai_coach.config.models import DeathDetectorConfig, VisionLanguage
+from splatoon3_ai_coach.vision.language import resolve_language_template_dir
 from splatoon3_ai_coach.vision.models import DeathReading
 from splatoon3_ai_coach.vision.roi import crop_roi
 
@@ -78,13 +79,15 @@ def _keyword_hit(text: str, keywords: tuple[str, ...]) -> bool:
     return any(keyword in text for keyword in keywords)
 
 
-def _load_optional_templates(template_dir: Path | None, name: str) -> list[np.ndarray]:
-    """Load grayscale templates from ``template_dir / name`` if present."""
+def _load_language_cue_templates(
+    template_dir: Path | None,
+    cue: str,
+    language: VisionLanguage | str,
+) -> list[np.ndarray]:
+    """Load grayscale templates from ``template_dir / cue / {language}``."""
     if template_dir is None:
         return []
-    folder = template_dir / name
-    if not folder.exists():
-        return []
+    folder = resolve_language_template_dir(template_dir / cue, language)
     templates: list[np.ndarray] = []
     for path in sorted(folder.glob("*")):
         if path.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
@@ -137,21 +140,31 @@ class DeathDetector:
         self,
         config: DeathDetectorConfig,
         cadence_fps: float | None = None,
+        *,
+        language: VisionLanguage | str = VisionLanguage.EN,
     ) -> None:
         self.config = config
         self.cadence_fps = cadence_fps
+        self.language = (
+            language.value if isinstance(language, VisionLanguage) else str(language)
+        )
         self._last_positive_at: float | None = None
-        self._ouch_templates = _load_optional_templates(config.template_dir, "ouch")
-        self._banner_templates = _load_optional_templates(
+        self._ouch_templates = _load_language_cue_templates(
+            config.template_dir, "ouch", self.language
+        )
+        self._banner_templates = _load_language_cue_templates(
             config.template_dir,
             "splatted",
+            self.language,
         )
         if config.template_dir is not None and not (
             self._ouch_templates or self._banner_templates
         ):
             logger.debug(
-                "Death detector has no templates under {}; using heuristics and OCR",
+                "Death detector has no templates under {}/{{ouch,splatted}}/{}; "
+                "using heuristics and OCR",
                 config.template_dir,
+                self.language,
             )
         if config.ouch_require_glyph and not self._ouch_templates:
             logger.warning(
@@ -212,7 +225,13 @@ class DeathDetector:
         banner_ok = (
             banner_detected or banner_dark_score >= self.config.banner_dark_threshold
         )
-        detected = ouch_detected and banner_ok
+        # Ouch / やられた in the dedicated ROI is the primary death cue.
+        # The bottom banner is often a kill feed or still-bright death-cam
+        # chrome, so it must not veto a strong glyph.
+        if self.config.ouch_require_glyph:
+            detected = ouch_detected
+        else:
+            detected = ouch_detected and banner_ok
 
         ouch_score = max(ouch_template, 1.0 if ouch_ocr else 0.0, ouch_white * 0.5)
         confidence = _confidence(

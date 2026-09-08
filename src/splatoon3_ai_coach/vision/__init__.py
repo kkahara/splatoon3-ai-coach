@@ -9,6 +9,8 @@ from splatoon3_ai_coach.vision.base import BaseDetector
 from splatoon3_ai_coach.vision.models import (
     DeathReading,
     GameEvent,
+    GameEventReason,
+    GameEventSource,
     GameEventType,
     GameStateSnapshot,
     SplatReading,
@@ -21,6 +23,8 @@ __all__ = [
     "BaseDetector",
     "DeathReading",
     "GameEvent",
+    "GameEventReason",
+    "GameEventSource",
     "GameEventType",
     "GameStateSnapshot",
     "SplatReading",

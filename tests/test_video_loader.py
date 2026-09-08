@@ -6,6 +6,7 @@ the pipeline.
 """
 
 from pathlib import Path
+from time import sleep
 
 import pytest
 
@@ -62,3 +63,17 @@ def test_frames_are_downscaled_to_configured_bounds(sample_video: Path) -> None:
     height, width = first.image.shape[:2]
     assert width <= 160
     assert height <= 160
+
+
+def test_decode_seconds_exclude_time_after_yield(sample_video: Path) -> None:
+    with VideoLoader(sample_video) as loader:
+        iterator = loader.frames()
+        next(iterator)
+        after_first = loader.decode_seconds
+        sleep(0.05)
+        next(iterator)
+        delta = loader.decode_seconds - after_first
+
+    assert after_first > 0
+    assert loader.decoded_frame_count == 2
+    assert delta < 0.05

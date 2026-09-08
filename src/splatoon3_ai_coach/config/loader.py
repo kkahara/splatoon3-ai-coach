@@ -41,31 +41,13 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
 
     vision = raw.get("vision")
     if isinstance(vision, dict):
-        timer = vision.get("timer")
-        if isinstance(timer, dict):
-            template_dir = timer.get("template_dir")
-            if template_dir is not None:
-                path = Path(template_dir)
-                if not path.is_absolute():
-                    timer["template_dir"] = str((config_dir / path).resolve())
-        death = vision.get("death")
-        if isinstance(death, dict):
-            template_dir = death.get("template_dir")
-            if template_dir is not None:
-                path = Path(template_dir)
-                if not path.is_absolute():
-                    death["template_dir"] = str((config_dir / path).resolve())
-        splat = vision.get("splat")
-        if isinstance(splat, dict):
-            template_dir = splat.get("template_dir")
-            if template_dir is not None:
-                path = Path(template_dir)
-                if not path.is_absolute():
-                    splat["template_dir"] = str((config_dir / path).resolve())
-        respawn = vision.get("respawn")
-        if isinstance(respawn, dict):
-            template_dir = respawn.get("template_dir")
-            if template_dir is not None:
-                path = Path(template_dir)
-                if not path.is_absolute():
-                    respawn["template_dir"] = str((config_dir / path).resolve())
+        for key in ("timer", "death", "splat", "respawn", "map_overlay", "active_gameplay"):
+            section = vision.get(key)
+            if not isinstance(section, dict):
+                continue
+            for field in ("template_dir", "ouch_template_dir"):
+                template_dir = section.get(field)
+                if template_dir is not None:
+                    path = Path(template_dir)
+                    if not path.is_absolute():
+                        section[field] = str((config_dir / path).resolve())

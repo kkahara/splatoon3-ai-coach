@@ -20,7 +20,8 @@ For GUI/debug windows that need OpenCV's display backend:
 
 ```bash
 s3-coach inspect path/to/gameplay.mp4
-s3-coach extract path/to/gameplay.mp4 --out ./frames/
+s3-coach analyze path/to/gameplay.mp4 --out ./analysis/
+s3-coach extract path/to/gameplay.mp4 --out ./frames/   # optional debug dumps
 s3-coach extract path/to/gameplay.mp4 -v   # verbose logging
 ```
 

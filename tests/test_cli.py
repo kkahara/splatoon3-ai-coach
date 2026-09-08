@@ -44,6 +44,53 @@ def test_extract_writes_frames_and_manifest(sample_video: Path, tmp_path: Path) 
         assert 0.0 <= frame.confidence <= 1.0
 
 
+def test_analyze_does_not_require_extraction(sample_video: Path, tmp_path: Path) -> None:
+    out = tmp_path / "analysis"
+    result = runner.invoke(
+        app,
+        [
+            "analyze",
+            str(sample_video),
+            "--out",
+            str(out),
+            "--config",
+            str(default_config_path()),
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert (out / "vision_manifest.json").exists()
+    assert (out / "scenarios.json").exists()
+    assert (out / "scenarios.txt").exists()
+    assert (out / "scenario_contexts.json").exists()
+    assert not (out / "frames").exists()
+    assert "reuse-extraction" not in result.stdout
+
+
+def test_analyze_language_flag_persists_in_manifest(
+    sample_video: Path, tmp_path: Path
+) -> None:
+    out = tmp_path / "analysis"
+    result = runner.invoke(
+        app,
+        [
+            "analyze",
+            str(sample_video),
+            "--out",
+            str(out),
+            "--config",
+            str(default_config_path()),
+            "--language",
+            "ja",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    import json
+
+    manifest = json.loads((out / "vision_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["analysis"]["language"] == "ja"
+
+
 def test_extract_uses_default_config_when_none_given(
     sample_video: Path,
     tmp_path: Path,

@@ -207,7 +207,7 @@ def _diagnose_one(
         CueBar(
             label="Splat detector",
             value=splat_score if splat_score is not None else (1.0 if splat and splat.positive else 0.0),
-            threshold=0.55,
+            threshold=0.80,
             passed=bool(splat and splat.positive),
             detail="supporting (not required by death rule)",
         ),
