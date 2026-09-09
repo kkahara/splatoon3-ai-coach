@@ -391,7 +391,8 @@ def evidence_contract_summary() -> dict[str, list[str]]:
             "relations as temporal associations (leads_to, follows, next_engagement)",
             "trade_candidate as configured window flag only",
             "comparisons across episodes when fields exist on both",
-            "ally_alive_count / opponent_alive_count roster state when player_count_samples present",
+            "ally_alive_count / opponent_alive_count roster state when player_count_samples or player_count_window present",
+            "player_count present_by / duration_since_present_by as sampled presence bounds ('observed by T, Δt before anchor'; not continuous disadvantaged time)",
         ],
         "prohibited_as_facts": [
             "won/lost fight, clean duel, outnumbered in the fight, overextended",
@@ -402,6 +403,8 @@ def evidence_contract_summary() -> dict[str, list[str]]:
             "splat caused death (use association wording instead)",
             "splats were the same fight without richer evidence",
             "inferring alive counts from splat/death/scenario membership",
+            "treating a roster-count transition as a named teammate death or trade",
+            "saying the player was continuously disadvantaged for duration_since_present_by seconds",
         ],
         "requires_new_evidence": [
             "fight boundaries, damage, weapons, positions",

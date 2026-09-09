@@ -47,13 +47,15 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
             "splat",
             "respawn",
             "map_overlay",
+            "match_intro",
+            "map_ink",
             "active_gameplay",
             "player_count",
         ):
             section = vision.get(key)
             if not isinstance(section, dict):
                 continue
-            for field in ("template_dir", "ouch_template_dir"):
+            for field in ("template_dir", "ouch_template_dir", "geometry_dir"):
                 template_dir = section.get(field)
                 if template_dir is not None:
                     path = Path(template_dir)

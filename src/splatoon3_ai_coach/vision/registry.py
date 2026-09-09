@@ -4,6 +4,7 @@ from splatoon3_ai_coach.config.models import VisionConfig
 from splatoon3_ai_coach.vision.active_gameplay import ActiveGameplayDetector
 from splatoon3_ai_coach.vision.base import BaseDetector
 from splatoon3_ai_coach.vision.death import DeathDetector
+from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
 from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
 from splatoon3_ai_coach.vision.player_count import PlayerCountDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
@@ -54,6 +55,14 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             MapOverlayDetector(
                 config.map_overlay,
+                cadence_fps=config.hud_cadence_fps,
+            )
+        )
+    if "match_intro" in config.enabled_detectors:
+        detectors.append(
+            MatchIntroDetector(
+                config.match_intro,
+                language=config.language,
                 cadence_fps=config.hud_cadence_fps,
             )
         )

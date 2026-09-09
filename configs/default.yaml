@@ -107,6 +107,29 @@ vision:
     periphery_blur_min: 0.55
     min_usable_confidence: 0.50
     debounce_seconds: 0.0
+  # Pre-match intro: battle mode (center) + stage (bottom-right). Templates only.
+  # Enable "match_intro" in enabled_detectors and drop PNG templates under
+  # calibration/templates/match_intro/<en|ja>/{battle_modes,stages}/.
+  match_intro:
+    battle_mode_roi: [0.22, 0.38, 0.78, 0.58]
+    stage_roi: [0.55, 0.78, 0.96, 0.96]
+    template_dir: "../calibration/templates/match_intro"
+    match_threshold: 0.70
+    min_usable_confidence: 0.50
+    intro_deadline_seconds: 90.0
+  # 2D map ink while MAP_OVERLAY is present. Not a GameEvent. Requires resolved
+  # match_intro identity + stage geometry pack. Off by default.
+  map_ink:
+    enabled: false
+    geometry_dir: "../configs/stage_maps"
+    sample_interval_seconds: 1.0
+    min_usable_confidence: 0.15
+    write_diagnostics: false
+    ally_hsv_ranges:
+      - [35, 40, 40, 95, 255, 255]
+    opponent_hsv_ranges:
+      - [0, 40, 40, 15, 255, 255]
+      - [165, 40, 40, 180, 255, 255]
   # HUD death-X roster counts. Off by default — enable "player_count" in
   # enabled_detectors after verifying templates/ROIs. Slot boxes are
   # fractional (x1,y1,x2,y2) @ 1920×1080. Pixel xywh origins:
@@ -168,3 +191,5 @@ coach:
   ollama_base_url: http://127.0.0.1:11434
   game_clock_max_lookup_gap_seconds: 1.0
   player_count_max_lookup_gap_seconds: 1.0
+  player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]
+  player_count_context_lookback_seconds: 8.0

@@ -172,6 +172,19 @@ class MapOverlayReading(BaseModel):
     center_tank_edge_frac: float = Field(default=0.0, ge=0, le=1)
 
 
+class MatchIntroReading(BaseModel):
+    """Per-frame intro plate observation (stage + battle mode templates).
+
+    Not a GameEvent. Captures match identity from the pre-match intro UI.
+    """
+
+    kind: Literal["match_intro"] = "match_intro"
+    stage_id: str | None = None
+    battle_mode_id: str | None = None
+    stage_template_score: float = Field(default=0.0, ge=0, le=1)
+    battle_mode_template_score: float = Field(default=0.0, ge=0, le=1)
+
+
 class PlayerCountReading(BaseModel):
     """Per-frame HUD death-X observations. Detector evidence only.
 
@@ -197,6 +210,7 @@ Reading = Annotated[
     | RespawnReading
     | ActiveGameplayReading
     | MapOverlayReading
+    | MatchIntroReading
     | PlayerCountReading,
     Field(discriminator="kind"),
 ]

@@ -28,6 +28,7 @@ from vision_manifest_viewer.model import (
     MarkerCategory,
     ObservationView,
     RoiBox,
+    RosterSampleView,
     ScenarioEvidenceView,
 )
 from vision_manifest_viewer.timeline import (
@@ -98,6 +99,7 @@ def load_manifest_view(
     return ManifestView(
         summary=summary,
         observations=observations,
+        roster_timeline=_build_roster_timeline(snapshots),
         markers=markers,
         lifecycle_segments=segments,
         lifecycle_marks=lifecycle_marks,
@@ -276,6 +278,8 @@ def _build_observations(
         snap = snap_by_ts.get(timestamp) or {}
         lifecycle = snap.get("player_lifecycle")
         player_alive = snap.get("player_alive")
+        ally_alive_count = _as_int_or_none(snap.get("ally_alive_count"))
+        opponent_alive_count = _as_int_or_none(snap.get("opponent_alive_count"))
         countdown_present = snap.get("countdown_present")
         active_gameplay = snap.get("active_gameplay")
         match_phase = snap.get("match_phase")
@@ -294,6 +298,8 @@ def _build_observations(
                     category="other",
                     lifecycle=lifecycle,
                     player_alive=player_alive,
+                    ally_alive_count=ally_alive_count,
+                    opponent_alive_count=opponent_alive_count,
                     countdown_present=countdown_present,
                     active_gameplay=active_gameplay,
                     match_phase=match_phase,
@@ -328,6 +334,8 @@ def _build_observations(
                     roi=rois.get(detector),
                     lifecycle=lifecycle,
                     player_alive=player_alive,
+                    ally_alive_count=ally_alive_count,
+                    opponent_alive_count=opponent_alive_count,
                     countdown_present=countdown_present,
                     active_gameplay=active_gameplay,
                     match_phase=match_phase,
@@ -337,6 +345,36 @@ def _build_observations(
                 )
             )
     return observations
+
+
+def _build_roster_timeline(
+    snapshots: list[dict[str, Any]],
+) -> list[RosterSampleView]:
+    """Ordered fused roster samples for scenario-panel lookups."""
+    samples: list[RosterSampleView] = []
+    for snap in sorted(snapshots, key=lambda item: float(item.get("timestamp") or 0.0)):
+        ally = _as_int_or_none(snap.get("ally_alive_count"))
+        opponent = _as_int_or_none(snap.get("opponent_alive_count"))
+        if ally is None or opponent is None:
+            continue
+        samples.append(
+            RosterSampleView(
+                video_time=float(snap.get("timestamp") or 0.0),
+                ally_alive_count=ally,
+                opponent_alive_count=opponent,
+            )
+        )
+    return samples
+
+
+def _as_int_or_none(value: Any) -> int | None:
+    """Parse an optional integer field."""
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _resolve_image_relpath(analysis_dir: Path, frame_path: str | None) -> str | None:

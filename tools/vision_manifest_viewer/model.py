@@ -162,6 +162,8 @@ class ObservationView(BaseModel):
     roi: RoiBox | None = None
     lifecycle: str | None = None
     player_alive: bool | None = None
+    ally_alive_count: int | None = None
+    opponent_alive_count: int | None = None
     countdown_present: bool | None = None
     active_gameplay: bool | None = None
     match_phase: str | None = None
@@ -276,11 +278,20 @@ class ScenarioEvidenceView(BaseModel):
     relations: dict[str, Any] | None = None
 
 
+class RosterSampleView(BaseModel):
+    """Authoritative fused roster counts from one state_snapshot."""
+
+    video_time: float
+    ally_alive_count: int
+    opponent_alive_count: int
+
+
 class ManifestView(BaseModel):
     """Normalized viewer payload derived from a vision manifest."""
 
     summary: ManifestSummary
     observations: list[ObservationView] = Field(default_factory=list)
+    roster_timeline: list[RosterSampleView] = Field(default_factory=list)
     markers: list[TimelineMarker] = Field(default_factory=list)
     lifecycle_segments: list[LifecycleSegment] = Field(default_factory=list)
     lifecycle_marks: list[LifecycleTransitionMark] = Field(default_factory=list)

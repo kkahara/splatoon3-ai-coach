@@ -220,6 +220,54 @@ class MapOverlayDetectorConfig(BaseModel):
         return box
 
 
+class MatchIntroDetectorConfig(BaseModel):
+    """Pre-match intro plates: battle mode (center) + stage (bottom-right)."""
+
+    # Approximate intro layout; tune against real footage.
+    battle_mode_roi: NormalizedBox = (0.22, 0.38, 0.78, 0.58)
+    stage_roi: NormalizedBox = (0.55, 0.78, 0.96, 0.96)
+    template_dir: Path | None = None
+    match_threshold: float = Field(default=0.70, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+    # Stop accepting intro evidence after this video time if still unresolved.
+    intro_deadline_seconds: float = Field(default=90.0, ge=0)
+
+    @field_validator("battle_mode_roi", "stage_roi")
+    @classmethod
+    def _check_box(cls, box: NormalizedBox) -> NormalizedBox:
+        x1, y1, x2, y2 = box
+        if not all(0.0 <= value <= 1.0 for value in box):
+            raise ValueError(f"region coordinates must be in [0, 1]: {box}")
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError(f"region must have positive area: {box}")
+        return box
+
+
+class MapInkAnalyzerConfig(BaseModel):
+    """2D map ink sampling while MAP_OVERLAY is present (not a detector).
+
+    Coverage fields are classified-pixel fractions, not GameEvents.
+    """
+
+    enabled: bool = False
+    geometry_dir: Path | None = None
+    # Minimum seconds between MapObservations while the map stays open.
+    sample_interval_seconds: float = Field(default=1.0, ge=0)
+    min_usable_confidence: float = Field(default=0.15, ge=0, le=1)
+    write_diagnostics: bool = False
+    # HSV ranges as [h1,s1,v1,h2,s2,v2]; OpenCV H in [0,180].
+    # Defaults are placeholders — tune against real team colors per footage.
+    ally_hsv_ranges: list[list[int]] = Field(
+        default_factory=lambda: [[35, 40, 40, 95, 255, 255]]
+    )
+    opponent_hsv_ranges: list[list[int]] = Field(
+        default_factory=lambda: [
+            [0, 40, 40, 15, 255, 255],
+            [165, 40, 40, 180, 255, 255],
+        ]
+    )
+
+
 class PlayerCountDetectorConfig(BaseModel):
     """HUD death-X marker detection for roster alive counts.
 
@@ -363,6 +411,10 @@ class VisionConfig(BaseModel):
     map_overlay: MapOverlayDetectorConfig = Field(
         default_factory=MapOverlayDetectorConfig
     )
+    match_intro: MatchIntroDetectorConfig = Field(
+        default_factory=MatchIntroDetectorConfig
+    )
+    map_ink: MapInkAnalyzerConfig = Field(default_factory=MapInkAnalyzerConfig)
     player_count: PlayerCountDetectorConfig = Field(
         default_factory=PlayerCountDetectorConfig
     )
@@ -397,6 +449,17 @@ class CoachConfig(BaseModel):
     ollama_base_url: str = "http://127.0.0.1:11434"
     game_clock_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
+    player_count_window_offsets_seconds: list[float] = Field(
+        default_factory=lambda: [-5.0, -2.0, 0.0, 3.0, 6.0]
+    )
+    player_count_context_lookback_seconds: float = Field(
+        default=8.0,
+        ge=0,
+        description=(
+            "How far before the anchor to scan fused observations when deriving "
+            "present_by / trajectory. Presentation window offsets may be shorter."
+        ),
+    )
 
 
 class AppConfig(BaseModel):

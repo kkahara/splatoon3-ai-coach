@@ -44,14 +44,36 @@ in known player-slot ROIs (`PlayerCountReading`); coaching vocabulary is the
 alive roster counts only.
 
 **`ally_alive_count` and `opponent_alive_count` are supported coaching evidence
-when `player_count_samples` are present. These fields describe roster state,
-not the number of players participating in a particular engagement.**
+when `player_count_samples` or `player_count_window` are present. These fields
+describe roster state, not the number of players participating in a particular
+engagement.**
+
+`player_count_window` is a compact event-relative timeline around the unit
+anchor (death time / first splat). `player_count_context` may add derived
+fields such as `numbers_state`, `state_present_by`, and
+`duration_since_present_by`.
+
+Prefer this phrasing:
+
+> Disadvantage was observed by 43.0s, 5.0s before the anchor.
+
+Do **not** phrase it as:
+
+> The player was disadvantaged for 5.0 seconds.
+
+`duration_since_present_by` is only `anchor - state_present_by` for a
+contiguous same-`numbers_state` observation run (holes larger than the
+configured max lookup gap end the run). It is a sampled presence bound, not
+proof of continuous disadvantaged time or an exact transition instant. A fused
+roster change is not an `ALLY_DEATH` / trade / fight-quality fact.
 
 Never infer alive counts from splat counts, death events, or scenario
 membership. Generic “enemy count” / fight participation remains unsupported
 without engagement-specific evidence.
 
 Do **not** put player counts on `ScenarioContext` or emit player GameEvents.
+Player count describes the tactical context of a scenario; it does not define
+the scenario.
 
 ## CoachInput unit
 
@@ -62,6 +84,7 @@ primary Scenario + ScenarioContext
   + related Scenarios via ScenarioContext.relations only
   + GameClock samples at labeled video times
   + PlayerCount samples at the same labeled times
+  + PlayerCount window + derived present_by context around the unit anchor
   + EvidenceLimit non-claims
 ```
 

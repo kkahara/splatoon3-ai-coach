@@ -74,6 +74,14 @@ lookback). It does **not** mean a short pre-death check window.
   engagement. Never infer counts from splat/death/scenario membership.
 - Do **not** put counts on `ScenarioContext` or emit player GameEvents.
 
+### Match intro + 2D map ink
+
+- `MatchIntroDetector` (templates) captures `stage_id` + `battle_mode_id`.
+- `MAP_OVERLAY` remains the visibility event/interval (`MapOverlayDetector`).
+- `MapObservation` is a sparse ink sample while the map is open — **not** a
+  `GameEvent`, not interpolated continuous state. See `vision/MAP_INK.md`.
+- Map ink is disabled for the match if intro identity is unresolved.
+
 ### CoachInput
 
 Coaching consumes **one unit** at a time via `coach.coach_input.CoachInput`:
@@ -82,6 +90,8 @@ Coaching consumes **one unit** at a time via `coach.coach_input.CoachInput`:
 - related scenarios resolved only from existing `relations`
 - `GameClock` samples at labeled video times (provenance preserved)
 - `player_count_samples` at the same labeled times when fused counts exist
+- `player_count_window` / `player_count_context` around the unit anchor when
+  defined (present_by / duration derived in coaching; not ScenarioContext)
 - `EvidenceLimit` statements for what the unit cannot establish
 
 `CoachInput` is evidence only — not good/bad play, advice, or fight quality.

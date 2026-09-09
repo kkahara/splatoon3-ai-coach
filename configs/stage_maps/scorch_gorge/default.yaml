@@ -1,0 +1,14 @@
+# Placeholder stage pack for first-stage validation.
+# Tune ROIs against real live-match map screenshots for this stage.
+# Optional mode overrides: turf_war.yaml, splat_zones.yaml, etc.
+stage_id: scorch_gorge
+battle_mode_id: null
+regions:
+  - id: R01
+    roi: [0.08, 0.12, 0.48, 0.48]
+  - id: R02
+    roi: [0.48, 0.12, 0.92, 0.48]
+  - id: R03
+    roi: [0.08, 0.48, 0.48, 0.88]
+  - id: R04
+    roi: [0.48, 0.48, 0.92, 0.88]

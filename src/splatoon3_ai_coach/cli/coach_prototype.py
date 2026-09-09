@@ -108,6 +108,12 @@ def coach_prototype(
                 player_count_max_gap_seconds=(
                     app_config.coach.player_count_max_lookup_gap_seconds
                 ),
+                player_count_window_offsets_seconds=(
+                    app_config.coach.player_count_window_offsets_seconds
+                ),
+                player_count_context_lookback_seconds=(
+                    app_config.coach.player_count_context_lookback_seconds
+                ),
             )
             user_prompt = serialize_coach_input_user_prompt(coach_input)
             safe_id = _safe_filename(scenario_id)

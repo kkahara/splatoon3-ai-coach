@@ -331,3 +331,300 @@ def test_scenario_context_schema_unchanged_by_player_count() -> None:
     assert "ally_alive_count" not in ScenarioContext.model_fields
     assert "opponent_alive_count" not in ScenarioContext.model_fields
     assert "player_count_samples" not in ScenarioContext.model_fields
+    assert "player_count_window" not in ScenarioContext.model_fields
+    assert "player_count_context" not in ScenarioContext.model_fields
+
+
+def _pc_snaps(*rows: tuple[float, int, int]) -> list[GameStateSnapshot]:
+    return [
+        GameStateSnapshot(
+            timestamp=t,
+            ally_alive_count=ally,
+            opponent_alive_count=opp,
+            player_count_confidence=0.9,
+        )
+        for t, ally, opp in rows
+    ]
+
+
+def test_player_count_window_around_death_anchor() -> None:
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    pc_clock = build_player_count_clock(
+        _pc_snaps(
+            (40.0, 4, 4),
+            (43.0, 3, 4),
+            (46.0, 3, 4),
+            (48.0, 2, 4),
+            (51.0, 2, 3),
+            (54.0, 3, 3),
+        )
+    )
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=pc_clock,
+        max_gap=1.0,
+    )
+    assert len(unit.player_count_window) == 5
+    assert [p.offset_seconds for p in unit.player_count_window] == [
+        -5.0,
+        -2.0,
+        0.0,
+        3.0,
+        6.0,
+    ]
+    assert unit.player_count_context is not None
+    assert unit.player_count_context.anchor_video_time == pytest.approx(48.0)
+    assert unit.player_count_context.state_at_anchor == "2v4"
+    assert unit.player_count_context.numbers_state_at_anchor == "disadvantage"
+    assert unit.player_count_samples  # labeled samples still present
+
+
+def test_present_by_sparse_vs_dense_continuity_bound() -> None:
+    """present_by ≠ continuous disadvantaged time; gaps end the contiguous run.
+
+    Sparse (holes > max_gap near the anchor):
+      40 4v4, 41–42 3v4, 44 3v4, 48 3v4 → present_by=48, duration=0
+      (44→48 gap of 4s breaks continuity; do not claim 7s from 41.)
+
+    Dense (all consecutive gaps ≤ max_gap):
+      40 4v4, 41…48 3v4 at 1s → present_by=41, duration=7
+      Even then, duration_since_present_by must be cited as
+      “observed by 41.0, 7.0s before the anchor,” not continuous time down.
+    """
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    sparse = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps(
+                (40.0, 4, 4),
+                (41.0, 3, 4),
+                (42.0, 3, 4),
+                (44.0, 3, 4),
+                (48.0, 3, 4),
+            )
+        ),
+        max_gap=1.0,
+    )
+    dense = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps(
+                (40.0, 4, 4),
+                (41.0, 3, 4),
+                (42.0, 3, 4),
+                (43.0, 3, 4),
+                (44.0, 3, 4),
+                (45.0, 3, 4),
+                (46.0, 3, 4),
+                (47.0, 3, 4),
+                (48.0, 3, 4),
+            )
+        ),
+        max_gap=1.0,
+    )
+    assert sparse.player_count_context is not None
+    assert dense.player_count_context is not None
+    assert sparse.player_count_context.state_present_by == pytest.approx(48.0)
+    assert sparse.player_count_context.duration_since_present_by == pytest.approx(0.0)
+    assert dense.player_count_context.state_present_by == pytest.approx(41.0)
+    assert dense.player_count_context.duration_since_present_by == pytest.approx(7.0)
+
+    limit = next(
+        item
+        for item in dense.evidence_limits
+        if item.code == "player_count_not_causal"
+    )
+    lower = limit.statement.lower()
+    assert "observed by" in lower
+    assert "continuously" in lower
+    assert "disadvantaged for that entire interval" in lower
+    # Field name remains duration_since_present_by; wording must not overclaim.
+    assert dense.player_count_context.duration_since_present_by == 7.0
+    assert "continuously disadvantaged for 7" not in lower
+
+
+def test_present_by_disadvantage_half_second_before_anchor() -> None:
+    """Dense cadence: disadvantage observed 0.5s before death."""
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps((47.0, 4, 4), (47.5, 3, 4), (48.0, 3, 4))
+        ),
+        max_gap=1.0,
+    )
+    ctx = unit.player_count_context
+    assert ctx is not None
+    assert ctx.numbers_state_at_anchor == "disadvantage"
+    assert ctx.state_at_anchor == "3v4"
+    assert ctx.state_present_by == pytest.approx(47.5)
+    assert ctx.duration_since_present_by == pytest.approx(0.5)
+
+
+def test_present_by_disadvantage_five_seconds_before_anchor() -> None:
+    """Dense cadence: disadvantage observed for ~5s before death."""
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps(
+                (42.5, 4, 4),
+                (43.0, 3, 4),
+                (44.0, 3, 4),
+                (45.0, 3, 4),
+                (46.0, 3, 4),
+                (47.0, 3, 4),
+                (48.0, 3, 4),
+            )
+        ),
+        max_gap=1.0,
+    )
+    ctx = unit.player_count_context
+    assert ctx is not None
+    assert ctx.state_present_by == pytest.approx(43.0)
+    assert ctx.duration_since_present_by == pytest.approx(5.0)
+
+
+def test_present_by_does_not_bridge_large_observation_gap() -> None:
+    """Same AvB on both sides of a hole must not invent continuous duration."""
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps((43.0, 3, 4), (48.0, 3, 4))  # 5s hole > max_gap 1.0
+        ),
+        max_gap=1.0,
+    )
+    ctx = unit.player_count_context
+    assert ctx is not None
+    assert ctx.state_at_anchor == "3v4"
+    assert ctx.state_present_by == pytest.approx(48.0)
+    assert ctx.duration_since_present_by == pytest.approx(0.0)
+    # Hole prevents stitching earlier 3v4 into a multi-second duration.
+    assert ctx.valid_point_count == 2
+    assert any(item.code == "player_count_not_causal" for item in unit.evidence_limits)
+
+
+def test_present_by_even_to_disadvantage_transition() -> None:
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps(
+                (43.0, 4, 4),
+                (43.5, 4, 4),
+                (44.0, 3, 4),
+                (45.0, 3, 4),
+                (46.0, 3, 4),
+                (47.0, 3, 4),
+                (48.0, 3, 4),
+            )
+        ),
+        max_gap=1.0,
+    )
+    ctx = unit.player_count_context
+    assert ctx is not None
+    assert ctx.numbers_state_at_anchor == "disadvantage"
+    assert ctx.state_present_by == pytest.approx(44.0)
+    assert ctx.duration_since_present_by == pytest.approx(4.0)
+    traj = [(p.ally_alive_count, p.opponent_alive_count) for p in ctx.trajectory]
+    assert traj[0] == (4, 4)
+    assert (3, 4) in traj
+
+
+def test_present_by_keeps_disadvantage_across_worsening_avb() -> None:
+    """3v4 → 2v4 is still disadvantage; present_by tracks numbers_state, not AvB."""
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=build_player_count_clock(
+            _pc_snaps(
+                (43.0, 3, 4),
+                (44.0, 3, 4),
+                (45.0, 3, 4),
+                (46.0, 2, 4),
+                (47.0, 2, 4),
+                (48.0, 2, 4),
+            )
+        ),
+        max_gap=1.0,
+    )
+    ctx = unit.player_count_context
+    assert ctx is not None
+    assert ctx.state_at_anchor == "2v4"
+    assert ctx.numbers_state_at_anchor == "disadvantage"
+    assert ctx.state_present_by == pytest.approx(43.0)
+    assert ctx.duration_since_present_by == pytest.approx(5.0)
+    traj = [(p.ally_alive_count, p.opponent_alive_count, p.numbers_state) for p in ctx.trajectory]
+    assert (3, 4, "disadvantage") in traj
+    assert (2, 4, "disadvantage") in traj
+
+
+def test_coach_input_composition_leaves_scenario_untouched() -> None:
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    config = _cfg()
+    scenarios = build_scenarios(events, config)
+    contexts = build_scenario_contexts(events, scenarios, config)
+    before_scenarios = [s.model_dump(mode="json") for s in scenarios]
+    before_contexts = [c.model_dump(mode="json") for c in contexts]
+    pc_clock = build_player_count_clock(_pc_snaps((43.0, 4, 4), (48.0, 3, 4)))
+    primary = next(s for s in scenarios if s.scenario_type is ScenarioType.DEATH_EPISODE)
+    unit = build_coach_input_for_scenario(
+        primary.scenario_id,
+        scenarios,
+        contexts,
+        GameClock(),
+        max_gap_seconds=1.0,
+        player_count_clock=pc_clock,
+        player_count_max_gap_seconds=1.0,
+    )
+    assert [s.model_dump(mode="json") for s in scenarios] == before_scenarios
+    assert [c.model_dump(mode="json") for c in contexts] == before_contexts
+    assert unit.player_count_window
+    assert unit.player_count_context is not None
+    assert "ally_alive_count" not in before_contexts[0]
+
+
+def test_roster_transition_does_not_emit_game_event() -> None:
+    """Count changes stay on CoachInput; scenario event_ids stay death lifecycle only."""
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    pc_clock = build_player_count_clock(
+        _pc_snaps((43.0, 4, 4), (44.0, 3, 4), (48.0, 3, 4))
+    )
+    unit = _unit(
+        events,
+        ScenarioType.DEATH_EPISODE,
+        player_count_clock=pc_clock,
+        max_gap=1.0,
+    )
+    member_types = {
+        eid.split(":")[0] for eid in unit.primary_scenario.event_ids
+    }
+    assert "death" in member_types
+    assert "ally_death" not in member_types
+    assert "player_count" not in member_types
+    assert unit.player_count_context is not None
+    assert unit.player_count_context.trajectory
+    traj_states = [
+        (p.ally_alive_count, p.opponent_alive_count) for p in unit.player_count_context.trajectory
+    ]
+    assert (4, 4) in traj_states
+    assert (3, 4) in traj_states
+    # No GameEvent invented from the 4v4→3v4 roster change.
+    from splatoon3_ai_coach.vision.models import GameEventType
+
+    assert not any(
+        getattr(GameEventType, name, None) is not None and "PLAYER_COUNT" in name
+        for name in dir(GameEventType)
+    )
+    blob = str(unit.model_dump(mode="json")).lower()
+    assert "ally_death" not in blob
+    assert "caused" not in blob or "not" in blob

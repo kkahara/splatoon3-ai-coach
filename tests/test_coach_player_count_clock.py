@@ -8,6 +8,8 @@ from splatoon3_ai_coach.coach.player_count_clock import (
     PlayerCountClock,
     PlayerCountObservation,
     build_player_count_clock,
+    numbers_differential,
+    numbers_state,
 )
 from splatoon3_ai_coach.vision.models import GameStateSnapshot
 
@@ -25,6 +27,15 @@ def _snap(
         opponent_alive_count=opponent,
         player_count_confidence=confidence if ally is not None else None,
         evidence_ids=[f"pc:{timestamp}"] if ally is not None else [],
+    )
+
+
+def _obs(t: float, ally: int, opponent: int) -> PlayerCountObservation:
+    return PlayerCountObservation(
+        video_time=t,
+        ally_alive_count=ally,
+        opponent_alive_count=opponent,
+        confidence=1.0,
     )
 
 
@@ -87,3 +98,54 @@ def test_observation_model_has_no_quality() -> None:
         confidence=1.0,
     )
     assert "quality" not in PlayerCountObservation.model_fields
+
+
+def test_numbers_semantics() -> None:
+    assert numbers_differential(_obs(1.0, 4, 4)) == 0
+    assert numbers_state(_obs(1.0, 4, 4)) == "even"
+    assert numbers_differential(_obs(1.0, 4, 3)) == 1
+    assert numbers_state(_obs(1.0, 4, 3)) == "advantage"
+    assert numbers_differential(_obs(1.0, 3, 4)) == -1
+    assert numbers_state(_obs(1.0, 3, 4)) == "disadvantage"
+    assert numbers_differential(None) is None
+    assert numbers_state(None) is None
+
+
+def test_window_exact_gap_zero() -> None:
+    clock = build_player_count_clock(
+        [
+            _snap(40.0, 4, 4),
+            _snap(43.0, 3, 4),
+            _snap(46.0, 3, 4),
+            _snap(48.0, 2, 4),
+            _snap(51.0, 2, 3),
+            _snap(54.0, 3, 3),
+        ]
+    )
+    points = clock.window(
+        48.0,
+        [-5, -2, 0, 3, 6],
+        max_gap_seconds=1.0,
+    )
+    assert [p.video_time for p in points] == [43.0, 46.0, 48.0, 51.0, 54.0]
+    assert [p.gap_seconds for p in points] == [0.0, 0.0, 0.0, 0.0, 0.0]
+    assert points[0].observation is not None
+    assert points[0].observation.ally_alive_count == 3
+    assert points[2].numbers_state == "disadvantage"
+    assert points[2].numbers_differential == -2
+
+
+def test_window_gap_rejection_leaves_missing() -> None:
+    clock = build_player_count_clock([_snap(48.0, 3, 4)])
+    points = clock.window(48.0, [-5.0], max_gap_seconds=1.0)
+    assert points[0].observation is None
+    assert points[0].gap_seconds is None
+    assert points[0].numbers_state is None
+
+
+def test_observations_between_inclusive() -> None:
+    clock = build_player_count_clock(
+        [_snap(40.0, 4, 4), _snap(43.0, 3, 4), _snap(48.0, 3, 4), _snap(55.0, 2, 2)]
+    )
+    got = clock.observations_between(43.0, 48.0)
+    assert [o.video_time for o in got] == [43.0, 48.0]

@@ -876,6 +876,7 @@ function renderScenarioCard(card, index) {
       ${renderFactBlock("Splat observations", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
       ${renderFactBlock("Death episode", scenarioRecoveryRows(card.recovery))}
       ${renderFactBlock("Relations", scenarioRelationRows(card.relations, card.following_death_id))}
+      ${renderRosterBlock(card)}
     </div>
   </article>`;
 }
@@ -989,6 +990,7 @@ function renderReviewDetail() {
       ${renderFactBlock("Splat observations", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
       ${renderFactBlock("Death episode", scenarioRecoveryRows(card.recovery))}
       ${renderFactBlock("Relations", scenarioRelationRows(card.relations, card.following_death_id))}
+      ${renderRosterBlock(card)}
     </div>
   </article>`;
 }
@@ -1011,6 +1013,107 @@ function renderFactBlock(title, rows) {
   if (!rows.length) return "";
   const body = rows.map(([k, v]) => `<span>${esc(k)}</span><span>${esc(v)}</span>`).join("");
   return `<div class="layer"><h3>${esc(title)}</h3><div class="kv">${body}</div></div>`;
+}
+
+const ROSTER_WINDOW_OFFSETS = [-5, -2, 0, 3, 6];
+const ROSTER_MAX_GAP = 1.0;
+
+function formatRosterAvB(ally, opponent) {
+  if (ally == null || opponent == null) return "—";
+  const diff = Number(ally) - Number(opponent);
+  const label = `${ally}v${opponent}`;
+  if (diff === 0) return label;
+  const sign = diff > 0 ? "+" : "";
+  return `${label} (${sign}${diff})`;
+}
+
+function nearestRosterSample(videoTime, maxGap=ROSTER_MAX_GAP) {
+  const series = DATA.roster_timeline || [];
+  let best = null;
+  let bestGap = Infinity;
+  for (const sample of series) {
+    const gap = Math.abs(Number(sample.video_time) - Number(videoTime));
+    if (gap > maxGap) continue;
+    if (gap < bestGap) {
+      best = sample;
+      bestGap = gap;
+      if (gap === 0) break;
+    }
+  }
+  return best;
+}
+
+function scenarioRosterAnchor(card) {
+  const typ = String(card.scenario_type || "").toLowerCase();
+  if (typ === "death_episode") {
+    const death = card.recovery?.death_time;
+    if (death != null) return Number(death);
+    return card.start_time == null ? null : Number(card.start_time);
+  }
+  if (typ === "engagement") {
+    const first = card.combat?.first_splat_time;
+    if (first != null) return Number(first);
+    return card.start_time == null ? null : Number(card.start_time);
+  }
+  return null;
+}
+
+function compressRosterTrajectory(anchor) {
+  const series = DATA.roster_timeline || [];
+  const lo = Number(anchor) + Math.min(...ROSTER_WINDOW_OFFSETS);
+  const hi = Number(anchor) + Math.max(...ROSTER_WINDOW_OFFSETS);
+  const inRange = series.filter(s => {
+    const t = Number(s.video_time);
+    return t >= lo - 1e-9 && t <= hi + 1e-9;
+  });
+  const rows = [];
+  let prevKey = null;
+  for (const sample of inRange) {
+    const key = `${sample.ally_alive_count}v${sample.opponent_alive_count}`;
+    const isAnchor = Math.abs(Number(sample.video_time) - Number(anchor)) < 1e-9;
+    if (prevKey === key && !isAnchor) continue;
+    rows.push({
+      time: Number(sample.video_time),
+      label: formatRosterAvB(sample.ally_alive_count, sample.opponent_alive_count),
+      isAnchor,
+    });
+    prevKey = key;
+  }
+  if (!rows.some(r => r.isAnchor)) {
+    const at = nearestRosterSample(anchor);
+    if (at) {
+      rows.push({
+        time: Number(anchor),
+        label: formatRosterAvB(at.ally_alive_count, at.opponent_alive_count),
+        isAnchor: true,
+      });
+      rows.sort((a, b) => a.time - b.time);
+    }
+  }
+  return rows;
+}
+
+function renderRosterBlock(card) {
+  const anchor = scenarioRosterAnchor(card);
+  if (anchor == null) return "";
+  const windowRows = ROSTER_WINDOW_OFFSETS.map(offset => {
+    const t = Number(anchor) + Number(offset);
+    const sample = nearestRosterSample(t);
+    const mark = offset === 0 ? " ← anchor" : "";
+    const avb = sample
+      ? formatRosterAvB(sample.ally_alive_count, sample.opponent_alive_count)
+      : "—";
+    return [`${offset >= 0 ? "+" : ""}${offset.toFixed(1)}s (${fmtMmSs(t, 1)})`, `${avb}${mark}`];
+  });
+  const traj = compressRosterTrajectory(anchor);
+  const trajRows = traj.map(row => [
+    fmtMmSs(row.time, 1),
+    `${row.label}${row.isAnchor ? " ← anchor" : ""}`,
+  ]);
+  return (
+    renderFactBlock("Player-count window", windowRows) +
+    renderFactBlock("Player-count transitions", trajRows)
+  );
 }
 
 function scenarioTimelineRows(nest) {
@@ -1271,6 +1374,7 @@ function renderDetail(){
       <span>player_lifecycle</span><strong>${esc(o.lifecycle||"—")}</strong>
       <span>active_gameplay</span><strong>${o.active_gameplay??"—"}</strong>
       <span>player_alive</span><strong>${o.player_alive??"—"}</strong>
+      <span>roster</span><strong>${esc(formatRosterAvB(o.ally_alive_count, o.opponent_alive_count))}</strong>
     </div></div>
     <div class="layer"><h3>3. Events</h3><div class="kv">
       <span>nearby</span><strong>${esc(tr?.title||"—")}</strong>

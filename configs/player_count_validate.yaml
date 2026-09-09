@@ -232,3 +232,5 @@ coach:
   ollama_base_url: http://127.0.0.1:11434
   game_clock_max_lookup_gap_seconds: 1.0
   player_count_max_lookup_gap_seconds: 1.0
+  player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]
+  player_count_context_lookback_seconds: 8.0
