@@ -15,8 +15,98 @@ Dependency direction is one-way:
 | Media | `media/` | Video decode, manifest read/write |
 | Extraction | `extraction/` | Optional change-triggered frame dumps (not used by analyze) |
 | Vision | `vision/` | Cadence frames → detectors → readings → fused state → `GameEvent` |
-| Analysis | `analysis/` | `GameSession`, metrics, good-vs-bad scoring |
+| Analysis | `analysis/` | `GameSession`, metrics, scenarios, ScenarioContext |
 | Coach | `coach/` | Evidence-constrained LLM coaching |
+
+## Scenario / evidence freeze
+
+The Scenario + ScenarioContext architecture is **frozen**. Do not reopen
+`analysis/scenarios.py`, `analysis/scenario_context.py`, detectors, fusion,
+`GameEvent`, `Scenario`, or `ScenarioContext` schemas unless a concrete
+coaching requirement shows an existing evidence field is insufficient.
+
+Do **not** add speculative convenience fields (`active_again_to_next_engagement`,
+fight quality, overextended, won/lost fight, etc.). Derive simple arithmetic in
+the coaching layer; leave unavailable evidence unavailable.
+
+### Three-layer terminology
+
+| Layer | Role |
+|-------|------|
+| **Scenario** | Structural **ownership** via `event_ids` — what events belong here |
+| **ScenarioContext** | Deterministic **evidence** (timeline, map, splat observations, death lifecycle, relations) |
+| **Coaching** | **Interpretation** / judgment of that evidence |
+
+Ownership rules:
+
+- `DEATH_EPISODE` owns its DEATH, lifecycle events, and in-episode map overlays.
+- `ENGAGEMENT` owns **SPLAT events only**. A following DEATH belongs to its
+  `DEATH_EPISODE`; it may be referenced via `following_death_id` (compat) and
+  ScenarioContext relations, never as an ENGAGEMENT member.
+
+Relations (`leads_to_death_episode_id`, `preceded_by_engagement_id`, …) and
+`trade_candidate` are **temporal associations / window flags**, never causal
+proof or fight quality. Scenario outcome (`fragged` / `died`) is closed
+vocabulary for linkage, not win/lose.
+
+`map_check_before_death` means **any** map overlay before the death (unbounded
+lookback). It does **not** mean a short pre-death check window.
+
+### Dual clocks (video vs game)
+
+- **Video time** (`GameEvent.start_time`, scenario intervals) is the canonical
+  clock for identity, ordering, grouping, and relationships.
+- **Game clock** (`coach.game_clock.GameClock`) is secondary coaching evidence:
+  raw usable `TimerReading` detections mapped from `VisionFrameResult`.
+- Do **not** use game time for scenario construction or fusion.
+- Do **not** present fused/held/smoothed `GameStateSnapshot.match_time_remaining`
+  as observed coaching clock evidence.
+- Do **not** invent remaining time as `300 - video_time`.
+
+### Player-count samples (roster state)
+
+- Secondary coaching evidence from fused `GameStateSnapshot` alive counts
+  persisted on `vision_manifest.state_snapshots` (not re-fused in coach).
+- Detector cue: HUD death-X markers in configured player-slot ROIs
+  (`PlayerCountReading`). Coaching vocabulary: `ally_alive_count` /
+  `opponent_alive_count` only.
+- Describes **roster state at a video time**, not who participated in an
+  engagement. Never infer counts from splat/death/scenario membership.
+- Do **not** put counts on `ScenarioContext` or emit player GameEvents.
+
+### CoachInput
+
+Coaching consumes **one unit** at a time via `coach.coach_input.CoachInput`:
+
+- primary `Scenario` + `ScenarioContext`
+- related scenarios resolved only from existing `relations`
+- `GameClock` samples at labeled video times (provenance preserved)
+- `player_count_samples` at the same labeled times when fused counts exist
+- `EvidenceLimit` statements for what the unit cannot establish
+
+`CoachInput` is evidence only — not good/bad play, advice, or fight quality.
+
+Prototype path (does not reopen evidence builders):
+
+```text
+CoachInput → Ollama (gpt-oss:20b / llama3.1:8b) → CoachingAssessment
+```
+
+Claim-pattern flags are **experiment annotations only**; they never rewrite
+model output. CLI: `s3-coach coach-prototype`.
+
+## Coaching evidence contract
+
+`ScenarioContext` must not encode judgments (fight quality, map advice, gear blame).
+
+Contract source of truth:
+
+- `src/splatoon3_ai_coach/coach/EVIDENCE_CONTRACT.md`
+- `src/splatoon3_ai_coach/coach/evidence_contract.py`
+- system prompt: `coach/prompts/coach_system.txt`
+
+Do not modify scenario grouping to satisfy coaching wording. Tests live in
+`tests/test_coach_evidence_contract.py`.
 
 ## Terminology (do not mix these)
 

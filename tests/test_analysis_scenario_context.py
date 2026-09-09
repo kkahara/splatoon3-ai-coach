@@ -18,7 +18,11 @@ from splatoon3_ai_coach.analysis.scenario_context import (
     serialize_scenario_contexts,
 )
 from splatoon3_ai_coach.analysis.scenario_models import ScenarioType
-from splatoon3_ai_coach.analysis.scenarios import build_scenarios, format_scenario_timeline
+from splatoon3_ai_coach.analysis.scenarios import (
+    build_scenarios,
+    event_id,
+    format_scenario_timeline,
+)
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.config.models import AppConfig, ScenarioBuilderConfig
 from splatoon3_ai_coach.vision.events import infer_events
@@ -121,8 +125,16 @@ def _of_type(scenarios, scenario_type: ScenarioType):
 def _context(events: list[GameEvent], scenario_type: ScenarioType, **cfg: float):
     config = _cfg(**cfg)
     scenarios = build_scenarios(events, config)
-    chosen = _of_type(scenarios, scenario_type)[0]
-    return build_scenario_context(events, chosen, config)
+    contexts = build_scenario_contexts(events, scenarios, config)
+    chosen = [item for item in contexts if item.scenario_id.startswith(scenario_type.value)]
+    assert chosen
+    return chosen[0]
+
+
+def _contexts(events: list[GameEvent], **cfg: float):
+    config = _cfg(**cfg)
+    scenarios = build_scenarios(events, config)
+    return scenarios, build_scenario_contexts(events, scenarios, config)
 
 
 def test_context_module_does_not_import_pipeline_or_detectors() -> None:
@@ -146,26 +158,31 @@ def test_context_module_does_not_import_pipeline_or_detectors() -> None:
     assert modules.isdisjoint(forbidden)
 
 
-def test_recovery_timings() -> None:
+def test_death_episode_timings() -> None:
     events = [_death(100.0), _respawn(107.5), _active(109.0)]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
-    assert ctx.recovery is not None
-    assert ctx.recovery.time_to_respawn == pytest.approx(7.5)
-    assert ctx.recovery.time_to_active_again == pytest.approx(9.0)
-    assert ctx.recovery.has_respawn is True
-    assert ctx.recovery.has_active_again is True
+    ctx = _context(events, ScenarioType.DEATH_EPISODE)
+    assert ctx.death_episode is not None
+    assert ctx.death_episode.death_to_respawn == pytest.approx(7.5)
+    assert ctx.death_episode.death_to_active_again == pytest.approx(9.0)
+    assert ctx.death_episode.respawn_to_active_again == pytest.approx(1.5)
+    assert ctx.death_episode.awaiting_duration == pytest.approx(7.5)
+    assert ctx.death_episode.has_respawn is True
+    assert ctx.death_episode.has_active_again is True
+    assert ctx.death_episode.complete is True
+    assert ctx.combat is None
 
 
-def test_missing_recovery_events_are_none() -> None:
-    ctx = _context([_death(100.0)], ScenarioType.POST_DEATH_RECOVERY)
-    assert ctx.recovery is not None
-    assert ctx.recovery.time_to_respawn is None
-    assert ctx.recovery.time_to_active_again is None
-    assert ctx.recovery.has_respawn is False
-    assert ctx.recovery.has_active_again is False
-    assert ctx.recovery.respawn_reason is None
-    assert ctx.combat is not None
-    assert ctx.combat.time_to_first_splat is None
+def test_missing_lifecycle_events_are_none() -> None:
+    ctx = _context([_death(100.0)], ScenarioType.DEATH_EPISODE)
+    assert ctx.death_episode is not None
+    assert ctx.death_episode.death_to_respawn is None
+    assert ctx.death_episode.death_to_active_again is None
+    assert ctx.death_episode.respawn_to_active_again is None
+    assert ctx.death_episode.has_respawn is False
+    assert ctx.death_episode.has_active_again is False
+    assert ctx.death_episode.complete is False
+    assert ctx.death_episode.respawn_reason is None
+    assert ctx.combat is None
     assert ctx.timeline is not None
     assert ctx.timeline.time_since_previous_death is None
     assert ctx.timeline.time_to_next_death is None
@@ -173,43 +190,124 @@ def test_missing_recovery_events_are_none() -> None:
 
 def test_map_check_before_death() -> None:
     events = [_map(98.0, 99.0), _death(100.0)]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
+    ctx = _context(events, ScenarioType.DEATH_EPISODE)
     assert ctx.map is not None
     assert ctx.map.map_check_before_death is True
     assert ctx.map.seconds_since_map_check_before_death == pytest.approx(2.0)
+    assert ctx.map.last_map_before_death_event_id is not None
+    assert ctx.map.last_map_before_death_event_id.startswith("map_overlay:98.000")
 
 
 def test_map_during_death_episode() -> None:
     events = [_death(100.0), _map(101.0, 102.0), _respawn(107.0), _active(109.0)]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
+    ctx = _context(events, ScenarioType.DEATH_EPISODE)
     assert ctx.map is not None
     assert ctx.map.map_checks_during_death_episode == 1
-    assert ctx.map.map_checks_after_active_again == 0
-    maps = _of_type(build_scenarios(events, _cfg()), ScenarioType.MAP_CHECK)
-    map_ctx = build_scenario_context(events, maps[0], _cfg())
-    assert map_ctx.map is not None
-    assert map_ctx.map.in_death_episode is True
+    assert ctx.map.map_checked_while_dead is True
+    assert ctx.map.map_event_ids_during_episode is not None
+    assert len(ctx.map.map_event_ids_during_episode) == 1
+    assert _of_type(build_scenarios(events, _cfg()), ScenarioType.MAP_CHECK) == []
 
 
-def test_map_after_active_again() -> None:
+def test_map_after_active_again_is_standalone_map_check() -> None:
     events = [_death(100.0), _respawn(107.0), _active(109.0), _map(110.0, 111.0)]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
+    config = _cfg()
+    scenarios = build_scenarios(events, config)
+    episode = _of_type(scenarios, ScenarioType.DEATH_EPISODE)[0]
+    maps = _of_type(scenarios, ScenarioType.MAP_CHECK)
+    ctx = build_scenario_context(events, episode, config)
     assert ctx.map is not None
     assert ctx.map.map_checks_during_death_episode == 0
-    assert ctx.map.map_checks_after_active_again == 1
+    assert ctx.map.map_checked_while_dead is False
+    assert ctx.map.map_event_ids_during_episode == []
+    assert len(maps) == 1
+    assert maps[0].context["in_death_episode"] is False
 
 
-def test_time_to_first_splat_after_active() -> None:
+def test_engagement_leads_to_death_episode_relation() -> None:
+    events = [_splat(150.0, "aa" * 8), _death(151.0)]
+    scenarios, contexts = _contexts(
+        events, engagement_include_following_death_seconds=2.0
+    )
+    by_id = {item.scenario_id: item for item in contexts}
+    eng = by_id["engagement:150.000"]
+    death = by_id["death_episode:151.000"]
+    assert eng.relations.leads_to_death_episode_id == "death_episode:151.000"
+    assert death.relations.preceded_by_engagement_id == "engagement:150.000"
+    assert scenarios[0].context.get("following_death_id") is not None
+
+
+def test_following_death_is_not_duplicated_in_engagement_membership() -> None:
+    """One-owner model: DEATH lives only on DEATH_EPISODE; link via relations."""
+    from collections import Counter
+
+    splat = _splat(150.0, "aa" * 8)
+    death = _death(151.5)
+    events = [splat, death]
+    scenarios, contexts = _contexts(
+        events, engagement_include_following_death_seconds=2.0
+    )
+    engagements = [s for s in scenarios if s.scenario_type is ScenarioType.ENGAGEMENT]
+    deaths = [s for s in scenarios if s.scenario_type is ScenarioType.DEATH_EPISODE]
+    assert len(engagements) == 1
+    assert len(deaths) == 1
+    engagement = engagements[0]
+    death_episode = deaths[0]
+    death_eid = event_id(death)
+    splat_eid = event_id(splat)
+
+    assert death_episode.event_ids == [death_eid]
+    assert engagement.event_ids == [splat_eid]
+    assert death_eid not in engagement.event_ids
+    assert engagement.context["following_death_id"] == death_eid
+
+    by_id = {item.scenario_id: item for item in contexts}
+    eng_ctx = by_id[engagement.scenario_id]
+    death_ctx = by_id[death_episode.scenario_id]
+    assert eng_ctx.relations.leads_to_death_episode_id == death_episode.scenario_id
+    assert death_ctx.relations.preceded_by_engagement_id == engagement.scenario_id
+
+    owners = Counter(eid for s in scenarios for eid in s.event_ids)
+    assert owners[death_eid] == 1
+    assert owners[splat_eid] == 1
+    owned = set(owners)
+    all_ids = {event_id(item) for item in events}
+    assert owned == all_ids
+    assert max(owners.values()) == 1
+
+
+def test_death_episode_next_engagement_relation() -> None:
     events = [
         _death(100.0),
         _respawn(107.0),
         _active(109.0),
         _splat(113.0, "aa" * 8),
     ]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
-    assert ctx.combat is not None
-    assert ctx.combat.splat_count == 1
-    assert ctx.combat.time_to_first_splat == pytest.approx(4.0)
+    _scenarios, contexts = _contexts(events)
+    by_id = {item.scenario_id: item for item in contexts}
+    death = by_id["death_episode:100.000"]
+    eng = by_id["engagement:113.000"]
+    assert death.relations.next_engagement_id == "engagement:113.000"
+    assert eng.relations.follows_death_episode_id == "death_episode:100.000"
+    assert eng.relations.leads_to_death_episode_id is None
+    assert death.combat is None
+
+
+def test_post_return_splat_lives_on_engagement_not_death_episode() -> None:
+    events = [
+        _death(100.0),
+        _respawn(107.0),
+        _active(109.0),
+        _splat(113.0, "aa" * 8),
+    ]
+    death_ctx = _context(events, ScenarioType.DEATH_EPISODE)
+    eng_ctx = _context(events, ScenarioType.ENGAGEMENT)
+    assert death_ctx.combat is None
+    assert eng_ctx.combat is not None
+    assert eng_ctx.combat.splat_count == 1
+    assert eng_ctx.combat.first_splat_time == pytest.approx(113.0)
+    assert eng_ctx.combat.last_splat_time == pytest.approx(113.0)
+    assert eng_ctx.combat.duration == pytest.approx(0.0)
 
 
 def test_death_to_death_neighbors() -> None:
@@ -222,11 +320,9 @@ def test_death_to_death_neighbors() -> None:
         _active(126.0),
     ]
     config = _cfg()
-    recoveries = _of_type(
-        build_scenarios(events, config), ScenarioType.POST_DEATH_RECOVERY
-    )
-    first = build_scenario_context(events, recoveries[0], config)
-    second = build_scenario_context(events, recoveries[1], config)
+    episodes = _of_type(build_scenarios(events, config), ScenarioType.DEATH_EPISODE)
+    first = build_scenario_context(events, episodes[0], config)
+    second = build_scenario_context(events, episodes[1], config)
     assert first.timeline is not None
     assert second.timeline is not None
     assert first.timeline.time_to_next_death == pytest.approx(20.0)
@@ -239,11 +335,13 @@ def test_trade_candidate_inside_and_outside_window() -> None:
     inside = [_splat(150.0, "aa" * 8), _death(151.0)]
     outside = [_splat(150.0, "bb" * 8), _death(153.0)]
     config = _cfg(engagement_include_following_death_seconds=2.0)
-    traded = _context(inside, ScenarioType.ENGAGEMENT)
-    missed = _context(outside, ScenarioType.ENGAGEMENT)
+    traded = _context(inside, ScenarioType.ENGAGEMENT, **config.model_dump())
+    missed = _context(outside, ScenarioType.ENGAGEMENT, **config.model_dump())
     assert traded.combat is not None
     assert traded.combat.splat_death_gap == pytest.approx(1.0)
     assert traded.combat.trade_candidate is True
+    assert traded.combat.first_splat_time == pytest.approx(150.0)
+    assert traded.combat.duration == pytest.approx(0.0)
     assert missed.combat is not None
     assert missed.combat.splat_death_gap == pytest.approx(3.0)
     assert missed.combat.trade_candidate is False
@@ -255,24 +353,22 @@ def test_distinct_splat_fingerprints_stay_distinct() -> None:
     ctx = _context(events, ScenarioType.ENGAGEMENT)
     assert ctx.combat is not None
     assert ctx.combat.splat_count == 2
+    assert ctx.combat.first_splat_time == pytest.approx(8.0)
+    assert ctx.combat.last_splat_time == pytest.approx(8.0)
+    assert ctx.combat.duration == pytest.approx(0.0)
 
 
 def test_insufficient_evidence_is_none_not_invented() -> None:
     events = [_death(50.0), _respawn(55.0)]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
-    assert ctx.recovery is not None
-    assert ctx.recovery.has_respawn is True
-    assert ctx.recovery.has_active_again is False
-    assert ctx.recovery.time_to_active_again is None
-    assert ctx.combat is not None
-    assert ctx.combat.splat_count == 0
-    assert ctx.combat.time_to_first_splat is None
-    assert ctx.combat.splat_death_gap is None
-    assert ctx.combat.trade_candidate is False
+    ctx = _context(events, ScenarioType.DEATH_EPISODE)
+    assert ctx.death_episode is not None
+    assert ctx.death_episode.has_respawn is True
+    assert ctx.death_episode.has_active_again is False
+    assert ctx.death_episode.death_to_active_again is None
+    assert ctx.combat is None
     assert ctx.map is not None
     assert ctx.map.map_check_before_death is False
     assert ctx.map.seconds_since_map_check_before_death is None
-    assert ctx.map.map_checks_after_active_again is None
 
 
 def test_identical_input_is_deterministic() -> None:
@@ -301,7 +397,7 @@ def test_identical_input_is_deterministic() -> None:
 
 def test_serialized_context_has_no_coaching_language() -> None:
     events = [_death(100.0), _respawn(107.5, skip=True), _active(109.0)]
-    ctx = _context(events, ScenarioType.POST_DEATH_RECOVERY)
+    ctx = _context(events, ScenarioType.DEATH_EPISODE)
     text = json.dumps(ctx.model_dump(mode="json")).lower()
     for phrase in _COACHING_WORDS:
         assert phrase not in text
@@ -316,7 +412,8 @@ def test_write_scenarios_persists_contexts(tmp_path: Path) -> None:
     )
     assert len(payload) == len(written)
     assert payload[0]["scenario_id"] == written[0].scenario_id
-    assert payload[0]["recovery"]["time_to_respawn"] == pytest.approx(2.0)
+    assert payload[0]["death_episode"]["death_to_respawn"] == pytest.approx(2.0)
+    assert "relations" in payload[0]
 
 
 def test_140214_fixture_scenario_contexts() -> None:
@@ -327,28 +424,28 @@ def test_140214_fixture_scenario_contexts() -> None:
     by_id = {item.scenario_id: item for item in contexts}
     dump = _fixture_dump(events, scenarios, contexts)
 
-    first = by_id.get("post_death_recovery:196.500")
-    second = by_id.get("post_death_recovery:216.500")
+    first = by_id.get("death_episode:196.500")
+    second = by_id.get("death_episode:216.500")
     engagement = by_id.get("engagement:192.000")
-    _assert_with_dump(first is not None, "missing post_death_recovery:196.500", dump)
-    _assert_with_dump(second is not None, "missing post_death_recovery:216.500", dump)
+    _assert_with_dump(first is not None, "missing death_episode:196.500", dump)
+    _assert_with_dump(second is not None, "missing death_episode:216.500", dump)
     _assert_with_dump(engagement is not None, "missing engagement:192.000", dump)
     assert first is not None and second is not None and engagement is not None
 
-    _assert_with_dump(first.recovery is not None, "first recovery nest missing", dump)
+    _assert_with_dump(first.death_episode is not None, "first death_episode nest missing", dump)
     _assert_with_dump(
-        first.recovery.time_to_respawn == pytest.approx(7.5, abs=0.26),
-        f"time_to_respawn={first.recovery.time_to_respawn}",
+        first.death_episode.death_to_respawn == pytest.approx(7.5, abs=0.26),
+        f"death_to_respawn={first.death_episode.death_to_respawn}",
         dump,
     )
     _assert_with_dump(
-        first.recovery.time_to_active_again == pytest.approx(9.0, abs=0.26),
-        f"time_to_active_again={first.recovery.time_to_active_again}",
+        first.death_episode.death_to_active_again == pytest.approx(9.0, abs=0.26),
+        f"death_to_active_again={first.death_episode.death_to_active_again}",
         dump,
     )
     _assert_with_dump(
-        first.recovery.respawn_reason == "skip_countdown_control",
-        f"respawn_reason={first.recovery.respawn_reason}",
+        first.death_episode.respawn_reason == "skip_countdown_control",
+        f"respawn_reason={first.death_episode.respawn_reason}",
         dump,
     )
     _assert_with_dump(first.map is not None, "first map nest missing", dump)
@@ -358,19 +455,11 @@ def test_140214_fixture_scenario_contexts() -> None:
         dump,
     )
     _assert_with_dump(
-        first.map.map_checks_after_active_again == 2,
-        f"after_active={first.map.map_checks_after_active_again}",
+        first.map.map_checked_while_dead is True,
+        f"map_checked_while_dead={first.map.map_checked_while_dead}",
         dump,
     )
-    _assert_with_dump(first.combat is not None, "first combat nest missing", dump)
-    _assert_with_dump(
-        first.combat.splat_count == 0, f"splat_count={first.combat.splat_count}", dump
-    )
-    _assert_with_dump(
-        first.combat.time_to_first_splat is None,
-        f"time_to_first_splat={first.combat.time_to_first_splat}",
-        dump,
-    )
+    _assert_with_dump(first.combat is None, "death episode should omit combat nest", dump)
     _assert_with_dump(first.timeline is not None, "first timeline missing", dump)
     _assert_with_dump(
         first.timeline.time_to_next_death == pytest.approx(20.0, abs=0.26),
@@ -383,7 +472,7 @@ def test_140214_fixture_scenario_contexts() -> None:
         dump,
     )
 
-    _assert_with_dump(second.recovery is not None, "second recovery nest missing", dump)
+    _assert_with_dump(second.death_episode is not None, "second death_episode nest missing", dump)
     _assert_with_dump(second.timeline is not None, "second timeline missing", dump)
     _assert_with_dump(
         second.timeline.time_since_previous_death == pytest.approx(20.0, abs=0.26),
@@ -391,8 +480,8 @@ def test_140214_fixture_scenario_contexts() -> None:
         dump,
     )
     _assert_with_dump(
-        second.recovery.respawn_reason == "countdown_plate_ended",
-        f"second respawn_reason={second.recovery.respawn_reason}",
+        second.death_episode.respawn_reason == "countdown_plate_ended",
+        f"second respawn_reason={second.death_episode.respawn_reason}",
         dump,
     )
 
@@ -428,8 +517,8 @@ def _assert_with_dump(condition: bool, message: str, dump: str) -> None:
 def _fixture_dump(events, scenarios, contexts) -> str:
     """Readable timeline plus the three requested context objects."""
     wanted = {
-        "post_death_recovery:196.500",
-        "post_death_recovery:216.500",
+        "death_episode:196.500",
+        "death_episode:216.500",
         "engagement:192.000",
     }
     selected = [item for item in contexts if item.scenario_id in wanted]

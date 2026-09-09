@@ -107,6 +107,27 @@ vision:
     periphery_blur_min: 0.55
     min_usable_confidence: 0.50
     debounce_seconds: 0.0
+  # HUD death-X roster counts. Off by default — enable "player_count" in
+  # enabled_detectors after verifying templates/ROIs. Slot boxes are
+  # fractional (x1,y1,x2,y2) @ 1920×1080. Pixel xywh origins:
+  # ally-1 [488,17,143,105] ally-2 [592,19,129,102] ally-3 [689,12,110,110]
+  # ally-4 [782,15,110,110] opp-1 [1030,15,111,110] opp-2 [1124,15,109,110]
+  # opp-3 [1197,19,112,100] opp-4 [1276,15,141,103]
+  player_count:
+    ally_slots:
+      - [0.254167, 0.015741, 0.328646, 0.112963]
+      - [0.308333, 0.017593, 0.375521, 0.112037]
+      - [0.358854, 0.011111, 0.416146, 0.112963]
+      - [0.407292, 0.013889, 0.464583, 0.115741]
+    opponent_slots:
+      - [0.536458, 0.013889, 0.594271, 0.115741]
+      - [0.585417, 0.013889, 0.642188, 0.115741]
+      - [0.623437, 0.017593, 0.681771, 0.110185]
+      - [0.664583, 0.013889, 0.738021, 0.109259]
+    template_dir: "../calibration/templates/players"
+    # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X (lower=better).
+    sqdiff_match_threshold: 0.08
+    min_usable_confidence: 0.50
   state_fusion:
     smoothing_window: 5
     max_hold_duration: 2.0
@@ -141,5 +162,9 @@ scenarios:
   engagement_include_following_death_seconds: 2.0
 
 coach:
-  provider: openai
-  model: gpt-4o-mini
+  provider: ollama
+  model: gpt-oss:20b
+  baseline_model: llama3.1:8b
+  ollama_base_url: http://127.0.0.1:11434
+  game_clock_max_lookup_gap_seconds: 1.0
+  player_count_max_lookup_gap_seconds: 1.0

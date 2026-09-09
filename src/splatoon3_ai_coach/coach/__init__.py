@@ -1,12 +1,99 @@
 """Evidence-constrained LLM coaching layer."""
 
-from splatoon3_ai_coach.coach.coach import generate_coaching
-from splatoon3_ai_coach.coach.llm_client import CoachingOutput, LLMProvider
+from splatoon3_ai_coach.coach.coach import (
+    annotate_claim_flags,
+    generate_coaching,
+    generate_coaching_assessment,
+    parse_coaching_assessment,
+    serialize_coach_input_user_prompt,
+)
+from splatoon3_ai_coach.coach.coach_input import (
+    CoachInput,
+    EvidenceLimit,
+    GameClockSample,
+    PlayerCountSample,
+    RelatedScenarioEvidence,
+    attach_game_clock_to_event_times,
+    build_coach_input_for_scenario,
+    collect_evidence_limits,
+)
+from splatoon3_ai_coach.coach.evidence_contract import (
+    ClaimSupport,
+    EvidenceClass,
+    claim_contains_prohibited_language,
+    death_lifecycle_statements,
+    describe_leads_to_association,
+    describe_trade_candidate,
+    engagement_observation_statements,
+    engagement_proves_complete_fight,
+    evidence_contract_summary,
+    find_prohibited_matches,
+    iter_prohibited_claim_hits,
+    map_observation_statements,
+)
+from splatoon3_ai_coach.coach.game_clock import (
+    GameClock,
+    GameClockObservation,
+    build_game_clock,
+    find_non_monotonic_raw_reads,
+)
+from splatoon3_ai_coach.coach.llm_client import (
+    CoachingAssessment,
+    CoachingOutput,
+    LLMProvider,
+    OllamaProvider,
+)
+from splatoon3_ai_coach.coach.load_analysis import (
+    CoachAnalysisBundle,
+    load_coach_analysis_bundle,
+    select_primary_scenario_ids,
+)
+from splatoon3_ai_coach.coach.player_count_clock import (
+    PlayerCountClock,
+    PlayerCountObservation,
+    build_player_count_clock,
+)
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
 
 __all__ = [
+    "ClaimSupport",
+    "CoachAnalysisBundle",
+    "CoachInput",
+    "CoachingAssessment",
     "CoachingOutput",
+    "EvidenceClass",
+    "EvidenceLimit",
+    "GameClock",
+    "GameClockObservation",
+    "GameClockSample",
     "LLMProvider",
+    "OllamaProvider",
+    "PlayerCountClock",
+    "PlayerCountObservation",
+    "PlayerCountSample",
+    "RelatedScenarioEvidence",
+    "annotate_claim_flags",
+    "attach_game_clock_to_event_times",
+    "build_coach_input_for_scenario",
+    "build_game_clock",
+    "build_player_count_clock",
+    "claim_contains_prohibited_language",
+    "collect_evidence_limits",
+    "death_lifecycle_statements",
+    "describe_leads_to_association",
+    "describe_trade_candidate",
+    "engagement_observation_statements",
+    "engagement_proves_complete_fight",
+    "evidence_contract_summary",
+    "find_non_monotonic_raw_reads",
+    "find_prohibited_matches",
     "generate_coaching",
+    "generate_coaching_assessment",
+    "iter_prohibited_claim_hits",
+    "load_coach_analysis_bundle",
     "load_system_prompt",
+    "map_observation_statements",
+    "parse_coaching_assessment",
+    "select_primary_scenario_ids",
+    "serialize_coach_input_user_prompt",
 ]

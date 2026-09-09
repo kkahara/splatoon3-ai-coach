@@ -41,7 +41,15 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
 
     vision = raw.get("vision")
     if isinstance(vision, dict):
-        for key in ("timer", "death", "splat", "respawn", "map_overlay", "active_gameplay"):
+        for key in (
+            "timer",
+            "death",
+            "splat",
+            "respawn",
+            "map_overlay",
+            "active_gameplay",
+            "player_count",
+        ):
             section = vision.get(key)
             if not isinstance(section, dict):
                 continue

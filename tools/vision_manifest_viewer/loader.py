@@ -155,10 +155,12 @@ def _join_scenario_card(
         end_time=_as_float(meta.get("end_time")),
         outcome=str(meta["outcome"]) if meta.get("outcome") is not None else None,
         event_ids=_event_ids(meta.get("event_ids")),
+        following_death_id=_following_death_id(meta.get("context")),
         timeline=_as_dict(ctx.get("timeline")),
         map=_as_dict(ctx.get("map")),
         combat=_as_dict(ctx.get("combat")),
-        recovery=_as_dict(ctx.get("recovery")),
+        recovery=_as_dict(ctx.get("death_episode") or ctx.get("recovery")),
+        relations=_as_dict(ctx.get("relations")),
     )
 
 
@@ -188,6 +190,17 @@ def _event_ids(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
     return [str(item) for item in value]
+
+
+def _following_death_id(context: Any) -> str | None:
+    """Compat id from Scenario.context only (not ScenarioContext)."""
+    if not isinstance(context, dict):
+        return None
+    value = context.get("following_death_id")
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
 
 
 def _as_dict(value: Any) -> dict[str, Any] | None:

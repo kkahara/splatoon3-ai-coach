@@ -708,8 +708,8 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
         json.dumps(
             [
                 {
-                    "scenario_id": "post_death_recovery:196.500",
-                    "scenario_type": "post_death_recovery",
+                    "scenario_id": "death_episode:196.500",
+                    "scenario_type": "death_episode",
                     "start_time": 196.5,
                     "end_time": 207.5,
                     "outcome": "recovered",
@@ -726,7 +726,7 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
                     "start_time": 192.0,
                     "end_time": 194.0,
                     "outcome": "fragged",
-                    "event_ids": [],
+                    "event_ids": ["splat:192.000:-:aabbccddeeff0011"],
                     "confidence": 1.0,
                     "context": {},
                 },
@@ -738,7 +738,7 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
         json.dumps(
             [
                 {
-                    "scenario_id": "post_death_recovery:196.500",
+                    "scenario_id": "death_episode:196.500",
                     "timeline": {
                         "duration": 11.0,
                         "time_since_previous_death": None,
@@ -748,12 +748,14 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
                         "map_check_count": 4,
                         "map_check_before_death": False,
                         "map_checks_during_death_episode": 2,
-                        "map_checks_after_active_again": 2,
+                        "map_checked_while_dead": True,
                     },
-                    "combat": {"splat_count": 0, "time_to_first_splat": None},
-                    "recovery": {
-                        "time_to_respawn": 7.5,
-                        "time_to_active_again": 9.0,
+                    "combat": None,
+                    "death_episode": {
+                        "death_to_respawn": 7.5,
+                        "death_to_active_again": 9.0,
+                        "respawn_to_active_again": 1.5,
+                        "complete": True,
                         "respawn_reason": "skip_countdown_control",
                     },
                 },
@@ -768,7 +770,7 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
                         "splat_death_gap": 2.5,
                         "trade_candidate": False,
                     },
-                    "recovery": None,
+                    "death_episode": None,
                 },
             ]
         ),
@@ -777,7 +779,7 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
     view = load_manifest_view(path)
     assert view.review_video_url == ""
     assert [item.scenario_id for item in view.scenario_evidence] == [
-        "post_death_recovery:196.500",
+        "death_episode:196.500",
         "engagement:192.000",
     ]
     recovery = view.scenario_evidence[0]
@@ -785,19 +787,24 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
     assert recovery.start_time == pytest.approx(196.5)
     assert recovery.end_time == pytest.approx(207.5)
     assert recovery.recovery is not None
-    assert recovery.recovery["time_to_respawn"] == pytest.approx(7.5)
+    assert recovery.recovery["death_to_respawn"] == pytest.approx(7.5)
     assert recovery.map is not None
     assert recovery.map["map_checks_during_death_episode"] == 2
     assert recovery.event_ids[0].startswith("death:196.500")
+    assert recovery.following_death_id is None
     engagement = view.scenario_evidence[1]
     assert engagement.outcome == "fragged"
     assert engagement.recovery is None
     assert engagement.combat is not None
     assert engagement.combat["trade_candidate"] is False
+    assert engagement.event_ids == ["splat:192.000:-:aabbccddeeff0011"]
+    assert engagement.following_death_id is None
 
     html = render_html(view)
     assert "Scenarios / Coaching Evidence" in html
     assert "Scenario Review" in html
+    assert "Scenario = ownership" in html
+    assert "this UI does not show judgments" in html
     assert ">Review<" in html
     assert "function seekReviewVideo(" in html
     assert "video.currentTime = at" in html
@@ -805,10 +812,132 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
     assert "reviewPreroll" not in html
     assert "function stepReview(" in html
     assert "function renderScenarios(" in html
-    assert "POST_DEATH_RECOVERY" in html or "post_death_recovery:196.500" in html
+    assert "function renderMembersBlock(" in html
+    assert "function formatScenarioOutcome(" in html
+    assert "Splat observations" in html
+    assert "Trade-window flag" in html
+    assert "Splat–death gap" in html
+    assert "Any map overlay before death" in html
+    assert "Associated death episode (temporal rule)" in html
+    assert "Follows death episode (temporal)" in html
+    assert "SPLAT members only" in html
+    assert "Outcome: fragged (no following death in window; not fight quality)" in html
+    assert "DEATH_EPISODE" in html or "death_episode:196.500" in html
     assert "skip_countdown_control" in html
     assert "VISION MANIFEST VIEWER" in html
     assert "Cadence frames" in html
+    # JSON enum values stay in embedded data; display qualifies separately.
+    assert '"outcome": "fragged"' in html or "outcome: \"fragged\"" in html or engagement.outcome == "fragged"
+
+
+def test_join_passes_following_death_id_and_qualifies_died_outcome(tmp_path: Path) -> None:
+    """Viewer-only following_death_id pass-through; outcome enums stay unchanged."""
+    from vision_manifest_viewer.loader import _join_scenario_card
+
+    path = _write_manifest(tmp_path)
+    death_eid = "death:151.500:alive_to_dead:-"
+    splat_eid = "splat:150.000:-:aabbccddeeff0011"
+    (tmp_path / "scenarios.json").write_text(
+        json.dumps(
+            [
+                {
+                    "scenario_id": "engagement:150.000",
+                    "scenario_type": "engagement",
+                    "start_time": 150.0,
+                    "end_time": 150.0,
+                    "outcome": "died",
+                    "event_ids": [splat_eid],
+                    "confidence": 1.0,
+                    "context": {"following_death_id": death_eid, "splat_count": 1},
+                },
+                {
+                    "scenario_id": "death_episode:151.500",
+                    "scenario_type": "death_episode",
+                    "start_time": 151.5,
+                    "end_time": 151.5,
+                    "outcome": "incomplete",
+                    "event_ids": [death_eid],
+                    "confidence": 1.0,
+                    "context": {},
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "scenario_contexts.json").write_text(
+        json.dumps(
+            [
+                {
+                    "scenario_id": "engagement:150.000",
+                    "timeline": {"duration": 0.0},
+                    "map": None,
+                    "combat": {
+                        "splat_count": 1,
+                        "splat_death_gap": 1.5,
+                        "trade_candidate": True,
+                    },
+                    "death_episode": None,
+                    "relations": {
+                        "leads_to_death_episode_id": "death_episode:151.500",
+                    },
+                },
+                {
+                    "scenario_id": "death_episode:151.500",
+                    "timeline": {"duration": 0.0},
+                    "map": {
+                        "map_check_before_death": True,
+                        "seconds_since_map_check_before_death": 44.5,
+                    },
+                    "combat": None,
+                    "death_episode": {"complete": False},
+                    "relations": {
+                        "preceded_by_engagement_id": "engagement:150.000",
+                    },
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    card = _join_scenario_card(
+        "engagement:150.000",
+        {
+            "scenario_id": "engagement:150.000",
+            "relations": {"leads_to_death_episode_id": "death_episode:151.500"},
+            "combat": {"trade_candidate": True},
+        },
+        {
+            "engagement:150.000": {
+                "scenario_id": "engagement:150.000",
+                "scenario_type": "engagement",
+                "outcome": "died",
+                "event_ids": [splat_eid],
+                "context": {"following_death_id": death_eid},
+            }
+        },
+    )
+    assert card.following_death_id == death_eid
+    assert card.outcome == "died"
+    assert card.event_ids == [splat_eid]
+
+    view = load_manifest_view(path)
+    eng = next(c for c in view.scenario_evidence if c.scenario_id.startswith("engagement:"))
+    death = next(c for c in view.scenario_evidence if c.scenario_id.startswith("death_episode:"))
+    assert eng.following_death_id == death_eid
+    assert eng.outcome == "died"
+    assert death.following_death_id is None
+
+    html = render_html(view)
+    assert "Members" in html
+    assert splat_eid in html
+    assert death_eid in html
+    assert "SPLAT members only" in html
+    assert "Following death (compat id)" in html
+    assert "Associated death episode (temporal rule)" in html
+    assert "Outcome: died (nearby death associated; DEATH not a member)" in html
+    assert "Gap since last map before death (unbounded)" in html
+    assert "Trade-window flag" in html
+    assert eng.outcome == "died"  # enum unchanged on view model
+    assert '"outcome": "died"' in html or eng.outcome == "died"
 
 
 def test_review_video_route_maps_to_supplied_file(tmp_path: Path) -> None:
@@ -890,8 +1019,8 @@ def test_scenario_order_is_context_file_order(tmp_path: Path) -> None:
                     "context": {},
                 },
                 {
-                    "scenario_id": "post_death_recovery:20.000",
-                    "scenario_type": "post_death_recovery",
+                    "scenario_id": "death_episode:20.000",
+                    "scenario_type": "death_episode",
                     "start_time": 20.0,
                     "end_time": 30.0,
                     "outcome": "recovered",
@@ -907,13 +1036,13 @@ def test_scenario_order_is_context_file_order(tmp_path: Path) -> None:
         json.dumps(
             [
                 {
-                    "scenario_id": "post_death_recovery:20.000",
+                    "scenario_id": "death_episode:20.000",
                     "timeline": {"duration": 10.0},
                     "map": {"map_check_count": 0},
                     "combat": {"splat_count": 0},
-                    "recovery": {
-                        "time_to_respawn": 1.0,
-                        "time_to_active_again": 2.0,
+                    "death_episode": {
+                        "death_to_respawn": 1.0,
+                        "death_to_active_again": 2.0,
                         "respawn_reason": "countdown_complete",
                     },
                 },
@@ -929,7 +1058,7 @@ def test_scenario_order_is_context_file_order(tmp_path: Path) -> None:
     )
     view = load_manifest_view(path)
     assert [c.scenario_id for c in view.scenario_evidence] == [
-        "post_death_recovery:20.000",
+        "death_episode:20.000",
         "engagement:10.000",
     ]
     html = render_html(view)

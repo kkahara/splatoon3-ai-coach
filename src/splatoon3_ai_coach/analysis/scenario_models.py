@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 class ScenarioType(StrEnum):
     """Named gameplay situations. Only some constructors exist in v1."""
 
-    POST_DEATH_RECOVERY = "post_death_recovery"
+    DEATH_EPISODE = "death_episode"
     MAP_CHECK = "map_check"
     ENGAGEMENT = "engagement"
     SPECIAL_OPPORTUNITY = "special_opportunity"

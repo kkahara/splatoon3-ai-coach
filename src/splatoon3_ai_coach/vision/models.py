@@ -172,13 +172,32 @@ class MapOverlayReading(BaseModel):
     center_tank_edge_frac: float = Field(default=0.0, ge=0, le=1)
 
 
+class PlayerCountReading(BaseModel):
+    """Per-frame HUD death-X observations. Detector evidence only.
+
+    Describes which player-slot ROIs show the dark-gray X death marker.
+    Not coaching vocabulary — fused alive counts live on ``GameStateSnapshot``.
+    Slot indexes are 1-based (1..4). Per-slot scores are masked
+    ``TM_SQDIFF_NORMED`` distances (lower = better X match); detection is
+    decided by the detector against ``sqdiff_match_threshold``, not by
+    consumers reversing these scores.
+    """
+
+    kind: Literal["player_count"] = "player_count"
+    ally_dead_slots: tuple[int, ...] = ()
+    opponent_dead_slots: tuple[int, ...] = ()
+    ally_slot_scores: tuple[float, ...] = ()
+    opponent_slot_scores: tuple[float, ...] = ()
+
+
 Reading = Annotated[
     TimerReading
     | DeathReading
     | SplatReading
     | RespawnReading
     | ActiveGameplayReading
-    | MapOverlayReading,
+    | MapOverlayReading
+    | PlayerCountReading,
     Field(discriminator="kind"),
 ]
 
@@ -236,6 +255,11 @@ class GameStateSnapshot(BaseModel):
     # Episode latches for respawn / control-return diagnostics (viewer).
     countdown_confirmed_this_death_episode: bool | None = None
     awaiting_control_confirmed_this_death_episode: bool | None = None
+    # Fused roster alive counts from HUD X markers (None = not observed).
+    ally_alive_count: int | None = None
+    opponent_alive_count: int | None = None
+    # Detector confidence for the fused roster observation (None if unknown).
+    player_count_confidence: float | None = None
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None
@@ -300,12 +324,14 @@ class VisionTimingMetrics(BaseModel):
     respawn_detector_seconds: float = Field(default=0.0, ge=0)
     active_gameplay_detector_seconds: float = Field(default=0.0, ge=0)
     map_overlay_detector_seconds: float = Field(default=0.0, ge=0)
+    player_count_detector_seconds: float = Field(default=0.0, ge=0)
     timer_detector_invocations: int = Field(default=0, ge=0)
     death_detector_invocations: int = Field(default=0, ge=0)
     splat_detector_invocations: int = Field(default=0, ge=0)
     respawn_detector_invocations: int = Field(default=0, ge=0)
     active_gameplay_detector_invocations: int = Field(default=0, ge=0)
     map_overlay_detector_invocations: int = Field(default=0, ge=0)
+    player_count_detector_invocations: int = Field(default=0, ge=0)
     temporal_seconds: float = Field(ge=0)
     total_seconds: float = Field(ge=0)
 

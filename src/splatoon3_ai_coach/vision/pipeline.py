@@ -162,6 +162,7 @@ def _interpret_observations(
         config.vision.active_gameplay,
         config.vision.lifecycle,
         config.vision.map_overlay,
+        config.vision.player_count,
     )
     return snapshots, infer_events(snapshots, config.vision.events)
 
@@ -324,12 +325,14 @@ def _build_timing(
         respawn_detector_seconds=detector_times.get("respawn", 0.0),
         active_gameplay_detector_seconds=detector_times.get("active_gameplay", 0.0),
         map_overlay_detector_seconds=detector_times.get("map_overlay", 0.0),
+        player_count_detector_seconds=detector_times.get("player_count", 0.0),
         timer_detector_invocations=invocations.get("timer", 0),
         death_detector_invocations=invocations.get("death", 0),
         splat_detector_invocations=invocations.get("splat", 0),
         respawn_detector_invocations=invocations.get("respawn", 0),
         active_gameplay_detector_invocations=invocations.get("active_gameplay", 0),
         map_overlay_detector_invocations=invocations.get("map_overlay", 0),
+        player_count_detector_invocations=invocations.get("player_count", 0),
         temporal_seconds=temporal_seconds,
         total_seconds=total_seconds,
     )
@@ -379,8 +382,8 @@ def _log_completion(manifest: VisionManifest, timing: VisionTimingMetrics) -> No
     logger.info(
         "Vision timing: decoded={} cadence={} decode={:.3f}s "
         "timer={:.3f}s/{} death={:.3f}s/{} splat={:.3f}s/{} respawn={:.3f}s/{} "
-        "active={:.3f}s/{} map={:.3f}s/{} temporal={:.3f}s total={:.3f}s "
-        "realtime_factor={:.3f}",
+        "active={:.3f}s/{} map={:.3f}s/{} players={:.3f}s/{} temporal={:.3f}s "
+        "total={:.3f}s realtime_factor={:.3f}",
         timing.decoded_frame_count,
         timing.cadence_frame_count,
         timing.decode_seconds,
@@ -396,6 +399,8 @@ def _log_completion(manifest: VisionManifest, timing: VisionTimingMetrics) -> No
         timing.active_gameplay_detector_invocations,
         timing.map_overlay_detector_seconds,
         timing.map_overlay_detector_invocations,
+        timing.player_count_detector_seconds,
+        timing.player_count_detector_invocations,
         timing.temporal_seconds,
         timing.total_seconds,
         timing.realtime_factor,

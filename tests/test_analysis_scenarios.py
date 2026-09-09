@@ -138,50 +138,84 @@ def test_event_id_is_derived_and_distinguishes_fingerprints() -> None:
     assert event_id(first) == "splat:1.000:splat_instance_opened:" + "aa" * 8
 
 
-def test_post_death_recovery_starts_and_closes() -> None:
-    events = [_death(10.0), _respawn(12.0), _active(13.0), _splat(14.0, "aa" * 8)]
+def test_death_lifecycle_is_one_death_episode() -> None:
+    events = [_death(10.0), _respawn(12.0), _active(13.0)]
+    scenarios = build_scenarios(events, _cfg())
+    episodes = _of_type(scenarios, ScenarioType.DEATH_EPISODE)
+    assert len(episodes) == 1
+    assert len(scenarios) == 1
+    episode = episodes[0]
+    assert episode.start_time == 10.0
+    assert episode.end_time == 13.0
+    assert episode.outcome is ScenarioOutcome.RECOVERED
+    assert episode.context["complete"] is True
+    assert episode.context["death_to_respawn"] == pytest.approx(2.0)
+    assert episode.context["death_to_active_again"] == pytest.approx(3.0)
+    assert episode.context["respawn_to_active_again"] == pytest.approx(1.0)
+    assert [event_id(item) for item in events] == episode.event_ids
+
+
+def test_death_with_map_is_one_episode_no_standalone_map_check() -> None:
+    events = [_death(10.0), _map(11.0, 12.0), _respawn(13.0), _active(14.0)]
+    scenarios = build_scenarios(events, _cfg())
+    assert len(_of_type(scenarios, ScenarioType.DEATH_EPISODE)) == 1
+    assert _of_type(scenarios, ScenarioType.MAP_CHECK) == []
+    episode = _of_type(scenarios, ScenarioType.DEATH_EPISODE)[0]
+    assert event_id(events[1]) in episode.event_ids
+    assert episode.context["map_check_count"] == 1
+
+
+def test_multiple_maps_stay_inside_death_episode() -> None:
+    events = [
+        _death(10.0),
+        _map(11.0, 11.5),
+        _map(12.0, 12.5),
+        _respawn(13.0),
+        _active(14.0),
+    ]
+    scenarios = build_scenarios(events, _cfg())
+    episode = _of_type(scenarios, ScenarioType.DEATH_EPISODE)[0]
+    assert _of_type(scenarios, ScenarioType.MAP_CHECK) == []
+    assert event_id(events[1]) in episode.event_ids
+    assert event_id(events[2]) in episode.event_ids
+    assert episode.context["map_check_count"] == 2
+
+
+def test_post_return_splat_is_not_absorbed_into_death_episode() -> None:
+    events = [
+        _death(10.0),
+        _respawn(12.0),
+        _active(13.0),
+        _splat(14.0, "aa" * 8),
+    ]
     scenarios = build_scenarios(events, _cfg(post_death_follow_seconds=8.0))
-    recoveries = _of_type(scenarios, ScenarioType.POST_DEATH_RECOVERY)
-    assert len(recoveries) == 1
-    recovery = recoveries[0]
-    assert recovery.start_time == 10.0
-    assert recovery.end_time == 14.0
-    assert recovery.outcome is ScenarioOutcome.RECOVERED
-    assert recovery.context["has_respawn"] is True
-    assert recovery.context["has_active_again"] is True
-    assert recovery.context["respawn_reason"] == "countdown_plate_ended"
-    assert event_id(events[0]) in recovery.event_ids
-    assert event_id(events[3]) in recovery.event_ids
+    episode = _of_type(scenarios, ScenarioType.DEATH_EPISODE)[0]
+    engagement = _of_type(scenarios, ScenarioType.ENGAGEMENT)[0]
+    assert event_id(events[3]) not in episode.event_ids
+    assert episode.end_time == pytest.approx(13.0)
+    assert event_id(events[3]) in engagement.event_ids
+    assert len(_of_type(scenarios, ScenarioType.ENGAGEMENT)) == 1
 
 
-def test_death_at_end_of_video_is_incomplete() -> None:
+def test_incomplete_death_episode() -> None:
     events = [_death(100.0)]
     scenarios = build_scenarios(events, _cfg(post_death_max_seconds=30.0))
-    recovery = _of_type(scenarios, ScenarioType.POST_DEATH_RECOVERY)[0]
-    assert recovery.outcome is ScenarioOutcome.INCOMPLETE
-    assert recovery.end_time == pytest.approx(130.0)
-    assert recovery.event_ids == [event_id(events[0])]
-    assert recovery.context["has_respawn"] is False
-    assert recovery.context["has_active_again"] is False
-
-
-def test_death_without_respawn_does_not_crash() -> None:
-    events = [_death(5.0), _splat(20.0, "aa" * 8)]
-    scenarios = build_scenarios(events, _cfg())
-    recovery = _of_type(scenarios, ScenarioType.POST_DEATH_RECOVERY)[0]
-    assert recovery.outcome is ScenarioOutcome.INCOMPLETE
-    assert event_id(events[1]) not in recovery.event_ids
+    episode = _of_type(scenarios, ScenarioType.DEATH_EPISODE)[0]
+    assert len(scenarios) == 1
+    assert episode.outcome is ScenarioOutcome.INCOMPLETE
+    assert episode.context["complete"] is False
+    assert episode.end_time == pytest.approx(130.0)
+    assert episode.event_ids == [event_id(events[0])]
 
 
 def test_death_with_respawn_but_no_active_again() -> None:
     events = [_death(5.0), _respawn(8.0, skip=True)]
-    scenarios = build_scenarios(events, _cfg())
-    recovery = _of_type(scenarios, ScenarioType.POST_DEATH_RECOVERY)[0]
-    assert recovery.outcome is ScenarioOutcome.INCOMPLETE
-    assert recovery.context["has_respawn"] is True
-    assert recovery.context["has_active_again"] is False
-    assert recovery.context["respawn_reason"] == "skip_countdown_control"
-    assert event_id(events[1]) in recovery.event_ids
+    episode = _of_type(build_scenarios(events, _cfg()), ScenarioType.DEATH_EPISODE)[0]
+    assert episode.outcome is ScenarioOutcome.INCOMPLETE
+    assert episode.context["has_respawn"] is True
+    assert episode.context["has_active_again"] is False
+    assert episode.context["respawn_reason"] == "skip_countdown_control"
+    assert event_id(events[1]) in episode.event_ids
 
 
 def test_multiple_death_episodes_stay_separate() -> None:
@@ -192,25 +226,29 @@ def test_multiple_death_episodes_stay_separate() -> None:
         _death(40.0),
         _respawn(42.0),
         _active(43.0),
+        _death(70.0),
+        _respawn(72.0),
+        _active(73.0),
     ]
-    recoveries = _of_type(
-        build_scenarios(events, _cfg()), ScenarioType.POST_DEATH_RECOVERY
+    episodes = _of_type(
+        build_scenarios(events, _cfg()), ScenarioType.DEATH_EPISODE
     )
-    assert [item.start_time for item in recoveries] == [10.0, 40.0]
-    assert event_id(events[3]) not in recoveries[0].event_ids
-    assert event_id(events[0]) not in recoveries[1].event_ids
+    assert [item.start_time for item in episodes] == [10.0, 40.0, 70.0]
+    assert event_id(events[3]) not in episodes[0].event_ids
+    assert event_id(events[0]) not in episodes[1].event_ids
 
 
-def test_unrelated_later_splat_is_not_in_recovery() -> None:
-    events = [_death(10.0), _respawn(12.0), _active(13.0), _splat(30.0, "aa" * 8)]
-    recovery = _of_type(
-        build_scenarios(events, _cfg(post_death_follow_seconds=8.0)),
-        ScenarioType.POST_DEATH_RECOVERY,
-    )[0]
-    assert event_id(events[3]) not in recovery.event_ids
+def test_standalone_map_is_map_check() -> None:
+    events = [_map(5.0, 6.0)]
+    scenarios = build_scenarios(events, _cfg())
+    assert len(scenarios) == 1
+    check = _of_type(scenarios, ScenarioType.MAP_CHECK)[0]
+    assert check.outcome is ScenarioOutcome.OBSERVED
+    assert check.context["in_death_episode"] is False
+    assert check.end_time == 6.0
 
 
-def test_map_check_during_and_outside_death_episode() -> None:
+def test_map_outside_death_episode_remains_standalone() -> None:
     events = [
         _map(1.0, 2.0),
         _death(10.0),
@@ -219,17 +257,12 @@ def test_map_check_during_and_outside_death_episode() -> None:
         _active(14.0),
         _map(20.0, 21.0),
     ]
-    maps = _of_type(build_scenarios(events, _cfg()), ScenarioType.MAP_CHECK)
-    assert len(maps) == 3
-    assert maps[0].context["in_death_episode"] is False
-    assert maps[1].context["in_death_episode"] is True
-    assert maps[2].context["in_death_episode"] is False
-    assert maps[1].outcome is ScenarioOutcome.OBSERVED
-    assert event_id(events[2]) in maps[1].event_ids
-    recovery = _of_type(
-        build_scenarios(events, _cfg()), ScenarioType.POST_DEATH_RECOVERY
-    )[0]
-    assert event_id(events[2]) in recovery.event_ids
+    scenarios = build_scenarios(events, _cfg())
+    maps = _of_type(scenarios, ScenarioType.MAP_CHECK)
+    episode = _of_type(scenarios, ScenarioType.DEATH_EPISODE)[0]
+    assert [item.start_time for item in maps] == [1.0, 20.0]
+    assert event_id(events[2]) in episode.event_ids
+    assert event_id(events[2]) not in maps[0].event_ids
 
 
 def test_open_map_overlay_uses_start_as_end() -> None:
@@ -238,15 +271,19 @@ def test_open_map_overlay_uses_start_as_end() -> None:
     assert check.end_time == 5.0
 
 
+def test_standalone_splat_is_engagement() -> None:
+    events = [_splat(8.0, "aa" * 8)]
+    engagements = _of_type(build_scenarios(events, _cfg()), ScenarioType.ENGAGEMENT)
+    assert len(engagements) == 1
+    assert engagements[0].outcome is ScenarioOutcome.FRAGGED
+
+
 def test_same_timestamp_splat_fingerprints_stay_distinct_events() -> None:
     events = [_splat(8.0, "aa" * 8), _splat(8.0, "bb" * 8)]
-    assert event_id(events[0]) != event_id(events[1])
     scenarios = build_scenarios(events, _cfg(engagement_gap_seconds=3.0))
     engagements = _of_type(scenarios, ScenarioType.ENGAGEMENT)
     assert len(engagements) == 1
     assert engagements[0].context["splat_count"] == 2
-    assert event_id(events[0]) in engagements[0].event_ids
-    assert event_id(events[1]) in engagements[0].event_ids
 
 
 def test_splat_clusters_split_when_gap_exceeds_config() -> None:
@@ -266,26 +303,14 @@ def test_death_inside_and_outside_engagement_follow_window() -> None:
     died = _of_type(build_scenarios(inside, config), ScenarioType.ENGAGEMENT)[0]
     fragged = _of_type(build_scenarios(outside, config), ScenarioType.ENGAGEMENT)[0]
     assert died.outcome is ScenarioOutcome.DIED
-    assert event_id(inside[1]) in died.event_ids
+    assert died.event_ids == [event_id(inside[0])]
+    assert event_id(inside[1]) not in died.event_ids
+    assert died.context["following_death_id"] == event_id(inside[1])
     assert fragged.outcome is ScenarioOutcome.FRAGGED
     assert event_id(outside[1]) not in fragged.event_ids
-
-
-def test_overlap_recovery_and_engagement_share_splat_id() -> None:
-    events = [
-        _death(10.0),
-        _respawn(12.0),
-        _active(13.0),
-        _splat(14.0, "aa" * 8),
-    ]
-    scenarios = build_scenarios(events, _cfg(post_death_follow_seconds=8.0))
-    recovery = _of_type(scenarios, ScenarioType.POST_DEATH_RECOVERY)[0]
-    engagement = _of_type(scenarios, ScenarioType.ENGAGEMENT)[0]
-    splat_key = event_id(events[3])
-    assert splat_key in recovery.event_ids
-    assert splat_key in engagement.event_ids
-    keys = [(item.start_time, item.scenario_type.value, item.scenario_id) for item in scenarios]
-    assert keys == sorted(keys)
+    assert fragged.context["following_death_id"] is None
+    # Death still owns its own death episode.
+    assert len(_of_type(build_scenarios(inside, config), ScenarioType.DEATH_EPISODE)) == 1
 
 
 def test_identical_input_is_deterministically_ordered() -> None:
@@ -302,7 +327,6 @@ def test_identical_input_is_deterministically_ordered() -> None:
     assert [item.model_dump(mode="json") for item in first] == [
         item.model_dump(mode="json") for item in second
     ]
-    assert [item.scenario_id for item in first] == [item.scenario_id for item in second]
 
 
 def test_format_scenario_timeline_has_no_coaching_language() -> None:
@@ -310,7 +334,7 @@ def test_format_scenario_timeline_has_no_coaching_language() -> None:
     scenarios = build_scenarios(events, _cfg())
     text = format_scenario_timeline(events, scenarios)
     assert "03:16.5 — DEATH" in text
-    assert "POST_DEATH_RECOVERY" in text
+    assert "DEATH_EPISODE" in text
     assert "you should" not in text.lower()
 
 
@@ -323,7 +347,7 @@ def test_write_scenarios_persists_json_and_txt(tmp_path: Path) -> None:
     assert (tmp_path / SCENARIO_CONTEXTS_JSON_FILENAME).exists()
     payload = json.loads((tmp_path / SCENARIOS_JSON_FILENAME).read_text(encoding="utf-8"))
     assert len(payload) == len(written)
-    assert payload[0]["scenario_type"] == "post_death_recovery"
+    assert payload[0]["scenario_type"] == "death_episode"
 
 
 def test_140214_fixture_failure_includes_generated_timeline() -> None:
@@ -337,26 +361,23 @@ def test_140214_fixture_failure_includes_generated_timeline() -> None:
     assert "forced mismatch" in message
     assert "Generated scenario timeline:" in message
     assert timeline in message
-    assert "POST_DEATH_RECOVERY" in message
+    assert "DEATH_EPISODE" in message
     assert "03:16.5 — DEATH" in message
 
 
-def test_140214_fixture_post_death_recoveries() -> None:
-    """Water death@196.5 recovers before 216.5; second DEATH starts a new scenario.
-
-    On failure the generated timeline is included so it can be compared to video.
-    """
+def test_140214_fixture_death_episodes() -> None:
+    """Water death@196.5 recovers before 216.5; second DEATH starts a new episode."""
     config = load_config(default_config_path())
     events, scenarios = _events_and_scenarios_from_slice(config)
     timeline = format_scenario_timeline(events, scenarios)
-    recoveries = _of_type(scenarios, ScenarioType.POST_DEATH_RECOVERY)
+    episodes = _of_type(scenarios, ScenarioType.DEATH_EPISODE)
 
     _assert_with_timeline(
-        len(recoveries) >= 2,
-        f"expected two recoveries, got {len(recoveries)}",
+        len(episodes) >= 2,
+        f"expected two death episodes, got {len(episodes)}",
         timeline,
     )
-    first, second = recoveries[0], recoveries[1]
+    first, second = episodes[0], episodes[1]
     _assert_with_timeline(
         first.start_time == pytest.approx(196.5, abs=0.26),
         f"first start {first.start_time}",
@@ -380,7 +401,7 @@ def test_140214_fixture_post_death_recoveries() -> None:
     active_ids = [eid for eid in first.event_ids if eid.startswith("active_again:")]
     _assert_with_timeline(
         bool(active_ids),
-        "no ACTIVE_AGAIN event id on first recovery",
+        "no ACTIVE_AGAIN event id on first death episode",
         timeline,
     )
     active_at = float(active_ids[0].split(":")[1])
@@ -413,8 +434,10 @@ def _assert_with_timeline(condition: bool, message: str, timeline: str) -> None:
 def _events_and_scenarios_from_slice(config: AppConfig):
     """Fuse the 14-02-14 recorded slice, then build scenarios from GameEvents."""
     payload = json.loads(_SLICE_140214.read_text(encoding="utf-8"))
-    frames = [VisionFrameResult.model_validate(frame) for frame in payload["frame_results"]]
-    snaps = fuse_game_state(
+    frames = [
+        VisionFrameResult.model_validate(frame) for frame in payload["frame_results"]
+    ]
+    snapshots = fuse_game_state(
         frames,
         config.vision.timer,
         config.vision.state_fusion,
@@ -425,5 +448,5 @@ def _events_and_scenarios_from_slice(config: AppConfig):
         config.vision.lifecycle,
         config.vision.map_overlay,
     )
-    events = infer_events(snaps, config.vision.events)
+    events = infer_events(snapshots, config.vision.events)
     return events, build_scenarios(events, config.scenarios)

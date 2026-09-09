@@ -2,6 +2,24 @@
 
 Consumes ``GameEvent`` records only. Does not import detectors, snapshots,
 or ``vision.events``.
+
+Top-level scenarios are coherent coaching-relevant episodes:
+
+* ``DEATH_EPISODE`` — one death lifecycle (death → respawn → active_again)
+* ``ENGAGEMENT`` — splat cluster combat evidence
+* ``MAP_CHECK`` — map overlay outside a death episode
+
+Membership notes
+----------------
+* ``MAP_OVERLAY`` during a death lifecycle is evidence on that
+  ``DEATH_EPISODE`` and does not also become a standalone ``MAP_CHECK``.
+* ``SPLAT`` after ``ACTIVE_AGAIN`` is **not** absorbed into the death
+  episode (no ``post_death_follow_seconds`` membership window).
+* ``ENGAGEMENT`` may record a following ``DEATH`` within
+  ``engagement_include_following_death_seconds`` via
+  ``context['following_death_id']`` and ScenarioContext relations.
+  That ``DEATH`` belongs only to its ``DEATH_EPISODE`` — never to the
+  engagement's ``event_ids``.
 """
 
 from __future__ import annotations
@@ -16,8 +34,6 @@ from splatoon3_ai_coach.analysis.scenario_models import (
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
 from splatoon3_ai_coach.vision.models import GameEvent, GameEventType
 
-_FOLLOW_TYPES = frozenset({GameEventType.SPLAT, GameEventType.MAP_OVERLAY})
-
 
 def event_id(event: GameEvent) -> str:
     """Deterministic key for a GameEvent. Does not mutate the event."""
@@ -30,14 +46,21 @@ def build_scenarios(
     events: list[GameEvent],
     config: ScenarioBuilderConfig,
 ) -> list[Scenario]:
-    """Group GameEvents into deterministic scenarios.
+    """Group GameEvents into deterministic coaching episodes.
 
-    Does not rewrite events. Overlap is allowed. Detector debounce is unused.
+    Does not rewrite events. Detector debounce is unused.
     """
     ordered = _sorted_events(events)
+    death_episodes = _build_death_episodes(ordered, config)
+    claimed_maps = {
+        eid
+        for scenario in death_episodes
+        for eid in scenario.event_ids
+        if eid.startswith(f"{GameEventType.MAP_OVERLAY.value}:")
+    }
     scenarios = [
-        *_build_post_death_recoveries(ordered, config),
-        *_build_map_checks(ordered),
+        *death_episodes,
+        *_build_map_checks(ordered, claimed_maps),
         *_build_engagements(ordered, config),
     ]
     scenarios.sort(
@@ -68,56 +91,73 @@ def _sorted_events(events: Iterable[GameEvent]) -> list[GameEvent]:
     )
 
 
-def _build_post_death_recoveries(
+def _build_death_episodes(
     events: list[GameEvent],
     config: ScenarioBuilderConfig,
 ) -> list[Scenario]:
-    """One POST_DEATH_RECOVERY per DEATH."""
+    """One ``DEATH_EPISODE`` per ``DEATH`` lifecycle."""
     deaths = _of_type(events, GameEventType.DEATH)
     scenarios: list[Scenario] = []
     for index, death in enumerate(deaths):
         next_death = (
             deaths[index + 1].start_time if index + 1 < len(deaths) else float("inf")
         )
-        scenarios.append(
-            _one_post_death_recovery(death, events, next_death, config)
-        )
+        scenarios.append(_one_death_episode(death, events, next_death, config))
     return scenarios
 
 
-def _one_post_death_recovery(
+def _one_death_episode(
     death: GameEvent,
     events: list[GameEvent],
     next_death: float,
     config: ScenarioBuilderConfig,
 ) -> Scenario:
-    """Close one death episode; missing RESPAWN / ACTIVE_AGAIN is allowed."""
-    members = [death]
+    """Close one death lifecycle; missing RESPAWN / ACTIVE_AGAIN is allowed."""
     respawn = _first_between(
         events, GameEventType.RESPAWN, death.start_time, next_death
     )
     active = _first_between(
         events, GameEventType.ACTIVE_AGAIN, death.start_time, next_death
     )
+    members: list[GameEvent] = [death]
     if respawn is not None:
         members.append(respawn)
     if active is not None:
         members.append(active)
-        follow_end = min(active.start_time + config.post_death_follow_seconds, next_death)
-        members.extend(
-            event
-            for event in events
-            if event.event_type in _FOLLOW_TYPES
-            and death.start_time < event.start_time <= follow_end
-        )
+
+    map_deadline = _death_map_deadline(
+        death.start_time, active, next_death, config.post_death_max_seconds
+    )
+    for event in events:
+        if event.event_type is not GameEventType.MAP_OVERLAY:
+            continue
+        if _map_in_death_lifecycle(event.start_time, death.start_time, map_deadline, active):
+            members.append(event)
+
     members = _unique_members(members)
-    if len(members) == 1:
-        end_time = death.start_time + config.post_death_max_seconds
-    else:
-        end_time = max(_event_end(item) for item in members)
+    end_time = _death_episode_end(
+        death, members, active, next_death, config.post_death_max_seconds
+    )
+
     reason = respawn.reason.value if respawn is not None and respawn.reason else None
+    death_to_respawn = (
+        respawn.start_time - death.start_time if respawn is not None else None
+    )
+    death_to_active = (
+        active.start_time - death.start_time if active is not None else None
+    )
+    respawn_to_active = (
+        active.start_time - respawn.start_time
+        if respawn is not None and active is not None
+        else None
+    )
+    awaiting_end = (
+        respawn.start_time
+        if respawn is not None
+        else (active.start_time if active is not None else None)
+    )
     return _scenario(
-        ScenarioType.POST_DEATH_RECOVERY,
+        ScenarioType.DEATH_EPISODE,
         members,
         end_time=end_time,
         outcome=(
@@ -128,19 +168,81 @@ def _one_post_death_recovery(
         context={
             "has_respawn": respawn is not None,
             "has_active_again": active is not None,
+            "complete": active is not None,
             "respawn_reason": reason,
-            "splat_count": _count_type(members, GameEventType.SPLAT),
+            "death_time": death.start_time,
+            "respawn_time": respawn.start_time if respawn is not None else None,
+            "active_again_time": active.start_time if active is not None else None,
+            "awaiting_start": death.start_time,
+            "awaiting_end": awaiting_end,
+            "death_to_respawn": death_to_respawn,
+            "death_to_active_again": death_to_active,
+            "respawn_to_active_again": respawn_to_active,
             "map_check_count": _count_type(members, GameEventType.MAP_OVERLAY),
         },
     )
 
 
-def _build_map_checks(events: list[GameEvent]) -> list[Scenario]:
-    """One MAP_CHECK per MAP_OVERLAY interval."""
-    deaths = _of_type(events, GameEventType.DEATH)
-    actives = _of_type(events, GameEventType.ACTIVE_AGAIN)
+def _death_map_deadline(
+    death_at: float,
+    active: GameEvent | None,
+    next_death: float,
+    max_seconds: float,
+) -> float:
+    """Latest map start time still considered part of the death lifecycle."""
+    if active is not None:
+        return active.start_time
+    if next_death < float("inf"):
+        return next_death
+    return death_at + max_seconds
+
+
+def _map_in_death_lifecycle(
+    map_start: float,
+    death_at: float,
+    deadline: float,
+    active: GameEvent | None,
+) -> bool:
+    """True when a map overlay starts inside the death lifecycle window."""
+    if map_start <= death_at:
+        return False
+    if active is not None:
+        return map_start <= deadline
+    # Incomplete: open at next death / max duration.
+    return map_start < deadline if deadline != death_at else False
+
+
+def _death_episode_end(
+    death: GameEvent,
+    members: list[GameEvent],
+    active: GameEvent | None,
+    next_death: float,
+    max_seconds: float,
+) -> float:
+    """Scenario end: ACTIVE_AGAIN (plus map tails) or incomplete fallback."""
+    if active is not None:
+        return max(active.start_time, max(_event_end(item) for item in members))
+    if len(members) == 1:
+        end_time = death.start_time + max_seconds
+    else:
+        end_time = min(
+            max(_event_end(item) for item in members),
+            death.start_time + max_seconds,
+        )
+    if next_death < float("inf"):
+        end_time = min(end_time, next_death)
+    return end_time
+
+
+def _build_map_checks(
+    events: list[GameEvent],
+    claimed_maps: set[str],
+) -> list[Scenario]:
+    """One MAP_CHECK per MAP_OVERLAY not already evidence on a death episode."""
     scenarios: list[Scenario] = []
     for overlay in _of_type(events, GameEventType.MAP_OVERLAY):
+        if event_id(overlay) in claimed_maps:
+            continue
         end_time = overlay.end_time if overlay.end_time is not None else overlay.start_time
         scenarios.append(
             _scenario(
@@ -148,11 +250,7 @@ def _build_map_checks(events: list[GameEvent]) -> list[Scenario]:
                 [overlay],
                 end_time=end_time,
                 outcome=ScenarioOutcome.OBSERVED,
-                context={
-                    "in_death_episode": _in_death_episode(
-                        overlay.start_time, deaths, actives
-                    )
-                },
+                context={"in_death_episode": False},
             )
         )
     return scenarios
@@ -162,7 +260,13 @@ def _build_engagements(
     events: list[GameEvent],
     config: ScenarioBuilderConfig,
 ) -> list[Scenario]:
-    """Cluster SPLAT events; optionally attach a nearby following DEATH."""
+    """Cluster SPLAT events; link a nearby following DEATH without owning it.
+
+    Members are the SPLAT cluster only. A following DEATH within
+    ``engagement_include_following_death_seconds`` is recorded as
+    ``following_death_id`` and drives outcome / ScenarioContext relations;
+    the DEATH event itself belongs solely to its ``DEATH_EPISODE``.
+    """
     splats = _of_type(events, GameEventType.SPLAT)
     deaths = _of_type(events, GameEventType.DEATH)
     clusters = _cluster_splats(splats, config.engagement_gap_seconds)
@@ -178,8 +282,6 @@ def _build_engagements(
             inclusive_end=True,
         )
         members = list(cluster)
-        if death is not None:
-            members.append(death)
         scenarios.append(
             _scenario(
                 ScenarioType.ENGAGEMENT,
@@ -188,7 +290,10 @@ def _build_engagements(
                 outcome=(
                     ScenarioOutcome.DIED if death is not None else ScenarioOutcome.FRAGGED
                 ),
-                context={"splat_count": len(cluster)},
+                context={
+                    "splat_count": len(cluster),
+                    "following_death_id": event_id(death) if death is not None else None,
+                },
             )
         )
     return scenarios
@@ -208,30 +313,6 @@ def _cluster_splats(
         else:
             clusters.append([splat])
     return clusters
-
-
-def _in_death_episode(
-    timestamp: float,
-    deaths: list[GameEvent],
-    actives: list[GameEvent],
-) -> bool:
-    """True if ``timestamp`` is after a DEATH and before that episode's recovery."""
-    prior = [death for death in deaths if death.start_time <= timestamp]
-    if not prior:
-        return False
-    death_at = prior[-1].start_time
-    next_deaths = [death.start_time for death in deaths if death.start_time > death_at]
-    next_death = next_deaths[0] if next_deaths else float("inf")
-    if timestamp >= next_death:
-        return False
-    recovered = [
-        active.start_time
-        for active in actives
-        if death_at < active.start_time < next_death
-    ]
-    if recovered and timestamp >= recovered[0]:
-        return False
-    return True
 
 
 def _scenario(

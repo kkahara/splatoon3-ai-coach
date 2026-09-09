@@ -268,10 +268,12 @@ class ScenarioEvidenceView(BaseModel):
     end_time: float | None = None
     outcome: str | None = None
     event_ids: list[str] = Field(default_factory=list)
+    following_death_id: str | None = None
     timeline: dict[str, Any] | None = None
     map: dict[str, Any] | None = None
     combat: dict[str, Any] | None = None
     recovery: dict[str, Any] | None = None
+    relations: dict[str, Any] | None = None
 
 
 class ManifestView(BaseModel):

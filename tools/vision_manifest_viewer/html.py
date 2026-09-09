@@ -269,7 +269,7 @@ pre.raw.open{display:block}
 
 <section id="scenario-review" hidden>
   <h2>Scenario Review</h2>
-  <p class="howto">Watch the source video at each scenario's video time. Facts stay measurements, not coaching.</p>
+  <p class="howto">Scenario = ownership (<code>event_ids</code>): what belongs here. ScenarioContext = measured evidence on the card: timeline, map, splat observations, death episode, and relations. Coaching = interpretation; this UI does not show judgments. ENGAGEMENT is a splat observation cluster, not necessarily a complete fight. Relations are temporal associations under configured rules, not causal claims. <code>trade_candidate</code> is a temporal window flag only. An associated/following death does not prove the splat caused the death. Scenario outcomes are not fight quality.</p>
   <div class="review-layout">
     <div class="review-player">
       <video id="review-video" controls playsinline preload="metadata"></video>
@@ -285,7 +285,7 @@ pre.raw.open{display:block}
 
 <section id="scenario-evidence">
   <h2>Scenarios / Coaching Evidence</h2>
-  <p class="howto">Facts from scenario_contexts.json joined with scenarios.json. Not coaching judgments.</p>
+  <p class="howto">Scenario = ownership (<code>event_ids</code>): what belongs here. ScenarioContext = measured evidence on the card: timeline, map, splat observations, death episode, and relations. Coaching = interpretation; this UI does not show judgments. ENGAGEMENT is a splat observation cluster, not necessarily a complete fight. Relations are temporal associations under configured rules, not causal claims. <code>trade_candidate</code> is a temporal window flag only. An associated/following death does not prove the splat caused the death. Scenario outcomes are not fight quality.</p>
   <div class="episodes" id="scenario-cards"></div>
 </section>
 
@@ -860,7 +860,7 @@ function renderScenarios() {
 function renderScenarioCard(card, index) {
   const typ = scenarioTypeLabel(card);
   const range = `Video time: ${fmtMmSs(card.start_time, 1)} → ${fmtMmSs(card.end_time, 1)}`;
-  const outcome = card.outcome ? `Outcome: ${card.outcome}` : "";
+  const outcome = formatScenarioOutcome(card);
   const reviewing = index === state.reviewIndex ? "reviewing" : "";
   const reviewBtn = DATA.review_video_url
     ? `<div class="nav-row"><button type="button" data-review-index="${index}">Review</button></div>`
@@ -869,17 +869,46 @@ function renderScenarioCard(card, index) {
     <h3>${esc(typ)}</h3>
     <div class="meta"><span>${esc(range)}</span><span>${esc(outcome)}</span></div>
     ${reviewBtn}
+    ${renderMembersBlock(card)}
     <div class="scenario-blocks">
       ${renderFactBlock("Timeline", scenarioTimelineRows(card.timeline))}
       ${renderFactBlock("Map", scenarioMapRows(card.map))}
-      ${renderFactBlock("Combat", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
-      ${renderFactBlock("Recovery", scenarioRecoveryRows(card.recovery))}
+      ${renderFactBlock("Splat observations", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
+      ${renderFactBlock("Death episode", scenarioRecoveryRows(card.recovery))}
+      ${renderFactBlock("Relations", scenarioRelationRows(card.relations, card.following_death_id))}
     </div>
   </article>`;
 }
 
 function scenarioTypeLabel(card) {
   return String(card.scenario_type || card.scenario_id || "").replace(/-/g, "_").toUpperCase();
+}
+
+function formatScenarioOutcome(card) {
+  if (!card.outcome) return "";
+  const raw = String(card.outcome);
+  if (!isEngagementCard(card)) return `Outcome: ${raw}`;
+  if (raw === "died")
+    return "Outcome: died (nearby death associated; DEATH not a member)";
+  if (raw === "fragged")
+    return "Outcome: fragged (no following death in window; not fight quality)";
+  return `Outcome: ${raw}`;
+}
+
+function isEngagementCard(card) {
+  const typ = String(card.scenario_type || "").toLowerCase();
+  return typ === "engagement" || String(card.scenario_id || "").startsWith("engagement:");
+}
+
+function renderMembersBlock(card) {
+  const footnote = isEngagementCard(card)
+    ? `<p class="howto">SPLAT members only. A following DEATH is linked via relations / <code>following_death_id</code>; it belongs to DEATH_EPISODE.</p>`
+    : "";
+  return `<div class="scenario-members">
+    <h2>Members</h2>
+    <ul class="review-events">${renderReviewEvents(card.event_ids)}</ul>
+    ${footnote}
+  </div>`;
 }
 
 function bindReviewControls() {
@@ -949,17 +978,17 @@ function renderReviewDetail() {
   }
   const typ = scenarioTypeLabel(card);
   const range = `Video time: ${fmtMmSs(card.start_time, 1)} → ${fmtMmSs(card.end_time, 1)}`;
-  const outcome = card.outcome ? `Outcome: ${card.outcome}` : "";
+  const outcome = formatScenarioOutcome(card);
   root.innerHTML = `<article class="episode">
     <h3>${esc(typ)}</h3>
     <div class="meta"><span>${esc(range)}</span><span>${esc(outcome)}</span></div>
-    <h2>Events</h2>
-    <ul class="review-events">${renderReviewEvents(card.event_ids)}</ul>
+    ${renderMembersBlock(card)}
     <div class="scenario-blocks">
       ${renderFactBlock("Timeline", scenarioTimelineRows(card.timeline))}
       ${renderFactBlock("Map", scenarioMapRows(card.map))}
-      ${renderFactBlock("Combat", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
-      ${renderFactBlock("Recovery", scenarioRecoveryRows(card.recovery))}
+      ${renderFactBlock("Splat observations", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
+      ${renderFactBlock("Death episode", scenarioRecoveryRows(card.recovery))}
+      ${renderFactBlock("Relations", scenarioRelationRows(card.relations, card.following_death_id))}
     </div>
   </article>`;
 }
@@ -996,34 +1025,70 @@ function scenarioMapRows(nest) {
   if (!nest) return [];
   const rows = [["Checks during scenario", fmtCount(nest.map_check_count ?? nest.map_checks_during_scenario)]];
   pushIfPresent(rows, "Before start", nest.map_checks_before_start, fmtCount);
-  pushIfPresent(rows, "Before death", nest.map_check_before_death, fmtYesNo);
+  pushIfPresent(rows, "Any map overlay before death", nest.map_check_before_death, fmtYesNo);
   pushIfPresent(rows, "During death episode", nest.map_checks_during_death_episode, fmtCount);
+  pushIfPresent(rows, "Checked while dead", nest.map_checked_while_dead, fmtYesNo);
   pushIfPresent(rows, "After active again", nest.map_checks_after_active_again, fmtCount);
   pushIfPresent(rows, "In death episode", nest.in_death_episode, fmtYesNo);
   if (nest.seconds_since_map_check_before_death != null)
-    rows.push(["Seconds since map before death", fmtSeconds(nest.seconds_since_map_check_before_death)]);
+    rows.push(["Gap since last map before death (unbounded)", fmtSeconds(nest.seconds_since_map_check_before_death)]);
+  if (nest.last_map_before_death_event_id)
+    rows.push(["Last map before death", String(nest.last_map_before_death_event_id)]);
+  if (Array.isArray(nest.map_event_ids_during_episode) && nest.map_event_ids_during_episode.length)
+    rows.push(["Maps during episode", String(nest.map_event_ids_during_episode.length)]);
   return rows;
 }
 
 function scenarioCombatRows(nest, showFirstSplatDash) {
   if (!nest) return [];
   const rows = [["Splats", fmtCount(nest.splat_count)]];
+  pushIfPresent(rows, "First splat", nest.first_splat_time, fmtMmSsOrDash);
+  pushIfPresent(rows, "Last splat", nest.last_splat_time, fmtMmSsOrDash);
+  pushIfPresent(rows, "Duration", nest.duration, fmtSeconds);
   if (showFirstSplatDash || nest.time_to_first_splat != null)
     rows.push(["Time to first splat", fmtSeconds(nest.time_to_first_splat)]);
   pushIfPresent(rows, "Time between first/last splat", nest.time_to_last_splat, fmtSeconds);
-  pushIfPresent(rows, "Splat → death", nest.splat_death_gap, fmtSeconds);
+  pushIfPresent(rows, "Splat–death gap", nest.splat_death_gap, fmtSeconds);
   if (nest.trade_candidate != null)
-    rows.push(["Trade candidate", nest.trade_candidate ? "true" : "false"]);
+    rows.push(["Trade-window flag", nest.trade_candidate ? "true" : "false"]);
   return rows;
 }
 
 function scenarioRecoveryRows(nest) {
   if (!nest) return [];
+  const toRespawn = nest.death_to_respawn ?? nest.time_to_respawn;
+  const toActive = nest.death_to_active_again ?? nest.time_to_active_again;
+  const respawnToActive = nest.respawn_to_active_again;
   return [
-    ["Time to respawn", fmtSeconds(nest.time_to_respawn)],
-    ["Time to active again", fmtSeconds(nest.time_to_active_again)],
+    ["Death → respawn", fmtSeconds(toRespawn)],
+    ["Death → active again", fmtSeconds(toActive)],
+    ["Respawn → active again", fmtSeconds(respawnToActive)],
+    ["Awaiting duration", fmtSeconds(nest.awaiting_duration)],
+    ["Complete", nest.complete == null ? "—" : (nest.complete ? "Yes" : "No")],
     ["Respawn reason", nest.respawn_reason == null ? "—" : String(nest.respawn_reason)],
   ];
+}
+
+function scenarioRelationRows(nest, followingDeathId) {
+  if (!nest && !followingDeathId) return [];
+  const rows = [];
+  if (followingDeathId)
+    rows.push(["Following death (compat id)", String(followingDeathId)]);
+  if (!nest) return rows;
+  if (nest.leads_to_death_episode_id)
+    rows.push(["Associated death episode (temporal rule)", String(nest.leads_to_death_episode_id)]);
+  if (nest.follows_death_episode_id)
+    rows.push(["Follows death episode (temporal)", String(nest.follows_death_episode_id)]);
+  if (nest.preceded_by_engagement_id)
+    rows.push(["Preceded by engagement", String(nest.preceded_by_engagement_id)]);
+  if (nest.next_engagement_id)
+    rows.push(["Next engagement", String(nest.next_engagement_id)]);
+  return rows;
+}
+
+function fmtMmSsOrDash(value) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return fmtMmSs(Number(value), 1);
 }
 
 function pushIfPresent(rows, label, value, format) {

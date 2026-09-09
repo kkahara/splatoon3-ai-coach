@@ -29,7 +29,7 @@
             "justMyCode": true
         },
         {
-            "name": "s3-coach: analyze w debug",
+            "name": "s3-coach: analyze ja",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/bin/s3-coach",
@@ -42,6 +42,8 @@
                 "${workspaceFolder}/analysis/${input:videoName}",
                 "--config",
                 "${workspaceFolder}/configs/default.yaml",
+                "--language",
+                "ja",
                 "--debug-persist-cadence-frames"
             ],
             "cwd": "${workspaceFolder}",
@@ -49,7 +51,27 @@
             "justMyCode": true
         },
         {
-            "name": "s3-coach: analyze w debug mp4",
+            "name": "s3-coach: coach-prototype",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "coach-prototype",
+                "${workspaceFolder}/analysis/${input:videoName}",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml",
+                "--limit",
+                "10",
+                "--also-baseline"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "s3-coach: analyze en",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/bin/s3-coach",
@@ -57,11 +79,13 @@
             "args": [
                 "-v",
                 "analyze",
-                "/Users/kenjikahara/Movies/${input:videoName}.mp4",
+                "/Users/kenjikahara/Movies/${input:videoName}.mov",
                 "--out",
                 "${workspaceFolder}/analysis/${input:videoName}",
                 "--config",
                 "${workspaceFolder}/configs/default.yaml",
+                "--language",
+                "en",
                 "--debug-persist-cadence-frames"
             ],
             "cwd": "${workspaceFolder}",

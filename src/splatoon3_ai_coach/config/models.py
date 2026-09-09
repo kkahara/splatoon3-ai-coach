@@ -220,6 +220,53 @@ class MapOverlayDetectorConfig(BaseModel):
         return box
 
 
+class PlayerCountDetectorConfig(BaseModel):
+    """HUD death-X marker detection for roster alive counts.
+
+    Slot boxes are fractional ``(x1, y1, x2, y2)`` at 1920×1080 calibration.
+    Detector evidence is X presence per slot via masked ``TM_SQDIFF_NORMED``
+    (lower score = better). A slot is dead when
+    ``sqdiff <= sqdiff_match_threshold``. Fused alive counts are
+    ``4 - dead_count`` on ``GameStateSnapshot``.
+    """
+
+    # Pixel origins (xywh @ 1920×1080): ally [488,17,143,105] …
+    ally_slots: list[NormalizedBox] = Field(
+        default_factory=lambda: [
+            (0.254167, 0.015741, 0.328646, 0.112963),
+            (0.308333, 0.017593, 0.375521, 0.112037),
+            (0.358854, 0.011111, 0.416146, 0.112963),
+            (0.407292, 0.013889, 0.464583, 0.115741),
+        ]
+    )
+    opponent_slots: list[NormalizedBox] = Field(
+        default_factory=lambda: [
+            (0.536458, 0.013889, 0.594271, 0.115741),
+            (0.585417, 0.013889, 0.642188, 0.115741),
+            (0.623437, 0.017593, 0.681771, 0.110185),
+            (0.664583, 0.013889, 0.738021, 0.109259),
+        ]
+    )
+    template_dir: Path | None = None
+    # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X detected (lower=better).
+    # Empirically true X ≤ ~0.016, alive ≥ ~0.164; 0.08 is midway/conservative.
+    sqdiff_match_threshold: float = Field(default=0.08, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+
+    @field_validator("ally_slots", "opponent_slots")
+    @classmethod
+    def _check_slots(cls, slots: list[NormalizedBox]) -> list[NormalizedBox]:
+        if len(slots) != 4:
+            raise ValueError(f"expected exactly 4 slot ROIs, got {len(slots)}")
+        for box in slots:
+            x1, y1, x2, y2 = box
+            if not all(0.0 <= value <= 1.0 for value in box):
+                raise ValueError(f"region coordinates must be in [0, 1]: {box}")
+            if x2 <= x1 or y2 <= y1:
+                raise ValueError(f"region must have positive area: {box}")
+        return slots
+
+
 class LifecycleFusionConfig(BaseModel):
     """Player lifecycle + match-phase fusion (authoritative states)."""
 
@@ -316,6 +363,9 @@ class VisionConfig(BaseModel):
     map_overlay: MapOverlayDetectorConfig = Field(
         default_factory=MapOverlayDetectorConfig
     )
+    player_count: PlayerCountDetectorConfig = Field(
+        default_factory=PlayerCountDetectorConfig
+    )
     hud_cadence_fps: float = Field(default=2.0, gt=0)
     state_fusion: StateFusionConfig = Field(default_factory=StateFusionConfig)
     lifecycle: LifecycleFusionConfig = Field(default_factory=LifecycleFusionConfig)
@@ -341,8 +391,12 @@ class ScenarioBuilderConfig(BaseModel):
 class CoachConfig(BaseModel):
     """Settings for the LLM coaching layer (Phase 5)."""
 
-    provider: str = "openai"
-    model: str = "gpt-4o-mini"
+    provider: str = "ollama"
+    model: str = "gpt-oss:20b"
+    baseline_model: str = "llama3.1:8b"
+    ollama_base_url: str = "http://127.0.0.1:11434"
+    game_clock_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
+    player_count_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
 
 
 class AppConfig(BaseModel):

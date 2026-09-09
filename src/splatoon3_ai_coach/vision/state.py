@@ -7,6 +7,7 @@ from splatoon3_ai_coach.config.models import (
     DeathDetectorConfig,
     LifecycleFusionConfig,
     MapOverlayDetectorConfig,
+    PlayerCountDetectorConfig,
     RespawnDetectorConfig,
     SplatDetectorConfig,
     StateFusionConfig,
@@ -19,6 +20,7 @@ from splatoon3_ai_coach.vision.lifecycle import (
 from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     GameStateSnapshot,
+    PlayerCountReading,
     SourceFrameReference,
     SplatBannerInstance,
     SplatReading,
@@ -26,6 +28,7 @@ from splatoon3_ai_coach.vision.models import (
     TimerReading,
     VisionFrameResult,
 )
+from splatoon3_ai_coach.vision.player_count import alive_counts_from_reading
 
 
 def fuse_timer_state(
@@ -47,6 +50,7 @@ def fuse_game_state(
     active_gameplay_config: ActiveGameplayDetectorConfig | None = None,
     lifecycle_config: LifecycleFusionConfig | None = None,
     map_overlay_config: MapOverlayDetectorConfig | None = None,
+    player_count_config: PlayerCountDetectorConfig | None = None,
 ) -> list[GameStateSnapshot]:
     """Fuse detector readings into domain snapshots. Does not emit game events."""
     death_cfg = death_config or DeathDetectorConfig()
@@ -54,6 +58,7 @@ def fuse_game_state(
     respawn_cfg = respawn_config or RespawnDetectorConfig()
     active_cfg = active_gameplay_config or ActiveGameplayDetectorConfig()
     map_cfg = map_overlay_config or MapOverlayDetectorConfig()
+    player_count_cfg = player_count_config or PlayerCountDetectorConfig()
     lifecycle_cfg = lifecycle_config or LifecycleFusionConfig()
     lifecycle = LifecycleFuser(lifecycle_cfg)
 
@@ -102,6 +107,9 @@ def fuse_game_state(
                 last_splatted_ids,
             )
         )
+        ally_alive, opponent_alive, player_count_ids, player_count_conf = (
+            _fuse_player_count_frame(frame, player_count_cfg)
+        )
         snapshots.append(
             GameStateSnapshot(
                 timestamp=frame.timestamp,
@@ -120,6 +128,9 @@ def fuse_game_state(
                 awaiting_control_confirmed_this_death_episode=(
                     life.awaiting_control_confirmed_this_death_episode
                 ),
+                ally_alive_count=ally_alive,
+                opponent_alive_count=opponent_alive,
+                player_count_confidence=player_count_conf,
                 quality=quality,
                 evidence_ids=_combined_evidence(
                     remaining,
@@ -128,6 +139,8 @@ def fuse_game_state(
                     life.evidence_ids,
                     splatted,
                     last_splatted_ids,
+                    ally_alive,
+                    player_count_ids,
                 ),
                 source_frame=source,
                 last_observed_at=last_timer_at,
@@ -244,6 +257,31 @@ def _best_splat(frame: VisionFrameResult) -> DetectorResult | None:
     return max(results, key=lambda item: item.confidence) if results else None
 
 
+def _fuse_player_count_frame(
+    frame: VisionFrameResult,
+    player_count_config: PlayerCountDetectorConfig,
+) -> tuple[int | None, int | None, list[str], float | None]:
+    """Fuse roster alive counts from an X-marker reading (no hold)."""
+    best = _best_player_count(frame)
+    if best is None or best.confidence < player_count_config.min_usable_confidence:
+        return None, None, [], None
+    reading = best.reading
+    assert isinstance(reading, PlayerCountReading)
+    ally_alive, opponent_alive = alive_counts_from_reading(reading)
+    return ally_alive, opponent_alive, [best.id], float(best.confidence)
+
+
+def _best_player_count(frame: VisionFrameResult) -> DetectorResult | None:
+    """Highest-confidence player_count result on a frame, if any."""
+    results = [
+        detection
+        for detection in frame.detections
+        if detection.detector_name == "player_count"
+        and isinstance(detection.reading, PlayerCountReading)
+    ]
+    return max(results, key=lambda item: item.confidence) if results else None
+
+
 def _combined_evidence(
     remaining: float | None,
     timer_ids: list[str],
@@ -251,6 +289,8 @@ def _combined_evidence(
     life_ids: list[str],
     splatted: bool | None,
     splat_ids: list[str],
+    ally_alive_count: int | None = None,
+    player_count_ids: list[str] | None = None,
 ) -> list[str]:
     """Keep evidence IDs for fields this snapshot actually asserts."""
     ids: list[str] = []
@@ -260,6 +300,8 @@ def _combined_evidence(
         ids.extend(life_ids)
     if splatted is not None:
         ids.extend(splat_ids)
+    if ally_alive_count is not None and player_count_ids:
+        ids.extend(player_count_ids)
     seen: set[str] = set()
     unique: list[str] = []
     for item in ids:

@@ -1,0 +1,234 @@
+video:
+  max_width: 1920
+  max_height: 1080
+paths:
+  frame_output: ./frames
+  manifest_output: ./manifests
+extraction:
+  analysis_fps: 6
+  scene_threshold: 0.72
+  ssim_threshold: 0.8
+  motion_threshold: 0.75
+  hud_threshold: 0.2
+  min_event_gap_seconds: 0.75
+  context_before_seconds: 1.5
+  context_after_seconds: 1.0
+  max_frames_per_minute: 90
+  save_jpeg_quality: 92
+  hud:
+    killfeed:
+    - 0.68
+    - 0.02
+    - 0.99
+    - 0.3
+    special_gauge:
+    - 0.35
+    - 0.0
+    - 0.65
+    - 0.12
+    objective_timer:
+    - 0.47
+    - 0.045
+    - 0.53
+    - 0.095
+    death_text:
+    - 0.2
+    - 0.25
+    - 0.8
+    - 0.7
+vision:
+  language: en
+  ocr:
+    engine: tesseract
+    tesseract_languages:
+      en: eng
+      ja: jpn
+  enabled_detectors:
+  - timer
+  - death
+  - splat
+  - respawn
+  - active_gameplay
+  - map_overlay
+  - player_count
+  hud_cadence_fps: 2.0
+  timer:
+    roi:
+    - 0.47
+    - 0.045
+    - 0.53
+    - 0.095
+    template_dir: ../calibration/templates
+    match_threshold: 0.55
+    min_usable_confidence: 0.5
+  death:
+    ouch_roi:
+    - 0.0104167
+    - 0.8148148
+    - 0.1041667
+    - 0.8703704
+    banner_roi:
+    - 0.34375
+    - 0.9074074
+    - 0.65625
+    - 0.9722222
+    template_dir: ../calibration/templates/death
+    ouch_match_threshold: 0.7
+    banner_match_threshold: 0.55
+    ouch_require_glyph: true
+    ouch_white_ratio: 0.12
+    ouch_max_saturation: 0.3
+    ouch_max_yellow_ratio: 0.15
+    banner_dark_threshold: 0.72
+    debounce_seconds: 3.0
+    min_usable_confidence: 0.5
+  splat:
+    banner_roi:
+    - 0.35
+    - 0.8
+    - 0.65
+    - 0.98
+    template_dir: ../calibration/templates/splat
+    skull_match_threshold: 0.8
+    text_match_threshold: 0.7
+    white_value_threshold: 230
+    adjacent_color_min_ratio: 0.2
+    adjacent_min_saturation: 50
+    debounce_seconds: 0.0
+    min_usable_confidence: 0.5
+  respawn:
+    roi:
+    - 0.84
+    - 0.825
+    - 1.0
+    - 0.95
+    template_dir: ../calibration/templates/respawn
+    match_threshold: 0.6
+    support_match_threshold: 0.55
+    dark_frac_min: 0.25
+    bright_frac_min: 0.08
+    p95_min: 0.75
+    yellow_frac_digit_box_min: 0.12
+    min_usable_confidence: 0.5
+    debounce_seconds: 0.0
+    hold_seconds: 2.0
+  active_gameplay:
+    weapon_roi:
+    - 0.32
+    - 0.48
+    - 0.68
+    - 0.9
+    hud_roi:
+    - 0.01
+    - 0.78
+    - 0.22
+    - 0.98
+    center_roi:
+    - 0.46
+    - 0.4
+    - 0.54
+    - 0.62
+    weapon_edge_min: 0.035
+    weapon_luma_std_min: 0.08
+    hud_edge_min: 0.02
+    center_edge_min: 0.045
+    min_usable_confidence: 0.5
+    debounce_seconds: 0.0
+  map_overlay:
+    map_roi:
+    - 0.0208
+    - 0.0324
+    - 0.1536
+    - 0.162
+    tank_roi:
+    - 0.46
+    - 0.4
+    - 0.54
+    - 0.62
+    periphery_roi:
+    - 0.02
+    - 0.02
+    - 0.98
+    - 0.98
+    template_dir: ../calibration/templates/map_overlay
+    match_threshold: 0.7
+    map_edge_min: 0.045
+    tank_edge_max: 0.055
+    periphery_blur_min: 0.55
+    min_usable_confidence: 0.5
+    debounce_seconds: 0.0
+  player_count:
+    ally_slots:
+    - - 0.254167
+      - 0.015741
+      - 0.328646
+      - 0.112963
+    - - 0.308333
+      - 0.017593
+      - 0.375521
+      - 0.112037
+    - - 0.358854
+      - 0.011111
+      - 0.416146
+      - 0.112963
+    - - 0.407292
+      - 0.013889
+      - 0.464583
+      - 0.115741
+    opponent_slots:
+    - - 0.536458
+      - 0.013889
+      - 0.594271
+      - 0.115741
+    - - 0.585417
+      - 0.013889
+      - 0.642188
+      - 0.115741
+    - - 0.623437
+      - 0.017593
+      - 0.681771
+      - 0.110185
+    - - 0.664583
+      - 0.013889
+      - 0.738021
+      - 0.109259
+    template_dir: ../calibration/templates/players
+    sqdiff_match_threshold: 0.08
+    min_usable_confidence: 0.5
+  state_fusion:
+    smoothing_window: 5
+    max_hold_duration: 2.0
+    dedupe_tolerance_seconds: 0.05
+  lifecycle:
+    countdown_present_min_observations: 2
+    countdown_absent_min_observations: 2
+    awaiting_control_absent_min_observations: 2
+    active_again_min_observations: 2
+    active_again_max_gap_observations: 1
+    active_again_mid_tier_delay_seconds: 2.5
+    dead_skip_countdown_min_seconds: 6.5
+    dead_skip_countdown_min_observations: 3
+    max_respawn_observation_seconds: 30.0
+    stale_to_unknown: true
+    death_requires_match_context: true
+    match_context_hold_seconds: 20.0
+    opening_clock_seconds:
+    - 180
+    - 300
+  events:
+    debounce_ms: 300
+    splat_absent_min_observations: 2
+    splat_fingerprint_max_distance: 10
+    splat_slot_nearby: 0.18
+scenarios:
+  post_death_follow_seconds: 8.0
+  post_death_max_seconds: 30.0
+  engagement_gap_seconds: 3.0
+  engagement_include_following_death_seconds: 2.0
+coach:
+  provider: ollama
+  model: gpt-oss:20b
+  baseline_model: llama3.1:8b
+  ollama_base_url: http://127.0.0.1:11434
+  game_clock_max_lookup_gap_seconds: 1.0
+  player_count_max_lookup_gap_seconds: 1.0
