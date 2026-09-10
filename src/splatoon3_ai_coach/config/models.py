@@ -225,7 +225,9 @@ class MatchIntroDetectorConfig(BaseModel):
 
     # Approximate intro layout; tune against real footage.
     battle_mode_roi: NormalizedBox = (0.22, 0.38, 0.78, 0.58)
-    stage_roi: NormalizedBox = (0.55, 0.78, 0.96, 0.96)
+    # Stage name plate sits in the extreme bottom-right; a higher/left box
+    # dilutes template match below threshold.
+    stage_roi: NormalizedBox = (0.68, 0.86, 0.995, 0.985)
     template_dir: Path | None = None
     match_threshold: float = Field(default=0.70, ge=0, le=1)
     min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
@@ -258,12 +260,13 @@ class MapInkAnalyzerConfig(BaseModel):
     # HSV ranges as [h1,s1,v1,h2,s2,v2]; OpenCV H in [0,180].
     # Defaults are placeholders — tune against real team colors per footage.
     ally_hsv_ranges: list[list[int]] = Field(
-        default_factory=lambda: [[35, 40, 40, 95, 255, 255]]
+        default_factory=lambda: [[40, 70, 70, 95, 255, 255]]
     )
     opponent_hsv_ranges: list[list[int]] = Field(
         default_factory=lambda: [
-            [0, 40, 40, 15, 255, 255],
-            [165, 40, 40, 180, 255, 255],
+            [0, 70, 70, 15, 255, 255],
+            [120, 70, 70, 170, 255, 255],
+            [165, 70, 70, 180, 255, 255],
         ]
     )
 
@@ -313,6 +316,45 @@ class PlayerCountDetectorConfig(BaseModel):
             if x2 <= x1 or y2 <= y1:
                 raise ValueError(f"region must have positive area: {box}")
         return slots
+
+
+class SpecialGaugeDetectorConfig(BaseModel):
+    """Top-right circular Special-gauge HUD observation (vision only).
+
+    Distinct from ``extraction.hud.special_gauge``, which is a misaligned
+    top-center change-trigger ROI and must not be reused here.
+    """
+
+    # Full-frame dial box from survey (top-right in-match HUD).
+    roi: NormalizedBox = (0.86, 0.01, 0.995, 0.18)
+    # Activation prompt strip to the right of the dial (押しこみ / R-stick).
+    prompt_roi: NormalizedBox = (0.94, 0.02, 0.999, 0.16)
+    sector_count: int = Field(default=24, ge=8, le=72)
+    annulus_inner: float = Field(default=0.42, ge=0.05, le=0.95)
+    annulus_outer: float = Field(default=0.92, ge=0.1, le=1.0)
+    # Exclude ~10 o'clock yellow sub/status badge (degrees, atan2 CCW from +x).
+    badge_exclude_start_deg: float = 100.0
+    badge_exclude_end_deg: float = 155.0
+    lit_h_min: int = Field(default=8, ge=0, le=180)
+    lit_h_max: int = Field(default=40, ge=0, le=180)
+    lit_s_min: int = Field(default=45, ge=0, le=255)
+    lit_v_min: int = Field(default=100, ge=0, le=255)
+    lit_sector_pixel_frac: float = Field(default=0.07, ge=0.01, le=1.0)
+    min_dial_score: float = Field(default=0.35, ge=0, le=1)
+    ready_fill_threshold: float = Field(default=0.88, ge=0, le=1)
+    ready_continuity_threshold: float = Field(default=0.80, ge=0, le=1)
+    ready_prompt_threshold: float = Field(default=0.50, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.40, ge=0, le=1)
+
+    @field_validator("roi", "prompt_roi")
+    @classmethod
+    def _check_box(cls, box: NormalizedBox) -> NormalizedBox:
+        x1, y1, x2, y2 = box
+        if not all(0.0 <= value <= 1.0 for value in box):
+            raise ValueError(f"region coordinates must be in [0, 1]: {box}")
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError(f"region must have positive area: {box}")
+        return box
 
 
 class LifecycleFusionConfig(BaseModel):
@@ -417,6 +459,9 @@ class VisionConfig(BaseModel):
     map_ink: MapInkAnalyzerConfig = Field(default_factory=MapInkAnalyzerConfig)
     player_count: PlayerCountDetectorConfig = Field(
         default_factory=PlayerCountDetectorConfig
+    )
+    special_gauge: SpecialGaugeDetectorConfig = Field(
+        default_factory=SpecialGaugeDetectorConfig
     )
     hud_cadence_fps: float = Field(default=2.0, gt=0)
     state_fusion: StateFusionConfig = Field(default_factory=StateFusionConfig)

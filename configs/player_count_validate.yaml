@@ -51,6 +51,7 @@ vision:
   - active_gameplay
   - map_overlay
   - player_count
+  - match_intro
   hud_cadence_fps: 2.0
   timer:
     roi:

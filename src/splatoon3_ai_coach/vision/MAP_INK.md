@@ -29,16 +29,49 @@ Do **not** attribute map X markers to the player’s death location in this phas
 - Default: `configs/stage_maps/<stage_id>/default.yaml`
 - Optional override: `configs/stage_maps/<stage_id>/<battle_mode_id>.yaml`
 - Missing override → stage default; missing default → skip ink for that frame
+- Rectangles are **overlapping sampling regions**, not exact polygons. They may
+  include non-map pixels on purpose so the union covers the paintable map.
+- Aggregate pixel counts use the **union** of regions (overlaps counted once).
+  The classifier decides ally / opponent / other among sampled pixels.
+- No baked vertical scale correction yet — validate ROIs on real game frames.
 
 ## Outputs
 
 - `match_identity.json` — resolved stage/mode (or unresolved / map_ink disabled)
 - `map_observations.json` — sparse list of `MapObservation` (not continuous state)
-- Optional `debug_map_ink/` overlays when diagnostics enabled
+- Optional `debug_map_ink/` overlays when diagnostics enabled (white ROI boxes,
+  cyan union contour, green/red ink classes, dim unclassified-in-union)
 
 ## Limitations
 
 - Live match map only; review/aerial map not distinguished yet.
-- Ally/opponent HSV defaults are placeholders — tune per footage/team colors.
+- Ally/opponent HSV defaults are color channels, not team assignment.
 - Stage packs and intro templates must be provided before production use.
 - No CoachInput / MapObservationClock in this phase.
+
+## Geometry validation status (Manta / Museum)
+
+Offline multi-frame check: `tools/map_ink_geometry_validate.py`
+→ `analysis/map_ink_validation/VALIDATION_REPORT.md`.
+
+| Stage | Status |
+|-------|--------|
+| `manta_maria` | R01 top at `y=0.10`: **no repeatable defect** on available frames (`CONSISTENT`) |
+| `museum_dalfonsino` | Far-right wing: **REPEATABLE_DEFECT** on confirmed Museum frames; fixed by extending R01/R02/R03 right edges (`x2`→~0.89–0.90). Post-fix: `CONSISTENT` |
+
+Targeted Manta R01 + Museum far-right checks: **passed**. Attribution matcher for Museum auto-discovery remains weak (separate).
+
+Catalog snapshot (all 25 packs vs Sanpo/`_game` refs):
+`analysis/map_ink_validation/geometry_sanity_25/GEOMETRY_SANITY_25.md`
+
+### Next architecture (deferred)
+
+```text
+MAP_OVERLAY interval
+    → sparse MapObservations
+    → MapObservationClock.at(t, max_gap_seconds=...)
+    → scenario / CoachInput evidence
+```
+
+Mirror `PlayerCountClock` max-gap semantics. Do not implement until geometry
+freeze clears.

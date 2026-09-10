@@ -1,0 +1,15 @@
+# Sampling rectangles (may overlap). Aggregate uses UNION of pixels.
+# Not exact polygons; classifier decides usable ink vs background.
+stage_id: hagglefish_market
+battle_mode_id: null
+regions:
+  - id: R01
+    roi: [0.3385, 0.1111, 0.5990, 0.3241]
+  - id: R02
+    roi: [0.3385, 0.2593, 0.7031, 0.4815]
+  - id: R03
+    roi: [0.3125, 0.4167, 0.6771, 0.6296]
+  - id: R04
+    roi: [0.3021, 0.5556, 0.5729, 0.7593]
+  - id: R05
+    roi: [0.3125, 0.6852, 0.4688, 0.8611]

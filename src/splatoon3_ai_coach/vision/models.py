@@ -203,6 +203,26 @@ class PlayerCountReading(BaseModel):
     opponent_slot_scores: tuple[float, ...] = ()
 
 
+class SpecialGaugeReading(BaseModel):
+    """Per-frame Special-gauge observation. Detector evidence only.
+
+    Sparse HUD sample for eventual coaching. Not a SPECIAL_READY /
+    SPECIAL_USED GameEvent. ``fill_fraction`` is approximate (radial
+    sector estimate), not pixel-perfect. When ``visible`` is false,
+    ``fill_fraction`` is None — never invent zero fill from absence.
+    """
+
+    kind: Literal["special_gauge"] = "special_gauge"
+    visible: bool = False
+    fill_fraction: float | None = Field(default=None, ge=0, le=1)
+    ready: bool = False
+    # Echo of detect(timestamp=...); frame time also on VisionFrameResult.
+    timestamp: float | None = None
+    dial_score: float = Field(default=0.0, ge=0, le=1)
+    lit_sector_fraction: float = Field(default=0.0, ge=0, le=1)
+    ready_prompt_score: float = Field(default=0.0, ge=0, le=1)
+
+
 Reading = Annotated[
     TimerReading
     | DeathReading
@@ -211,7 +231,8 @@ Reading = Annotated[
     | ActiveGameplayReading
     | MapOverlayReading
     | MatchIntroReading
-    | PlayerCountReading,
+    | PlayerCountReading
+    | SpecialGaugeReading,
     Field(discriminator="kind"),
 ]
 
@@ -339,6 +360,7 @@ class VisionTimingMetrics(BaseModel):
     active_gameplay_detector_seconds: float = Field(default=0.0, ge=0)
     map_overlay_detector_seconds: float = Field(default=0.0, ge=0)
     player_count_detector_seconds: float = Field(default=0.0, ge=0)
+    special_gauge_detector_seconds: float = Field(default=0.0, ge=0)
     timer_detector_invocations: int = Field(default=0, ge=0)
     death_detector_invocations: int = Field(default=0, ge=0)
     splat_detector_invocations: int = Field(default=0, ge=0)
@@ -346,6 +368,7 @@ class VisionTimingMetrics(BaseModel):
     active_gameplay_detector_invocations: int = Field(default=0, ge=0)
     map_overlay_detector_invocations: int = Field(default=0, ge=0)
     player_count_detector_invocations: int = Field(default=0, ge=0)
+    special_gauge_detector_invocations: int = Field(default=0, ge=0)
     temporal_seconds: float = Field(ge=0)
     total_seconds: float = Field(ge=0)
 

@@ -1,0 +1,13 @@
+# Sampling rectangles (may overlap). Aggregate uses UNION of pixels.
+# Not exact polygons; classifier decides usable ink vs background.
+stage_id: marlin_airport
+battle_mode_id: null
+regions:
+  - id: R01
+    roi: [0.3385, 0.2037, 0.5990, 0.3704]
+  - id: R02
+    roi: [0.3229, 0.2963, 0.6771, 0.4815]
+  - id: R03
+    roi: [0.3125, 0.3981, 0.6510, 0.6019]
+  - id: R04
+    roi: [0.3229, 0.5093, 0.5729, 0.7037]

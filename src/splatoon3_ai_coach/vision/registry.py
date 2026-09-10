@@ -8,6 +8,7 @@ from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
 from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
 from splatoon3_ai_coach.vision.player_count import PlayerCountDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
+from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
 from splatoon3_ai_coach.vision.timer import TimerDetector
 
@@ -70,6 +71,13 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             PlayerCountDetector(
                 config.player_count,
+                cadence_fps=config.hud_cadence_fps,
+            )
+        )
+    if "special_gauge" in config.enabled_detectors:
+        detectors.append(
+            SpecialGaugeDetector(
+                config.special_gauge,
                 cadence_fps=config.hud_cadence_fps,
             )
         )

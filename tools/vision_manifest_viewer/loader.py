@@ -25,6 +25,9 @@ from vision_manifest_viewer.model import (
     ManifestSummary,
     ManifestView,
     ManifestWarning,
+    MapInkRegionSampleView,
+    MapInkSampleView,
+    MatchIdentityView,
     MarkerCategory,
     ObservationView,
     RoiBox,
@@ -37,12 +40,23 @@ from vision_manifest_viewer.timeline import (
     build_markers,
 )
 
+try:
+    from splatoon3_ai_coach.vision.map_ink import MAP_OBSERVATIONS_FILENAME
+except ImportError:  # pragma: no cover - viewer may run without install
+    MAP_OBSERVATIONS_FILENAME = "map_observations.json"
+
+try:
+    from splatoon3_ai_coach.vision.stage_maps import MATCH_IDENTITY_FILENAME
+except ImportError:  # pragma: no cover
+    MATCH_IDENTITY_FILENAME = "match_identity.json"
+
 _DEFAULT_ROIS: dict[str, tuple[float, float, float, float]] = {
     "respawn": (0.840, 0.825, 1.000, 0.950),
     "death": (0.0104167, 0.8148148, 0.1041667, 0.8703704),
     "splat": (0.35, 0.85, 0.65, 0.98),
     "active_gameplay": (0.32, 0.48, 0.68, 0.90),
     "map_overlay": (0.0138889, 0.0171875, 0.1777778, 0.16875),
+    "special_gauge": (0.86, 0.01, 0.995, 0.18),
 }
 
 
@@ -100,6 +114,8 @@ def load_manifest_view(
         summary=summary,
         observations=observations,
         roster_timeline=_build_roster_timeline(snapshots),
+        map_ink_timeline=_load_map_ink_timeline(analysis_dir),
+        match_identity=_load_match_identity(analysis_dir),
         markers=markers,
         lifecycle_segments=segments,
         lifecycle_marks=lifecycle_marks,
@@ -247,6 +263,7 @@ def _load_rois(config_path: Path | None) -> dict[str, RoiBox]:
         "splat": ("splat", "banner_roi"),
         "active_gameplay": ("active_gameplay", "weapon_roi"),
         "map_overlay": ("map_overlay", "map_roi"),
+        "special_gauge": ("special_gauge", "roi"),
     }
     for label, (section, key) in mapping.items():
         box = (vision.get(section) or {}).get(key)
@@ -367,6 +384,114 @@ def _build_roster_timeline(
     return samples
 
 
+def _load_match_identity(analysis_dir: Path) -> MatchIdentityView | None:
+    """Load match_identity.json when present (stage / battle mode)."""
+    path = analysis_dir / MATCH_IDENTITY_FILENAME
+    if not path.is_file():
+        return None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(raw, dict):
+        return None
+
+    def _opt_str(key: str) -> str | None:
+        value = raw.get(key)
+        if value is None:
+            return None
+        text = str(value).strip()
+        return text or None
+
+    return MatchIdentityView(
+        stage_id=_opt_str("stage_id"),
+        battle_mode_id=_opt_str("battle_mode_id"),
+        stage_score=_as_float(raw.get("stage_score")),
+        battle_mode_score=_as_float(raw.get("battle_mode_score")),
+        resolved=bool(raw.get("resolved")),
+        resolved_at=_as_float(raw.get("resolved_at")),
+        intro_closed=bool(raw.get("intro_closed")),
+        map_ink_enabled=bool(raw.get("map_ink_enabled")),
+    )
+
+
+def _load_map_ink_timeline(analysis_dir: Path) -> list[MapInkSampleView]:
+    """Load paint metrics from map_observations.json (pass-through, no recompute)."""
+    path = analysis_dir / MAP_OBSERVATIONS_FILENAME
+    if not path.is_file():
+        return []
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(raw, list):
+        return []
+    samples: list[MapInkSampleView] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        try:
+            video_time = float(item["video_time"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        regions: list[MapInkRegionSampleView] = []
+        for region in item.get("regions") or []:
+            if not isinstance(region, dict):
+                continue
+            region_id = region.get("region_id")
+            if not isinstance(region_id, str) or not region_id:
+                continue
+            regions.append(
+                MapInkRegionSampleView(
+                    region_id=region_id,
+                    total_pixels=int(region.get("total_pixels") or 0),
+                    classified_pixels=int(region.get("classified_pixels") or 0),
+                    ally_ink_pixels=int(region.get("ally_ink_pixels") or 0),
+                    opponent_ink_pixels=int(region.get("opponent_ink_pixels") or 0),
+                    unclassified_pixels=int(region.get("unclassified_pixels") or 0),
+                    ally_classified_fraction=_as_float(
+                        region.get("ally_classified_fraction")
+                    ),
+                    opponent_classified_fraction=_as_float(
+                        region.get("opponent_classified_fraction")
+                    ),
+                    confidence=float(region.get("confidence") or 0.0),
+                )
+            )
+        samples.append(
+            MapInkSampleView(
+                video_time=video_time,
+                stage_id=str(item.get("stage_id") or ""),
+                battle_mode_id=(
+                    str(item["battle_mode_id"])
+                    if item.get("battle_mode_id") is not None
+                    else None
+                ),
+                ally_classified_fraction=_as_float(
+                    item.get("ally_classified_fraction")
+                ),
+                opponent_classified_fraction=_as_float(
+                    item.get("opponent_classified_fraction")
+                ),
+                classified_fraction=_as_float(item.get("classified_fraction")),
+                confidence=float(item.get("confidence") or 0.0),
+                total_sample_pixels=int(item.get("total_sample_pixels") or 0),
+                classified_pixels=int(item.get("classified_pixels") or 0),
+                ally_ink_pixels=int(item.get("ally_ink_pixels") or 0),
+                opponent_ink_pixels=int(item.get("opponent_ink_pixels") or 0),
+                unclassified_pixels=int(item.get("unclassified_pixels") or 0),
+                regions=regions,
+                geometry_battle_mode_id=(
+                    str(item["geometry_battle_mode_id"])
+                    if item.get("geometry_battle_mode_id") is not None
+                    else None
+                ),
+            )
+        )
+    samples.sort(key=lambda sample: sample.video_time)
+    return samples
+
+
 def _as_int_or_none(value: Any) -> int | None:
     """Parse an optional integer field."""
     if value is None:
@@ -467,6 +592,8 @@ def _is_positive(detector: str, reading: dict[str, Any]) -> bool:
         return bool(reading.get("detected"))
     if detector in {"countdown", "map_overlay"}:
         return bool(reading.get("present"))
+    if detector == "special_gauge":
+        return bool(reading.get("visible"))
     if "detected" in reading:
         return bool(reading.get("detected"))
     if detector == "timer":

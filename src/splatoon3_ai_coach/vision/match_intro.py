@@ -84,8 +84,29 @@ def _best_named_match(
     return best_id, best_score
 
 
+# Optional filename prefixes (folder already selects language).
+_TEMPLATE_ID_PREFIXES: tuple[str, ...] = ("en-", "ja-", "jp-", "eg-")
+
+
+def _template_id_from_stem(stem: str) -> str:
+    """Map a template filename stem to a canonical battle_mode_id / stage_id.
+
+    Accepts bare IDs (``turf_war``) or language-tagged names
+    (``en-turf_war``, ``jp-mahi_mahi_resort``, ``eg-…`` typo for ``en-``).
+    """
+    lower = stem.lower()
+    for prefix in _TEMPLATE_ID_PREFIXES:
+        if lower.startswith(prefix) and len(stem) > len(prefix):
+            return stem[len(prefix) :]
+    return stem
+
+
 def _load_named_templates(directory: Path) -> dict[str, np.ndarray]:
-    """Load ``{stem: grayscale}`` from PNG/JPG files in ``directory``."""
+    """Load ``{id: grayscale}`` from PNG/JPG files in ``directory``.
+
+    Partial packs are fine — only present templates are matched. Missing stages
+    simply cannot resolve until their PNGs are added.
+    """
     if not directory.is_dir():
         return {}
     loaded: dict[str, np.ndarray] = {}
@@ -95,7 +116,14 @@ def _load_named_templates(directory: Path) -> dict[str, np.ndarray]:
         image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
         if image is None or image.size == 0:
             continue
-        loaded[path.stem] = image
+        item_id = _template_id_from_stem(path.stem)
+        if item_id in loaded:
+            logger.warning(
+                "Match intro template id {!r} duplicated by {}; keeping last",
+                item_id,
+                path.name,
+            )
+        loaded[item_id] = image
     return loaded
 
 

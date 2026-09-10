@@ -25,6 +25,7 @@ def build_detector_lanes(
         ("death", "Death"),
         ("respawn", "Respawn"),
         ("active_gameplay", "Active"),
+        ("special_gauge", "Special"),
     ]
     lanes: list[DetectorLane] = []
     for detector, label in specs:

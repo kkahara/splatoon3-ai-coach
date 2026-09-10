@@ -1,0 +1,15 @@
+# Sampling rectangles (may overlap). Aggregate uses UNION of pixels.
+# Not exact polygons; classifier decides usable ink vs background.
+stage_id: hammerhead_bridge
+battle_mode_id: null
+regions:
+  - id: R01
+    roi: [0.3646, 0.0648, 0.5729, 0.2778]
+  - id: R02
+    roi: [0.3542, 0.2037, 0.6510, 0.4167]
+  - id: R03
+    roi: [0.3385, 0.3519, 0.5990, 0.5556]
+  - id: R04
+    roi: [0.3229, 0.4815, 0.5208, 0.7222]
+  - id: R05
+    roi: [0.3385, 0.6296, 0.4427, 0.8333]

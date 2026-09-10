@@ -218,7 +218,13 @@ def test_load_manifest_view_builds_episodes_and_rois(tmp_path: Path) -> None:
         t.event_type == "respawn" or t.to_phase == "respawned"
         for t in view.transitions
     )
-    assert len(view.detector_lanes) == 3
+    assert len(view.detector_lanes) == 4
+    assert {lane.detector for lane in view.detector_lanes} == {
+        "death",
+        "respawn",
+        "active_gameplay",
+        "special_gauge",
+    }
     assert episode.latch_points
     assert view.death_diagnostics
     assert any(d.decision == "confirmed" for d in view.death_diagnostics)
@@ -1142,3 +1148,237 @@ def test_parse_byte_range_helpers() -> None:
     assert parse_byte_range("bytes=9-2", 100) is None
     port = pick_free_port(None)
     assert isinstance(port, int) and port > 0
+
+
+def _minimal_manifest_shell(
+    *,
+    video_identity: str = "viz1",
+    frame_results: list[dict] | None = None,
+) -> dict:
+    """Bare vision manifest shell for viewer unit tests."""
+    return {
+        "schema_version": 1,
+        "video_identity": video_identity,
+        "extraction_manifest_path": "frames",
+        "analysis": {
+            "analysis_id": "a",
+            "package_version": "0.2.0",
+            "pipeline_version": "3.0.0",
+            "detector_versions": {},
+            "extraction_manifest_sha256": "x",
+            "vision_config_sha256": "y",
+            "video_identity": video_identity,
+        },
+        "frame_results": frame_results or [],
+        "state_snapshots": [],
+        "game_events": [],
+    }
+
+
+def test_map_ink_sidecar_loaded_pass_through(tmp_path: Path) -> None:
+    """map_observations.json paint fields load unchanged into the viewer."""
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()), encoding="utf-8")
+    sidecar = [
+        {
+            "video_time": 12.5,
+            "stage_id": "scorch_gorge",
+            "battle_mode_id": "turf_war",
+            "ally_classified_fraction": 0.42,
+            "opponent_classified_fraction": 0.31,
+            "classified_fraction": 0.73,
+            "confidence": 0.8,
+            "total_sample_pixels": 1000,
+            "classified_pixels": 730,
+            "ally_ink_pixels": 420,
+            "opponent_ink_pixels": 310,
+            "unclassified_pixels": 270,
+            "regions": [
+                {
+                    "region_id": "R01",
+                    "total_pixels": 100,
+                    "classified_pixels": 70,
+                    "ally_ink_pixels": 40,
+                    "opponent_ink_pixels": 30,
+                    "unclassified_pixels": 30,
+                    "ally_classified_fraction": 0.4,
+                    "opponent_classified_fraction": 0.3,
+                    "confidence": 0.7,
+                }
+            ],
+        }
+    ]
+    (tmp_path / "map_observations.json").write_text(
+        json.dumps(sidecar), encoding="utf-8"
+    )
+    view = load_manifest_view(path)
+    assert len(view.map_ink_timeline) == 1
+    sample = view.map_ink_timeline[0]
+    assert sample.video_time == 12.5
+    assert sample.stage_id == "scorch_gorge"
+    assert sample.ally_classified_fraction == 0.42
+    assert sample.opponent_classified_fraction == 0.31
+    assert sample.classified_fraction == 0.73
+    assert sample.ally_ink_pixels == 420
+    assert sample.regions[0].region_id == "R01"
+    html = render_html(view)
+    assert "map-ink" in html
+    assert "renderMapInkLane" in html
+
+
+def test_map_ink_missing_sidecar_is_empty(tmp_path: Path) -> None:
+    """Missing map_observations.json yields an empty timeline."""
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()), encoding="utf-8")
+    view = load_manifest_view(path)
+    assert view.map_ink_timeline == []
+    assert view.match_identity is None
+
+
+def test_match_identity_shown_in_header(tmp_path: Path) -> None:
+    """match_identity.json stage/mode appear in the viewer header payload."""
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()), encoding="utf-8")
+    (tmp_path / "match_identity.json").write_text(
+        json.dumps(
+            {
+                "stage_id": "museum_dalfonsino",
+                "battle_mode_id": "tower_control",
+                "stage_score": 0.95,
+                "battle_mode_score": 0.99,
+                "resolved": True,
+                "resolved_at": 8.5,
+                "intro_closed": True,
+                "map_ink_enabled": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    view = load_manifest_view(path)
+    assert view.match_identity is not None
+    assert view.match_identity.stage_id == "museum_dalfonsino"
+    assert view.match_identity.battle_mode_id == "tower_control"
+    assert view.match_identity.resolved is True
+    html = render_html(view)
+    assert 'id="match-info"' in html
+    assert "Museum Dalfonsino" in html or "museum_dalfonsino" in html
+    assert "Tower Control" in html or "tower_control" in html
+    assert "match_identity" in html
+
+
+def test_special_gauge_visibility_and_timeline_html(tmp_path: Path) -> None:
+    """Special gauge: visible→positive; ready/ordinary/invisible ticks in HTML."""
+    frames_dir = tmp_path / "frames"
+    frames_dir.mkdir()
+    jpg = (
+        b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+        b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
+        b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
+        b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"
+    )
+    (frames_dir / "g.jpg").write_bytes(jpg)
+    manifest = _minimal_manifest_shell(
+        video_identity="sg1",
+        frame_results=[
+            {
+                "frame_id": "a",
+                "timestamp": 1.0,
+                "source": "cadence",
+                "frame_path": "frames/g.jpg",
+                "detections": [
+                    {
+                        "id": "sg-vis",
+                        "detector_name": "special_gauge",
+                        "detector_version": "special_gauge@test",
+                        "confidence": 0.8,
+                        "reading": {
+                            "kind": "special_gauge",
+                            "visible": True,
+                            "fill_fraction": 0.47,
+                            "ready": False,
+                            "dial_score": 0.7,
+                            "lit_sector_fraction": 0.47,
+                            "ready_prompt_score": 0.1,
+                        },
+                    }
+                ],
+            },
+            {
+                "frame_id": "b",
+                "timestamp": 2.0,
+                "source": "cadence",
+                "frame_path": "frames/g.jpg",
+                "detections": [
+                    {
+                        "id": "sg-ready",
+                        "detector_name": "special_gauge",
+                        "detector_version": "special_gauge@test",
+                        "confidence": 0.9,
+                        "reading": {
+                            "kind": "special_gauge",
+                            "visible": True,
+                            "fill_fraction": 0.19,
+                            "ready": True,
+                            "dial_score": 0.7,
+                            "lit_sector_fraction": 0.19,
+                            "ready_prompt_score": 0.6,
+                        },
+                    }
+                ],
+            },
+            {
+                "frame_id": "c",
+                "timestamp": 3.0,
+                "source": "cadence",
+                "frame_path": "frames/g.jpg",
+                "detections": [
+                    {
+                        "id": "sg-inv",
+                        "detector_name": "special_gauge",
+                        "detector_version": "special_gauge@test",
+                        "confidence": 0.2,
+                        "reading": {
+                            "kind": "special_gauge",
+                            "visible": False,
+                            "fill_fraction": None,
+                            "ready": False,
+                            "dial_score": 0.1,
+                            "lit_sector_fraction": 0.0,
+                            "ready_prompt_score": 0.0,
+                        },
+                    }
+                ],
+            },
+        ],
+    )
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    view = load_manifest_view(path)
+    by_id = {o.id: o for o in view.observations if o.detector == "special_gauge"}
+    assert by_id["sg-vis"].positive is True
+    assert by_id["sg-ready"].positive is True
+    assert by_id["sg-inv"].positive is False
+    assert "special_gauge" in view.default_rois
+    html = render_html(view)
+    assert "special-tick" in html
+    assert ".special-tick.ready" in html
+    assert "renderSpecialLane" in html
+    assert "fill_fraction" in html
+    assert "Special gauge" in html
+    # Invisible samples must not appear as Special ticks in the payload path:
+    # lane JS filters reading.visible; ensure invisible observation exists but
+    # ready is only set on the ready sample.
+    payload = json.loads(
+        html.split('id="viewer-data" type="application/json">', 1)[1].split(
+            "</script>", 1
+        )[0]
+    )
+    special = [o for o in payload["observations"] if o["detector"] == "special_gauge"]
+    assert len(special) == 3
+    visible = [o for o in special if o["reading"].get("visible")]
+    assert len(visible) == 2
+    assert any(o["reading"].get("ready") for o in visible)
+    assert any(not o["reading"].get("ready") for o in visible)

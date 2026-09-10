@@ -4,10 +4,15 @@
 ``MapObservation`` (this module) = sparse sampled ink measurement while the
 map is visible. Ink fractions are classified pixel ratios — not continuous
 state, not interpolated, and not an ``INK_COVERAGE_CHANGED`` event.
+
+Stage geometry rectangles are **overlapping sampling regions**. Aggregate
+counts use the **union** of those rectangles so overlapping pixels are counted
+once. The classifier still decides which sampled pixels are ally/opponent/other.
 """
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import cv2
@@ -16,14 +21,18 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
-from splatoon3_ai_coach.vision.roi import crop_roi
+from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
 
 MAP_OBSERVATIONS_FILENAME = "map_observations.json"
 
 
 class MapRegionObservation(BaseModel):
-    """Ink pixel counts for one sampling rectangle."""
+    """Diagnostic counts for one sampling rectangle (may overlap others).
+
+    Observation-level fractions are derived from the **union** of all regions,
+    not by averaging or summing these per-region counts.
+    """
 
     region_id: str
     total_pixels: int = Field(ge=0)
@@ -40,6 +49,7 @@ class MapObservation(BaseModel):
     """Sampled 2D map ink state at one video time.
 
     Not a ``GameEvent``. Does not imply ink state at other times.
+    Aggregate fractions use the deduplicated union of sampling regions.
     """
 
     video_time: float = Field(ge=0)
@@ -49,6 +59,12 @@ class MapObservation(BaseModel):
     opponent_classified_fraction: float | None = None
     classified_fraction: float | None = None
     confidence: float = Field(default=0.0, ge=0, le=1)
+    # Union pixel totals (overlaps counted once).
+    total_sample_pixels: int = Field(default=0, ge=0)
+    classified_pixels: int = Field(default=0, ge=0)
+    ally_ink_pixels: int = Field(default=0, ge=0)
+    opponent_ink_pixels: int = Field(default=0, ge=0)
+    unclassified_pixels: int = Field(default=0, ge=0)
     regions: list[MapRegionObservation] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
     geometry_battle_mode_id: str | None = None
@@ -97,24 +113,29 @@ def analyze_map_ink(
     battle_mode_id: str | None,
     evidence_ids: list[str] | None = None,
 ) -> MapObservation:
-    """Measure classified ink fractions over configured sampling regions."""
-    region_obs: list[MapRegionObservation] = []
-    ally_total = 0
-    opponent_total = 0
-    classified_total = 0
-    pixel_total = 0
-    for region in geometry.regions:
-        obs = _analyze_region(image, region, classifier)
-        region_obs.append(obs)
-        ally_total += obs.ally_ink_pixels
-        opponent_total += obs.opponent_ink_pixels
-        classified_total += obs.classified_pixels
-        pixel_total += obs.total_pixels
-    ally_frac, opponent_frac = _fractions(ally_total, opponent_total, classified_total)
-    classified_frac = (
-        None if pixel_total <= 0 else classified_total / float(pixel_total)
-    )
-    confidence = _observation_confidence(classified_frac, region_obs)
+    """Measure classified ink fractions over the union of sampling regions.
+
+    Rectangles may overlap non-map pixels and each other on purpose. Overlaps
+    are deduplicated in the aggregate; the classifier decides usable ink pixels.
+    """
+    height, width = image.shape[:2]
+    union = _union_region_mask(height, width, geometry.regions)
+    ally_full, opponent_full, other_full = classifier.classify_bgr(image)
+    ally_u = ally_full & union
+    opponent_u = opponent_full & union
+    other_u = other_full & union
+    ally_n = int(np.count_nonzero(ally_u))
+    opponent_n = int(np.count_nonzero(opponent_u))
+    other_n = int(np.count_nonzero(other_u))
+    classified = ally_n + opponent_n
+    total = int(np.count_nonzero(union))
+    ally_frac, opponent_frac = _fractions(ally_n, opponent_n, classified)
+    classified_frac = None if total <= 0 else classified / float(total)
+    region_obs = [
+        _analyze_region_slice(ally_full, opponent_full, other_full, height, width, region)
+        for region in geometry.regions
+    ]
+    confidence = 0.0 if classified_frac is None else float(min(1.0, max(0.0, classified_frac)))
     return MapObservation(
         video_time=float(video_time),
         stage_id=geometry.stage_id,
@@ -123,20 +144,56 @@ def analyze_map_ink(
         opponent_classified_fraction=opponent_frac,
         classified_fraction=classified_frac,
         confidence=confidence,
+        total_sample_pixels=total,
+        classified_pixels=classified,
+        ally_ink_pixels=ally_n,
+        opponent_ink_pixels=opponent_n,
+        unclassified_pixels=other_n,
         regions=region_obs,
         evidence_ids=list(evidence_ids or []),
         geometry_battle_mode_id=geometry.battle_mode_id,
     )
 
 
-def _analyze_region(
-    image: np.ndarray,
+def _union_region_mask(
+    height: int,
+    width: int,
+    regions: list[StageMapRegion],
+) -> np.ndarray:
+    """Boolean mask of the union of normalized sampling rectangles."""
+    mask = np.zeros((height, width), dtype=bool)
+    for region in regions:
+        left, top, right, bottom = _pixel_box(region.roi, width, height)
+        if right > left and bottom > top:
+            mask[top:bottom, left:right] = True
+    return mask
+
+
+def _pixel_box(roi: NormalizedBox, width: int, height: int) -> tuple[int, int, int, int]:
+    """Convert a normalized ROI to inclusive-exclusive pixel bounds."""
+    x1, y1, x2, y2 = roi
+    left = int(x1 * width)
+    top = int(y1 * height)
+    right = int(x2 * width)
+    bottom = int(y2 * height)
+    left = max(0, min(width, left))
+    right = max(0, min(width, right))
+    top = max(0, min(height, top))
+    bottom = max(0, min(height, bottom))
+    return left, top, right, bottom
+
+
+def _analyze_region_slice(
+    ally_full: np.ndarray,
+    opponent_full: np.ndarray,
+    other_full: np.ndarray,
+    height: int,
+    width: int,
     region: StageMapRegion,
-    classifier: MapInkClassifier,
 ) -> MapRegionObservation:
-    """Classify one sampling rectangle."""
-    crop = crop_roi(image, region.roi)
-    total = int(crop.shape[0] * crop.shape[1]) if crop.size else 0
+    """Per-rectangle diagnostic slice (overlaps allowed; not used for aggregates)."""
+    left, top, right, bottom = _pixel_box(region.roi, width, height)
+    total = max(0, (right - left) * (bottom - top))
     if total == 0:
         return MapRegionObservation(
             region_id=region.id,
@@ -147,10 +204,9 @@ def _analyze_region(
             unclassified_pixels=0,
             confidence=0.0,
         )
-    ally_mask, opponent_mask, other_mask = classifier.classify_bgr(crop)
-    ally_n = int(np.count_nonzero(ally_mask))
-    opponent_n = int(np.count_nonzero(opponent_mask))
-    other_n = int(np.count_nonzero(other_mask))
+    ally_n = int(np.count_nonzero(ally_full[top:bottom, left:right]))
+    opponent_n = int(np.count_nonzero(opponent_full[top:bottom, left:right]))
+    other_n = int(np.count_nonzero(other_full[top:bottom, left:right]))
     classified = ally_n + opponent_n
     ally_frac, opponent_frac = _fractions(ally_n, opponent_n, classified)
     conf = 0.0 if classified == 0 else min(1.0, classified / float(total))
@@ -176,22 +232,10 @@ def _fractions(
     return ally / float(classified), opponent / float(classified)
 
 
-def _observation_confidence(
-    classified_fraction: float | None,
-    regions: list[MapRegionObservation],
-) -> float:
-    """Aggregate confidence from classified density across regions."""
-    if not regions or classified_fraction is None:
-        return 0.0
-    return float(min(1.0, max(0.0, classified_fraction)))
-
-
 def write_map_observations(path: Path, observations: list[MapObservation]) -> None:
     """Persist sparse map observations as JSON (sidecar, not GameEvents)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = [item.model_dump(mode="json") for item in observations]
-    import json
-
     path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -206,38 +250,109 @@ def write_map_ink_diagnostic(
     observation: MapObservation,
     geometry: StageMapGeometry,
     classifier: MapInkClassifier,
-) -> None:
-    """Save overlay visualization for one map observation."""
+    stem: str | None = None,
+) -> Path:
+    """Save geometry + classification overlay for one map observation.
+
+    Distinguishes rectangle boundaries, union sample area, ally / opponent /
+    unclassified pixels inside the union. Writes under ``debug_map_ink/``.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
+    height, width = image.shape[:2]
+    union = _union_region_mask(height, width, geometry.regions)
+    ally_full, opponent_full, other_full = classifier.classify_bgr(image)
+    ally_u = ally_full & union
+    opponent_u = opponent_full & union
+    other_u = other_full & union
+
     canvas = image.copy()
-    height, width = canvas.shape[:2]
+    # Unclassified sample area first (dim), then ink classes on top.
+    canvas[other_u] = (
+        canvas[other_u].astype(np.float32) * 0.45 + np.array([40, 40, 40], dtype=np.float32) * 0.55
+    ).astype(np.uint8)
+    canvas[ally_u] = (
+        canvas[ally_u].astype(np.float32) * 0.35 + np.array([40, 220, 40], dtype=np.float32) * 0.65
+    ).astype(np.uint8)
+    canvas[opponent_u] = (
+        canvas[opponent_u].astype(np.float32) * 0.35 + np.array([40, 40, 220], dtype=np.float32) * 0.65
+    ).astype(np.uint8)
+
+    # Union boundary (thick cyan) — separate from per-rectangle boxes.
+    union_u8 = (union.astype(np.uint8) * 255)
+    contours, _ = cv2.findContours(union_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(canvas, contours, -1, (255, 220, 0), 2)
+
+    # Individual sampling rectangles (thin white) + region ids.
     for region in geometry.regions:
-        x1, y1, x2, y2 = region.roi
-        left, top = int(x1 * width), int(y1 * height)
-        right, bottom = int(x2 * width), int(y2 * height)
-        crop = canvas[top:bottom, left:right]
-        if crop.size == 0:
-            continue
-        ally_mask, opponent_mask, _ = classifier.classify_bgr(crop)
-        tint = crop.copy()
-        tint[ally_mask] = (tint[ally_mask] * 0.4 + np.array([0, 180, 0]) * 0.6).astype(
-            np.uint8
-        )
-        tint[opponent_mask] = (
-            tint[opponent_mask] * 0.4 + np.array([0, 0, 180]) * 0.6
-        ).astype(np.uint8)
-        canvas[top:bottom, left:right] = tint
+        left, top, right, bottom = _pixel_box(region.roi, width, height)
         cv2.rectangle(canvas, (left, top), (right, bottom), (255, 255, 255), 1)
         cv2.putText(
             canvas,
             region.id,
             (left + 4, max(top + 14, 14)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.4,
+            0.45,
             (255, 255, 255),
             1,
             cv2.LINE_AA,
         )
-    stamp = f"{observation.video_time:010.3f}"
-    out = output_dir / f"map_ink_{stamp}.jpg"
+
+    _draw_map_ink_legend(canvas, observation)
+    name = stem or f"map_ink_{observation.video_time:010.3f}"
+    out = output_dir / f"{name}.jpg"
     cv2.imwrite(str(out), canvas)
+    return out
+
+
+def _draw_map_ink_legend(canvas: np.ndarray, observation: MapObservation) -> None:
+    """HUD legend for diagnostic colors and key fractions."""
+    lines = [
+        "white box = region ROI",
+        "cyan outline = union sample",
+        "green = ally class",
+        "red = opponent class",
+        "dim = unclassified in union",
+        (
+            f"classified_frac="
+            f"{observation.classified_fraction:.3f}"
+            if observation.classified_fraction is not None
+            else "classified_frac=n/a"
+        ),
+        f"union={observation.total_sample_pixels} cls={observation.classified_pixels}",
+    ]
+    x, y0 = 12, 28
+    for index, line in enumerate(lines):
+        y = y0 + index * 22
+        cv2.putText(
+            canvas,
+            line,
+            (x, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (0, 0, 0),
+            3,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            canvas,
+            line,
+            (x, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (255, 255, 255),
+            1,
+            cv2.LINE_AA,
+        )
+
+
+def union_bbox_normalized(
+    geometry: StageMapGeometry,
+) -> tuple[float, float, float, float] | None:
+    """Axis-aligned bbox of all region ROIs in normalized coordinates."""
+    if not geometry.regions:
+        return None
+    xs1 = [r.roi[0] for r in geometry.regions]
+    ys1 = [r.roi[1] for r in geometry.regions]
+    xs2 = [r.roi[2] for r in geometry.regions]
+    ys2 = [r.roi[3] for r in geometry.regions]
+    return (min(xs1), min(ys1), max(xs2), max(ys2))

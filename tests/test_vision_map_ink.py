@@ -17,11 +17,14 @@ from splatoon3_ai_coach.vision.map_ink import (
     MapInkClassifier,
     MapObservation,
     analyze_map_ink,
+    write_map_ink_diagnostic,
 )
 from splatoon3_ai_coach.vision.match_intro import (
     MatchIdentityTracker,
     MatchIntroDetector,
     MatchIntroReading,
+    _load_named_templates,
+    _template_id_from_stem,
 )
 from splatoon3_ai_coach.vision.models import GameEventType
 from splatoon3_ai_coach.vision.stage_maps import (
@@ -48,6 +51,30 @@ def intro_templates(tmp_path: Path) -> Path:
         _write_gray_png(root / lang / "battle_modes" / "turf_war.png", 210)
         _write_gray_png(root / lang / "stages" / "scorch_gorge.png", 180)
     return root
+
+
+@pytest.mark.parametrize(
+    ("stem", "expected"),
+    [
+        ("turf_war", "turf_war"),
+        ("en-turf_war", "turf_war"),
+        ("jp-mahi_mahi_resort", "mahi_mahi_resort"),
+        ("ja-rainmaker", "rainmaker"),
+        ("eg-humpback_pump_track", "humpback_pump_track"),
+    ],
+)
+def test_template_id_from_stem_strips_language_prefix(
+    stem: str, expected: str
+) -> None:
+    assert _template_id_from_stem(stem) == expected
+
+
+def test_load_named_templates_accepts_prefixed_filenames(tmp_path: Path) -> None:
+    folder = tmp_path / "stages"
+    _write_gray_png(folder / "en-bluefin_depot.png", 170)
+    _write_gray_png(folder / "jp-sturgeon_shipyard.png", 160)
+    loaded = _load_named_templates(folder)
+    assert set(loaded) == {"bluefin_depot", "sturgeon_shipyard"}
 
 
 def test_match_intro_resolves_ids_from_templates(intro_templates: Path) -> None:
@@ -167,7 +194,61 @@ def test_analyze_map_ink_uses_classified_fraction_not_total() -> None:
     assert obs.opponent_classified_fraction == pytest.approx(0.0)
     assert obs.classified_fraction is not None
     assert obs.classified_fraction < 1.0
+    assert obs.total_sample_pixels == 100 * 100
     assert "death_location" not in MapObservation.model_fields
+
+
+def test_write_map_ink_diagnostic_marks_union_and_classes(tmp_path: Path) -> None:
+    geometry = StageMapGeometry(
+        stage_id="scorch_gorge",
+        regions=[
+            StageMapRegion(id="R01", roi=(0.1, 0.1, 0.5, 0.5)),
+            StageMapRegion(id="R02", roi=(0.4, 0.4, 0.8, 0.8)),
+        ],
+    )
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    image = np.full((100, 100, 3), 30, dtype=np.uint8)
+    image[20:40, 20:40] = (40, 200, 40)
+    image[60:80, 60:80] = (200, 40, 200)
+    obs = analyze_map_ink(
+        image, geometry, classifier, video_time=1.5, battle_mode_id="turf_war"
+    )
+    out = write_map_ink_diagnostic(
+        tmp_path,
+        image=image,
+        observation=obs,
+        geometry=geometry,
+        classifier=classifier,
+        stem="probe",
+    )
+    assert out.is_file()
+    assert out.name == "probe.jpg"
+    assert cv2.imread(str(out)) is not None
+
+
+def test_overlapping_regions_dedupe_in_union_aggregate() -> None:
+    """Overlapping rectangles must not double-count pixels in aggregates."""
+    geometry = StageMapGeometry(
+        stage_id="scorch_gorge",
+        regions=[
+            StageMapRegion(id="R01", roi=(0.0, 0.0, 0.6, 0.6)),
+            StageMapRegion(id="R02", roi=(0.4, 0.4, 1.0, 1.0)),
+        ],
+    )
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    image = np.full((100, 100, 3), 90, dtype=np.uint8)
+    image[:, :] = (40, 200, 40)  # all ally-classified
+    obs = analyze_map_ink(
+        image, geometry, classifier, video_time=1.0, battle_mode_id="turf_war"
+    )
+    # Union area: 60x60 + 60x60 - 20x20 overlap = 3600+3600-400 = 6800
+    assert obs.total_sample_pixels == 6800
+    assert obs.ally_ink_pixels == 6800
+    assert obs.classified_pixels == 6800
+    # Naive sum of per-region totals would be 7200 — must not match aggregate.
+    naive = sum(r.total_pixels for r in obs.regions)
+    assert naive == 7200
+    assert obs.total_sample_pixels < naive
 
 
 def test_zero_classified_yields_none_fractions() -> None:
@@ -195,11 +276,15 @@ def test_no_ink_coverage_game_event() -> None:
 
 def test_repo_stage_default_pack_loads() -> None:
     root = Path(__file__).resolve().parents[1] / "configs" / "stage_maps"
+    stages = sorted(p.name for p in root.iterdir() if p.is_dir())
+    assert len(stages) == 25
+    assert "scorch_gorge" in stages
+    assert "barnacle_and_dime" in stages
     geom = resolve_stage_map_geometry(
         root, stage_id="scorch_gorge", battle_mode_id="turf_war"
     )
     assert geom is not None
-    assert len(geom.regions) >= 2
+    assert len(geom.regions) == 5
     for region in geom.regions:
         x1, y1, x2, y2 = region.roi
         assert 0.0 <= x1 < x2 <= 1.0

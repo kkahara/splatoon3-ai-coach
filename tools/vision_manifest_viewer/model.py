@@ -239,6 +239,19 @@ class ManifestWarning(BaseModel):
     message: str
 
 
+class MatchIdentityView(BaseModel):
+    """Pass-through match_identity.json for the viewer header."""
+
+    stage_id: str | None = None
+    battle_mode_id: str | None = None
+    stage_score: float | None = None
+    battle_mode_score: float | None = None
+    resolved: bool = False
+    resolved_at: float | None = None
+    intro_closed: bool = False
+    map_ink_enabled: bool = False
+
+
 class ManifestSummary(BaseModel):
     """Compact diagnostic summary."""
 
@@ -286,12 +299,50 @@ class RosterSampleView(BaseModel):
     opponent_alive_count: int
 
 
+class MapInkRegionSampleView(BaseModel):
+    """Pass-through per-region paint metrics from map_observations.json."""
+
+    region_id: str
+    total_pixels: int = 0
+    classified_pixels: int = 0
+    ally_ink_pixels: int = 0
+    opponent_ink_pixels: int = 0
+    unclassified_pixels: int = 0
+    ally_classified_fraction: float | None = None
+    opponent_classified_fraction: float | None = None
+    confidence: float = 0.0
+
+
+class MapInkSampleView(BaseModel):
+    """Pass-through MapObservation paint metrics for the viewer timeline.
+
+    Values are loaded as written by the vision pipeline — never recomputed.
+    """
+
+    video_time: float
+    stage_id: str = ""
+    battle_mode_id: str | None = None
+    ally_classified_fraction: float | None = None
+    opponent_classified_fraction: float | None = None
+    classified_fraction: float | None = None
+    confidence: float = 0.0
+    total_sample_pixels: int = 0
+    classified_pixels: int = 0
+    ally_ink_pixels: int = 0
+    opponent_ink_pixels: int = 0
+    unclassified_pixels: int = 0
+    regions: list[MapInkRegionSampleView] = Field(default_factory=list)
+    geometry_battle_mode_id: str | None = None
+
+
 class ManifestView(BaseModel):
     """Normalized viewer payload derived from a vision manifest."""
 
     summary: ManifestSummary
     observations: list[ObservationView] = Field(default_factory=list)
     roster_timeline: list[RosterSampleView] = Field(default_factory=list)
+    map_ink_timeline: list[MapInkSampleView] = Field(default_factory=list)
+    match_identity: MatchIdentityView | None = None
     markers: list[TimelineMarker] = Field(default_factory=list)
     lifecycle_segments: list[LifecycleSegment] = Field(default_factory=list)
     lifecycle_marks: list[LifecycleTransitionMark] = Field(default_factory=list)

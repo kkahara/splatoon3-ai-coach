@@ -1,0 +1,15 @@
+# Sampling rectangles (may overlap). Aggregate uses UNION of pixels.
+# Not exact polygons; classifier decides usable ink vs background.
+stage_id: sturgeon_shipyard
+battle_mode_id: null
+regions:
+  - id: R01
+    roi: [0.3385, 0.0648, 0.6250, 0.2778]
+  - id: R02
+    roi: [0.2865, 0.2037, 0.7292, 0.4444]
+  - id: R03
+    roi: [0.2604, 0.3611, 0.7292, 0.6019]
+  - id: R04
+    roi: [0.2500, 0.5093, 0.6250, 0.7593]
+  - id: R05
+    roi: [0.2604, 0.6667, 0.4948, 0.8889]

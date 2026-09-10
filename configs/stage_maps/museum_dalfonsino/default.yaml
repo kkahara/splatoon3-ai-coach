@@ -1,0 +1,18 @@
+# Sampling rectangles (may overlap). Aggregate uses UNION of pixels.
+# Not exact polygons; classifier decides usable ink vs background.
+stage_id: museum_dalfonsino
+battle_mode_id: null
+regions:
+  - id: R01
+    # Pulled top edge down earlier for bokeh; right edge covers upper far-right wing.
+    roi: [0.3125, 0.2100, 0.8900, 0.3704]
+  - id: R02
+    # Right edge covers far-right paintable wing tip (was ~0.755 before fix).
+    roi: [0.2865, 0.2778, 0.9000, 0.4815]
+  - id: R03
+    # Mid-right wing continuity.
+    roi: [0.2708, 0.3981, 0.8900, 0.6296]
+  - id: R04
+    roi: [0.2865, 0.5370, 0.6510, 0.7593]
+  - id: R05
+    roi: [0.3125, 0.6667, 0.5469, 0.8611]

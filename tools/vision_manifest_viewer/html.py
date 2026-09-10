@@ -43,6 +43,13 @@ header,section{border-bottom:1px solid var(--line);padding:10px 16px}
 h1{font-size:15px;margin:0 0 4px;font-weight:600}
 h2{font-size:11px;margin:0 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .meta{color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;font-size:12px}
+.match-info{margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;font-size:14px}
+.match-info .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
+.match-info .value{color:var(--text);font-weight:600}
+.match-info .status{font-size:11px;color:var(--muted)}
+.match-info .status.ok{color:var(--ok)}
+.match-info .status.warn{color:var(--warn)}
+.warnings{margin-top:8px}
 .warnings{margin-top:6px;display:grid;gap:2px;font-size:12px}
 .warnings .ok{color:var(--ok)} .warnings .warn{color:var(--warn)} .warnings .info{color:var(--accent)}
 .filters{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
@@ -66,6 +73,20 @@ button:hover,button.active{border-color:var(--accent);color:var(--accent)}
 .splat-badge:hover,.splat-badge.selected{outline:2px solid #fff;outline-offset:1px}
 .splat-tick{position:absolute;transform:translateX(-50%);top:10px;width:8px;height:8px;border-radius:50%;background:#3b3358;border:1px solid var(--splat);cursor:pointer;z-index:1}
 .splat-tick:hover,.splat-tick.selected{background:var(--splat);outline:2px solid #fff;outline-offset:1px}
+.metric-row{position:relative;min-width:720px;height:36px;margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+.metric-row .lane-name{position:absolute;left:0;top:10px;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.metric-row.map-ink .lane-name{color:#7dcfff}
+.metric-row.special .lane-name{color:#e0af68}
+.map-ink-tick{position:absolute;transform:translateX(-50%);top:12px;width:7px;height:7px;border-radius:50%;background:#1a3040;border:1px solid #7dcfff;cursor:pointer;z-index:1}
+.map-ink-tick:hover,.map-ink-tick.selected{background:#7dcfff;outline:2px solid #fff;outline-offset:1px}
+.special-tick{position:absolute;transform:translateX(-50%);top:14px;width:6px;height:6px;border-radius:50%;background:#3b3358;border:1px solid #e0af68;cursor:pointer;z-index:1}
+.special-tick .lbl{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:9px;color:#e0af68;white-space:nowrap;pointer-events:none}
+.special-tick.ready{top:10px;width:12px;height:12px;background:#e0af68;border:2px solid #fff;box-shadow:0 0 0 1px #000}
+.special-tick.ready .lbl{top:-16px;color:#ffd9a0;font-weight:700}
+.special-tick:hover,.special-tick.selected{outline:2px solid #fff;outline-offset:1px}
+.side-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.side-metrics .panel{background:#0b0d10;border:1px solid var(--line);border-radius:6px;padding:8px}
+.side-metrics h3{margin:0 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase}
 .life-seg{position:absolute;top:8px;height:14px;border-radius:3px;opacity:.9;min-width:2px}
 .life-seg.unknown{background:#565f89}.life-seg.alive{background:var(--life)}.life-seg.dead{background:var(--death)}
 .life-seg.countdown{background:var(--countdown)}.life-seg.respawned{background:#73daca}.life-seg.awaiting_control{background:#7aa2f7}
@@ -184,6 +205,7 @@ pre.raw.open{display:block}
 <body>
 <header>
   <h1>VISION MANIFEST VIEWER</h1>
+  <div class="match-info" id="match-info"></div>
   <div class="meta" id="header-meta"></div>
   <div class="warnings" id="warnings"></div>
 </header>
@@ -400,7 +422,7 @@ const GT_CHEAT = {
 const DETECTOR_TITLE = {
   death:"Death", splat:"Splat", active_gameplay:"Active gameplay",
   map_overlay:"Map overlay", respawn:"Respawn", timer:"Timer",
-  match_phase:"Match state",
+  match_phase:"Match state", special_gauge:"Special gauge",
 };
 const GT_CHIP_DETECTORS = ["timer","death","splat","respawn","active_gameplay","map_overlay"];
 
@@ -1214,10 +1236,28 @@ function fmtYesNo(value) {
   return value ? "Yes" : "No";
 }
 
+function humanizeId(value) {
+  if (value == null || value === "") return "—";
+  return String(value).replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function renderHeader() {
   const s=DATA.summary;
   const wanted = ["death","respawn","active_again","splat"];
   const events = wanted.map(k => `${k} ${(s.event_counts||{})[k]||0}`).join(" · ");
+  const id = DATA.match_identity;
+  const mode = humanizeId(id?.battle_mode_id);
+  const stage = humanizeId(id?.stage_id);
+  let status = `<span class="status warn">identity missing</span>`;
+  if (id) {
+    status = id.resolved
+      ? `<span class="status ok">resolved${id.resolved_at!=null?` @ ${fmtMmSs(id.resolved_at,1)}`:""}</span>`
+      : `<span class="status warn">unresolved</span>`;
+  }
+  $("match-info").innerHTML =
+    `<div><span class="label">Mode</span><span class="value">${esc(mode)}</span></div>` +
+    `<div><span class="label">Stage</span><span class="value">${esc(stage)}</span></div>` +
+    status;
   $("header-meta").innerHTML =
     `<span>${esc(s.video_label)}</span>` +
     `<span>${fmtMmSs(s.duration_seconds, 1)}</span>` +
@@ -1262,6 +1302,102 @@ function renderSplatLane(duration) {
     return `<button type="button" class="splat-tick ${picked}" style="left:${left}%" title="${esc(fmtTime(o.timestamp, 2))} · splat detector +" data-oid="${esc(o.id)}" data-ts="${o.timestamp}" data-prefer="splat"></button>`;
   }).join("");
   return `<div class="splat-row"><span class="lane-name">Splat</span>${badges}${ticks}</div>`;
+}
+
+function fmtFracPct(value) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return `${Math.round(Number(value) * 100)}%`;
+}
+
+function renderMapInkLane(duration) {
+  const samples = DATA.map_ink_timeline || [];
+  if (!samples.length) {
+    return `<div class="metric-row map-ink"><span class="lane-name">Map ink</span><span style="position:absolute;left:72px;top:10px;font-size:10px;color:var(--muted)">no map_observations.json</span></div>`;
+  }
+  const ticks = samples.map(s=>{
+    const left=(s.video_time/duration)*100;
+    const tip = `${fmtTime(s.video_time, 2)} · A=${fmtFracPct(s.ally_classified_fraction)} O=${fmtFracPct(s.opponent_classified_fraction)} C=${fmtFracPct(s.classified_fraction)}`;
+    const nearSel = state.selectedId && Math.abs((selectedObs()?.timestamp??-1e9) - s.video_time) < 0.6;
+    return `<button type="button" class="map-ink-tick ${nearSel?"selected":""}" style="left:${left}%" title="${esc(tip)}" data-ts="${s.video_time}" data-prefer="map_overlay"></button>`;
+  }).join("");
+  return `<div class="metric-row map-ink"><span class="lane-name">Map ink</span>${ticks}</div>`;
+}
+
+function renderSpecialLane(duration) {
+  const samples = (DATA.observations||[]).filter(o =>
+    o.detector==="special_gauge" && o.reading && o.reading.visible
+  );
+  if (!samples.length) {
+    return `<div class="metric-row special"><span class="lane-name">Special</span><span style="position:absolute;left:72px;top:10px;font-size:10px;color:var(--muted)">no visible gauge samples</span></div>`;
+  }
+  const ticks = samples.map(o=>{
+    const left=(o.timestamp/duration)*100;
+    const ready = !!o.reading.ready;
+    const label = ready ? "READY" : fmtFracPct(o.reading.fill_fraction);
+    const picked = o.id===state.selectedId ? "selected":"";
+    const tip = ready
+      ? `${fmtTime(o.timestamp, 2)} · READY`
+      : `${fmtTime(o.timestamp, 2)} · fill≈${fmtFracPct(o.reading.fill_fraction)} (approx)`;
+    return `<button type="button" class="special-tick ${ready?"ready":""} ${picked}" style="left:${left}%" title="${esc(tip)}" data-oid="${esc(o.id)}" data-ts="${o.timestamp}" data-prefer="special_gauge"><span class="lbl">${esc(label)}</span></button>`;
+  }).join("");
+  return `<div class="metric-row special"><span class="lane-name">Special</span>${ticks}</div>`;
+}
+
+function nearestMapInkSample(timestamp, maxGapSeconds=2.0) {
+  const series = DATA.map_ink_timeline || [];
+  if (!series.length || timestamp == null) return null;
+  let best = null;
+  let bestGap = Infinity;
+  for (const s of series) {
+    const gap = Math.abs(Number(s.video_time) - Number(timestamp));
+    if (gap < bestGap) { bestGap = gap; best = s; }
+  }
+  if (!best || bestGap > maxGapSeconds) return null;
+  return best;
+}
+
+function renderMapInkPanel(timestamp) {
+  const s = nearestMapInkSample(timestamp);
+  if (!s) {
+    return `<div class="panel"><h3>Map ink</h3><div class="kv"><span>sample</span><strong>none near this time</strong></div></div>`;
+  }
+  return `<div class="panel"><h3>Map ink</h3><div class="kv">
+    <span>video_time</span><strong>${fmtTime(s.video_time, 3)}</strong>
+    <span>stage_id</span><strong>${esc(s.stage_id||"—")}</strong>
+    <span>battle_mode_id</span><strong>${esc(s.battle_mode_id||"—")}</strong>
+    <span>ally_classified_fraction</span><strong>${num(s.ally_classified_fraction)}</strong>
+    <span>opponent_classified_fraction</span><strong>${num(s.opponent_classified_fraction)}</strong>
+    <span>classified_fraction</span><strong>${num(s.classified_fraction)}</strong>
+    <span>confidence</span><strong>${num(s.confidence)}</strong>
+    <span>ally_ink_pixels</span><strong>${s.ally_ink_pixels??"—"}</strong>
+    <span>opponent_ink_pixels</span><strong>${s.opponent_ink_pixels??"—"}</strong>
+    <span>classified_pixels</span><strong>${s.classified_pixels??"—"}</strong>
+    <span>total_sample_pixels</span><strong>${s.total_sample_pixels??"—"}</strong>
+    <span>unclassified_pixels</span><strong>${s.unclassified_pixels??"—"}</strong>
+  </div></div>`;
+}
+
+function renderSpecialGaugePanel(o) {
+  if (!o || o.detector !== "special_gauge") {
+    const near = (DATA.observations||[]).filter(x =>
+      x.detector==="special_gauge" && Math.abs(x.timestamp - (o?.timestamp??-1e9)) < 0.6
+    ).sort((a,b)=>Math.abs(a.timestamp-(o?.timestamp??0))-Math.abs(b.timestamp-(o?.timestamp??0)))[0];
+    if (!near) {
+      return `<div class="panel"><h3>Special gauge</h3><div class="kv"><span>sample</span><strong>none near this time</strong></div></div>`;
+    }
+    return renderSpecialGaugePanel(near);
+  }
+  const r = o.reading || {};
+  return `<div class="panel"><h3>Special gauge</h3><div class="kv">
+    <span>visible</span><strong>${r.visible?"✓ true":"✗ false"}</strong>
+    <span>fill_fraction</span><strong>${r.fill_fraction==null?"—":num(r.fill_fraction)}</strong>
+    <span>ready</span><strong>${r.ready?"✓ true":"✗ false"}</strong>
+    <span>confidence</span><strong>${num(o.confidence)}</strong>
+    <span>dial_score</span><strong>${num(r.dial_score)}</strong>
+    <span>lit_sector_fraction</span><strong>${num(r.lit_sector_fraction)}</strong>
+    <span>ready_prompt_score</span><strong>${num(r.ready_prompt_score)}</strong>
+    <span>timestamp</span><strong>${r.timestamp==null?"—":fmtTime(r.timestamp, 3)}</strong>
+  </div></div>`;
 }
 
 function renderLifecycle() {
@@ -1309,14 +1445,23 @@ function renderLifecycle() {
   $("lifecycle-strip").innerHTML =
     `<div style="min-width:${width}px"><div class="axis">${ticks.join("")}</div>` +
     `<div class="life-row" style="height:${rowH}px">${segs}${marks}</div>` +
-    `${renderSplatLane(duration)}</div>`;
+    `${renderSplatLane(duration)}${renderMapInkLane(duration)}${renderSpecialLane(duration)}</div>`;
   bindTimelineJump($("lifecycle-strip"));
-  $("lifecycle-strip").querySelectorAll(".splat-tick[data-oid]").forEach(el=>{
+  $("lifecycle-strip").querySelectorAll(".splat-tick[data-oid], .special-tick[data-oid]").forEach(el=>{
     el.onclick=(ev)=>{
       ev.stopPropagation();
       selectObservation(el.getAttribute("data-oid"), {
         timestamp: parseFloat(el.getAttribute("data-ts")),
-        preferDetector: "splat",
+        preferDetector: el.getAttribute("data-prefer") || undefined,
+      });
+    };
+  });
+  $("lifecycle-strip").querySelectorAll(".map-ink-tick[data-ts]").forEach(el=>{
+    el.onclick=(ev)=>{
+      ev.stopPropagation();
+      selectObservation(null, {
+        timestamp: parseFloat(el.getAttribute("data-ts")),
+        preferDetector: "map_overlay",
       });
     };
   });
@@ -1382,8 +1527,10 @@ function renderDetail(){
     </div></div>`;
   renderCausal(diag);
   renderDeathDiag(diag, o);
-  $("reading").innerHTML = renderReading(o);
-  const raw=$("raw-json"); raw.textContent=JSON.stringify({observation:o, transition:tr, diagnostic:diag}, null, 2);
+  $("reading").innerHTML =
+    `<div class="side-metrics">${renderMapInkPanel(o.timestamp)}${renderSpecialGaugePanel(o)}</div>` +
+    renderReading(o);
+  const raw=$("raw-json"); raw.textContent=JSON.stringify({observation:o, transition:tr, diagnostic:diag, map_ink:nearestMapInkSample(o.timestamp)}, null, 2);
   raw.classList.toggle("open", state.showRaw);
   $("btn-raw").classList.toggle("active", state.showRaw);
   $("btn-roi").classList.toggle("active", state.showRoi);
@@ -1467,6 +1614,16 @@ function renderReading(o){
   if (o.detector==="active_gameplay") return `<h2>ActiveGameplay reading (HUD evidence)</h2><div class="kv"><span>detected</span><strong>${r.detected}</strong><span>score</span><strong>${num(r.score)}</strong><span>weapon edge</span><strong>${num(r.weapon_edge_frac)}</strong><span>hud edge</span><strong>${num(r.hud_edge_frac)}</strong><span>return_control</span><strong>${r.return_control}</strong></div>`;
   if (o.detector==="splat") return `<h2>Splat reading</h2><div class="kv"><span>detected</span><strong>${r.detected}</strong><span>skull</span><strong>${num(r.skull_score)}</strong><span>text</span><strong>${num(r.text_score)}</strong><span>color</span><strong>${num(r.adjacent_color_score)}</strong></div>`;
   if (o.detector==="map_overlay") return `<h2>Map overlay reading</h2><div class="kv"><span>present</span><strong>${r.present}</strong><span>template_score</span><strong>${num(r.template_score)}</strong><span>map edge</span><strong>${num(r.map_edge_frac)}</strong></div>`;
+  if (o.detector==="special_gauge") return `<h2>Special gauge reading</h2><div class="kv">
+    <span>visible</span><strong>${r.visible?"✓ true":"✗ false"}</strong>
+    <span>fill_fraction</span><strong>${r.fill_fraction==null?"—":num(r.fill_fraction)}</strong>
+    <span>ready</span><strong>${r.ready?"✓ true":"✗ false"}</strong>
+    <span>confidence</span><strong>${num(o.confidence)}</strong>
+    <span>dial_score</span><strong>${num(r.dial_score)}</strong>
+    <span>lit_sector_fraction</span><strong>${num(r.lit_sector_fraction)}</strong>
+    <span>ready_prompt_score</span><strong>${num(r.ready_prompt_score)}</strong>
+    <span>timestamp</span><strong>${r.timestamp==null?"—":fmtTime(r.timestamp, 3)}</strong>
+  </div>`;
   return `<pre class="raw open">${esc(JSON.stringify(r,null,2))}</pre>`;
 }
 

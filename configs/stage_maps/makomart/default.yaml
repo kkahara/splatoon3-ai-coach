@@ -1,0 +1,15 @@
+# Sampling rectangles (may overlap). Aggregate uses UNION of pixels.
+# Not exact polygons; classifier decides usable ink vs background.
+stage_id: makomart
+battle_mode_id: null
+regions:
+  - id: R01
+    roi: [0.3646, 0.0926, 0.5990, 0.3056]
+  - id: R02
+    roi: [0.3385, 0.2315, 0.7031, 0.4630]
+  - id: R03
+    roi: [0.3229, 0.3889, 0.6771, 0.6204]
+  - id: R04
+    roi: [0.3125, 0.5370, 0.5990, 0.7593]
+  - id: R05
+    roi: [0.3385, 0.6759, 0.4948, 0.8611]

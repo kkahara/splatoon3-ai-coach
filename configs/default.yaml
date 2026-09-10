@@ -33,7 +33,7 @@ vision:
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro"]
   # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
@@ -112,7 +112,9 @@ vision:
   # calibration/templates/match_intro/<en|ja>/{battle_modes,stages}/.
   match_intro:
     battle_mode_roi: [0.22, 0.38, 0.78, 0.58]
-    stage_roi: [0.55, 0.78, 0.96, 0.96]
+    # Bottom-right stage plate (JA/EN label). Prior [0.55,0.78,0.96,0.96]
+    # sat too high/left on map scenery and failed threshold (~0.42 vs 0.70).
+    stage_roi: [0.68, 0.86, 0.995, 0.985]
     template_dir: "../calibration/templates/match_intro"
     match_threshold: 0.70
     min_usable_confidence: 0.50
@@ -120,16 +122,19 @@ vision:
   # 2D map ink while MAP_OVERLAY is present. Not a GameEvent. Requires resolved
   # match_intro identity + stage geometry pack. Off by default.
   map_ink:
-    enabled: false
+    enabled: true
     geometry_dir: "../configs/stage_maps"
     sample_interval_seconds: 1.0
     min_usable_confidence: 0.15
     write_diagnostics: false
     ally_hsv_ranges:
-      - [35, 40, 40, 95, 255, 255]
+      # Lime/yellow-green ink. Raised S/V mins to reduce soft bokeh false positives.
+      - [40, 70, 70, 95, 255, 255]
     opponent_hsv_ranges:
-      - [0, 40, 40, 15, 255, 255]
-      - [165, 40, 40, 180, 255, 255]
+      # Red (rare) + magenta/purple (common rival ink on live map).
+      - [0, 70, 70, 15, 255, 255]
+      - [120, 70, 70, 170, 255, 255]
+      - [165, 70, 70, 180, 255, 255]
   # HUD death-X roster counts. Off by default — enable "player_count" in
   # enabled_detectors after verifying templates/ROIs. Slot boxes are
   # fractional (x1,y1,x2,y2) @ 1920×1080. Pixel xywh origins:
@@ -151,6 +156,27 @@ vision:
     # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X (lower=better).
     sqdiff_match_threshold: 0.08
     min_usable_confidence: 0.50
+  # Top-right circular Special gauge (vision). Off by default — enable
+  # "special_gauge" in enabled_detectors after real-video validation.
+  # Do NOT reuse extraction.hud.special_gauge (misaligned top-center box).
+  special_gauge:
+    roi: [0.86, 0.01, 0.995, 0.18]
+    prompt_roi: [0.94, 0.02, 0.999, 0.16]
+    sector_count: 24
+    annulus_inner: 0.42
+    annulus_outer: 0.92
+    badge_exclude_start_deg: 100.0
+    badge_exclude_end_deg: 155.0
+    lit_h_min: 8
+    lit_h_max: 40
+    lit_s_min: 45
+    lit_v_min: 100
+    lit_sector_pixel_frac: 0.07
+    min_dial_score: 0.35
+    ready_fill_threshold: 0.88
+    ready_continuity_threshold: 0.80
+    ready_prompt_threshold: 0.50
+    min_usable_confidence: 0.40
   state_fusion:
     smoothing_window: 5
     max_hold_duration: 2.0

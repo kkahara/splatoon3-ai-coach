@@ -2,6 +2,10 @@
 
 Geometry is separate from ink classification. Packs are keyed by ``stage_id``
 default YAML, with optional ``battle_mode_id`` overrides.
+
+Rectangles are overlapping **sampling** regions (not exact playable polygons).
+``analyze_map_ink`` aggregates over the **union** of regions so overlaps are
+not double-counted; the classifier decides which sampled pixels are ink.
 """
 
 from __future__ import annotations
