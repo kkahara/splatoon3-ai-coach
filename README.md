@@ -25,6 +25,11 @@ s3-coach extract path/to/gameplay.mp4 --out ./frames/   # optional debug dumps
 s3-coach extract path/to/gameplay.mp4 -v   # verbose logging
 ```
 
+`--out ./analysis/` and `--out ./frames/` write **local-only** run artifacts
+(manifests, debug snapshots, extractions JPEGs). Those trees are gitignored;
+only empty shells (`analysis/.gitkeep`, `frames/.gitkeep`) are tracked. Do not
+commit session dumps.
+
 Config defaults resolve from the repository's `configs/default.yaml` regardless
 of cwd. Relative paths in YAML resolve against the config file's directory.
 

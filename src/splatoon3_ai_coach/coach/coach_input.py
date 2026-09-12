@@ -28,6 +28,9 @@ from splatoon3_ai_coach.coach.evidence_contract import (
     engagement_proves_complete_fight,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClock, GameClockObservation
+from splatoon3_ai_coach.analysis.player_count_series import (
+    compress_player_count_observations,
+)
 from splatoon3_ai_coach.coach.player_count_clock import (
     NumbersState,
     PlayerCountClock,
@@ -603,16 +606,18 @@ def _compress_trajectory(
     anchor_time: float,
     anchor_obs: PlayerCountObservation | None,
 ) -> list[PlayerCountTrajectoryPoint]:
-    """Collapse equal consecutive AvB runs; ensure the anchor time appears once."""
+    """Collapse equal consecutive AvB runs; ensure the anchor time appears once.
+
+    Sparse AvB compression uses the shared
+    ``compress_player_count_observations`` helper. Anchor insertion is
+    coaching-presentation only and does not invent roster values beyond the
+    held ``anchor_obs``.
+    """
     points: list[PlayerCountTrajectoryPoint] = []
-    prev_key: tuple[int, int] | None = None
-    for obs in observations:
-        key = (obs.ally_alive_count, obs.opponent_alive_count)
-        is_anchor = abs(obs.video_time - anchor_time) < 1e-9
-        if prev_key == key and not is_anchor:
-            continue
+    for obs in compress_player_count_observations(observations):
         state = numbers_state(obs)
         assert state is not None
+        is_anchor = abs(obs.video_time - anchor_time) < 1e-9
         points.append(
             PlayerCountTrajectoryPoint(
                 video_time=obs.video_time,
@@ -623,7 +628,6 @@ def _compress_trajectory(
                 is_anchor=is_anchor,
             )
         )
-        prev_key = key
     if anchor_obs is not None and not any(p.is_anchor for p in points):
         state = numbers_state(anchor_obs)
         assert state is not None

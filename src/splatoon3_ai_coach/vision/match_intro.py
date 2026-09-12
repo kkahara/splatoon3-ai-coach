@@ -1,7 +1,7 @@
 """Match-intro identity: stage + battle mode from pre-match UI templates.
 
 Templates only (no OCR). Detection may stop once both IDs are resolved.
-Unresolved identity disables map-ink analysis for the match.
+Map ink requires a latched stage; battle mode is optional (stage default geometry).
 """
 
 from __future__ import annotations
@@ -129,7 +129,7 @@ def _load_named_templates(directory: Path) -> dict[str, np.ndarray]:
 
 @dataclass
 class MatchIdentity:
-    """Resolved (or unresolved) match stage + battle mode for one analyze run."""
+    """Latched match stage + optional battle mode for one analyze run."""
 
     stage_id: str | None = None
     battle_mode_id: str | None = None
@@ -145,8 +145,8 @@ class MatchIdentity:
 
     @property
     def map_ink_enabled(self) -> bool:
-        """Map ink may run only when identity is fully resolved."""
-        return self.resolved
+        """Map ink may run once stage is known (mode optional; uses stage default)."""
+        return self.stage_id is not None
 
 
 @dataclass
@@ -167,6 +167,11 @@ class MatchIdentityTracker:
         ):
             self.identity.stage_id = reading.stage_id
             self.identity.stage_score = reading.stage_template_score
+            logger.info(
+                "Match stage latched at {:.1f}s: stage={} (map ink enabled; mode pending)",
+                video_time,
+                self.identity.stage_id,
+            )
         if (
             self.identity.battle_mode_id is None
             and reading.battle_mode_id is not None
@@ -187,17 +192,23 @@ class MatchIdentityTracker:
             self.close_intro(video_time)
 
     def close_intro(self, video_time: float) -> None:
-        """Stop accepting intro evidence (fail-closed if still unresolved)."""
+        """Stop accepting intro evidence after the deadline."""
         if self.identity.intro_closed:
             return
         self.identity.intro_closed = True
-        if not self.identity.resolved:
+        if self.identity.stage_id is None:
             logger.warning(
-                "Match identity unresolved by {:.1f}s (stage={}, mode={}); "
+                "Match stage unresolved by {:.1f}s (mode={}); "
                 "map ink disabled for this match",
                 video_time,
-                self.identity.stage_id,
                 self.identity.battle_mode_id,
+            )
+        elif self.identity.battle_mode_id is None:
+            logger.info(
+                "Match mode unresolved by {:.1f}s (stage={}); "
+                "map ink uses stage default geometry",
+                video_time,
+                self.identity.stage_id,
             )
 
     def should_run_intro_detector(self, video_time: float) -> bool:

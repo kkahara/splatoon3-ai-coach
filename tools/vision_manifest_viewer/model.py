@@ -187,6 +187,17 @@ class TimelineMarker(BaseModel):
     transition_id: str | None = None
 
 
+class SpecialReadyMarker(BaseModel):
+    """VMV-only ready onset from detector ``ready`` false→true.
+
+    Presentation marker — not a ``GameEvent`` / not fusion ``SPECIAL_READY``.
+    """
+
+    timestamp: float
+    kind: str = "special_ready"
+    observation_id: str | None = None
+
+
 class LifecycleSegment(BaseModel):
     """A contiguous lifecycle phase on the lifecycle lane."""
 
@@ -250,6 +261,53 @@ class MatchIdentityView(BaseModel):
     resolved_at: float | None = None
     intro_closed: bool = False
     map_ink_enabled: bool = False
+    team_color_calibration: TeamColorCalibrationView | None = None
+
+
+class TeamColorCalibrationView(BaseModel):
+    """Latched production team-color binding from match_identity.json."""
+
+    ally_h: float
+    opponent_h: float
+    separation_degrees: float
+    calibrated_at: float
+    source: str = "hud_roster_slots"
+
+
+class TeamColorSlotView(BaseModel):
+    """Per-roster-slot hue sample for the viewer probe."""
+
+    slot_index: int
+    h_median: float | None = None
+    usable_pixels: int = 0
+    sample_frames: int = 0
+
+
+class TeamColorSideView(BaseModel):
+    """One side's interpreted roster-slot hue for the viewer header."""
+
+    h_median: float
+    css_hex: str
+    sample_count: int = 0
+    slots: list[TeamColorSlotView] = Field(default_factory=list)
+
+
+class TeamColorsView(BaseModel):
+    """Viewer ally/opponent colors for header swatches.
+
+    Prefer latched ``match_identity.team_color_calibration`` when present;
+    otherwise optional HUD debug_snapshots probe (not authoritative).
+    """
+
+    ally: TeamColorSideView | None = None
+    opponent: TeamColorSideView | None = None
+    source: str = "hud_roster_slots"
+    sample_frame_count: int = 0
+    sample_time_start: float | None = None
+    sample_time_end: float | None = None
+    separation_degrees: float | None = None
+    note: str | None = None
+    calibration_latched: bool = False
 
 
 class ManifestSummary(BaseModel):
@@ -272,6 +330,9 @@ class ManifestSummary(BaseModel):
     death_confirmed: int = 0
     death_rejected: int = 0
     death_suppressed: int = 0
+    cadence_fps: float | None = None
+    processing_time_seconds: float | None = None
+    processing_rate: float | None = None
 
 
 class ScenarioEvidenceView(BaseModel):
@@ -288,6 +349,8 @@ class ScenarioEvidenceView(BaseModel):
     map: dict[str, Any] | None = None
     combat: dict[str, Any] | None = None
     recovery: dict[str, Any] | None = None
+    players: dict[str, Any] | None = None
+    special: dict[str, Any] | None = None
     relations: dict[str, Any] | None = None
 
 
@@ -343,7 +406,9 @@ class ManifestView(BaseModel):
     roster_timeline: list[RosterSampleView] = Field(default_factory=list)
     map_ink_timeline: list[MapInkSampleView] = Field(default_factory=list)
     match_identity: MatchIdentityView | None = None
+    team_colors: TeamColorsView | None = None
     markers: list[TimelineMarker] = Field(default_factory=list)
+    special_ready_markers: list[SpecialReadyMarker] = Field(default_factory=list)
     lifecycle_segments: list[LifecycleSegment] = Field(default_factory=list)
     lifecycle_marks: list[LifecycleTransitionMark] = Field(default_factory=list)
     detector_lanes: list[DetectorLane] = Field(default_factory=list)

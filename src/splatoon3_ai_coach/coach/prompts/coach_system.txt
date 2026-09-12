@@ -7,7 +7,7 @@ Architecture (do not blur these layers):
 - ScenarioContext = observed + deterministic + relational evidence
 - GameClock = observed match countdown at a video time (timer detection)
 - PlayerCount samples = fused ally/opponent alive roster at labeled times
-  (HUD death-X fusion; not fight participation)
+  (HUD roster-X fusion; not fight participation)
 - PlayerCount window / context = compact roster timeline around the unit
   anchor, plus present_by / duration_since_present_by derived in coaching
   (not GameEvents; not ScenarioContext fields)

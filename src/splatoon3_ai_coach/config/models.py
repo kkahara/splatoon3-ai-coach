@@ -35,7 +35,12 @@ class PathsConfig(BaseModel):
 
 
 class HudRegions(BaseModel):
-    """Normalized HUD regions, each as x1, y1, x2, y2 in [0, 1]."""
+    """Normalized HUD regions, each as x1, y1, x2, y2 in [0, 1].
+
+    ``special_gauge`` here is an **extraction** change-trigger ROI only.
+    It is historically a top-center band and is **not** the vision Special
+    dial ROI (see ``VisionConfig.special_gauge.roi``, top-right).
+    """
 
     killfeed: NormalizedBox
     special_gauge: NormalizedBox
@@ -198,13 +203,18 @@ class MapOverlayDetectorConfig(BaseModel):
 
     # Top-left close “X” in a circle (1080p ~[27:341, 19:182]).
     map_roi: NormalizedBox = (0.0138889, 0.0171875, 0.1777778, 0.16875)
-    # Optional diagnostics only — not used to assert present.
+    # Center crop: open map shows the player tank / dense UI (high edge density).
     tank_roi: NormalizedBox = (0.46, 0.40, 0.54, 0.62)
     periphery_roi: NormalizedBox = (0.02, 0.02, 0.98, 0.98)
     template_dir: Path | None = None
+    # Strong close-X score (diagnostic / optional hard accept with layout).
     match_threshold: float = Field(default=0.70, ge=0, le=1)
-    map_edge_min: float = Field(default=0.045, ge=0, le=1)
-    tank_edge_max: float = Field(default=0.055, ge=0, le=1)
+    # Layout-gated present (calibrated on 2026-09-10 15-58-36 map GT):
+    # open map → low edge density in close-X ROI, high edge density at center.
+    map_edge_max: float = Field(default=0.04, ge=0, le=1)
+    tank_edge_min: float = Field(default=0.10, ge=0, le=1)
+    # Soft template floor once layout matches (close-X alone is inverted vs GT).
+    support_template_min: float = Field(default=0.35, ge=0, le=1)
     periphery_blur_min: float = Field(default=0.55, ge=0, le=1)
     min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
     debounce_seconds: float = Field(default=0.0, ge=0)
@@ -249,6 +259,8 @@ class MapInkAnalyzerConfig(BaseModel):
     """2D map ink sampling while MAP_OVERLAY is present (not a detector).
 
     Coverage fields are classified-pixel fractions, not GameEvents.
+    ``ally_hsv_ranges`` / ``opponent_hsv_ranges`` are YAML fallback only until
+    match-level team-color calibration latches.
     """
 
     enabled: bool = False
@@ -257,8 +269,16 @@ class MapInkAnalyzerConfig(BaseModel):
     sample_interval_seconds: float = Field(default=1.0, ge=0)
     min_usable_confidence: float = Field(default=0.15, ge=0, le=1)
     write_diagnostics: bool = False
+    # Sticky HUD roster-slot hue binding (not a detector enable flag).
+    team_color_calibration_enabled: bool = True
+    calibration_window_seconds: float = Field(default=60.0, ge=0)
+    min_accepted_frames: int = Field(default=3, ge=1)
+    min_hue_separation: float = Field(default=30.0, ge=0)
+    h_tolerance: float = Field(default=15.0, ge=0)
+    s_min: int = Field(default=70, ge=0, le=255)
+    v_min: int = Field(default=40, ge=0, le=255)
     # HSV ranges as [h1,s1,v1,h2,s2,v2]; OpenCV H in [0,180].
-    # Defaults are placeholders — tune against real team colors per footage.
+    # Fallback until TeamColorCalibrator latches for the match.
     ally_hsv_ranges: list[list[int]] = Field(
         default_factory=lambda: [[40, 70, 70, 95, 255, 255]]
     )
@@ -272,13 +292,13 @@ class MapInkAnalyzerConfig(BaseModel):
 
 
 class PlayerCountDetectorConfig(BaseModel):
-    """HUD death-X marker detection for roster alive counts.
+    """HUD roster-X marker detection for roster alive counts.
 
     Slot boxes are fractional ``(x1, y1, x2, y2)`` at 1920×1080 calibration.
     Detector evidence is X presence per slot via masked ``TM_SQDIFF_NORMED``
-    (lower score = better). A slot is dead when
+    (lower score = better). A slot is marked when
     ``sqdiff <= sqdiff_match_threshold``. Fused alive counts are
-    ``4 - dead_count`` on ``GameStateSnapshot``.
+    ``4 - marked_count`` on ``GameStateSnapshot``. Not local-player DEATH.
     """
 
     # Pixel origins (xywh @ 1920×1080): ally [488,17,143,105] …
@@ -483,6 +503,24 @@ class ScenarioBuilderConfig(BaseModel):
     post_death_max_seconds: float = Field(default=30.0, gt=0)
     engagement_gap_seconds: float = Field(default=3.0, ge=0)
     engagement_include_following_death_seconds: float = Field(default=2.0, ge=0)
+    context_lookback_seconds: float = Field(
+        default=8.0,
+        ge=0,
+        description="Seconds before scenario.start_time for sparse secondary evidence.",
+    )
+    context_lookforward_seconds: float = Field(
+        default=2.0,
+        ge=0,
+        description="Seconds after scenario.end_time for sparse secondary evidence.",
+    )
+    context_max_gap_seconds: float = Field(
+        default=1.0,
+        ge=0,
+        description=(
+            "Max |Δt| for nearest-before-anchor / at_anchor / at_death lookups. "
+            "Does not expand the evidence window."
+        ),
+    )
 
 
 class CoachConfig(BaseModel):

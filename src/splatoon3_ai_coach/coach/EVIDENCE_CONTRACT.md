@@ -1,12 +1,21 @@
 # Coaching evidence contract
 
-Freeze line: Scenario + ScenarioContext architecture is **frozen**. ScenarioContext
-is sufficient for a first **timeline / evidence** coaching layer. Do not expand
-the scenario schema to encode judgments or speculative combat narratives.
+Scenario **ownership** (`scenarios.py`, `Scenario.event_ids`, types, intervals)
+remains frozen. Do not change grouping or encode judgments / speculative combat
+narratives into scenarios.
 
-Do not modify `scenarios.py`, `scenario_context.py`, detectors, fusion, or
-Scenario / ScenarioContext schemas unless a concrete coaching requirement shows
-an existing evidence field is insufficient.
+`ScenarioContext` may include **sparse factual secondary evidence** required for
+coaching units:
+
+- map ink observations (`map.ink` from `map_observations.json`)
+- roster trajectory from fused `state_snapshots` (`players`)
+- special gauge readings + presentation-only ready onset markers (`special`)
+
+Do **not** encode coaching judgments, fight quality, “should have used special”,
+interpolated continuous state, or invented causal relationships. Do **not** emit
+player GameEvents or promote ready onsets to `SPECIAL_READY` / `SPECIAL_USED`.
+
+Leave unavailable evidence unavailable.
 
 ## Layer separation
 
@@ -18,10 +27,33 @@ GameEvent  →  Scenario  →  ScenarioContext  →  Coaching interpretation
 |-------|------|
 | `GameEvent` | Observed / fused fact |
 | `Scenario` | Structural **ownership** (`event_ids`) — what belongs here |
-| `ScenarioContext` | Observed + deterministic + relational **evidence** |
+| `ScenarioContext` | Observed + deterministic + relational **evidence** (incl. sparse secondary nests) |
 | Coaching | **Interpretation** of that evidence |
 
 Do **not** encode coaching judgments into `ScenarioContext`.
+
+MAP_OVERLAY facts (`map.map_check_*`) stay distinct from map **ink**
+(`map.ink`). Ink never sets overlay map-check fields.
+
+### Sparse secondary nests (Stage 1) — association semantics
+
+| Field | Association | Meaning |
+|-------|-------------|---------|
+| `map.ink.nearest_before_anchor` | at/before anchor only | Latest ink sample with `video_time ≤ anchor` within max gap |
+| `special.nearest_before_anchor` | at/before anchor only | Latest special reading with `video_time ≤ anchor` within max gap |
+| `players.at_anchor` / `players.at_death` | nearest within max gap | Closest fused roster sample by `\|Δt\|` (may be slightly after the labeled time) |
+
+Roster nearest-in-gap is intentional: alive counts are held state sampled on a
+cadence, not one-shot UI flashes. Ink/special “nearest before” stay
+pre-anchor-only so coaching does not pull a sample that appears only after the
+scenario anchor. Do not “unify” these without an explicit contract change.
+
+Canonical sparse roster compression is
+`analysis.player_count_series.compress_player_count_observations` (shared by
+ScenarioContext and CoachInput). Ready onsets use
+`analysis.special_ready_markers.derive_special_ready_onsets` (shared with VMV);
+derive from the full ordered stream, then restrict markers to the evidence
+window.
 
 ## Dual clocks
 
@@ -39,9 +71,9 @@ Do not invent remaining time from elapsed video time.
 
 `player_count_samples` are secondary coaching evidence built from fused
 `GameStateSnapshot.ally_alive_count` / `opponent_alive_count` (persisted on
-`vision_manifest.state_snapshots`). Detector evidence is HUD death-X markers
+`vision_manifest.state_snapshots`). Detector evidence is HUD **roster X markers**
 in known player-slot ROIs (`PlayerCountReading`); coaching vocabulary is the
-alive roster counts only.
+alive roster counts only. Roster X is not local-player `DEATH`.
 
 **`ally_alive_count` and `opponent_alive_count` are supported coaching evidence
 when `player_count_samples` or `player_count_window` are present. These fields
@@ -71,9 +103,12 @@ Never infer alive counts from splat counts, death events, or scenario
 membership. Generic “enemy count” / fight participation remains unsupported
 without engagement-specific evidence.
 
-Do **not** put player counts on `ScenarioContext` or emit player GameEvents.
-Player count describes the tactical context of a scenario; it does not define
-the scenario.
+Sparse roster trajectory may also appear on `ScenarioContext.players` as
+factual secondary evidence. Do **not** emit player GameEvents. Player count
+describes tactical context; it does not define scenario ownership.
+
+**Stage 1:** `CoachInput.player_count_*` APIs remain unchanged (still derived
+via `PlayerCountClock` in the coaching layer).
 
 ## CoachInput unit
 
@@ -175,3 +210,40 @@ engagement, avoidability, what the player should have done.
 Do not add speculative fields such as `active_again_to_next_engagement`,
 `fight_quality`, `overextended`, `won_fight`, or `lost_fight`. Derive simple
 arithmetic in the coaching layer when needed.
+
+## DEATH_EPISODE enrichment levels
+
+Stop enriching `DEATH_EPISODE` beyond Level 2 unless validation finds a genuine
+missing factual dependency. Special usage stays Level 3 / unresolved.
+
+### Level 1 — already strong (do not duplicate)
+
+Lifecycle times/durations, awaiting-control span, `players.at_death` /
+trajectory, map-check overlay fields, `timeline` neighbor deaths, and
+relations to engagements. Leave these as-is.
+
+### Level 2 — factual convenience on `death_episode`
+
+| Field | Means | Absence |
+|-------|-------|---------|
+| `is_first_death` | `timeline.time_since_previous_death is None` | always bool when nest present |
+| `time_since_previous_splat` | gap from last SPLAT strictly before death | `None` if no prior splat |
+| `match_phase_at_death` | nearest snapshot `match_phase` within `context_max_gap_seconds` | `None` if none in gap |
+| `numbers_state_at_death` | pure AvB from `players.at_death` (`even` / `advantage` / `disadvantage`) | `None` if `at_death` missing |
+| `roster_changed_before_death` | compressed trajectory AvB changed in `(death − lookback, death]` | `None` if no players evidence; else bool |
+| `seconds_since_roster_change` | `death_time − last change` in that lookback | `None` if no change |
+| `preceded_by_trade_candidate` | mirrors preceding engagement `combat.trade_candidate` via relation | `False` if no preceding engagement; never invents a trade |
+
+Do **not** add flat `ally_alive_at_death` / `opponent_alive_at_death` mirrors —
+use `players.at_death`. Do **not** mirror `time_since_previous_death` onto
+`death_episode` — it stays on `timeline`.
+
+`numbers_state_*` is roster arithmetic only, not fight quality. Roster-change
+fields record *what* changed, not *why* the death happened.
+
+### Level 3 — Special frozen
+
+Sparse `special.*` observations / ready onsets remain factual secondary
+evidence. Do **not** encode special fire, use, influence, or
+“should have used special” in ScenarioContext. Do not emit `SPECIAL_READY` /
+`SPECIAL_USED` GameEvents from this layer.

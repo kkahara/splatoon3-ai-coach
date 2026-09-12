@@ -23,6 +23,10 @@ from pydantic import BaseModel, Field
 from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
 from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
+from splatoon3_ai_coach.vision.team_color_calibration import (
+    ColorProfile,
+    TeamColorCalibrationResult,
+)
 
 MAP_OBSERVATIONS_FILENAME = "map_observations.json"
 
@@ -71,10 +75,43 @@ class MapObservation(BaseModel):
 
 
 class MapInkClassifier:
-    """Deterministic HSV pixel classes: ally / opponent / other."""
+    """Deterministic HSV pixel classes: ally / opponent / other.
+
+    Starts in YAML range mode. After ``apply_calibration``, classifies with
+    match-specific circular hue profiles (same instance; no mid-run swap).
+    """
 
     def __init__(self, config: MapInkAnalyzerConfig) -> None:
         self.config = config
+        self._calibration: TeamColorCalibrationResult | None = None
+        self._ally_profile: ColorProfile | None = None
+        self._opponent_profile: ColorProfile | None = None
+
+    @property
+    def calibration(self) -> TeamColorCalibrationResult | None:
+        """Latched calibration applied to this classifier, if any."""
+        return self._calibration
+
+    def apply_calibration(self, result: TeamColorCalibrationResult) -> None:
+        """Switch to circular profiles from a latched calibration (once)."""
+        if self._calibration is not None:
+            return
+        tol = float(self.config.h_tolerance)
+        s_min = int(self.config.s_min)
+        v_min = int(self.config.v_min)
+        self._ally_profile = ColorProfile(
+            h_center=float(result.ally_h),
+            h_tolerance=tol,
+            s_min=s_min,
+            v_min=v_min,
+        )
+        self._opponent_profile = ColorProfile(
+            h_center=float(result.opponent_h),
+            h_tolerance=tol,
+            s_min=s_min,
+            v_min=v_min,
+        )
+        self._calibration = result
 
     def classify_bgr(self, image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return boolean masks ``(ally, opponent, other)`` for a BGR crop."""
@@ -82,12 +119,46 @@ class MapInkClassifier:
             empty = np.zeros((0, 0), dtype=bool)
             return empty, empty, empty
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        if self._ally_profile is not None and self._opponent_profile is not None:
+            return _classify_calibrated(hsv, self._ally_profile, self._opponent_profile)
         ally = _hsv_in_ranges(hsv, self.config.ally_hsv_ranges)
         opponent = _hsv_in_ranges(hsv, self.config.opponent_hsv_ranges)
         # Prefer ally when both match (rare overlap).
         opponent = opponent & ~ally
         other = ~(ally | opponent)
         return ally, opponent, other
+
+
+def _classify_calibrated(
+    hsv: np.ndarray,
+    ally: ColorProfile,
+    opponent: ColorProfile,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Circular H profiles with nearest-center tie-break on overlap."""
+    h = hsv[:, :, 0].astype(np.float32)
+    s = hsv[:, :, 1]
+    v = hsv[:, :, 2]
+    candidate = (s >= ally.s_min) & (v >= ally.v_min)
+    dist_a = _circular_hue_distance_arr(h, ally.h_center)
+    dist_o = _circular_hue_distance_arr(h, opponent.h_center)
+    in_ally = candidate & (dist_a <= ally.h_tolerance)
+    in_opp = candidate & (dist_o <= opponent.h_tolerance)
+    exclusive_ally = in_ally & ~in_opp
+    exclusive_opp = in_opp & ~in_ally
+    both = in_ally & in_opp
+    # Exact distance ties prefer ally (matches YAML overlap preference).
+    nearer_ally = both & (dist_a <= dist_o)
+    nearer_opp = both & (dist_o < dist_a)
+    ally_mask = exclusive_ally | nearer_ally
+    opp_mask = exclusive_opp | nearer_opp
+    other = ~(ally_mask | opp_mask)
+    return ally_mask, opp_mask, other
+
+
+def _circular_hue_distance_arr(h: np.ndarray, center: float) -> np.ndarray:
+    """Vectorized OpenCV H-circle distance to a center."""
+    d = np.abs(h - float(center)) % 180.0
+    return np.minimum(d, 180.0 - d)
 
 
 def _hsv_in_ranges(hsv: np.ndarray, ranges: list[list[int]]) -> np.ndarray:

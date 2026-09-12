@@ -49,6 +49,8 @@ h2{font-size:11px;margin:0 0 8px;color:var(--muted);text-transform:uppercase;let
 .match-info .status{font-size:11px;color:var(--muted)}
 .match-info .status.ok{color:var(--ok)}
 .match-info .status.warn{color:var(--warn)}
+.match-info .swatch{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.35);vertical-align:-2px;margin-right:6px}
+.match-info .team-colors .value{font-variant-numeric:tabular-nums}
 .warnings{margin-top:8px}
 .warnings{margin-top:6px;display:grid;gap:2px;font-size:12px}
 .warnings .ok{color:var(--ok)} .warnings .warn{color:var(--warn)} .warnings .info{color:var(--accent)}
@@ -895,8 +897,11 @@ function renderScenarioCard(card, index) {
     <div class="scenario-blocks">
       ${renderFactBlock("Timeline", scenarioTimelineRows(card.timeline))}
       ${renderFactBlock("Map", scenarioMapRows(card.map))}
+      ${renderFactBlock("Map ink", scenarioMapInkRows(card.map && card.map.ink))}
       ${renderFactBlock("Splat observations", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
       ${renderFactBlock("Death episode", scenarioRecoveryRows(card.recovery))}
+      ${renderFactBlock("Players", scenarioPlayersRows(card.players))}
+      ${renderFactBlock("Special", scenarioSpecialRows(card.special))}
       ${renderFactBlock("Relations", scenarioRelationRows(card.relations, card.following_death_id))}
       ${renderRosterBlock(card)}
     </div>
@@ -1009,8 +1014,11 @@ function renderReviewDetail() {
     <div class="scenario-blocks">
       ${renderFactBlock("Timeline", scenarioTimelineRows(card.timeline))}
       ${renderFactBlock("Map", scenarioMapRows(card.map))}
+      ${renderFactBlock("Map ink", scenarioMapInkRows(card.map && card.map.ink))}
       ${renderFactBlock("Splat observations", scenarioCombatRows(card.combat, Boolean(card.recovery)))}
       ${renderFactBlock("Death episode", scenarioRecoveryRows(card.recovery))}
+      ${renderFactBlock("Players", scenarioPlayersRows(card.players))}
+      ${renderFactBlock("Special", scenarioSpecialRows(card.special))}
       ${renderFactBlock("Relations", scenarioRelationRows(card.relations, card.following_death_id))}
       ${renderRosterBlock(card)}
     </div>
@@ -1164,6 +1172,74 @@ function scenarioMapRows(nest) {
   return rows;
 }
 
+function scenarioMapInkRows(ink) {
+  if (!ink) return [];
+  const rows = [];
+  const nearest = ink.nearest_before_anchor;
+  if (nearest) {
+    rows.push([
+      `Nearest before anchor @ ${fmtMmSs(nearest.video_time, 1)}`,
+      `ally ${num(nearest.ally_classified_fraction)} · opp ${num(nearest.opponent_classified_fraction)} · conf ${num(nearest.confidence)}`,
+    ]);
+  }
+  for (const s of ink.observations || []) {
+    rows.push([
+      fmtMmSs(s.video_time, 1),
+      `ally ${num(s.ally_classified_fraction)} · opp ${num(s.opponent_classified_fraction)} · conf ${num(s.confidence)}`,
+    ]);
+  }
+  return rows;
+}
+
+function scenarioPlayersRows(nest) {
+  if (!nest) return [];
+  const rows = [];
+  if (nest.at_death) {
+    rows.push([
+      `At death @ ${fmtMmSs(nest.at_death.video_time, 1)}`,
+      `${nest.at_death.ally_alive_count}v${nest.at_death.opponent_alive_count}`,
+    ]);
+  }
+  if (nest.at_anchor) {
+    rows.push([
+      `At anchor @ ${fmtMmSs(nest.at_anchor.video_time, 1)}`,
+      `${nest.at_anchor.ally_alive_count}v${nest.at_anchor.opponent_alive_count}`,
+    ]);
+  }
+  for (const p of nest.trajectory || []) {
+    rows.push([
+      fmtMmSs(p.video_time, 1),
+      `${p.ally_alive_count}v${p.opponent_alive_count}`,
+    ]);
+  }
+  return rows;
+}
+
+function scenarioSpecialRows(nest) {
+  if (!nest) return [];
+  const rows = [];
+  for (const onset of nest.ready_onsets || []) {
+    rows.push([
+      fmtMmSs(onset.video_time, 1),
+      "ready onset (presentation-only; not a GameEvent)",
+    ]);
+  }
+  const nearest = nest.nearest_before_anchor;
+  if (nearest) {
+    rows.push([
+      `Nearest before anchor @ ${fmtMmSs(nearest.video_time, 1)}`,
+      `fill ${nearest.fill_fraction==null?"—":num(nearest.fill_fraction)} · ready ${nearest.ready?"true":"false"} · visible ${nearest.visible?"true":"false"}`,
+    ]);
+  }
+  for (const r of nest.observations || []) {
+    rows.push([
+      fmtMmSs(r.video_time, 1),
+      `fill ${r.fill_fraction==null?"—":num(r.fill_fraction)} · ready ${r.ready?"true":"false"} · visible ${r.visible?"true":"false"}`,
+    ]);
+  }
+  return rows;
+}
+
 function scenarioCombatRows(nest, showFirstSplatDash) {
   if (!nest) return [];
   const rows = [["Splats", fmtCount(nest.splat_count)]];
@@ -1257,6 +1333,8 @@ function renderHeader() {
   $("match-info").innerHTML =
     `<div><span class="label">Mode</span><span class="value">${esc(mode)}</span></div>` +
     `<div><span class="label">Stage</span><span class="value">${esc(stage)}</span></div>` +
+    renderTeamColors() +
+    renderProcessingStats() +
     status;
   $("header-meta").innerHTML =
     `<span>${esc(s.video_label)}</span>` +
@@ -1265,6 +1343,81 @@ function renderHeader() {
     `<span>${esc(events)}</span>` +
     `<span>death confirmed ${s.death_confirmed||0} · suppressed ${s.death_suppressed||0}</span>`;
   $("warnings").innerHTML = (s.warnings||[]).map(w=>`<div class="${w.level}">${w.level==="ok"?"✓":"⚠"} ${esc(w.message)}</div>`).join("");
+}
+
+function renderProcessingStats() {
+  const s = DATA.summary || {};
+  const procTime = s.processing_time_seconds != null
+    ? `${Number(s.processing_time_seconds).toFixed(1)} s`
+    : "—";
+  const procRate = s.processing_rate != null
+    ? `${Number(s.processing_rate).toFixed(1)}×`
+    : "—";
+  return (
+    `<div><span class="label">Processing time</span><span class="value">${esc(procTime)}</span></div>` +
+    `<div><span class="label">Processing rate</span><span class="value">${esc(procRate)}</span></div>`
+  );
+}
+
+function renderTeamColors() {
+  const tc = DATA.team_colors;
+  const cal = DATA.match_identity && DATA.match_identity.team_color_calibration;
+  if (cal) {
+    const ally = tc && tc.ally;
+    const opp = tc && tc.opponent;
+    const tip = [
+      `latched @ ${Number(cal.calibrated_at).toFixed(1)}s`,
+      `separation=${Number(cal.separation_degrees).toFixed(0)}°`,
+      cal.source || "",
+    ].filter(Boolean).join(" · ");
+    return (
+      `<div class="team-colors" title="${esc(tip)}">` +
+        `<span class="label">Colors</span>` +
+        teamColorChip("Ally", ally || {h_median: cal.ally_h, css_hex: "#888"}) +
+        `<span class="value" style="margin:0 8px;color:var(--muted)">/</span>` +
+        teamColorChip("Opp", opp || {h_median: cal.opponent_h, css_hex: "#888"}) +
+      `</div>`
+    );
+  }
+  if (!tc || (!tc.ally && !tc.opponent)) {
+    return (
+      `<div class="team-colors" title="No latched TeamColorCalibration">` +
+        `<span class="label">Colors</span>` +
+        `<span class="value">Calibration: unavailable — using YAML fallback</span>` +
+      `</div>`
+    );
+  }
+  const tip = [
+    "Calibration: unavailable — using YAML fallback",
+    tc.source ? `probe=${tc.source}` : "",
+    tc.sample_frame_count != null ? `frames=${tc.sample_frame_count}` : "",
+    tc.sample_time_start != null && tc.sample_time_end != null
+      ? `t=${Number(tc.sample_time_start).toFixed(1)}–${Number(tc.sample_time_end).toFixed(1)}s`
+      : "",
+    tc.note || "",
+  ].filter(Boolean).join(" · ");
+  return (
+    `<div class="team-colors" title="${esc(tip)}">` +
+      `<span class="label">Colors</span>` +
+      teamColorChip("Ally", tc.ally) +
+      `<span class="value" style="margin:0 8px;color:var(--muted)">/</span>` +
+      teamColorChip("Opp", tc.opponent) +
+    `</div>`
+  );
+}
+
+function teamColorChip(name, side) {
+  if (!side) {
+    return `<span class="value">${esc(name)} —</span>`;
+  }
+  const hex = side.css_hex || "#888";
+  const h = side.h_median != null ? `H${Number(side.h_median).toFixed(0)}` : "";
+  return (
+    `<span class="value">` +
+      `<span class="swatch" style="background:${esc(hex)}"></span>` +
+      `${esc(name)} ${esc(h)}` +
+    `</span>`
+  );
 }
 
 function bindTimelineJump(root) {

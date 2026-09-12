@@ -36,6 +36,10 @@ from splatoon3_ai_coach.vision.map_ink import (
     write_map_observations,
 )
 from splatoon3_ai_coach.vision.match_intro import MatchIdentityTracker
+from splatoon3_ai_coach.vision.team_color_calibration import (
+    TeamColorCalibrationResult,
+    TeamColorCalibrator,
+)
 from splatoon3_ai_coach.vision.models import (
     AnalysisIdentity,
     DetectorResult,
@@ -86,6 +90,8 @@ class MapInkScanContext:
     last_sample_at: float | None = None
     diagnostics_dir: Path | None = None
     config: AppConfig | None = None
+    calibrator: TeamColorCalibrator | None = None
+    calibration: TeamColorCalibrationResult | None = None
 
 
 def run_vision(
@@ -265,6 +271,7 @@ def _observe_cadence_frame(
     )
     if map_ctx is not None:
         _update_identity_from_detections(map_ctx, detections, video_frame.timestamp)
+        _maybe_calibrate_team_colors(map_ctx, video_frame)
         _maybe_sample_map_ink(map_ctx, video_frame, detections)
     frame_path = _optional_debug_snapshot(video_frame, debug_dir, output_dir)
     return VisionFrameResult(
@@ -310,13 +317,35 @@ def _update_identity_from_detections(
         map_ctx.identity.update(reading, video_time=video_time)
 
 
+def _maybe_calibrate_team_colors(
+    map_ctx: MapInkScanContext,
+    video_frame: VideoFrame,
+) -> None:
+    """Observe HUD roster hues; apply classifier calibration on first latch."""
+    cfg = map_ctx.config
+    if cfg is None or not cfg.vision.map_ink.enabled:
+        return
+    if not cfg.vision.map_ink.team_color_calibration_enabled:
+        return
+    calibrator = map_ctx.calibrator
+    if calibrator is None or calibrator.is_latched:
+        return
+    result = calibrator.observe(video_frame.image, float(video_frame.timestamp))
+    if result is None:
+        return
+    map_ctx.calibration = result
+    if map_ctx.classifier is not None:
+        map_ctx.classifier.apply_calibration(result)
+
+
 def _maybe_sample_map_ink(
     map_ctx: MapInkScanContext,
     video_frame: VideoFrame,
     detections: list[DetectorResult],
 ) -> None:
-    """Emit a MapObservation only while MAP_OVERLAY is present and identity known.
+    """Emit a MapObservation only while MAP_OVERLAY is present and stage is known.
 
+    Battle mode is optional: missing mode uses ``configs/stage_maps/<stage>/default.yaml``.
     Does not interpolate. Does not create GameEvents.
     """
     cfg = map_ctx.config
@@ -392,8 +421,14 @@ def _build_map_ink_context(
     )
     classifier = None
     diagnostics = None
+    calibrator = None
     if config.vision.map_ink.enabled:
         classifier = MapInkClassifier(config.vision.map_ink)
+        if config.vision.map_ink.team_color_calibration_enabled:
+            calibrator = TeamColorCalibrator.from_configs(
+                config.vision.map_ink,
+                config.vision.player_count,
+            )
         if config.vision.map_ink.write_diagnostics or debug_persist:
             diagnostics = output_dir / "debug_map_ink"
     return MapInkScanContext(
@@ -401,6 +436,7 @@ def _build_map_ink_context(
         classifier=classifier,
         diagnostics_dir=diagnostics,
         config=config,
+        calibrator=calibrator,
     )
 
 
@@ -408,6 +444,9 @@ def _persist_map_artifacts(map_ctx: MapInkScanContext, output_dir: Path) -> None
     """Write match_identity.json and map_observations.json sidecars."""
     output_dir.mkdir(parents=True, exist_ok=True)
     identity = map_ctx.identity.identity
+    calibration_payload = (
+        map_ctx.calibration.to_dict() if map_ctx.calibration is not None else None
+    )
     payload = {
         "stage_id": identity.stage_id,
         "battle_mode_id": identity.battle_mode_id,
@@ -417,6 +456,7 @@ def _persist_map_artifacts(map_ctx: MapInkScanContext, output_dir: Path) -> None
         "resolved_at": identity.resolved_at,
         "intro_closed": identity.intro_closed,
         "map_ink_enabled": identity.map_ink_enabled,
+        "team_color_calibration": calibration_payload,
     }
     path = output_dir / MATCH_IDENTITY_FILENAME
     path.write_text(

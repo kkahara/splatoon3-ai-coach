@@ -142,17 +142,31 @@ def make_handler(root: Path, video_path: Path) -> type[SimpleHTTPRequestHandler]
                 self._copy_file_range(start, end)
 
         def _copy_file_range(self, start: int, end: int) -> None:
-            """Copy ``[start, end]`` inclusive from disk without loading all bytes."""
+            """Copy ``[start, end]`` inclusive from disk without loading all bytes.
+
+            Client disconnects (seek / tab close) raise ``BrokenPipeError`` /
+            ``ConnectionResetError``; those are normal for HTML5 video Range GETs.
+            """
             remaining = end - start + 1
             chunk = 64 * 1024
-            with video.open("rb") as handle:
-                handle.seek(start)
-                while remaining > 0:
-                    data = handle.read(min(chunk, remaining))
-                    if not data:
-                        break
-                    self.wfile.write(data)
-                    remaining -= len(data)
+            try:
+                with video.open("rb") as handle:
+                    handle.seek(start)
+                    while remaining > 0:
+                        data = handle.read(min(chunk, remaining))
+                        if not data:
+                            break
+                        self.wfile.write(data)
+                        remaining -= len(data)
+            except (BrokenPipeError, ConnectionResetError):
+                return
+
+        def handle(self) -> None:
+            """Ignore client disconnects while serving Range video chunks."""
+            try:
+                super().handle()
+            except (BrokenPipeError, ConnectionResetError):
+                return
 
         def log_message(self, format: str, *args: Any) -> None:
             """Keep the review server quiet."""

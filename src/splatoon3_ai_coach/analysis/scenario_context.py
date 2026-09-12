@@ -1,22 +1,41 @@
 """Derive coaching-relevant facts from Scenarios and the GameEvent timeline.
 
-Facts and measurements only. No coaching judgments. Does not import
-detectors, snapshots, or ``vision.events``.
-
-Scenario grouping stays in ``scenarios.py``. This module measures facts and
-semantic relationships (engagement ↔ death episode) for the coaching layer.
+Facts and measurements only. No coaching judgments. Scenario grouping stays
+in ``scenarios.py``. Sparse secondary evidence (map ink, roster, special)
+comes from persisted artifacts via ``ScenarioEvidencePack`` — not detectors.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
 from pydantic import BaseModel, Field
 
+from splatoon3_ai_coach.analysis.player_count_series import (
+    NumbersState,
+    numbers_state,
+)
+from splatoon3_ai_coach.analysis.scenario_evidence import (
+    MapInkEvidence,
+    PlayerCountPoint,
+    PlayersEvidence,
+    ScenarioEvidencePack,
+    SpecialEvidence,
+    build_map_ink_evidence,
+    build_players_evidence,
+    build_special_evidence,
+    scenario_anchor_time,
+    scenario_window,
+)
 from splatoon3_ai_coach.analysis.scenario_models import Scenario, ScenarioType
 from splatoon3_ai_coach.analysis.scenarios import event_id
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
-from splatoon3_ai_coach.vision.models import GameEvent, GameEventType
+from splatoon3_ai_coach.vision.models import (
+    GameEvent,
+    GameEventType,
+    GameStateSnapshot,
+    MatchPhase,
+)
 
 
 class TimelineContext(BaseModel):
@@ -28,7 +47,11 @@ class TimelineContext(BaseModel):
 
 
 class MapContext(BaseModel):
-    """MAP_OVERLAY relationships. Counts are facts, not usage quality."""
+    """MAP_OVERLAY relationships. Counts are facts, not usage quality.
+
+    ``ink`` is sparse map-observation evidence and never sets overlay
+    ``map_check_*`` fields.
+    """
 
     map_check_count: int = 0
     map_checks_before_start: int = 0
@@ -40,6 +63,7 @@ class MapContext(BaseModel):
     last_map_before_death_event_id: str | None = None
     map_event_ids_during_episode: list[str] | None = None
     in_death_episode: bool | None = None
+    ink: MapInkEvidence | None = None
 
 
 class CombatContext(BaseModel):
@@ -58,7 +82,12 @@ class CombatContext(BaseModel):
 
 
 class DeathEpisodeContext(BaseModel):
-    """Lifecycle timings for a ``DEATH_EPISODE``. Not Super Jump inference."""
+    """Lifecycle timings + Level 2 factual convenience for a ``DEATH_EPISODE``.
+
+    Level 1 durations stay arithmetic over owned event timestamps and remain
+    ``None`` when an endpoint is missing. Level 2 fields are convenience
+    lookups only — not coaching judgments. Special usage stays unresolved.
+    """
 
     death_time: float | None = None
     respawn_time: float | None = None
@@ -73,6 +102,14 @@ class DeathEpisodeContext(BaseModel):
     has_active_again: bool = False
     complete: bool = False
     respawn_reason: str | None = None
+    # Level 2 convenience facts (death episodes only).
+    is_first_death: bool | None = None
+    time_since_previous_splat: float | None = None
+    match_phase_at_death: MatchPhase | None = None
+    numbers_state_at_death: NumbersState | None = None
+    roster_changed_before_death: bool | None = None
+    seconds_since_roster_change: float | None = None
+    preceded_by_trade_candidate: bool | None = None
 
 
 class ScenarioRelations(BaseModel):
@@ -94,13 +131,15 @@ RecoveryContext = DeathEpisodeContext
 
 
 class ScenarioContext(BaseModel):
-    """Facts measured for one Scenario from the GameEvent timeline."""
+    """Facts measured for one Scenario from events + sparse secondary evidence."""
 
     scenario_id: str
     timeline: TimelineContext | None = None
     map: MapContext | None = None
     combat: CombatContext | None = None
     death_episode: DeathEpisodeContext | None = None
+    players: PlayersEvidence | None = None
+    special: SpecialEvidence | None = None
     relations: ScenarioRelations = Field(default_factory=ScenarioRelations)
 
 
@@ -117,15 +156,69 @@ def build_scenario_context(
     events: list[GameEvent],
     scenario: Scenario,
     config: ScenarioBuilderConfig,
+    evidence: ScenarioEvidencePack | None = None,
 ) -> ScenarioContext:
     """Measure facts for one scenario (relations filled by the batch builder)."""
     ordered = _ordered(events)
+    timeline = _timeline(ordered, scenario)
+    death_episode = _death_episode_context(ordered, scenario)
+    map_ctx = _map_context(ordered, scenario)
+    players = None
+    special = None
+    snapshots: list[GameStateSnapshot] = []
+    if evidence is not None and scenario.scenario_type in _IMPLEMENTED:
+        window_start, window_end = scenario_window(scenario, config)
+        death_time = (
+            death_episode.death_time if death_episode is not None else None
+        )
+        anchor = scenario_anchor_time(scenario, death_time=death_time)
+        max_gap = float(config.context_max_gap_seconds)
+        snapshots = list(evidence.state_snapshots)
+        ink = build_map_ink_evidence(
+            evidence.map_observations,
+            window_start=window_start,
+            window_end=window_end,
+            anchor=anchor,
+            max_gap_seconds=max_gap,
+        )
+        if map_ctx is None and ink is not None:
+            map_ctx = MapContext(ink=ink)
+        elif map_ctx is not None:
+            map_ctx = map_ctx.model_copy(update={"ink": ink})
+        players = build_players_evidence(
+            evidence.state_snapshots,
+            window_start=window_start,
+            window_end=window_end,
+            anchor=anchor,
+            death_time=death_time
+            if scenario.scenario_type is ScenarioType.DEATH_EPISODE
+            else None,
+            max_gap_seconds=max_gap,
+        )
+        special = build_special_evidence(
+            evidence.special_readings,
+            window_start=window_start,
+            window_end=window_end,
+            anchor=anchor,
+            max_gap_seconds=max_gap,
+        )
+    if death_episode is not None:
+        death_episode = _enrich_death_episode_level2(
+            death_episode,
+            timeline=timeline,
+            events=ordered,
+            players=players,
+            snapshots=snapshots,
+            config=config,
+        )
     return ScenarioContext(
         scenario_id=scenario.scenario_id,
-        timeline=_timeline(ordered, scenario),
-        map=_map_context(ordered, scenario),
+        timeline=timeline,
+        map=map_ctx,
         combat=_combat_context(ordered, scenario, config),
-        death_episode=_death_episode_context(ordered, scenario),
+        death_episode=death_episode,
+        players=players,
+        special=special,
         relations=ScenarioRelations(),
     )
 
@@ -134,10 +227,12 @@ def build_scenario_contexts(
     events: list[GameEvent],
     scenarios: list[Scenario],
     config: ScenarioBuilderConfig,
+    evidence: ScenarioEvidencePack | None = None,
 ) -> list[ScenarioContext]:
     """Build contexts then attach semantic engagement↔death-episode relations."""
     contexts = [
-        build_scenario_context(events, scenario, config) for scenario in scenarios
+        build_scenario_context(events, scenario, config, evidence=evidence)
+        for scenario in scenarios
     ]
     return _attach_relations(contexts, scenarios, config)
 
@@ -196,15 +291,32 @@ def _attach_relations(
     updated: list[ScenarioContext] = []
     for ctx in contexts:
         sid = ctx.scenario_id
+        relations = ScenarioRelations(
+            leads_to_death_episode_id=leads.get(sid),
+            follows_death_episode_id=follows.get(sid),
+            preceded_by_engagement_id=preceded.get(sid),
+            next_engagement_id=next_eng.get(sid),
+        )
+        death_episode = ctx.death_episode
+        if death_episode is not None:
+            trade = False
+            eng_id = relations.preceded_by_engagement_id
+            if eng_id is not None:
+                eng_ctx = by_id.get(eng_id)
+                if (
+                    eng_ctx is not None
+                    and eng_ctx.combat is not None
+                    and eng_ctx.combat.trade_candidate
+                ):
+                    trade = True
+            death_episode = death_episode.model_copy(
+                update={"preceded_by_trade_candidate": trade}
+            )
         updated.append(
             ctx.model_copy(
                 update={
-                    "relations": ScenarioRelations(
-                        leads_to_death_episode_id=leads.get(sid),
-                        follows_death_episode_id=follows.get(sid),
-                        preceded_by_engagement_id=preceded.get(sid),
-                        next_engagement_id=next_eng.get(sid),
-                    )
+                    "relations": relations,
+                    "death_episode": death_episode,
                 }
             )
         )
@@ -320,6 +432,137 @@ def _death_episode_context(
         complete=active is not None,
         respawn_reason=reason,
     )
+
+
+def _enrich_death_episode_level2(
+    death_episode: DeathEpisodeContext,
+    *,
+    timeline: TimelineContext,
+    events: list[GameEvent],
+    players: PlayersEvidence | None,
+    snapshots: Sequence[GameStateSnapshot],
+    config: ScenarioBuilderConfig,
+) -> DeathEpisodeContext:
+    """Attach Level 2 convenience facts. Missing evidence stays ``None``."""
+    death_time = death_episode.death_time
+    is_first = timeline.time_since_previous_death is None
+    splat_gap = None
+    match_phase = None
+    numbers = None
+    roster_changed = None
+    seconds_since_roster = None
+    if death_time is not None:
+        splat_gap = _time_since_previous_splat(events, death_time)
+        match_phase = _nearest_match_phase(
+            snapshots,
+            death_time,
+            max_gap_seconds=float(config.context_max_gap_seconds),
+        )
+        numbers, roster_changed, seconds_since_roster = _roster_facts_at_death(
+            players,
+            death_time=death_time,
+            lookback_seconds=float(config.context_lookback_seconds),
+        )
+    return death_episode.model_copy(
+        update={
+            "is_first_death": is_first,
+            "time_since_previous_splat": splat_gap,
+            "match_phase_at_death": match_phase,
+            "numbers_state_at_death": numbers,
+            "roster_changed_before_death": roster_changed,
+            "seconds_since_roster_change": seconds_since_roster,
+            # Default until ``_attach_relations`` mirrors engagement trade.
+            "preceded_by_trade_candidate": False,
+        }
+    )
+
+
+def _time_since_previous_splat(
+    events: list[GameEvent], death_time: float
+) -> float | None:
+    """``death_time - last SPLAT`` strictly before death; else ``None``."""
+    prior = _last_before(_of_type(events, GameEventType.SPLAT), death_time)
+    if prior is None:
+        return None
+    return float(death_time) - float(prior.start_time)
+
+
+def _nearest_match_phase(
+    snapshots: Sequence[GameStateSnapshot],
+    video_time: float,
+    *,
+    max_gap_seconds: float,
+) -> MatchPhase | None:
+    """Nearest snapshot ``match_phase`` within ``max_gap_seconds``; else ``None``."""
+    if not snapshots or max_gap_seconds < 0:
+        return None
+    best_phase: MatchPhase | None = None
+    best_gap = float("inf")
+    for snapshot in snapshots:
+        gap = abs(float(snapshot.timestamp) - float(video_time))
+        if gap > max_gap_seconds:
+            continue
+        if gap < best_gap:
+            best_phase = snapshot.match_phase
+            best_gap = gap
+            if gap == 0.0:
+                return snapshot.match_phase
+    return best_phase
+
+
+def _roster_facts_at_death(
+    players: PlayersEvidence | None,
+    *,
+    death_time: float,
+    lookback_seconds: float,
+) -> tuple[NumbersState | None, bool | None, float | None]:
+    """Numbers state + roster-change facts from players evidence only."""
+    if players is None:
+        return None, None, None
+    numbers = None
+    if players.at_death is not None:
+        numbers = numbers_state(
+            players.at_death.ally_alive_count,
+            players.at_death.opponent_alive_count,
+        )
+    changed, seconds = _roster_change_before_death(
+        players.trajectory,
+        death_time=death_time,
+        lookback_seconds=lookback_seconds,
+    )
+    return numbers, changed, seconds
+
+
+def _roster_change_before_death(
+    trajectory: Sequence[PlayerCountPoint],
+    *,
+    death_time: float,
+    lookback_seconds: float,
+) -> tuple[bool, float | None]:
+    """Whether compressed AvB changed in ``(death - lookback, death]``.
+
+    Records *what* changed (timing), not why. No prior change → ``False`` /
+    ``None`` seconds. Does not invent transitions outside the lookback.
+    """
+    ordered = sorted(trajectory, key=lambda p: p.video_time)
+    if not ordered:
+        return False, None
+    window_start = float(death_time) - float(lookback_seconds)
+    last_change_at: float | None = None
+    prev_key: tuple[int, int] | None = None
+    for point in ordered:
+        key = (int(point.ally_alive_count), int(point.opponent_alive_count))
+        t = float(point.video_time)
+        if prev_key is not None and key != prev_key:
+            if window_start < t <= float(death_time):
+                last_change_at = t
+        if t <= float(death_time):
+            prev_key = key
+        if t > float(death_time):
+            break
+    if last_change_at is None:
+        return False, None
+    return True, float(death_time) - last_change_at
 
 
 def _map_context(events: list[GameEvent], scenario: Scenario) -> MapContext | None:

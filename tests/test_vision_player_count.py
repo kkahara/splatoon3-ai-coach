@@ -1,4 +1,4 @@
-"""HUD death-X player-count detector (masked SQDIFF)."""
+"""HUD roster-X player-count detector (masked SQDIFF)."""
 
 from __future__ import annotations
 

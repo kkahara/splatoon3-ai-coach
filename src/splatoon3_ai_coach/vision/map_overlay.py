@@ -104,20 +104,33 @@ class MapOverlayDetector:
         return self._observe(image)
 
     def _observe(self, image: np.ndarray) -> tuple[MapOverlayReading, float]:
-        """Match the close-button template in ``map_roi``."""
+        """Score close-X + layout cues; require layout for ``present``.
+
+        Template-only thresholding false-triggers on this game’s HUD and misses
+        many true map opens (see ``2026-09-10_15-58-36`` map GT). Open-map
+        frames show low edge density in ``map_roi`` and high edge density in
+        ``tank_roi``; both gates plus a soft template floor define present.
+        """
         map_roi = crop_roi(image, self.config.map_roi)
         if map_roi.size == 0:
             return MapOverlayReading(), 0.0
 
         template_score = _best_template_score(map_roi, self._templates)
-        present = bool(self._templates) and template_score >= self.config.match_threshold
         map_edge = _edge_frac(map_roi)
         tank_roi = crop_roi(image, self.config.tank_roi)
         peri_roi = crop_roi(image, self.config.periphery_roi)
         tank_edge = _edge_frac(tank_roi) if tank_roi.size else 0.0
         peri_blur = _blur_score(peri_roi) if peri_roi.size else 0.0
+        layout_ok = (
+            map_edge <= self.config.map_edge_max
+            and tank_edge >= self.config.tank_edge_min
+        )
+        template_ok = bool(self._templates) and (
+            template_score >= self.config.support_template_min
+        )
+        present = bool(layout_ok and template_ok)
         confidence = (
-            template_score
+            max(template_score, tank_edge)
             if present
             else max(self.config.min_usable_confidence, 1.0 - template_score)
         )

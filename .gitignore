@@ -233,3 +233,10 @@ calibration/**
 # Negating templates/** re-includes junk; keep OS junk out.
 calibration/templates/**/.DS_Store
 
+# YOLO / training dumps (keep only the empty shell).
+training/datasets/**
+!training/datasets/.gitkeep
+
+# Local archive dumps
+*.zip
+

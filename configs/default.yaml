@@ -102,8 +102,11 @@ vision:
     periphery_roi: [0.02, 0.02, 0.98, 0.98]
     template_dir: "../calibration/templates/map_overlay"
     match_threshold: 0.70
-    map_edge_min: 0.045
-    tank_edge_max: 0.055
+    # Layout-gated present (2026-09-10 15-58-36 map GT): open map has low
+    # close-X ROI edges and high center (tank) edges; template alone FPs.
+    map_edge_max: 0.04
+    tank_edge_min: 0.10
+    support_template_min: 0.35
     periphery_blur_min: 0.55
     min_usable_confidence: 0.50
     debounce_seconds: 0.0
@@ -111,10 +114,10 @@ vision:
   # Enable "match_intro" in enabled_detectors and drop PNG templates under
   # calibration/templates/match_intro/<en|ja>/{battle_modes,stages}/.
   match_intro:
-    battle_mode_roi: [0.22, 0.38, 0.78, 0.58]
+    battle_mode_roi: [0.396875, 0.337037, 0.600000, 0.607407]
     # Bottom-right stage plate (JA/EN label). Prior [0.55,0.78,0.96,0.96]
     # sat too high/left on map scenery and failed threshold (~0.42 vs 0.70).
-    stage_roi: [0.68, 0.86, 0.995, 0.985]
+    stage_roi: [0.743229, 0.905556, 0.998437, 0.975000]
     template_dir: "../calibration/templates/match_intro"
     match_threshold: 0.70
     min_usable_confidence: 0.50
@@ -127,6 +130,14 @@ vision:
     sample_interval_seconds: 1.0
     min_usable_confidence: 0.15
     write_diagnostics: false
+    # Sticky HUD roster-slot binding; YAML HSV is fallback until latch.
+    team_color_calibration_enabled: true
+    calibration_window_seconds: 60
+    min_accepted_frames: 3
+    min_hue_separation: 30
+    h_tolerance: 15
+    s_min: 70
+    v_min: 40
     ally_hsv_ranges:
       # Lime/yellow-green ink. Raised S/V mins to reduce soft bokeh false positives.
       - [40, 70, 70, 95, 255, 255]
@@ -135,9 +146,10 @@ vision:
       - [0, 70, 70, 15, 255, 255]
       - [120, 70, 70, 170, 255, 255]
       - [165, 70, 70, 180, 255, 255]
-  # HUD death-X roster counts. Off by default — enable "player_count" in
-  # enabled_detectors after verifying templates/ROIs. Slot boxes are
-  # fractional (x1,y1,x2,y2) @ 1920×1080. Pixel xywh origins:
+  # HUD roster-X counts (teammate/opponent icon X). Off by default — enable
+  # "player_count" in enabled_detectors after verifying templates/ROIs.
+  # Not local-player DEATH. Slot boxes are fractional (x1,y1,x2,y2) @ 1920×1080.
+  # Pixel xywh origins:
   # ally-1 [488,17,143,105] ally-2 [592,19,129,102] ally-3 [689,12,110,110]
   # ally-4 [782,15,110,110] opp-1 [1030,15,111,110] opp-2 [1124,15,109,110]
   # opp-3 [1197,19,112,100] opp-4 [1276,15,141,103]
@@ -160,7 +172,7 @@ vision:
   # "special_gauge" in enabled_detectors after real-video validation.
   # Do NOT reuse extraction.hud.special_gauge (misaligned top-center box).
   special_gauge:
-    roi: [0.86, 0.01, 0.995, 0.18]
+    roi: [0.875000, 0.025926, 0.976562, 0.204630]
     prompt_roi: [0.94, 0.02, 0.999, 0.16]
     sector_count: 24
     annulus_inner: 0.42
@@ -209,6 +221,9 @@ scenarios:
   post_death_max_seconds: 30.0
   engagement_gap_seconds: 3.0
   engagement_include_following_death_seconds: 2.0
+  context_lookback_seconds: 8.0
+  context_lookforward_seconds: 2.0
+  context_max_gap_seconds: 1.0
 
 coach:
   provider: ollama

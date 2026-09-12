@@ -52,6 +52,7 @@ vision:
   - map_overlay
   - player_count
   - match_intro
+  - special_gauge
   hud_cadence_fps: 2.0
   timer:
     roi:
@@ -153,11 +154,42 @@ vision:
     - 0.98
     template_dir: ../calibration/templates/map_overlay
     match_threshold: 0.7
-    map_edge_min: 0.045
-    tank_edge_max: 0.055
+    map_edge_max: 0.04
+    tank_edge_min: 0.10
+    support_template_min: 0.35
     periphery_blur_min: 0.55
     min_usable_confidence: 0.5
     debounce_seconds: 0.0
+  # Required when match_intro is in enabled_detectors — without template_dir
+  # the detector loads zero templates and always scores 0.
+  match_intro:
+    # Keep in sync with configs/default.yaml — wide mode ROI dilutes clam_blitz
+    # below match_threshold (~0.69 vs 0.70).
+    battle_mode_roi: [0.396875, 0.337037, 0.600000, 0.607407]
+    stage_roi: [0.743229, 0.905556, 0.998437, 0.975000]
+    template_dir: ../calibration/templates/match_intro
+    match_threshold: 0.70
+    min_usable_confidence: 0.50
+    intro_deadline_seconds: 90.0
+  map_ink:
+    enabled: true
+    geometry_dir: ../configs/stage_maps
+    sample_interval_seconds: 1.0
+    min_usable_confidence: 0.15
+    write_diagnostics: false
+    team_color_calibration_enabled: true
+    calibration_window_seconds: 60
+    min_accepted_frames: 3
+    min_hue_separation: 30
+    h_tolerance: 15
+    s_min: 70
+    v_min: 40
+    ally_hsv_ranges:
+      - [40, 70, 70, 95, 255, 255]
+    opponent_hsv_ranges:
+      - [0, 70, 70, 15, 255, 255]
+      - [120, 70, 70, 170, 255, 255]
+      - [165, 70, 70, 180, 255, 255]
   player_count:
     ally_slots:
     - - 0.254167
@@ -226,6 +258,9 @@ scenarios:
   post_death_max_seconds: 30.0
   engagement_gap_seconds: 3.0
   engagement_include_following_death_seconds: 2.0
+  context_lookback_seconds: 8.0
+  context_lookforward_seconds: 2.0
+  context_max_gap_seconds: 1.0
 coach:
   provider: ollama
   model: gpt-oss:20b

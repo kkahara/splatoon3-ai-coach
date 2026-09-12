@@ -186,14 +186,15 @@ class MatchIntroReading(BaseModel):
 
 
 class PlayerCountReading(BaseModel):
-    """Per-frame HUD death-X observations. Detector evidence only.
+    """Per-frame HUD roster-X observations. Detector evidence only.
 
-    Describes which player-slot ROIs show the dark-gray X death marker.
-    Not coaching vocabulary — fused alive counts live on ``GameStateSnapshot``.
+    Describes which player-slot ROIs show the dark-gray X marker on
+    teammate/opponent icons. Not local-player death and not a GameEvent —
+    fused alive counts live on ``GameStateSnapshot``.
     Slot indexes are 1-based (1..4). Per-slot scores are masked
     ``TM_SQDIFF_NORMED`` distances (lower = better X match); detection is
     decided by the detector against ``sqdiff_match_threshold``, not by
-    consumers reversing these scores.
+    consumers reversing these scores. ``*_dead_slots`` means “X present.”
     """
 
     kind: Literal["player_count"] = "player_count"
@@ -206,10 +207,18 @@ class PlayerCountReading(BaseModel):
 class SpecialGaugeReading(BaseModel):
     """Per-frame Special-gauge observation. Detector evidence only.
 
-    Sparse HUD sample for eventual coaching. Not a SPECIAL_READY /
-    SPECIAL_USED GameEvent. ``fill_fraction`` is approximate (radial
-    sector estimate), not pixel-perfect. When ``visible`` is false,
-    ``fill_fraction`` is None — never invent zero fill from absence.
+    ``ready`` is **status on this frame** (Charged!/Press templates or
+    near-full ring) — not a transition and not ``SPECIAL_READY``.
+    Repeated ``ready=True`` remains ordinary readings.
+
+    Do not conflate: ``ready=True`` ≠ ``SPECIAL_READY``;
+    ``fill_fraction`` drop ≠ ``SPECIAL_USED``; ``DEATH`` ≠ ``SPECIAL_USED``.
+    Architecture: ``vision/SPECIAL_GAUGE.md``.
+
+    ``fill_fraction`` is approximate (radial sector estimate). When
+    ``visible`` is false, ``fill_fraction`` is None — never invent zero fill.
+    ``ready_prompt_score`` is ``max(charged_score, press_score)`` for viewer
+    compatibility. Do not add event fields to this reading.
     """
 
     kind: Literal["special_gauge"] = "special_gauge"
@@ -220,6 +229,8 @@ class SpecialGaugeReading(BaseModel):
     timestamp: float | None = None
     dial_score: float = Field(default=0.0, ge=0, le=1)
     lit_sector_fraction: float = Field(default=0.0, ge=0, le=1)
+    charged_score: float = Field(default=0.0, ge=0, le=1)
+    press_score: float = Field(default=0.0, ge=0, le=1)
     ready_prompt_score: float = Field(default=0.0, ge=0, le=1)
 
 

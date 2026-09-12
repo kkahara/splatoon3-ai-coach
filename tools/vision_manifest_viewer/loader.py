@@ -33,7 +33,9 @@ from vision_manifest_viewer.model import (
     RoiBox,
     RosterSampleView,
     ScenarioEvidenceView,
+    TeamColorCalibrationView,
 )
+from vision_manifest_viewer.team_colors import interpret_team_colors
 from vision_manifest_viewer.timeline import (
     build_death_episodes,
     build_lifecycle_segments,
@@ -104,18 +106,30 @@ def load_manifest_view(
     )
     near_misses = enrich_near_misses_with_death(near_misses, death_diagnostics)
     summary = _build_summary(
-        raw, frame_results, observations, events, episodes, death_diagnostics
+        raw,
+        frame_results,
+        observations,
+        events,
+        episodes,
+        death_diagnostics,
+        cadence_fps=_load_cadence_fps(config_path),
     )
 
     detectors = sorted({o.detector for o in observations if o.detector})
     categories = sorted({o.category for o in observations})
+    match_identity = _load_match_identity(analysis_dir)
 
     return ManifestView(
         summary=summary,
         observations=observations,
         roster_timeline=_build_roster_timeline(snapshots),
         map_ink_timeline=_load_map_ink_timeline(analysis_dir),
-        match_identity=_load_match_identity(analysis_dir),
+        match_identity=match_identity,
+        team_colors=interpret_team_colors(
+            analysis_dir,
+            config_path=config_path,
+            match_identity=match_identity,
+        ),
         markers=markers,
         lifecycle_segments=segments,
         lifecycle_marks=lifecycle_marks,
@@ -178,6 +192,8 @@ def _join_scenario_card(
         map=_as_dict(ctx.get("map")),
         combat=_as_dict(ctx.get("combat")),
         recovery=_as_dict(ctx.get("death_episode") or ctx.get("recovery")),
+        players=_as_dict(ctx.get("players")),
+        special=_as_dict(ctx.get("special")),
         relations=_as_dict(ctx.get("relations")),
     )
 
@@ -412,6 +428,29 @@ def _load_match_identity(analysis_dir: Path) -> MatchIdentityView | None:
         resolved_at=_as_float(raw.get("resolved_at")),
         intro_closed=bool(raw.get("intro_closed")),
         map_ink_enabled=bool(raw.get("map_ink_enabled")),
+        team_color_calibration=_parse_team_color_calibration(
+            raw.get("team_color_calibration")
+        ),
+    )
+
+
+def _parse_team_color_calibration(raw: object) -> TeamColorCalibrationView | None:
+    """Parse latched team_color_calibration from match_identity.json."""
+    if not isinstance(raw, dict):
+        return None
+    ally_h = _as_float(raw.get("ally_h"))
+    opponent_h = _as_float(raw.get("opponent_h"))
+    separation = _as_float(raw.get("separation_degrees"))
+    calibrated_at = _as_float(raw.get("calibrated_at"))
+    if ally_h is None or opponent_h is None or separation is None or calibrated_at is None:
+        return None
+    source = raw.get("source")
+    return TeamColorCalibrationView(
+        ally_h=ally_h,
+        opponent_h=opponent_h,
+        separation_degrees=separation,
+        calibrated_at=calibrated_at,
+        source=str(source).strip() if source else "hud_roster_slots",
     )
 
 
@@ -637,10 +676,32 @@ def _build_summary(
     events: list[dict[str, Any]],
     episodes: list[DeathEpisode],
     death_diagnostics: list | None = None,
+    *,
+    cadence_fps: float | None = None,
 ) -> ManifestSummary:
     """Compute top-of-page diagnostic summary and warnings."""
     timestamps = [float(f.get("timestamp") or 0.0) for f in frame_results]
     duration = max(timestamps) if timestamps else 0.0
+    timing = raw.get("timing") if isinstance(raw.get("timing"), dict) else {}
+    video_duration = timing.get("video_duration_seconds")
+    if isinstance(video_duration, (int, float)) and float(video_duration) > 0:
+        duration = float(video_duration)
+    processing_time = timing.get("total_seconds")
+    processing_time_seconds = (
+        float(processing_time)
+        if isinstance(processing_time, (int, float)) and float(processing_time) >= 0
+        else None
+    )
+    processing_rate: float | None = None
+    if (
+        processing_time_seconds is not None
+        and processing_time_seconds > 0
+        and duration > 0
+    ):
+        processing_rate = duration / processing_time_seconds
+    elif isinstance(timing.get("realtime_factor"), (int, float)):
+        processing_rate = float(timing["realtime_factor"])
+
     video_identity = str(raw.get("video_identity") or "")
     video_label = _video_label(raw, analysis_dir_hint=video_identity)
 
@@ -669,11 +730,16 @@ def _build_summary(
     warnings = _build_warnings(
         observations, episodes, event_counts, det_pos_event_neg=det_pos_event_neg
     )
+    frame_count = len(frame_results)
+    cadence_frames = timing.get("cadence_frame_count")
+    if isinstance(cadence_frames, int) and cadence_frames >= 0:
+        frame_count = cadence_frames
+
     return ManifestSummary(
         video_label=video_label,
         video_identity=video_identity,
         duration_seconds=duration,
-        frame_count=len(frame_results),
+        frame_count=frame_count,
         detection_count=sum(1 for o in observations if o.detector),
         death_detections=death_pos,
         countdown_observations=cd_obs,
@@ -687,7 +753,29 @@ def _build_summary(
         death_confirmed=confirmed,
         death_rejected=rejected,
         death_suppressed=suppressed,
+        cadence_fps=cadence_fps,
+        processing_time_seconds=processing_time_seconds,
+        processing_rate=processing_rate,
     )
+
+
+def _load_cadence_fps(config_path: Path | None) -> float | None:
+    """Read ``vision.hud_cadence_fps`` when a config file is available."""
+    path = config_path
+    if path is None:
+        candidate = Path("configs/default.yaml")
+        if candidate.exists():
+            path = candidate
+    if path is None or not path.exists():
+        return None
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except OSError:
+        return None
+    raw = (data.get("vision") or {}).get("hud_cadence_fps")
+    if isinstance(raw, (int, float)) and float(raw) > 0:
+        return float(raw)
+    return None
 
 
 def _video_label(raw: dict[str, Any], *, analysis_dir_hint: str) -> str:

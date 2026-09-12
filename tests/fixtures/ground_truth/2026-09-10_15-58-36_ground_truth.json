@@ -1,0 +1,196 @@
+{
+  "manifest_path": "/Users/kenjikahara/splatoon3-ai-coach/analysis/2026-09-10 15-58-36/vision_manifest.json",
+  "video_label": "2026-09-10 15-58-36",
+  "exported_at": "2026-09-11T01:40:47.100Z",
+  "label_meanings": {
+    "real_death": "DEATH event: first alive→dead transition in the episode. DeathReading.detected ≠ DEATH. Do not mark later Ouch frames in the same cycle (leave them unmarked, not not_a_death).",
+    "not_a_death": "Death detector false positive — Ouch UI when this was not a death episode.",
+    "damage_recovery": "Death-like HUD without a death.",
+    "real_splat": "SPLAT event: first rising edge of a local kill. SplatReading.detected ≠ SPLAT. Do not mark later banner frames in the same kill (leave them unmarked, not not_a_splat).",
+    "not_a_splat": "Splat detector false positive — kill banner when you did not splat someone.",
+    "real_active_gameplay": "Fused ACTIVE state (in-match and alive), not HUD chrome.",
+    "not_active_gameplay": "Not the ACTIVE state (intro, death-cam, countdown, …).",
+    "real_respawn": "RESPAWN event — first enter respawned in the episode.",
+    "not_a_respawn": "Respawn detector false positive.",
+    "real_map_overlay": "The map was open.",
+    "not_a_map_overlay": "Map detector false positive.",
+    "real_timer": "Match timer was readable.",
+    "not_a_timer": "Timer detector false positive."
+  },
+  "intervals": [
+    {
+      "t0": 15,
+      "t1": 15,
+      "detector": "map_overlay",
+      "label": "not_a_map_overlay"
+    },
+    {
+      "t0": 15.5,
+      "t1": 15.5,
+      "detector": "map_overlay",
+      "label": "not_a_map_overlay"
+    },
+    {
+      "t0": 25,
+      "t1": 25,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 72.5,
+      "t1": 72.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 73,
+      "t1": 73,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 73.5,
+      "t1": 73.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 74,
+      "t1": 74,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 74.5,
+      "t1": 74.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 75,
+      "t1": 75,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 76,
+      "t1": 76,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 76.5,
+      "t1": 76.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 77,
+      "t1": 77,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 98,
+      "t1": 98,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 100,
+      "t1": 100,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 115,
+      "t1": 115,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 143,
+      "t1": 143,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 143.5,
+      "t1": 143.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 144,
+      "t1": 144,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 144.5,
+      "t1": 144.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 145,
+      "t1": 145,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 145.5,
+      "t1": 145.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 146,
+      "t1": 146,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 171.5,
+      "t1": 171.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 172,
+      "t1": 172,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 173,
+      "t1": 173,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 173.5,
+      "t1": 173.5,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 174,
+      "t1": 174,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 241,
+      "t1": 241,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    },
+    {
+      "t0": 242,
+      "t1": 242,
+      "detector": "map_overlay",
+      "label": "real_map_overlay"
+    }
+  ]
+}

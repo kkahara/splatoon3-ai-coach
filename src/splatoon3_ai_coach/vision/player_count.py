@@ -1,7 +1,8 @@
-"""HUD death-X marker detector for roster alive-count evidence.
+"""HUD roster-X marker detector for roster alive-count evidence.
 
 Detects the dark-gray X over each of eight calibrated player-slot ROIs via
 masked ``TM_SQDIFF_NORMED`` (X-only mask; raw grayscale ROI; no CLAHE).
+This is **not** local-player ``DEATH`` — only teammate/opponent icon X marks.
 Does not recognize icons, weapons, players, or OCR. Coaching vocabulary
 (alive counts) is produced later by fusion, not here.
 
@@ -182,10 +183,10 @@ def _confidence_from_sqdiff(scores: list[float]) -> float:
 
 
 class PlayerCountDetector:
-    """Match death-X templates inside eight configured player-slot ROIs.
+    """Match roster-X templates inside eight configured player-slot ROIs.
 
     Matching: masked ``TM_SQDIFF_NORMED`` on raw grayscale (no CLAHE).
-    A slot is dead when its best SQDIFF ``<= sqdiff_match_threshold``.
+    A slot is marked when its best SQDIFF ``<= sqdiff_match_threshold``.
     Confidence: ``1.0 - min(slot_sqdiff)`` across all eight slots.
     """
 

@@ -38,7 +38,7 @@ from splatoon3_ai_coach.vision.stage_maps import resolve_stage_map_geometry
 REPO = Path(__file__).resolve().parents[1]
 ANALYSIS_ROOT = REPO / "analysis"
 MOVIES_ROOT = Path("/Users/kenjikahara/Movies")
-PAINT_MAP_DIR = REPO / "calibration" / "templates" / "paint_map"
+PAINT_MAP_DIR = REPO / "calibration" / "reference" / "paint_map"
 GEOMETRY_DIR = REPO / "configs" / "stage_maps"
 OUT_ROOT = ANALYSIS_ROOT / "map_ink_validation"
 DIAG_DIR = OUT_ROOT / "multi_frame" / "debug_map_ink"

@@ -20,9 +20,12 @@ Do **not** attribute map X markers to the player’s death location in this phas
 
 ## Gate
 
-1. `MatchIntroDetector` (templates) captures `stage_id` + `battle_mode_id`.
-2. Early-stop once both are known; fail-closed after `intro_deadline_seconds` if not.
-3. Map ink runs only when identity is resolved **and** `MapOverlayReading.present`.
+1. `MatchIntroDetector` (templates) captures `stage_id` + optional `battle_mode_id`.
+2. Early-stop once both are known; after `intro_deadline_seconds`, stop accepting
+   intro evidence. Stage-only is enough for map ink.
+3. Map ink runs when `stage_id` is known **and** `MapOverlayReading.present`.
+   Missing mode → `configs/stage_maps/<stage_id>/default.yaml`. Missing stage →
+   map ink disabled for the match.
 
 ## Geometry
 

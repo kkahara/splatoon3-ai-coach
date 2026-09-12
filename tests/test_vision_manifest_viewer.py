@@ -1175,6 +1175,49 @@ def _minimal_manifest_shell(
     }
 
 
+def test_analysis_stats_include_processing_time_and_rate(tmp_path: Path) -> None:
+    """Manifest timing surfaces as Analysis processing time / rate in the header."""
+    path = tmp_path / "vision_manifest.json"
+    shell = _minimal_manifest_shell(
+        frame_results=[
+            {
+                "frame_id": "f1",
+                "timestamp": 10.0,
+                "source": "cadence",
+                "image_path": None,
+                "detections": [],
+            }
+        ]
+    )
+    shell["timing"] = {
+        "video_duration_seconds": 222.0,
+        "decoded_frame_count": 500,
+        "cadence_frame_count": 444,
+        "decode_seconds": 5.0,
+        "temporal_seconds": 1.0,
+        "total_seconds": 18.7,
+    }
+    path.write_text(json.dumps(shell), encoding="utf-8")
+    config = tmp_path / "cfg.yaml"
+    config.write_text("vision:\n  hud_cadence_fps: 2.0\n", encoding="utf-8")
+
+    view = load_manifest_view(path, config_path=config)
+    assert view.summary.duration_seconds == 222.0
+    assert view.summary.frame_count == 444
+    assert view.summary.cadence_fps == 2.0
+    assert view.summary.processing_time_seconds == 18.7
+    assert view.summary.processing_rate is not None
+    assert abs(view.summary.processing_rate - (222.0 / 18.7)) < 1e-6
+
+    html = render_html(view)
+    assert "Processing time" in html
+    assert "Processing rate" in html
+    assert "renderProcessingStats" in html
+    assert '"processing_time_seconds": 18.7' in html
+    assert "analysis-stats" not in html
+    assert "renderAnalysisStats" not in html
+
+
 def test_map_ink_sidecar_loaded_pass_through(tmp_path: Path) -> None:
     """map_observations.json paint fields load unchanged into the viewer."""
     path = tmp_path / "vision_manifest.json"
@@ -1264,6 +1307,142 @@ def test_match_identity_shown_in_header(tmp_path: Path) -> None:
     assert "Museum Dalfonsino" in html or "museum_dalfonsino" in html
     assert "Tower Control" in html or "tower_control" in html
     assert "match_identity" in html
+
+
+def test_team_colors_from_early_snapshots_in_header(tmp_path: Path) -> None:
+    """Early debug_snapshots roster hues become header team_colors swatches."""
+    import cv2
+    import numpy as np
+
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()), encoding="utf-8")
+    (tmp_path / "match_identity.json").write_text(
+        json.dumps(
+            {
+                "stage_id": "inkblot_art_academy",
+                "battle_mode_id": "tower_control",
+                "resolved": True,
+                "resolved_at": 5.5,
+                "intro_closed": True,
+                "map_ink_enabled": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    snaps = tmp_path / "debug_snapshots"
+    snaps.mkdir()
+    # 1920×1080 with ally slots blue (H≈125) and opponent slots orange (H≈12).
+    frame = np.zeros((1080, 1920, 3), dtype=np.uint8)
+    hsv = np.zeros_like(frame)
+    hsv[:] = (0, 0, 30)
+
+    def paint_slot(box: tuple[float, float, float, float], h: int) -> None:
+        x1, y1, x2, y2 = box
+        L, T = int(x1 * 1920), int(y1 * 1080)
+        R, B = int(x2 * 1920), int(y2 * 1080)
+        hsv[T:B, L:R] = (h, 200, 200)
+
+    ally_slots = [
+        (0.254167, 0.015741, 0.328646, 0.112963),
+        (0.308333, 0.017593, 0.375521, 0.112037),
+        (0.358854, 0.011111, 0.416146, 0.112963),
+        (0.407292, 0.013889, 0.464583, 0.115741),
+    ]
+    opp_slots = [
+        (0.536458, 0.013889, 0.594271, 0.115741),
+        (0.585417, 0.013889, 0.642188, 0.115741),
+        (0.623437, 0.017593, 0.681771, 0.110185),
+        (0.664583, 0.013889, 0.738021, 0.109259),
+    ]
+    for box in ally_slots:
+        paint_slot(box, 125)
+    for box in opp_slots:
+        paint_slot(box, 12)
+    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    cv2.imwrite(str(snaps / "00000330_000005.500.jpg"), bgr)
+    cv2.imwrite(str(snaps / "00000360_000006.000.jpg"), bgr)
+
+    view = load_manifest_view(path)
+    assert view.team_colors is not None
+    assert view.team_colors.ally is not None
+    assert view.team_colors.opponent is not None
+    assert 115 <= view.team_colors.ally.h_median <= 135
+    assert 5 <= view.team_colors.opponent.h_median <= 20
+    assert view.team_colors.ally.css_hex.startswith("#")
+    assert len(view.team_colors.ally.slots) == 4
+    assert len(view.team_colors.opponent.slots) == 4
+    for slot in view.team_colors.ally.slots:
+        assert 115 <= (slot.h_median or -1) <= 135
+        assert slot.usable_pixels > 0
+        assert slot.sample_frames > 0
+    for slot in view.team_colors.opponent.slots:
+        assert 5 <= (slot.h_median or -1) <= 20
+        assert slot.usable_pixels > 0
+    assert view.team_colors.separation_degrees is not None
+    assert view.team_colors.separation_degrees >= 30.0
+    from vision_manifest_viewer.team_colors import format_team_color_probe
+
+    report = format_team_color_probe(view.team_colors)
+    assert "TEAM COLOR PROBE" in report
+    assert "slot 1:" in report
+    assert "aggregate:" in report
+    assert "separation:" in report
+    html = render_html(view)
+    assert "team_colors" in html
+    assert "renderTeamColors" in html or "team-colors" in html
+    assert "TEAM COLOR PROBE" not in html
+    assert "renderTeamColorProbe" not in html
+    assert "team-color-probe" not in html
+    assert view.team_colors.ally.css_hex in html
+
+
+def test_latched_team_color_calibration_preferred_in_header(tmp_path: Path) -> None:
+    """match_identity team_color_calibration drives Colors swatches over probe."""
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()), encoding="utf-8")
+    (tmp_path / "match_identity.json").write_text(
+        json.dumps(
+            {
+                "stage_id": "mahi_mahi_resort",
+                "battle_mode_id": "clam_blitz",
+                "resolved": True,
+                "resolved_at": 8.0,
+                "intro_closed": True,
+                "map_ink_enabled": True,
+                "team_color_calibration": {
+                    "ally_h": 11.0,
+                    "opponent_h": 119.0,
+                    "separation_degrees": 72.0,
+                    "calibrated_at": 3.0,
+                    "source": "hud_roster_slots",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    view = load_manifest_view(path)
+    assert view.match_identity is not None
+    assert view.match_identity.team_color_calibration is not None
+    assert view.match_identity.team_color_calibration.separation_degrees == 72.0
+    assert view.team_colors is not None
+    assert view.team_colors.calibration_latched is True
+    assert view.team_colors.ally is not None
+    assert view.team_colors.opponent is not None
+    assert abs(view.team_colors.ally.h_median - 11.0) < 0.5
+    assert abs(view.team_colors.opponent.h_median - 119.0) < 0.5
+    html = render_html(view)
+    assert "team_color_calibration" in html
+    assert '"calibration_latched": true' in html or '"calibration_latched":true' in html
+    assert "Latched TeamColorCalibration" in html
+
+
+def test_colors_show_yaml_fallback_when_calibration_missing(tmp_path: Path) -> None:
+    """Without latch or probe, Colors states YAML fallback."""
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()), encoding="utf-8")
+    view = load_manifest_view(path)
+    html = render_html(view)
+    assert "Calibration: unavailable — using YAML fallback" in html
 
 
 def test_special_gauge_visibility_and_timeline_html(tmp_path: Path) -> None:

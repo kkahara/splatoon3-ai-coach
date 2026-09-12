@@ -127,10 +127,33 @@ def test_identity_early_stop_and_fail_closed() -> None:
     assert tracker.should_run_intro_detector(6.0) is False
 
     late = MatchIdentityTracker(intro_deadline_seconds=10.0)
-    late.update(MatchIntroReading(stage_id="scorch_gorge"), video_time=11.0)
+    late.update(
+        MatchIntroReading(stage_id="scorch_gorge", stage_template_score=0.9),
+        video_time=11.0,
+    )
     assert late.identity.resolved is False
-    assert late.identity.map_ink_enabled is False
+    assert late.identity.stage_id == "scorch_gorge"
+    assert late.identity.map_ink_enabled is True
     assert late.identity.intro_closed
+
+    missing = MatchIdentityTracker(intro_deadline_seconds=10.0)
+    missing.update(MatchIntroReading(), video_time=11.0)
+    assert missing.identity.map_ink_enabled is False
+    assert missing.identity.intro_closed
+
+
+def test_map_ink_enabled_with_stage_only() -> None:
+    """Stage latch enables map ink; missing mode still uses stage default geometry."""
+    tracker = MatchIdentityTracker(intro_deadline_seconds=90.0)
+    tracker.update(
+        MatchIntroReading(stage_id="mahi_mahi_resort", stage_template_score=0.91),
+        video_time=6.0,
+    )
+    assert tracker.identity.stage_id == "mahi_mahi_resort"
+    assert tracker.identity.battle_mode_id is None
+    assert tracker.identity.resolved is False
+    assert tracker.identity.map_ink_enabled is True
+    assert tracker.should_run_intro_detector(7.0) is True
 
 
 def test_geometry_mode_override_then_default(tmp_path: Path) -> None:

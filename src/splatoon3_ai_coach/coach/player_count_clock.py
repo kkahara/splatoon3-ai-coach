@@ -2,8 +2,7 @@
 
 Canonical event times remain video timestamps. This module never feeds
 scenario construction or event fusion. Observations come from fused
-``GameStateSnapshot`` alive counts (persisted on the vision manifest),
-not from raw ``PlayerCountReading`` detections.
+``GameStateSnapshot`` alive counts via ``analysis.player_count_series``.
 
 The clock retrieves authoritative state only. Trajectory / present_by /
 duration interpretation belongs in ``coach_input``.
@@ -11,25 +10,33 @@ duration interpretation belongs in ``coach_input``.
 
 from __future__ import annotations
 
-from typing import Literal
-
 from pydantic import BaseModel, Field
 
+from splatoon3_ai_coach.analysis.player_count_series import (
+    NumbersState,
+    PlayerCountObservation,
+    PlayerCountSource,
+    format_avb as _format_avb_counts,
+    nearest_player_count_observation,
+    numbers_differential_from_observation,
+    numbers_state_from_observation,
+    observations_between as _observations_between,
+    observations_from_snapshots,
+)
 from splatoon3_ai_coach.vision.models import GameStateSnapshot
 
-PlayerCountSource = Literal["player_count_fusion"]
-NumbersState = Literal["even", "advantage", "disadvantage"]
-
-
-class PlayerCountObservation(BaseModel):
-    """One fused roster alive-count sample at a canonical video timestamp."""
-
-    video_time: float = Field(ge=0)
-    ally_alive_count: int = Field(ge=0, le=4)
-    opponent_alive_count: int = Field(ge=0, le=4)
-    confidence: float = Field(ge=0, le=1)
-    source: PlayerCountSource = "player_count_fusion"
-    evidence_ids: tuple[str, ...] = ()
+# Re-export for coach consumers that import observation types from this module.
+__all__ = [
+    "NumbersState",
+    "PlayerCountClock",
+    "PlayerCountObservation",
+    "PlayerCountSource",
+    "PlayerCountWindowPoint",
+    "build_player_count_clock",
+    "format_avb",
+    "numbers_differential",
+    "numbers_state",
+]
 
 
 class PlayerCountWindowPoint(BaseModel):
@@ -55,20 +62,11 @@ class PlayerCountClock(BaseModel):
 
         Exact matches win. Does not extrapolate or invent values across gaps.
         """
-        if not self.observations or max_gap_seconds < 0:
-            return None
-        best: PlayerCountObservation | None = None
-        best_gap = float("inf")
-        for obs in self.observations:
-            gap = abs(obs.video_time - video_time)
-            if gap > max_gap_seconds:
-                continue
-            if gap < best_gap:
-                best = obs
-                best_gap = gap
-                if gap == 0.0:
-                    return obs
-        return best
+        return nearest_player_count_observation(
+            self.observations,
+            video_time,
+            max_gap_seconds=max_gap_seconds,
+        )
 
     def window(
         self,
@@ -115,64 +113,28 @@ class PlayerCountClock(BaseModel):
         self, start_time: float, end_time: float
     ) -> list[PlayerCountObservation]:
         """Inclusive range over ordered observations (retrieval only)."""
-        lo = min(float(start_time), float(end_time))
-        hi = max(float(start_time), float(end_time))
-        return [
-            obs
-            for obs in self.observations
-            if lo <= obs.video_time <= hi
-        ]
+        return _observations_between(self.observations, start_time, end_time)
 
 
 def numbers_differential(obs: PlayerCountObservation | None) -> int | None:
     """Ally minus opponent alive count; ``None`` when observation is missing."""
-    if obs is None:
-        return None
-    return int(obs.ally_alive_count) - int(obs.opponent_alive_count)
+    return numbers_differential_from_observation(obs)
 
 
 def numbers_state(obs: PlayerCountObservation | None) -> NumbersState | None:
     """Roster numbers relative to the player's team; not fight quality."""
-    diff = numbers_differential(obs)
-    if diff is None:
-        return None
-    if diff > 0:
-        return "advantage"
-    if diff < 0:
-        return "disadvantage"
-    return "even"
+    return numbers_state_from_observation(obs)
 
 
 def format_avb(obs: PlayerCountObservation) -> str:
     """Compact ``AvB`` label from a fused observation."""
-    return f"{obs.ally_alive_count}v{obs.opponent_alive_count}"
+    return _format_avb_counts(obs.ally_alive_count, obs.opponent_alive_count)
 
 
 def build_player_count_clock(
     snapshots: list[GameStateSnapshot],
 ) -> PlayerCountClock:
-    """Collect fused snapshots that assert both ally and opponent alive counts.
-
-    Does not re-fuse detector readings. Snapshots with either count ``None``
-    are skipped (unknown / not observed).
-    """
-    observations: list[PlayerCountObservation] = []
-    for snapshot in sorted(snapshots, key=lambda item: item.timestamp):
-        if snapshot.ally_alive_count is None or snapshot.opponent_alive_count is None:
-            continue
-        confidence = (
-            float(snapshot.player_count_confidence)
-            if snapshot.player_count_confidence is not None
-            else 1.0
-        )
-        observations.append(
-            PlayerCountObservation(
-                video_time=snapshot.timestamp,
-                ally_alive_count=int(snapshot.ally_alive_count),
-                opponent_alive_count=int(snapshot.opponent_alive_count),
-                confidence=confidence,
-                source="player_count_fusion",
-                evidence_ids=tuple(snapshot.evidence_ids),
-            )
-        )
-    return PlayerCountClock(observations=tuple(observations))
+    """Build a clock from fused snapshots (shared series builder)."""
+    return PlayerCountClock(
+        observations=tuple(observations_from_snapshots(snapshots))
+    )

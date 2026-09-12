@@ -65,6 +65,14 @@ _GT_140214_FROZEN = (
     / "ground_truth"
     / "2026-09-07_14-02-14_ground_truth_frozen.json"
 )
+_GT_155836 = (
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "ground_truth"
+    / "2026-09-10_15-58-36_ground_truth.json"
+)
+_SNAPS_155836 = _REPO / "analysis" / "2026-09-10 15-58-36" / "debug_snapshots"
 _SLICE_091730 = (
     _REPO
     / "tests"
@@ -570,11 +578,75 @@ def test_140214_frozen_gt_is_kept_for_next_detector_pass() -> None:
 
 def test_gt_fixtures_document_real_death_as_event() -> None:
     """Exported GT files state that real_death is the DEATH event."""
-    for path in (_GT_PATH, _GT_091730, _GT_093424, _GT_140214, _GT_140214_FROZEN):
+    for path in (
+        _GT_PATH,
+        _GT_091730,
+        _GT_093424,
+        _GT_140214,
+        _GT_140214_FROZEN,
+        _GT_155836,
+    ):
         payload = json.loads(path.read_text(encoding="utf-8"))
         meaning = (payload.get("label_meanings") or {}).get("real_death", "")
         assert "DEATH event" in meaning
         assert "DeathReading.detected" in meaning
+
+
+@pytest.mark.skipif(
+    not _SNAPS_155836.is_dir(),
+    reason="analysis debug_snapshots for 2026-09-10 15-58-36 are not present",
+)
+def test_map_overlay_calibrated_on_155836_gt() -> None:
+    """Layout-gated map_overlay matches the 15-58-36 viewer export.
+
+    Template-only threshold scored 0 TP / 2 FP on this GT; layout gates
+    recover real opens and reject the early HUD false positives.
+    """
+    from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
+
+    payload = json.loads(_GT_155836.read_text(encoding="utf-8"))
+    assert payload["video_label"] == "2026-09-10 15-58-36"
+    config = load_config(default_config_path())
+    detector = MapOverlayDetector(config.vision.map_overlay)
+
+    by_ts: dict[float, Path] = {}
+    for path in _SNAPS_155836.iterdir():
+        if not path.is_file():
+            continue
+        # 00005910_000098.500.jpg
+        parts = path.name.rsplit(".", 2)
+        if len(parts) < 3:
+            continue
+        try:
+            stem = path.stem  # 00005910_000098.500
+            ts = float(stem.split("_", 1)[1])
+        except (IndexError, ValueError):
+            continue
+        by_ts[round(ts, 1)] = path
+
+    tp = fp = tn = fn = 0
+    for interval in payload["intervals"]:
+        if interval.get("detector") != "map_overlay":
+            continue
+        t = round(float(interval["t0"]), 1)
+        path = by_ts.get(t)
+        assert path is not None, f"missing snapshot for GT t={t}"
+        image = cv2.imread(str(path))
+        assert image is not None
+        reading, _conf = detector.detect(image, timestamp=t)
+        assert reading is not None
+        expect = _expect_positive(str(interval["label"]))
+        if expect and reading.present:
+            tp += 1
+        elif expect and not reading.present:
+            fn += 1
+        elif not expect and reading.present:
+            fp += 1
+        else:
+            tn += 1
+    assert fp == 0, f"map_overlay false positives on GT: fp={fp}"
+    assert fn <= 1, f"map_overlay misses on GT: fn={fn} tp={tp}"
+    assert tp >= 25
 
 
 def _score_gt_intervals_from_recorded(
