@@ -1,5 +1,14 @@
-"""Evidence-constrained LLM coaching layer."""
-
+from splatoon3_ai_coach.coach.claim_catalog import (
+    ClaimId,
+    CoachingPoint,
+    CoachingUnitResult,
+    SupportingEvidenceItem,
+)
+from splatoon3_ai_coach.coach.claim_selection import (
+    eligible_claim_ids,
+    resolve_match_duration_seconds,
+    select_coaching_unit,
+)
 from splatoon3_ai_coach.coach.coach import (
     annotate_claim_flags,
     generate_coaching,
@@ -44,6 +53,8 @@ from splatoon3_ai_coach.coach.llm_client import (
     CoachingOutput,
     LLMProvider,
     OllamaProvider,
+    OpenAICompatibleProvider,
+    normalize_coach_provider,
 )
 from splatoon3_ai_coach.coach.load_analysis import (
     CoachAnalysisBundle,
@@ -60,13 +71,17 @@ from splatoon3_ai_coach.coach.player_count_clock import (
     numbers_state,
 )
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
+from splatoon3_ai_coach.coach.vmv import format_vmv_developer, format_vmv_player
 
 __all__ = [
+    "ClaimId",
     "ClaimSupport",
     "CoachAnalysisBundle",
     "CoachInput",
     "CoachingAssessment",
     "CoachingOutput",
+    "CoachingPoint",
+    "CoachingUnitResult",
     "EvidenceClass",
     "EvidenceLimit",
     "GameClock",
@@ -74,6 +89,7 @@ __all__ = [
     "GameClockSample",
     "LLMProvider",
     "OllamaProvider",
+    "OpenAICompatibleProvider",
     "PlayerCountClock",
     "PlayerCountContext",
     "PlayerCountObservation",
@@ -81,6 +97,7 @@ __all__ = [
     "PlayerCountTrajectoryPoint",
     "PlayerCountWindowPoint",
     "RelatedScenarioEvidence",
+    "SupportingEvidenceItem",
     "annotate_claim_flags",
     "attach_game_clock_to_event_times",
     "build_coach_input_for_scenario",
@@ -91,21 +108,27 @@ __all__ = [
     "death_lifecycle_statements",
     "describe_leads_to_association",
     "describe_trade_candidate",
+    "eligible_claim_ids",
     "engagement_observation_statements",
     "engagement_proves_complete_fight",
     "evidence_contract_summary",
     "find_non_monotonic_raw_reads",
     "find_prohibited_matches",
     "format_avb",
+    "format_vmv_developer",
+    "format_vmv_player",
     "generate_coaching",
     "generate_coaching_assessment",
     "iter_prohibited_claim_hits",
     "load_coach_analysis_bundle",
     "load_system_prompt",
     "map_observation_statements",
+    "normalize_coach_provider",
     "numbers_differential",
     "numbers_state",
     "parse_coaching_assessment",
+    "resolve_match_duration_seconds",
+    "select_coaching_unit",
     "select_primary_scenario_ids",
     "serialize_coach_input_user_prompt",
 ]

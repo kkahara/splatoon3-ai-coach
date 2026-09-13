@@ -352,6 +352,7 @@ class ScenarioEvidenceView(BaseModel):
     players: dict[str, Any] | None = None
     special: dict[str, Any] | None = None
     relations: dict[str, Any] | None = None
+    coaching: dict[str, Any] | None = None
 
 
 class RosterSampleView(BaseModel):

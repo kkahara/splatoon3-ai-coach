@@ -304,6 +304,7 @@ def map_observation_statements(ctx: ScenarioContext) -> list[str]:
             )
     elif nest.map_check_before_death is False:
         lines.append("No map overlay was observed before this death.")
+    # None → unobservable / not assertable; do not invent a negative.
     return lines
 
 

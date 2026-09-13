@@ -6,6 +6,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 
 from splatoon3_ai_coach.types import NormalizedBox
+from splatoon3_ai_coach.media.video_source import VideoSource
 
 
 class VisionLanguage(StrEnum):
@@ -21,10 +22,32 @@ class VisionLanguage(StrEnum):
 
 
 class VideoConfig(BaseModel):
-    """Limits applied to decoded frames before analysis."""
+    """Limits applied to decoded frames before analysis.
+
+    ``source`` is an optional *declared* acquisition type. Final
+    ``VideoSource`` is resolved at analyze time (Review-icon auto-detect may
+    upgrade ``screen_capture`` / unset to ``review``).
+    """
 
     max_width: int = Field(gt=0)
     max_height: int = Field(gt=0)
+    source: VideoSource | None = Field(
+        default=None,
+        description=(
+            "Optional declared video acquisition source. "
+            "None means default screen_capture unless Review icon is detected."
+        ),
+    )
+
+
+class ReviewIconConfig(BaseModel):
+    """Early pink TV / replay-icon detection for Review source determination."""
+
+    template_dir: Path | None = None
+    # Provisional full-frame search until Review chrome ROI is calibrated.
+    roi: NormalizedBox = (0.0, 0.0, 1.0, 1.0)
+    match_threshold: float = Field(default=0.72, ge=0.0, le=1.0)
+    deadline_seconds: float = Field(default=30.0, ge=0.0)
 
 
 class PathsConfig(BaseModel):
@@ -476,6 +499,7 @@ class VisionConfig(BaseModel):
     match_intro: MatchIntroDetectorConfig = Field(
         default_factory=MatchIntroDetectorConfig
     )
+    review_icon: ReviewIconConfig = Field(default_factory=ReviewIconConfig)
     map_ink: MapInkAnalyzerConfig = Field(default_factory=MapInkAnalyzerConfig)
     player_count: PlayerCountDetectorConfig = Field(
         default_factory=PlayerCountDetectorConfig
@@ -524,12 +548,19 @@ class ScenarioBuilderConfig(BaseModel):
 
 
 class CoachConfig(BaseModel):
-    """Settings for the LLM coaching layer (Phase 5)."""
+    """Settings for the LLM coaching layer (Phase 5).
+
+    ``model`` / ``baseline_model`` are Ollama model names only.
+    ``nvidia_model`` is used when ``provider`` is ``nvidia``.
+    API keys stay in environment variables (never YAML).
+    """
 
     provider: str = "ollama"
     model: str = "gpt-oss:20b"
     baseline_model: str = "llama3.1:8b"
     ollama_base_url: str = "http://127.0.0.1:11434"
+    openai_compatible_base_url: str = "https://integrate.api.nvidia.com/v1"
+    nvidia_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
     game_clock_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_window_offsets_seconds: list[float] = Field(

@@ -48,9 +48,11 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
             "respawn",
             "map_overlay",
             "match_intro",
+            "review_icon",
             "map_ink",
             "active_gameplay",
             "player_count",
+            "special_gauge",
         ):
             section = vision.get(key)
             if not isinstance(section, dict):

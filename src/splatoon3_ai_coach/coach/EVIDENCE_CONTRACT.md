@@ -134,6 +134,26 @@ files and must not rewrite assessments.
 See `splatoon3_ai_coach.coach.evidence_contract` and
 `splatoon3_ai_coach.coach.coach_input` for the enforceable API.
 
+## Coaching points (coaching layer)
+
+Deterministic claim selection builds 0–3 coaching points per primary
+`DEATH_EPISODE` (see `coach.claim_catalog` / `coach.claim_selection`):
+
+```text
+Evidence → Eligible claims → Select 0–3 → Statement → [Interpretation] → [Recommendation]
+```
+
+- **Statement** required only when a claim is emitted.
+- **Interpretation** = coaching principle only (no intent / causation / mistake /
+  fight quality).
+- **Recommendation** optional; empty / “no recommendation supported” is success.
+- Supporting evidence is separate from coaching points (VMV “why” vs “what”).
+- Primary units are `DEATH_EPISODE`; ENGAGEMENT / MAP_CHECK are relation-linked
+  support, not laundry-list primaries.
+
+Locked examples: `death_last_ally_alive` (full triad); `death_special_ready`
+(statement only — never “should have used special”).
+
 ## Scenario membership / ownership
 
 Event ownership must be unambiguous.
@@ -169,7 +189,7 @@ They are **not** fight-quality evidence (not won/lost/good/bad fight).
 
 | Field | Means | Does **not** mean |
 |-------|-------|-------------------|
-| `map_check_before_death` | At least one map overlay occurred **before** the death (any prior time) | A map overlay in a short pre-death window; “recent check”; good/bad map use |
+| `map_check_before_death` | At least one map overlay occurred **before** the death (any prior time). `null` = unobservable / not assertable for this video source | A map overlay in a short pre-death window; “recent check”; good/bad map use; inventing “did not check” when `null` |
 | `seconds_since_map_check_before_death` | Unbounded gap from last prior overlay to death | A configured short lookback. Values like **44.5s** are valid |
 
 Do not change the implementation to window this field unless a concrete coaching
@@ -183,7 +203,7 @@ requirement needs a bounded pre-death map-check fact.
 | `following_death_id` | ownership or causation | compat reference to a following DEATH event |
 | `trade_candidate` | "you traded" | gap within configured window; not proof of a trade |
 | `ENGAGEMENT` / outcome | "you won/lost a fight" | splat observation cluster; `fragged`/`died` = linkage only |
-| `map_check_before_death` | "should have checked"; "recent map check" | any prior overlay before death (unbounded) |
+| `map_check_before_death` | "should have checked"; "recent map check"; treating `null` as “did not check” | any prior overlay before death (unbounded); `null` = unavailable for this source |
 
 ## Permitted vs prohibited
 

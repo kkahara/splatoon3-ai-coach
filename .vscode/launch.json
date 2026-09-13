@@ -93,6 +93,27 @@
             "justMyCode": true
         },
         {
+            "name": "s3-coach: coach-prototype (nvidia)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "coach-prototype",
+                "${workspaceFolder}/analysis/${input:videoName}",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml",
+                "--provider",
+                "nvidia",
+                "--limit",
+                "10"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "s3-coach: inspect",
             "type": "debugpy",
             "request": "launch",

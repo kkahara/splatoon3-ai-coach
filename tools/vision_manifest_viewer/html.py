@@ -309,7 +309,10 @@ pre.raw.open{display:block}
 
 <section id="scenario-evidence">
   <h2>Scenarios / Coaching Evidence</h2>
-  <p class="howto">Scenario = ownership (<code>event_ids</code>): what belongs here. ScenarioContext = measured evidence on the card: timeline, map, splat observations, death episode, and relations. Coaching = interpretation; this UI does not show judgments. ENGAGEMENT is a splat observation cluster, not necessarily a complete fight. Relations are temporal associations under configured rules, not causal claims. <code>trade_candidate</code> is a temporal window flag only. An associated/following death does not prove the splat caused the death. Scenario outcomes are not fight quality.</p>
+  <p class="howto">Scenario = ownership (<code>event_ids</code>): what belongs here. ScenarioContext = measured evidence on the card: timeline, map, splat observations, death episode, and relations. Coaching points (when <code>coach_prototype</code> artifacts exist) are Statement → optional Interpretation → optional Recommendation; supporting evidence is separate. Toggle Developer coaching view for claim IDs and null triad fields.</p>
+  <div class="nav-row">
+    <label><input type="checkbox" id="coach-dev-mode" /> Developer coaching view</label>
+  </div>
   <div class="episodes" id="scenario-cards"></div>
 </section>
 
@@ -322,6 +325,7 @@ const state = {
   gt: loadGt(),
   galleryOffset: 0,  // index into grouped cadence tiles for gallery window start
   reviewIndex: 0,
+  coachDevMode: false,
 };
 const GALLERY_PAGE = 200;
 const REVIEW_VIDEO_ROUTE = "/review-video";
@@ -451,6 +455,13 @@ function init() {
   $("btn-gal-later").onclick = () => shiftGallery(GALLERY_PAGE);
   $("btn-roi").onclick = () => { state.showRoi=!state.showRoi; renderDetail(); };
   $("btn-raw").onclick = () => { state.showRaw=!state.showRaw; renderDetail(); };
+  const coachDev = $("coach-dev-mode");
+  if (coachDev) {
+    coachDev.onchange = () => {
+      state.coachDevMode = !!coachDev.checked;
+      renderScenarios();
+    };
+  }
   $("gt-channel").addEventListener("change", () => renderGtContext(selectedObs()));
   bindReviewControls();
   $("btn-gt-export").onclick = exportGt;
@@ -893,6 +904,7 @@ function renderScenarioCard(card, index) {
     <h3>${esc(typ)}</h3>
     <div class="meta"><span>${esc(range)}</span><span>${esc(outcome)}</span></div>
     ${reviewBtn}
+    ${renderCoachingBlock(card)}
     ${renderMembersBlock(card)}
     <div class="scenario-blocks">
       ${renderFactBlock("Timeline", scenarioTimelineRows(card.timeline))}
@@ -906,6 +918,69 @@ function renderScenarioCard(card, index) {
       ${renderRosterBlock(card)}
     </div>
   </article>`;
+}
+
+function renderCoachingBlock(card) {
+  const unit = card.coaching;
+  if (!unit) return "";
+  const points = unit.coaching_points || [];
+  const support = unit.supporting_evidence || [];
+  const dev = state.coachDevMode;
+  let body = "";
+  if (!points.length) {
+    body = dev
+      ? `<p class="howto">coaching_points: []</p>`
+      : `<p><strong>Coaching</strong><br/>No coaching point selected for this scenario.</p>`;
+  } else {
+    body = points.map((p) => renderCoachingPoint(p, dev)).join("");
+  }
+  const supportHtml = support.length
+    ? `<div class="meta"><strong>Supporting evidence</strong><ul>${
+        support.map((s) => {
+          const path = dev && s.path ? ` <code>${esc(s.path)}</code>` : "";
+          return `<li>${esc(s.label)}: ${esc(s.value)}${path}</li>`;
+        }).join("")
+      }</ul></div>`
+    : "";
+  const eligible = dev && unit.eligible_claim_ids
+    ? `<p class="howto">eligible: ${esc(JSON.stringify(unit.eligible_claim_ids))}</p>`
+    : "";
+  return `<div class="scenario-members">
+    <h2>Coaching</h2>
+    ${eligible}
+    ${body}
+    ${supportHtml}
+  </div>`;
+}
+
+function renderCoachingPoint(point, dev) {
+  const claim = point.claim_id ? `<p class="howto">Claim: <code>${esc(point.claim_id)}</code></p>` : "";
+  if (dev) {
+    return `<div class="meta">
+      ${claim}
+      <div>Statement: ${esc(point.statement || "")}</div>
+      <div>Interpretation: ${esc(point.interpretation == null ? "null" : point.interpretation)}</div>
+      <div>Recommendation: ${esc(point.recommendation == null ? "null" : point.recommendation)}</div>
+    </div>`;
+  }
+  const hasAdvice = !!(point.interpretation || point.recommendation);
+  let middle = "";
+  if (hasAdvice) {
+    if (point.interpretation) {
+      middle += `<div><strong>Interpretation</strong><br/>${esc(point.interpretation)}</div>`;
+    }
+    if (point.recommendation) {
+      middle += `<div><strong>Recommendation</strong><br/>${esc(point.recommendation)}</div>`;
+    } else {
+      middle += `<div><strong>Coaching</strong><br/>No recommendation supported by the available evidence.</div>`;
+    }
+  } else {
+    middle = `<div><strong>Coaching</strong><br/>No recommendation supported by the available evidence.</div>`;
+  }
+  return `<div class="meta">
+    <div><strong>Statement</strong><br/>${esc(point.statement || "")}</div>
+    ${middle}
+  </div>`;
 }
 
 function scenarioTypeLabel(card) {

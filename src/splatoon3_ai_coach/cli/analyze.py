@@ -14,6 +14,7 @@ from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.models import VisionLanguage
 from splatoon3_ai_coach.config.paths import resolve_config_path
 from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
+from splatoon3_ai_coach.media.video_source import VideoSource
 from splatoon3_ai_coach.media.vision_manifest import VISION_MANIFEST_FILENAME
 
 console = Console()
@@ -27,6 +28,14 @@ def analyze(
         None,
         "--language",
         help="UI language for text templates/OCR (en|ja). Overrides config.",
+    ),
+    video_source: VideoSource | None = typer.Option(
+        None,
+        "--video-source",
+        help=(
+            "Declared acquisition source: screen_capture | review | hand_capture. "
+            "Review icon may still auto-upgrade unset/screen_capture to review."
+        ),
     ),
     debug_persist_cadence_frames: bool = typer.Option(
         False,
@@ -44,6 +53,7 @@ def analyze(
             config,
             out,
             debug_persist_cadence_frames=debug_persist_cadence_frames,
+            video_source=video_source,
         )
     except (ConfigError, S3CoachError) as exc:
         console.print(f"[red]Error:[/red] {exc}")

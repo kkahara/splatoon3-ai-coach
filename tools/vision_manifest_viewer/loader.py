@@ -161,18 +161,57 @@ def _load_scenario_evidence(analysis_dir: Path) -> list[ScenarioEvidenceView]:
         for item in _read_json_list(analysis_dir / _SCENARIOS_JSON)
         if isinstance(item, dict) and item.get("scenario_id")
     }
+    coaching_by_id = _load_coaching_by_scenario(analysis_dir)
     cards: list[ScenarioEvidenceView] = []
     for ctx in contexts:
         if not isinstance(ctx, dict) or not ctx.get("scenario_id"):
             continue
-        cards.append(_join_scenario_card(str(ctx["scenario_id"]), ctx, scenarios))
+        sid = str(ctx["scenario_id"])
+        cards.append(
+            _join_scenario_card(
+                sid, ctx, scenarios, coaching=coaching_by_id.get(sid)
+            )
+        )
     return cards
+
+
+def _load_coaching_by_scenario(analysis_dir: Path) -> dict[str, dict[str, Any]]:
+    """Load deterministic coaching JSON from coach_prototype/ when present."""
+    root = analysis_dir / "coach_prototype"
+    index_path = root / "coaching_index.json"
+    if not index_path.is_file():
+        return {}
+    try:
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(index, list):
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for row in index:
+        if not isinstance(row, dict) or not row.get("scenario_id"):
+            continue
+        name = row.get("coaching_json")
+        if not isinstance(name, str):
+            continue
+        path = root / name
+        if not path.is_file():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(payload, dict):
+            out[str(row["scenario_id"])] = payload
+    return out
 
 
 def _join_scenario_card(
     scenario_id: str,
     ctx: dict[str, Any],
     scenarios: dict[str, dict[str, Any]],
+    *,
+    coaching: dict[str, Any] | None = None,
 ) -> ScenarioEvidenceView:
     """Attach Scenario times/outcome onto one ScenarioContext record."""
     meta = scenarios.get(scenario_id) or {}
@@ -195,6 +234,7 @@ def _join_scenario_card(
         players=_as_dict(ctx.get("players")),
         special=_as_dict(ctx.get("special")),
         relations=_as_dict(ctx.get("relations")),
+        coaching=coaching,
     )
 
 

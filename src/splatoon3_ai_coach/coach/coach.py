@@ -23,8 +23,11 @@ from splatoon3_ai_coach.coach.prompts import load_system_prompt
 
 _USER_PREAMBLE = (
     "CoachInput JSON follows. Return ONLY a JSON object with keys "
-    "assessment, evidence_used, limitations, recommendations. "
-    "Empty recommendations is valid when evidence is insufficient.\n\n"
+    "assessment, evidence_used, limitations, recommendations, "
+    "selected_claim_ids (optional list). "
+    "Select at most 1–3 claims; empty recommendations and empty "
+    "selected_claim_ids are valid when evidence does not support advice "
+    "or a useful coaching point.\n\n"
 )
 
 
@@ -79,6 +82,7 @@ def annotate_claim_flags(assessment: CoachingAssessment) -> dict[str, Any]:
         "evidence_used": list(assessment.evidence_used),
         "limitations": list(assessment.limitations),
         "recommendations": list(assessment.recommendations),
+        "selected_claim_ids": list(assessment.selected_claim_ids),
     }
     hits: list[dict[str, object]] = []
     for field, value in fields.items():

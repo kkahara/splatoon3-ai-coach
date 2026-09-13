@@ -13,7 +13,13 @@ from loguru import logger
 
 from splatoon3_ai_coach.config.models import AppConfig
 from splatoon3_ai_coach.extraction.sampler import FrameSampler
-from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader
+from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader, VideoMetadata
+from splatoon3_ai_coach.media.video_source import (
+    VideoRunMetadata,
+    VideoSource,
+    analysis_frame_size,
+    build_video_run_metadata,
+)
 from splatoon3_ai_coach.media.video_identity import video_identity
 from splatoon3_ai_coach.media.vision_manifest import (
     hash_vision_config,
@@ -53,6 +59,7 @@ from splatoon3_ai_coach.vision.models import (
 )
 from splatoon3_ai_coach.vision.provenance import detector_version, package_version
 from splatoon3_ai_coach.vision.registry import build_detectors
+from splatoon3_ai_coach.vision.review_icon import ReviewIconTracker
 from splatoon3_ai_coach.vision.stage_maps import (
     MATCH_IDENTITY_FILENAME,
     resolve_stage_map_geometry,
@@ -100,8 +107,12 @@ def run_vision(
     output_dir: Path,
     *,
     debug_persist_cadence_frames: bool = False,
+    video_source: VideoSource | None = None,
 ) -> VisionManifest:
-    """Run cadence-only vision analysis and write a vision manifest."""
+    """Run cadence-only vision analysis and write a vision manifest.
+
+    ``video_source`` overrides ``config.video.source`` when provided (CLI).
+    """
     started = perf_counter()
     vid_identity = video_identity(video)
     vision_sha = hash_vision_config(config.vision)
@@ -112,8 +123,10 @@ def run_vision(
     }
     debug_dir = output_dir / "debug_snapshots" if debug_persist_cadence_frames else None
     map_ctx = _build_map_ink_context(config, output_dir, debug_persist_cadence_frames)
+    declared = video_source if video_source is not None else config.video.source
+    review_tracker = ReviewIconTracker(config.vision.review_icon)
 
-    frame_results, scan_stats, video_duration = _scan_video(
+    frame_results, scan_stats, video_duration, video_meta = _scan_video(
         video,
         config,
         detectors,
@@ -122,6 +135,7 @@ def run_vision(
         debug_dir,
         output_dir,
         map_ctx,
+        review_tracker,
     )
     map_ctx.identity.close_intro(video_duration)
     _persist_map_artifacts(map_ctx, output_dir)
@@ -133,6 +147,29 @@ def run_vision(
         temporal_seconds=perf_counter() - temporal_started,
         total_seconds=perf_counter() - started,
     )
+    if declared is VideoSource.REVIEW and review_tracker.hit is None:
+        logger.warning(
+            "Declared video source=review but Review icon was not detected "
+            "within {:.1f}s (icon may be cropped or late)",
+            config.vision.review_icon.deadline_seconds,
+        )
+    hit = review_tracker.hit
+    aw, ah = analysis_frame_size(
+        video_meta.width,
+        video_meta.height,
+        max_width=config.video.max_width,
+        max_height=config.video.max_height,
+    )
+    run_video = build_video_run_metadata(
+        declared=declared,
+        review_icon_detected=hit is not None,
+        review_icon_video_time=None if hit is None else hit.video_time,
+        review_icon_score=None if hit is None else hit.score,
+        original_width=video_meta.width,
+        original_height=video_meta.height,
+        analysis_width=aw,
+        analysis_height=ah,
+    )
     manifest = _build_manifest(
         analysis_id,
         vid_identity,
@@ -143,6 +180,7 @@ def run_vision(
         game_events,
         timing,
         language=config.vision.language.value,
+        video=run_video,
     )
     save_vision_manifest(manifest, output_dir)
     _log_completion(manifest, timing)
@@ -159,6 +197,7 @@ def observe_cadence_stream(
     debug_dir: Path | None = None,
     output_dir: Path | None = None,
     map_ctx: MapInkScanContext | None = None,
+    review_tracker: ReviewIconTracker | None = None,
 ) -> tuple[list[VisionFrameResult], CadenceScanStats]:
     """Sample a decoded stream at ``cadence_fps`` and run all detectors per frame.
 
@@ -172,6 +211,10 @@ def observe_cadence_stream(
 
     results: list[VisionFrameResult] = []
     for video_frame in sampler.sample(_pulled_frames(frames, stats)):
+        if review_tracker is not None:
+            review_tracker.observe(
+                video_frame.image, video_time=video_frame.timestamp
+            )
         results.append(
             _observe_cadence_frame(
                 video_frame,
@@ -217,14 +260,16 @@ def _scan_video(
     debug_dir: Path | None,
     output_dir: Path,
     map_ctx: MapInkScanContext | None,
-) -> tuple[list[VisionFrameResult], CadenceScanStats, float]:
+    review_tracker: ReviewIconTracker,
+) -> tuple[list[VisionFrameResult], CadenceScanStats, float, VideoMetadata]:
     """Decode the video once and observe cadence frames in memory."""
     with VideoLoader(
         video,
         max_width=config.video.max_width,
         max_height=config.video.max_height,
     ) as loader:
-        duration = loader.open().duration_seconds
+        meta = loader.open()
+        duration = meta.duration_seconds
         results, stats = observe_cadence_stream(
             loader.frames(),
             detectors,
@@ -234,10 +279,11 @@ def _scan_video(
             debug_dir=debug_dir,
             output_dir=output_dir,
             map_ctx=map_ctx,
+            review_tracker=review_tracker,
         )
         stats.decode_seconds = loader.decode_seconds
         stats.decoded_frame_count = loader.decoded_frame_count
-    return results, stats, duration
+    return results, stats, duration, meta
 
 
 def _pulled_frames(
@@ -577,6 +623,7 @@ def _build_manifest(
     timing: VisionTimingMetrics,
     *,
     language: str,
+    video: VideoRunMetadata | None = None,
 ) -> VisionManifest:
     """Assemble the persisted vision manifest."""
     analysis = AnalysisIdentity(
@@ -596,6 +643,7 @@ def _build_manifest(
         state_snapshots=state_snapshots,
         game_events=game_events,
         timing=timing,
+        video=video,
     )
 
 

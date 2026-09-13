@@ -30,6 +30,8 @@ from splatoon3_ai_coach.analysis.scenario_evidence import (
 from splatoon3_ai_coach.analysis.scenario_models import Scenario, ScenarioType
 from splatoon3_ai_coach.analysis.scenarios import event_id
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
+from splatoon3_ai_coach.media.source_capabilities import absence_is_reliable_negative
+from splatoon3_ai_coach.media.video_source import Observability
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
     GameEventType,
@@ -157,12 +159,16 @@ def build_scenario_context(
     scenario: Scenario,
     config: ScenarioBuilderConfig,
     evidence: ScenarioEvidencePack | None = None,
+    *,
+    map_overlay_observability: Observability = Observability.OBSERVABLE,
 ) -> ScenarioContext:
     """Measure facts for one scenario (relations filled by the batch builder)."""
     ordered = _ordered(events)
     timeline = _timeline(ordered, scenario)
     death_episode = _death_episode_context(ordered, scenario)
-    map_ctx = _map_context(ordered, scenario)
+    map_ctx = _map_context(
+        ordered, scenario, map_overlay_observability=map_overlay_observability
+    )
     players = None
     special = None
     snapshots: list[GameStateSnapshot] = []
@@ -228,10 +234,18 @@ def build_scenario_contexts(
     scenarios: list[Scenario],
     config: ScenarioBuilderConfig,
     evidence: ScenarioEvidencePack | None = None,
+    *,
+    map_overlay_observability: Observability = Observability.OBSERVABLE,
 ) -> list[ScenarioContext]:
     """Build contexts then attach semantic engagement↔death-episode relations."""
     contexts = [
-        build_scenario_context(events, scenario, config, evidence=evidence)
+        build_scenario_context(
+            events,
+            scenario,
+            config,
+            evidence=evidence,
+            map_overlay_observability=map_overlay_observability,
+        )
         for scenario in scenarios
     ]
     return _attach_relations(contexts, scenarios, config)
@@ -565,7 +579,12 @@ def _roster_change_before_death(
     return True, float(death_time) - last_change_at
 
 
-def _map_context(events: list[GameEvent], scenario: Scenario) -> MapContext | None:
+def _map_context(
+    events: list[GameEvent],
+    scenario: Scenario,
+    *,
+    map_overlay_observability: Observability = Observability.OBSERVABLE,
+) -> MapContext | None:
     """MAP_OVERLAY counts and optional death-episode / MAP_CHECK fields."""
     if scenario.scenario_type not in _IMPLEMENTED:
         return None
@@ -576,7 +595,12 @@ def _map_context(events: list[GameEvent], scenario: Scenario) -> MapContext | No
         if scenario.start_time <= item.start_time <= scenario.end_time
     ]
     before = [item for item in overlays if item.start_time < scenario.start_time]
-    fields = _death_map_fields(events, scenario, overlays)
+    fields = _death_map_fields(
+        events,
+        scenario,
+        overlays,
+        map_overlay_observability=map_overlay_observability,
+    )
     in_episode = None
     if scenario.scenario_type is ScenarioType.MAP_CHECK:
         in_episode = False
@@ -593,17 +617,24 @@ def _death_map_fields(
     events: list[GameEvent],
     scenario: Scenario,
     overlays: list[GameEvent],
+    *,
+    map_overlay_observability: Observability = Observability.OBSERVABLE,
 ) -> dict:
-    """Death-episode overlay facts. Empty for other types."""
+    """Death-episode overlay facts. Empty for other types.
+
+    When MAP_OVERLAY is not ``observable``, absence stays ``None`` (unknown /
+    not assertable) rather than ``False``.
+    """
     if scenario.scenario_type is not ScenarioType.DEATH_EPISODE:
         return {}
+    reliable_absence = absence_is_reliable_negative(map_overlay_observability)
     death = _event_at(events, GameEventType.DEATH, scenario.start_time)
     if death is None:
         return {
-            "map_check_before_death": False,
+            "map_check_before_death": False if reliable_absence else None,
             "seconds_since_map_check_before_death": None,
             "map_checks_during_death_episode": 0,
-            "map_checked_while_dead": False,
+            "map_checked_while_dead": False if reliable_absence else None,
             "last_map_before_death_event_id": None,
             "map_event_ids_during_episode": [],
         }
@@ -615,10 +646,16 @@ def _death_map_fields(
         overlays, death.start_time, active, next_death
     )
     preceding = _last_before(overlays, death.start_time)
+    before = preceding is not None
+    while_dead = bool(during_events)
     return {
         "map_checks_during_death_episode": len(during_events),
-        "map_checked_while_dead": bool(during_events),
-        "map_check_before_death": preceding is not None,
+        "map_checked_while_dead": (
+            True if while_dead else (False if reliable_absence else None)
+        ),
+        "map_check_before_death": (
+            True if before else (False if reliable_absence else None)
+        ),
         "seconds_since_map_check_before_death": _delta(death, preceding),
         "last_map_before_death_event_id": (
             event_id(preceding) if preceding is not None else None

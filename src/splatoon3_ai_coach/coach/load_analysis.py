@@ -60,14 +60,21 @@ def select_primary_scenario_ids(
     *,
     limit: int,
     prefer: ScenarioType = ScenarioType.DEATH_EPISODE,
+    only_preferred: bool = True,
 ) -> list[str]:
-    """Prefer DEATH_EPISODE units, then fill with other types up to ``limit``."""
+    """Select primary coaching units.
+
+    Default: ``DEATH_EPISODE`` only. ENGAGEMENT / MAP_CHECK stay relation-linked
+    supporting context on CoachInput, not primary units, unless
+    ``only_preferred=False`` (legacy fill with other types after preferred).
+    """
     if limit <= 0:
         return []
     preferred = [s.scenario_id for s in scenarios if s.scenario_type is prefer]
+    if only_preferred:
+        return preferred[:limit]
     others = [s.scenario_id for s in scenarios if s.scenario_type is not prefer]
-    ordered = preferred + others
-    return ordered[:limit]
+    return (preferred + others)[:limit]
 
 
 def _load_scenarios(path: Path) -> list[Scenario]:

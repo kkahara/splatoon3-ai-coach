@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, computed_field
 
 from splatoon3_ai_coach.vision.provenance import PIPELINE_VERSION
+from splatoon3_ai_coach.media.video_source import VideoRunMetadata
 
 FrameSource = Literal["evidence", "cadence"]
 StateQuality = Literal["observed", "smoothed", "held", "unknown"]
@@ -403,3 +404,4 @@ class VisionManifest(BaseModel):
     state_snapshots: list[GameStateSnapshot] = Field(default_factory=list)
     game_events: list[GameEvent] = Field(default_factory=list)
     timing: VisionTimingMetrics | None = None
+    video: VideoRunMetadata | None = None

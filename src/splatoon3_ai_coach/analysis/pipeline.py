@@ -19,6 +19,7 @@ from splatoon3_ai_coach.analysis.scenario_evidence import (
 from splatoon3_ai_coach.analysis.scenario_models import Scenario
 from splatoon3_ai_coach.analysis.scenarios import build_scenarios, format_scenario_timeline
 from splatoon3_ai_coach.config.models import AppConfig
+from splatoon3_ai_coach.media.video_source import Observability, VideoSource
 from splatoon3_ai_coach.vision.map_ink import MAP_OBSERVATIONS_FILENAME, MapObservation
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
@@ -40,6 +41,7 @@ def run_analysis(
     output_dir: Path,
     *,
     debug_persist_cadence_frames: bool = False,
+    video_source: VideoSource | None = None,
 ) -> VisionManifest:
     """Run cadence vision analysis, then derive scenarios from GameEvents."""
     manifest = run_vision(
@@ -47,6 +49,7 @@ def run_analysis(
         config,
         output_dir,
         debug_persist_cadence_frames=debug_persist_cadence_frames,
+        video_source=video_source,
     )
     write_scenarios(
         manifest.game_events,
@@ -104,8 +107,15 @@ def _write_scenario_contexts(
 ) -> list[ScenarioContext]:
     """Persist scenario_contexts.json. Does not change scenarios.json."""
     evidence = load_scenario_evidence_pack(output_dir, manifest=manifest)
+    observability = Observability.OBSERVABLE
+    if manifest is not None and manifest.video is not None:
+        observability = manifest.video.map_overlay_observability
     contexts = build_scenario_contexts(
-        events, scenarios, config.scenarios, evidence=evidence
+        events,
+        scenarios,
+        config.scenarios,
+        evidence=evidence,
+        map_overlay_observability=observability,
     )
     path = output_dir / SCENARIO_CONTEXTS_JSON_FILENAME
     path.write_text(

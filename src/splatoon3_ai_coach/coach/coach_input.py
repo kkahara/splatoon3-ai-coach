@@ -296,6 +296,22 @@ def collect_evidence_limits(
                 ),
             )
         )
+    elif (
+        context.death_episode is not None
+        and context.map is not None
+        and context.map.map_check_before_death is None
+    ):
+        limits.append(
+            EvidenceLimit(
+                code="map_check_unobservable",
+                statement=(
+                    "Map-check evidence is unavailable or not assertable for this "
+                    "video source (unobservable or potentially_observable). "
+                    "Absence of MAP_OVERLAY must not be treated as proof the "
+                    "player did not check the map."
+                ),
+            )
+        )
 
     if scenario.outcome in (ScenarioOutcome.FRAGGED, ScenarioOutcome.DIED):
         limits.append(

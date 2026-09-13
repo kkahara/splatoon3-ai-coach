@@ -1,4 +1,4 @@
-for f in "analysis/2026-09-06 22-35-09/coach_prototype/"*.output.json; do
+for f in "analysis/2026-09-10 15-58-36/coach_prototype/"*reasoning.output.json; do
     echo
     echo "========== $f =========="
     cat "$f"

@@ -1,6 +1,9 @@
 video:
   max_width: 1920
   max_height: 1080
+  # Optional declared acquisition source (screen_capture | review | hand_capture).
+  # Omit to default screen_capture unless the Review icon is auto-detected.
+  # source: screen_capture
 
 paths:
   frame_output: "./frames"
@@ -122,6 +125,13 @@ vision:
     match_threshold: 0.70
     min_usable_confidence: 0.50
     intro_deadline_seconds: 90.0
+  # Early Review chrome (pink TV / replay icon). Acquisition metadata only.
+  review_icon:
+    template_dir: "../calibration/templates/review"
+    # Provisional full-frame search until Review chrome ROI is calibrated.
+    roi: [0.0, 0.0, 1.0, 1.0]
+    match_threshold: 0.72
+    deadline_seconds: 30.0
   # 2D map ink while MAP_OVERLAY is present. Not a GameEvent. Requires resolved
   # match_intro identity + stage geometry pack. Off by default.
   map_ink:
@@ -230,6 +240,8 @@ coach:
   model: gpt-oss:20b
   baseline_model: llama3.1:8b
   ollama_base_url: http://127.0.0.1:11434
+  openai_compatible_base_url: https://integrate.api.nvidia.com/v1
+  nvidia_model: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
   game_clock_max_lookup_gap_seconds: 1.0
   player_count_max_lookup_gap_seconds: 1.0
   player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]
