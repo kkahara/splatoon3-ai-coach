@@ -52,6 +52,7 @@ vision:
   - map_overlay
   - player_count
   - match_intro
+  - ready
   - special_gauge
   hud_cadence_fps: 2.0
   timer:
@@ -171,6 +172,12 @@ vision:
     match_threshold: 0.70
     min_usable_confidence: 0.50
     intro_deadline_seconds: 90.0
+  # Keep in sync with configs/default.yaml. Needed for Ready?-gated team color.
+  ready:
+    roi: [0.390104, 0.450926, 0.541667, 0.567593]
+    template_dir: ../calibration/templates/ready
+    match_threshold: 0.70
+    min_usable_confidence: 0.50
   map_ink:
     enabled: true
     geometry_dir: ../configs/stage_maps

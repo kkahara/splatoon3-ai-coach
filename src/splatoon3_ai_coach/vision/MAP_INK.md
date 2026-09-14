@@ -7,7 +7,8 @@
 | **Event/interval** | Match map is visible | Existing `GameEventType.MAP_OVERLAY` from `MapOverlayDetector` |
 | **Observation** | Sampled 2D ink measurement at a video time | `MapObservation` in `map_observations.json` |
 | **State/value** | Ally/opponent classified fractions | Fields on `MapObservation` |
-| **Region** | Geometric sampling rectangle | `configs/stage_maps/<stage_id>/…` |
+| **Region** | Rectangular sampling ROI (fallback / reference) | `configs/stage_maps/<stage_id>/default.yaml` |
+| **Stage mask** | Playable-stage polygon (preferred sample) | `configs/stage_maps/<stage_id>/stage_mask.yaml` |
 | **Classifier** | Pixels → ally / opponent / other | `MapInkClassifier` (HSV ranges) |
 
 `MAP_OVERLAY` answers: “the map is visible during this interval.”
@@ -29,21 +30,31 @@ Do **not** attribute map X markers to the player’s death location in this phas
 
 ## Geometry
 
-- Default: `configs/stage_maps/<stage_id>/default.yaml`
-- Optional override: `configs/stage_maps/<stage_id>/<battle_mode_id>.yaml`
-- Missing override → stage default; missing default → skip ink for that frame
-- Rectangles are **overlapping sampling regions**, not exact polygons. They may
-  include non-map pixels on purpose so the union covers the paintable map.
-- Aggregate pixel counts use the **union** of regions (overlaps counted once).
-  The classifier decides ally / opponent / other among sampled pixels.
-- No baked vertical scale correction yet — validate ROIs on real game frames.
+- Default sampling ROIs: `configs/stage_maps/<stage_id>/default.yaml`
+- Optional mode override: `configs/stage_maps/<stage_id>/<battle_mode_id>.yaml`
+- Optional **playable-stage mask**: `configs/stage_maps/<stage_id>/stage_mask.yaml`
+  - Normalized polygon vertices in `[0, 1]` (same convention as `roi:`)
+  - Optional `erosion_pixels` (default `0`) after `fillPoly`
+  - Answers only “is this pixel on the stage?” — not ink ownership
+- **Sample mask selection**
+  - If `stage_mask.yaml` exists → measure over the polygon mask
+  - Else → measure over the **union** of R01… rectangles (fallback)
+- Keep `default.yaml` regions even when a mask exists (reference / A/B /
+  tools). Do not delete ROI packs when adding a mask.
+- Aggregate pixel counts use the active sample mask (overlaps counted once for
+  ROI union). The classifier decides ally / opponent / other among sampled
+  pixels.
+- Calibrate polygons with `tools/stage_mask_calibrate.py` (click vertices on a
+  real map-overlay frame; do not invent production coordinates).
+- No baked vertical scale correction yet — validate geometry on real frames.
 
 ## Outputs
 
 - `match_identity.json` — resolved stage/mode (or unresolved / map_ink disabled)
 - `map_observations.json` — sparse list of `MapObservation` (not continuous state)
-- Optional `debug_map_ink/` overlays when diagnostics enabled (white ROI boxes,
-  cyan union contour, green/red ink classes, dim unclassified-in-union)
+- Optional `debug_map_ink/` overlays when diagnostics enabled (white ROI boxes
+  as reference, cyan sample contour = stage polygon or ROI union, green/red
+  ink classes, dim unclassified-in-sample)
 
 ## Limitations
 

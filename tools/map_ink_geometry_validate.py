@@ -30,6 +30,7 @@ from splatoon3_ai_coach.vision.map_ink import (
     write_map_ink_diagnostic,
 )
 from splatoon3_ai_coach.vision.stage_maps import resolve_stage_map_geometry
+from splatoon3_ai_coach.vision.stage_mask import resolve_stage_mask
 
 # ---------------------------------------------------------------------------
 # Explicit knobs (do not bury thresholds in magic literals mid-logic)
@@ -175,12 +176,14 @@ def main() -> int:
             raise SystemExit(f"Missing geometry pack for {stage}")
         stage_results: list[SelectedResult] = []
         for cand in selected[stage]:
+            stage_mask = resolve_stage_mask(GEOMETRY_DIR, stage_id=stage)
             obs = analyze_map_ink(
                 cand.image,
                 geometry,
                 classifier,
                 video_time=float(cand.timestamp or 0.0),
                 battle_mode_id=None,
+                stage_mask=stage_mask,
             )
             stem = _diagnostic_stem(stage, cand)
             out = write_map_ink_diagnostic(
@@ -190,6 +193,7 @@ def main() -> int:
                 geometry=geometry,
                 classifier=classifier,
                 stem=stem,
+                stage_mask=stage_mask,
             )
             # Also persist raw frame for visual geometry review.
             raw_path = DIAG_DIR / f"{stem}_raw.jpg"
@@ -517,12 +521,14 @@ def _diversity_select(
         )
         if geometry is None:
             continue
+        stage_mask = resolve_stage_mask(GEOMETRY_DIR, stage_id=cand.stage_id)
         obs = analyze_map_ink(
             cand.image,
             geometry,
             classifier,
             video_time=float(cand.timestamp or 0.0),
             battle_mode_id=None,
+            stage_mask=stage_mask,
         )
         scored.append((cand, _feature_vector(obs), obs))
     if not scored:

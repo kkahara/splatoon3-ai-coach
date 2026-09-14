@@ -42,8 +42,13 @@ _SLICE_140214 = (
     / "vision_frames"
     / "2026-09-07_14-02-14_190-227.json"
 )
-_CONTEXT_SRC = (
-    _REPO / "src" / "splatoon3_ai_coach" / "analysis" / "scenario_context.py"
+_CONTEXT_SRC_DIR = _REPO / "src" / "splatoon3_ai_coach" / "analysis"
+_CONTEXT_SRC_FILES = (
+    _CONTEXT_SRC_DIR / "scenario_context.py",
+    _CONTEXT_SRC_DIR / "scenario_relations.py",
+    _CONTEXT_SRC_DIR / "death_episode_context.py",
+    _CONTEXT_SRC_DIR / "map_overlay_context.py",
+    _CONTEXT_SRC_DIR / "combat_context.py",
 )
 _COACHING_WORDS = (
     "you should",
@@ -138,13 +143,6 @@ def _contexts(events: list[GameEvent], **cfg: float):
 
 
 def test_context_module_does_not_import_pipeline_or_detectors() -> None:
-    tree = ast.parse(_CONTEXT_SRC.read_text(encoding="utf-8"))
-    modules = {
-        node.module
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module
-    }
-    assert "splatoon3_ai_coach.vision.models" in modules
     forbidden = {
         "splatoon3_ai_coach.vision.events",
         "splatoon3_ai_coach.vision.state",
@@ -155,6 +153,15 @@ def test_context_module_does_not_import_pipeline_or_detectors() -> None:
         "splatoon3_ai_coach.vision.map_overlay",
         "splatoon3_ai_coach.vision.pipeline",
     }
+    modules: set[str] = set()
+    for path in _CONTEXT_SRC_FILES:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        modules.update(
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module
+        )
+    assert "splatoon3_ai_coach.vision.models" in modules
     assert modules.isdisjoint(forbidden)
 
 

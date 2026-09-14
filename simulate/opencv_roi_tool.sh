@@ -2,7 +2,7 @@
 # use a picker
 python3 tools/roi_calibrate.py --name specials_loaded
 # specify a file name
-python3 tools/roi_calibrate.py --name inkblot_art_academy 
+python3 tools/roi_calibrate.py --name ready 
 
 
 # preview to union regions for map ink only
@@ -16,10 +16,17 @@ python tools/roi_visualize.py \
   --roi R02='[0.50,0.20,0.80,0.40]' \
   -o /tmp/rois.jpg
 
-python tools/roi_visualize.py --roi '[0.396875, 0.337037, 0.600000, 0.607407]' -o ./calibration/reference/reverse_roi.jpg
+python tools/roi_visualize.py --roi '[0.385417, 0.461111, 0.614062, 0.570370]' -o ./calibration/reference/reverse_roi.jpg
 python tools/roi_visualize.py --roi '[0.743229, 0.905556, 0.998437, 0.975000]' -o ./calibration/reference/stage_roi.jpg
 
+[0.385417, 0.461111, 0.614062, 0.570370]
 
 # Stage pack (ink-map workflow) — also omit path to pick a frame
 python tools/roi_visualize.py --stage inkblot_art_academy
 python tools/roi_visualize.py --geometry configs/stage_maps/inkblot_art_academy/default.yaml
+
+# Playable-stage polygon mask (normalized). Click vertices on a real map frame.
+# Do not invent production coordinates — calibrate visually, then preview.
+python tools/stage_mask_calibrate.py --stage mahi_mahi_resort path/to/map_overlay_frame.jpg
+python tools/stage_mask_calibrate.py --stage mahi_mahi_resort --view \
+  configs/stage_maps/mahi_mahi_resort/stage_mask.yaml path/to/map_overlay_frame.jpg

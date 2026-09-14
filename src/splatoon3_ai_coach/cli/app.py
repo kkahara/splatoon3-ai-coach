@@ -4,6 +4,7 @@ import typer
 
 from splatoon3_ai_coach.cli.analyze import analyze
 from splatoon3_ai_coach.cli.calibrate import calibrate_timer_command
+from splatoon3_ai_coach.cli.coach_inputs import coach_inputs
 from splatoon3_ai_coach.cli.coach_prototype import coach_prototype
 from splatoon3_ai_coach.cli.coach_reannotate_flags import coach_reannotate_flags
 from splatoon3_ai_coach.cli.extract import extract
@@ -27,5 +28,6 @@ app.command("extract")(extract)
 app.command("analyze")(analyze)
 app.command("calibrate-timer")(calibrate_timer_command)
 app.command("vision-view")(vision_view)
+app.command("coach-inputs")(coach_inputs)
 app.command("coach-prototype")(coach_prototype)
 app.command("coach-reannotate-flags")(coach_reannotate_flags)

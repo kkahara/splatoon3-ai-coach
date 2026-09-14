@@ -1,8 +1,15 @@
-"""Match-level team color calibration from early HUD roster slots.
+"""Match-level team color calibration from Ready?-window HUD roster slots.
 
-Samples saturated pixels in ``player_count`` slot ROIs (geometry only — not
-``PlayerCountDetector``). Latches ally/opponent hue centers after a few
-corroborating frames, then stays immutable for the rest of the match.
+Samples saturated pixels in the timer-adjacent ``player_count`` slot ROIs
+only: **ally-4** (rightmost ally) and **opponent-1** (leftmost opponent)::
+
+    aaaa | timer | oooo
+         ^               ^
+
+The pipeline only feeds frames after ``Ready?`` is seen and before the
+opening clock ticks (5:00 → 4:59). Geometry only — not ``PlayerCountDetector``.
+Latches ally/opponent hue centers after a few corroborating frames, then
+stays immutable for the match.
 """
 
 from __future__ import annotations
@@ -17,10 +24,13 @@ from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig, PlayerCountDe
 from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.vision.roi import crop_roi
 
+# 1-based HUD indices: ally-4 and opponent-1 (closest to the center timer).
+_ALLY_SLOT_1BASED = 4
+_OPPONENT_SLOT_1BASED = 1
 _MIN_PIXELS_PER_SLOT = 10
 _MIN_PIXELS_SIDE = 40
 _MAX_WITHIN_SIDE_SPREAD = 20.0
-_SOURCE = "hud_roster_slots"
+_SOURCE = "ready_hud_timer_adjacent_slots"
 
 
 @dataclass(frozen=True)
@@ -116,10 +126,14 @@ class TeamColorCalibrator:
         map_ink: MapInkAnalyzerConfig,
         player_count: PlayerCountDetectorConfig,
     ) -> TeamColorCalibrator:
-        """Build calibrator from map-ink knobs + player-count slot geometry."""
+        """Build calibrator from map-ink knobs + timer-adjacent slot geometry."""
+        ally_slots = _select_slot(player_count.ally_slots, _ALLY_SLOT_1BASED, "ally")
+        opponent_slots = _select_slot(
+            player_count.opponent_slots, _OPPONENT_SLOT_1BASED, "opponent"
+        )
         return cls(
-            ally_slots=list(player_count.ally_slots),
-            opponent_slots=list(player_count.opponent_slots),
+            ally_slots=ally_slots,
+            opponent_slots=opponent_slots,
             window_seconds=float(map_ink.calibration_window_seconds),
             min_accepted_frames=int(map_ink.min_accepted_frames),
             min_hue_separation=float(map_ink.min_hue_separation),
@@ -234,3 +248,17 @@ class TeamColorCalibrator:
         return all(
             circular_hue_distance(float(h), med) <= self.max_within_side_spread for h in hues
         )
+
+
+def _select_slot(
+    slots: list[NormalizedBox],
+    index_1based: int,
+    side: str,
+) -> list[NormalizedBox]:
+    """Return the single configured slot at ``index_1based`` (ally-4 / opp-1)."""
+    if index_1based < 1 or index_1based > len(slots):
+        raise ValueError(
+            f"team color calibration needs {side}-{index_1based}, "
+            f"but only {len(slots)} {side} slot(s) are configured"
+        )
+    return [slots[index_1based - 1]]

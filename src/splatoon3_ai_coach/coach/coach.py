@@ -1,4 +1,4 @@
-"""Generate structured coaching assessments from CoachInput evidence."""
+"""Generate structured coaching assessments from CoachInput / CoachLlmView."""
 
 from __future__ import annotations
 
@@ -19,10 +19,22 @@ from splatoon3_ai_coach.coach.llm_client import (
     CoachingOutput,
     LLMProvider,
 )
+from splatoon3_ai_coach.coach.llm_view import CoachLlmView
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
 
-_USER_PREAMBLE = (
+_USER_PREAMBLE_COACH_INPUT = (
     "CoachInput JSON follows. Return ONLY a JSON object with keys "
+    "assessment, evidence_used, limitations, recommendations, "
+    "selected_claim_ids (optional list). "
+    "Select at most 1–3 claims; empty recommendations and empty "
+    "selected_claim_ids are valid when evidence does not support advice "
+    "or a useful coaching point.\n\n"
+)
+
+_USER_PREAMBLE_LLM_VIEW = (
+    "CoachLlmView JSON follows (compact projection of CoachInput evidence). "
+    "Cite source_path audit references when listing evidence_used. Omitted "
+    "fields mean unavailable, not false. Return ONLY a JSON object with keys "
     "assessment, evidence_used, limitations, recommendations, "
     "selected_claim_ids (optional list). "
     "Select at most 1–3 claims; empty recommendations and empty "
@@ -32,10 +44,17 @@ _USER_PREAMBLE = (
 
 
 def serialize_coach_input_user_prompt(coach_input: CoachInput) -> str:
-    """Stable byte-identical user prompt for multi-model comparison."""
+    """Stable byte-identical full CoachInput user prompt (debug / legacy)."""
     payload = coach_input.model_dump(mode="json")
     body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return _USER_PREAMBLE + body
+    return _USER_PREAMBLE_COACH_INPUT + body
+
+
+def serialize_llm_view_user_prompt(view: CoachLlmView) -> str:
+    """Stable byte-identical CoachLlmView user prompt for LLM complete()."""
+    payload = view.model_dump(mode="json")
+    body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return _USER_PREAMBLE_LLM_VIEW + body
 
 
 def generate_coaching_assessment(
@@ -44,18 +63,21 @@ def generate_coaching_assessment(
     *,
     system_prompt: str | None = None,
     user_prompt: str | None = None,
+    llm_view: CoachLlmView | None = None,
 ) -> CoachingAssessment:
-    """Run one model on one CoachInput and parse a CoachingAssessment.
+    """Run one model on one coaching unit and parse a CoachingAssessment.
 
-    Pass the same ``system_prompt`` and ``user_prompt`` bytes to every model
-    under comparison. When omitted, they are loaded/serialized here.
+    Prefer ``llm_view`` (or a prebuilt ``user_prompt``) for production path.
+    When ``user_prompt`` is omitted and ``llm_view`` is set, serialize the view.
+    Otherwise fall back to full CoachInput serialization (legacy/debug).
     """
     system = system_prompt if system_prompt is not None else load_system_prompt()
-    user = (
-        user_prompt
-        if user_prompt is not None
-        else serialize_coach_input_user_prompt(coach_input)
-    )
+    if user_prompt is not None:
+        user = user_prompt
+    elif llm_view is not None:
+        user = serialize_llm_view_user_prompt(llm_view)
+    else:
+        user = serialize_coach_input_user_prompt(coach_input)
     logger.info(
         "Generating coaching assessment for {} via {}",
         coach_input.primary_scenario.scenario_id,

@@ -156,15 +156,22 @@ def test_death_ouch_and_splatted_load_only_language_templates() -> None:
         DeathDetectorConfig(template_dir=_DEATH),
         language=VisionLanguage.JA,
     )
-    assert len(en._ouch_templates) == len(list((_DEATH / "ouch" / "en").glob("*")))
-    assert len(ja._ouch_templates) == len(list((_DEATH / "ouch" / "ja").glob("*")))
-    assert len(en._banner_templates) == len(
-        list((_DEATH / "splatted" / "en").glob("*"))
-    )
-    assert len(ja._banner_templates) == len(
-        list((_DEATH / "splatted" / "ja").glob("*"))
-    )
-    assert len(en._ouch_templates) != len(ja._ouch_templates)
+
+    def _image_count(folder: Path) -> int:
+        return sum(
+            1
+            for path in folder.glob("*")
+            if path.suffix.lower() in {".png", ".jpg", ".jpeg"}
+        )
+
+    assert len(en._ouch_templates) == _image_count(_DEATH / "ouch" / "en")
+    assert len(ja._ouch_templates) == _image_count(_DEATH / "ouch" / "ja")
+    assert len(en._banner_templates) == _image_count(_DEATH / "splatted" / "en")
+    assert len(ja._banner_templates) == _image_count(_DEATH / "splatted" / "ja")
+    assert en._ouch_templates  # language-resolved load succeeded
+    assert ja._ouch_templates
+    assert en._banner_templates
+    assert ja._banner_templates
 
 
 def test_registry_propagates_single_language(timer_template_dir: Path) -> None:

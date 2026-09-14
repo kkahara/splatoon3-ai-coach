@@ -186,6 +186,18 @@ class MatchIntroReading(BaseModel):
     battle_mode_template_score: float = Field(default=0.0, ge=0, le=1)
 
 
+class ReadyReading(BaseModel):
+    """Per-frame pre-match ``Ready?`` plate observation.
+
+    Not a GameEvent. ``present`` means the centered Ready? glyph matched.
+    Temporal search window (stage known → first clock tick) is pipeline policy.
+    """
+
+    kind: Literal["ready"] = "ready"
+    present: bool = False
+    template_score: float = Field(default=0.0, ge=0, le=1)
+
+
 class PlayerCountReading(BaseModel):
     """Per-frame HUD roster-X observations. Detector evidence only.
 
@@ -243,6 +255,7 @@ Reading = Annotated[
     | ActiveGameplayReading
     | MapOverlayReading
     | MatchIntroReading
+    | ReadyReading
     | PlayerCountReading
     | SpecialGaugeReading,
     Field(discriminator="kind"),
@@ -373,6 +386,8 @@ class VisionTimingMetrics(BaseModel):
     map_overlay_detector_seconds: float = Field(default=0.0, ge=0)
     player_count_detector_seconds: float = Field(default=0.0, ge=0)
     special_gauge_detector_seconds: float = Field(default=0.0, ge=0)
+    ready_detector_seconds: float = Field(default=0.0, ge=0)
+    match_intro_detector_seconds: float = Field(default=0.0, ge=0)
     timer_detector_invocations: int = Field(default=0, ge=0)
     death_detector_invocations: int = Field(default=0, ge=0)
     splat_detector_invocations: int = Field(default=0, ge=0)
@@ -381,6 +396,8 @@ class VisionTimingMetrics(BaseModel):
     map_overlay_detector_invocations: int = Field(default=0, ge=0)
     player_count_detector_invocations: int = Field(default=0, ge=0)
     special_gauge_detector_invocations: int = Field(default=0, ge=0)
+    ready_detector_invocations: int = Field(default=0, ge=0)
+    match_intro_detector_invocations: int = Field(default=0, ge=0)
     temporal_seconds: float = Field(ge=0)
     total_seconds: float = Field(ge=0)
 

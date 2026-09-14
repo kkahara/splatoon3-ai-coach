@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from splatoon3_ai_coach.cli.coach_prototype import _build_llm_runs
+from splatoon3_ai_coach.coach.llm_runs import _build_llm_runs
 from splatoon3_ai_coach.coach.llm_client import (
     OllamaProvider,
     OpenAICompatibleProvider,

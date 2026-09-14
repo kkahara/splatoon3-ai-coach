@@ -5,15 +5,17 @@
 map is visible. Ink fractions are classified pixel ratios — not continuous
 state, not interpolated, and not an ``INK_COVERAGE_CHANGED`` event.
 
-Stage geometry rectangles are **overlapping sampling regions**. Aggregate
-counts use the **union** of those rectangles so overlapping pixels are counted
-once. The classifier still decides which sampled pixels are ally/opponent/other.
+Sample geometry: when a stage ``stage_mask.yaml`` is provided, aggregates use
+the filled playable-stage polygon. Otherwise aggregates use the **union** of
+overlapping sampling rectangles from the stage pack. The classifier still
+decides which sampled pixels are ally/opponent/other.
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Literal
 
 import cv2
 import numpy as np
@@ -23,10 +25,13 @@ from pydantic import BaseModel, Field
 from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
 from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
+from splatoon3_ai_coach.vision.stage_mask import StageMaskConfig, stage_mask_to_bool
 from splatoon3_ai_coach.vision.team_color_calibration import (
     ColorProfile,
     TeamColorCalibrationResult,
 )
+
+SampleMaskSource = Literal["stage_mask", "roi_union"]
 
 MAP_OBSERVATIONS_FILENAME = "map_observations.json"
 
@@ -53,7 +58,7 @@ class MapObservation(BaseModel):
     """Sampled 2D map ink state at one video time.
 
     Not a ``GameEvent``. Does not imply ink state at other times.
-    Aggregate fractions use the deduplicated union of sampling regions.
+    Aggregate fractions use the active sample mask (stage polygon or ROI union).
     """
 
     video_time: float = Field(ge=0)
@@ -63,7 +68,7 @@ class MapObservation(BaseModel):
     opponent_classified_fraction: float | None = None
     classified_fraction: float | None = None
     confidence: float = Field(default=0.0, ge=0, le=1)
-    # Union pixel totals (overlaps counted once).
+    # Sample-mask pixel totals (overlaps counted once for ROI union).
     total_sample_pixels: int = Field(default=0, ge=0)
     classified_pixels: int = Field(default=0, ge=0)
     ally_ink_pixels: int = Field(default=0, ge=0)
@@ -72,6 +77,7 @@ class MapObservation(BaseModel):
     regions: list[MapRegionObservation] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
     geometry_battle_mode_id: str | None = None
+    sample_mask_source: SampleMaskSource = "roi_union"
 
 
 class MapInkClassifier:
@@ -112,6 +118,12 @@ class MapInkClassifier:
             v_min=v_min,
         )
         self._calibration = result
+
+    def clear_calibration(self) -> None:
+        """Drop latched profiles (Ready? miss → discard match colors)."""
+        self._calibration = None
+        self._ally_profile = None
+        self._opponent_profile = None
 
     def classify_bgr(self, image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return boolean masks ``(ally, opponent, other)`` for a BGR crop."""
@@ -183,23 +195,25 @@ def analyze_map_ink(
     video_time: float,
     battle_mode_id: str | None,
     evidence_ids: list[str] | None = None,
+    stage_mask: StageMaskConfig | None = None,
 ) -> MapObservation:
-    """Measure classified ink fractions over the union of sampling regions.
+    """Measure classified ink fractions over the active sample mask.
 
-    Rectangles may overlap non-map pixels and each other on purpose. Overlaps
-    are deduplicated in the aggregate; the classifier decides usable ink pixels.
+    When ``stage_mask`` is set, the sample is the playable-stage polygon.
+    Otherwise the sample is the union of sampling rectangles (fallback).
+    Classification is unchanged; only which pixels enter the denominator.
     """
     height, width = image.shape[:2]
-    union = _union_region_mask(height, width, geometry.regions)
+    sample, source = _sample_mask(height, width, geometry, stage_mask)
     ally_full, opponent_full, other_full = classifier.classify_bgr(image)
-    ally_u = ally_full & union
-    opponent_u = opponent_full & union
-    other_u = other_full & union
+    ally_u = ally_full & sample
+    opponent_u = opponent_full & sample
+    other_u = other_full & sample
     ally_n = int(np.count_nonzero(ally_u))
     opponent_n = int(np.count_nonzero(opponent_u))
     other_n = int(np.count_nonzero(other_u))
     classified = ally_n + opponent_n
-    total = int(np.count_nonzero(union))
+    total = int(np.count_nonzero(sample))
     ally_frac, opponent_frac = _fractions(ally_n, opponent_n, classified)
     classified_frac = None if total <= 0 else classified / float(total)
     region_obs = [
@@ -223,7 +237,20 @@ def analyze_map_ink(
         regions=region_obs,
         evidence_ids=list(evidence_ids or []),
         geometry_battle_mode_id=geometry.battle_mode_id,
+        sample_mask_source=source,
     )
+
+
+def _sample_mask(
+    height: int,
+    width: int,
+    geometry: StageMapGeometry,
+    stage_mask: StageMaskConfig | None,
+) -> tuple[np.ndarray, SampleMaskSource]:
+    """Prefer stage polygon mask; fall back to ROI-region union."""
+    if stage_mask is not None:
+        return stage_mask_to_bool(stage_mask, height, width), "stage_mask"
+    return _union_region_mask(height, width, geometry.regions), "roi_union"
 
 
 def _union_region_mask(
@@ -322,19 +349,21 @@ def write_map_ink_diagnostic(
     geometry: StageMapGeometry,
     classifier: MapInkClassifier,
     stem: str | None = None,
+    stage_mask: StageMaskConfig | None = None,
 ) -> Path:
     """Save geometry + classification overlay for one map observation.
 
-    Distinguishes rectangle boundaries, union sample area, ally / opponent /
-    unclassified pixels inside the union. Writes under ``debug_map_ink/``.
+    Distinguishes rectangle boundaries (reference), sample mask outline, ally /
+    opponent / unclassified pixels inside the sample. Writes under
+    ``debug_map_ink/``.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     height, width = image.shape[:2]
-    union = _union_region_mask(height, width, geometry.regions)
+    sample, _source = _sample_mask(height, width, geometry, stage_mask)
     ally_full, opponent_full, other_full = classifier.classify_bgr(image)
-    ally_u = ally_full & union
-    opponent_u = opponent_full & union
-    other_u = other_full & union
+    ally_u = ally_full & sample
+    opponent_u = opponent_full & sample
+    other_u = other_full & sample
 
     canvas = image.copy()
     # Unclassified sample area first (dim), then ink classes on top.
@@ -348,12 +377,12 @@ def write_map_ink_diagnostic(
         canvas[opponent_u].astype(np.float32) * 0.35 + np.array([40, 40, 220], dtype=np.float32) * 0.65
     ).astype(np.uint8)
 
-    # Union boundary (thick cyan) — separate from per-rectangle boxes.
-    union_u8 = (union.astype(np.uint8) * 255)
-    contours, _ = cv2.findContours(union_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Sample boundary (thick cyan) — polygon or ROI union.
+    sample_u8 = (sample.astype(np.uint8) * 255)
+    contours, _ = cv2.findContours(sample_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(canvas, contours, -1, (255, 220, 0), 2)
 
-    # Individual sampling rectangles (thin white) + region ids.
+    # Individual sampling rectangles (thin white) + region ids (reference).
     for region in geometry.regions:
         left, top, right, bottom = _pixel_box(region.roi, width, height)
         cv2.rectangle(canvas, (left, top), (right, bottom), (255, 255, 255), 1)
@@ -377,19 +406,25 @@ def write_map_ink_diagnostic(
 
 def _draw_map_ink_legend(canvas: np.ndarray, observation: MapObservation) -> None:
     """HUD legend for diagnostic colors and key fractions."""
+    mask_label = (
+        "cyan outline = stage polygon"
+        if observation.sample_mask_source == "stage_mask"
+        else "cyan outline = ROI union"
+    )
     lines = [
-        "white box = region ROI",
-        "cyan outline = union sample",
+        "white box = region ROI (reference)",
+        mask_label,
+        f"sample_mask={observation.sample_mask_source}",
         "green = ally class",
         "red = opponent class",
-        "dim = unclassified in union",
+        "dim = unclassified in sample",
         (
             f"classified_frac="
             f"{observation.classified_fraction:.3f}"
             if observation.classified_fraction is not None
             else "classified_frac=n/a"
         ),
-        f"union={observation.total_sample_pixels} cls={observation.classified_pixels}",
+        f"sample={observation.total_sample_pixels} cls={observation.classified_pixels}",
     ]
     x, y0 = 12, 28
     for index, line in enumerate(lines):

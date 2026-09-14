@@ -1,4 +1,9 @@
-"""Registry of available vision detectors."""
+"""Registry of available vision detectors.
+
+Name → constructor switch for ``vision.enabled_detectors`` only. Trackers /
+associators (and splat-style fusers) are constructed separately — they are not
+``enabled_detectors`` GameEvent emitters.
+"""
 
 from splatoon3_ai_coach.config.models import VisionConfig
 from splatoon3_ai_coach.vision.active_gameplay import ActiveGameplayDetector
@@ -7,6 +12,7 @@ from splatoon3_ai_coach.vision.death import DeathDetector
 from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
 from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
 from splatoon3_ai_coach.vision.player_count import PlayerCountDetector
+from splatoon3_ai_coach.vision.ready import ReadyDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
@@ -63,6 +69,19 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             MatchIntroDetector(
                 config.match_intro,
+                language=config.language,
+                cadence_fps=config.hud_cadence_fps,
+            )
+        )
+    if "ready" in config.enabled_detectors:
+        if config.ready is None:
+            raise ValueError(
+                "vision.ready config is required when 'ready' is in enabled_detectors "
+                "(set roi/template_dir in YAML)"
+            )
+        detectors.append(
+            ReadyDetector(
+                config.ready,
                 language=config.language,
                 cadence_fps=config.hud_cadence_fps,
             )

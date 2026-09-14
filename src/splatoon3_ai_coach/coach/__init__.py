@@ -2,12 +2,19 @@ from splatoon3_ai_coach.coach.claim_catalog import (
     ClaimId,
     CoachingPoint,
     CoachingUnitResult,
+    DeathImportanceFactorId,
     SupportingEvidenceItem,
 )
-from splatoon3_ai_coach.coach.claim_selection import (
-    eligible_claim_ids,
+from splatoon3_ai_coach.coach.coaching_candidates import (
+    CoachingCandidate,
+    ImportanceFactorContribution,
+    active_factor_ids,
+    rank_candidates,
+)
+from splatoon3_ai_coach.coach.death_importance import (
+    detect_death_importance_factors,
     resolve_match_duration_seconds,
-    select_coaching_unit,
+    score_death_candidate,
 )
 from splatoon3_ai_coach.coach.coach import (
     annotate_claim_flags,
@@ -15,6 +22,7 @@ from splatoon3_ai_coach.coach.coach import (
     generate_coaching_assessment,
     parse_coaching_assessment,
     serialize_coach_input_user_prompt,
+    serialize_llm_view_user_prompt,
 )
 from splatoon3_ai_coach.coach.coach_input import (
     CoachInput,
@@ -27,6 +35,12 @@ from splatoon3_ai_coach.coach.coach_input import (
     attach_game_clock_to_event_times,
     build_coach_input_for_scenario,
     collect_evidence_limits,
+)
+from splatoon3_ai_coach.coach.llm_view import (
+    CoachLlmView,
+    LlmFact,
+    build_coach_llm_view,
+    build_death_llm_view,
 )
 from splatoon3_ai_coach.coach.evidence_contract import (
     ClaimSupport,
@@ -78,16 +92,21 @@ __all__ = [
     "ClaimSupport",
     "CoachAnalysisBundle",
     "CoachInput",
+    "CoachLlmView",
     "CoachingAssessment",
+    "CoachingCandidate",
     "CoachingOutput",
     "CoachingPoint",
     "CoachingUnitResult",
+    "DeathImportanceFactorId",
     "EvidenceClass",
     "EvidenceLimit",
     "GameClock",
     "GameClockObservation",
     "GameClockSample",
+    "ImportanceFactorContribution",
     "LLMProvider",
+    "LlmFact",
     "OllamaProvider",
     "OpenAICompatibleProvider",
     "PlayerCountClock",
@@ -98,9 +117,12 @@ __all__ = [
     "PlayerCountWindowPoint",
     "RelatedScenarioEvidence",
     "SupportingEvidenceItem",
+    "active_factor_ids",
     "annotate_claim_flags",
     "attach_game_clock_to_event_times",
     "build_coach_input_for_scenario",
+    "build_coach_llm_view",
+    "build_death_llm_view",
     "build_game_clock",
     "build_player_count_clock",
     "claim_contains_prohibited_language",
@@ -108,7 +130,7 @@ __all__ = [
     "death_lifecycle_statements",
     "describe_leads_to_association",
     "describe_trade_candidate",
-    "eligible_claim_ids",
+    "detect_death_importance_factors",
     "engagement_observation_statements",
     "engagement_proves_complete_fight",
     "evidence_contract_summary",
@@ -127,8 +149,10 @@ __all__ = [
     "numbers_differential",
     "numbers_state",
     "parse_coaching_assessment",
+    "rank_candidates",
     "resolve_match_duration_seconds",
-    "select_coaching_unit",
+    "score_death_candidate",
     "select_primary_scenario_ids",
     "serialize_coach_input_user_prompt",
+    "serialize_llm_view_user_prompt",
 ]

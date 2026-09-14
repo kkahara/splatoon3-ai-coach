@@ -32,6 +32,7 @@ from splatoon3_ai_coach.vision.stage_maps import (
     load_stage_map_geometry,
     resolve_stage_map_geometry,
 )
+from splatoon3_ai_coach.vision.stage_mask import resolve_stage_mask
 
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = REPO / "analysis" / "map_ink_validation" / "debug_map_ink"
@@ -116,6 +117,10 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
 
         image = load_frame(path, args.time)
+        stage_mask = resolve_stage_mask(
+            config.vision.map_ink.geometry_dir,
+            stage_id=geometry.stage_id,
+        )
         classifier = MapInkClassifier(config.vision.map_ink)
         observation = analyze_map_ink(
             image,
@@ -124,6 +129,7 @@ def main(argv: list[str] | None = None) -> int:
             video_time=float(args.time or 0.0),
             battle_mode_id=args.mode or geometry.battle_mode_id,
             evidence_ids=[f"preview:{path.name}"],
+            stage_mask=stage_mask,
         )
 
         if args.output is not None:
@@ -141,11 +147,13 @@ def main(argv: list[str] | None = None) -> int:
             geometry=geometry,
             classifier=classifier,
             stem=stem,
+            stage_mask=stage_mask,
         )
         region_ids = ", ".join(r.id for r in geometry.regions)
         print(f"Stage: {geometry.stage_id}")
         print(f"Regions: {region_ids}")
-        print(f"Union pixels: {observation.total_sample_pixels}")
+        print(f"Sample mask: {observation.sample_mask_source}")
+        print(f"Sample pixels: {observation.total_sample_pixels}")
         print(f"Wrote: {written}")
     except ValueError as exc:
         print(str(exc), file=sys.stderr)

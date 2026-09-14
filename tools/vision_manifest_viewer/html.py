@@ -923,16 +923,30 @@ function renderScenarioCard(card, index) {
 function renderCoachingBlock(card) {
   const unit = card.coaching;
   if (!unit) return "";
-  const points = unit.coaching_points || [];
+  const factors = (unit.factors || []).filter((f) => f.active);
   const support = unit.supporting_evidence || [];
   const dev = state.coachDevMode;
+  const scoreLine = (unit.importance_score !== undefined)
+    ? `<p class="howto">importance_score: ${esc(String(unit.importance_score))} · rank: ${esc(String(unit.rank))} · selected_for_llm: ${esc(String(unit.selected_for_llm))}</p>`
+    : "";
   let body = "";
-  if (!points.length) {
+  if (!factors.length) {
     body = dev
-      ? `<p class="howto">coaching_points: []</p>`
-      : `<p><strong>Coaching</strong><br/>No coaching point selected for this scenario.</p>`;
+      ? `<p class="howto">active factors: []</p>`
+      : `<p><strong>Importance factors</strong><br/>(none active)</p>`;
   } else {
-    body = points.map((p) => renderCoachingPoint(p, dev)).join("");
+    body = factors.map((f) => {
+      const stmt = f.statement_player
+        ? `<div><strong>Statement</strong><br/>${esc(f.statement_player)}</div>`
+        : "";
+      const interp = f.interpretation
+        ? `<div><strong>Interpretation</strong><br/>${esc(f.interpretation)}</div>`
+        : "";
+      const rec = f.recommendation
+        ? `<div><strong>Recommendation</strong><br/>${esc(f.recommendation)}</div>`
+        : "";
+      return `<div class="meta"><code>${esc(f.factor_id)}</code> +${esc(String(f.contribution))}${stmt}${interp}${rec}</div>`;
+    }).join("");
   }
   const supportHtml = support.length
     ? `<div class="meta"><strong>Supporting evidence</strong><ul>${
@@ -942,12 +956,9 @@ function renderCoachingBlock(card) {
         }).join("")
       }</ul></div>`
     : "";
-  const eligible = dev && unit.eligible_claim_ids
-    ? `<p class="howto">eligible: ${esc(JSON.stringify(unit.eligible_claim_ids))}</p>`
-    : "";
   return `<div class="scenario-members">
     <h2>Coaching</h2>
-    ${eligible}
+    ${scoreLine}
     ${body}
     ${supportHtml}
   </div>`;

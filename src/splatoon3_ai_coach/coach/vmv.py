@@ -4,79 +4,94 @@ from __future__ import annotations
 
 from splatoon3_ai_coach.coach.claim_catalog import (
     NO_RECOMMENDATION_MESSAGE,
-    CoachingPoint,
     CoachingUnitResult,
 )
+from splatoon3_ai_coach.coach.coaching_candidates import ImportanceFactorContribution
 
 
 def format_vmv_player(result: CoachingUnitResult) -> str:
-    """Player-facing card(s); uses 'No recommendation…' when advice is empty."""
+    """Player-facing view: score, active factors, supporting evidence."""
     header = (
-        f"{result.scenario_type} @ {_fmt_mmss(result.video_time)}\n"
+        f"{result.candidate_type} @ {_fmt_mmss(result.video_time)}\n"
     )
-    if not result.coaching_points:
+    active = [f for f in result.factors if f.active]
+    if not result.selected_for_llm:
         body = (
             "Coaching\n"
-            "  No coaching point selected for this scenario.\n\n"
+            "  Not selected for LLM (below top-N importance rank).\n\n"
+            f"{_score_block(result)}\n\n"
+            f"{_factors_block_player(active)}\n\n"
             f"{_support_block(result)}"
         )
         return header + "\n" + body.strip() + "\n"
 
-    blocks = [header]
-    for point in result.coaching_points:
-        blocks.append(_player_point(point))
-        blocks.append("")
-    blocks.append(_support_block(result))
+    blocks = [
+        header,
+        _score_block(result),
+        "",
+        _factors_block_player(active),
+        "",
+        _support_block(result),
+    ]
     return "\n".join(blocks).rstrip() + "\n"
 
 
 def format_vmv_developer(result: CoachingUnitResult) -> str:
-    """Developer/eval view with claim IDs and explicit null triad fields."""
+    """Developer/eval view with scores, factors, and supporting evidence."""
     lines = [
-        f"{result.scenario_type} @ {_fmt_mmss(result.video_time)}",
-        f"scenario_id: {result.scenario_id}",
-        f"eligible: {[cid.value for cid in result.eligible_claim_ids]}",
+        f"{result.candidate_type} @ {_fmt_mmss(result.video_time)}",
+        f"candidate_id: {result.candidate_id}",
+        f"candidate_type: {result.candidate_type}",
+        f"importance_score: {result.importance_score}",
+        f"rank: {result.rank}",
+        f"selected_for_llm: {result.selected_for_llm}",
         f"match_duration_seconds: {result.match_duration_seconds}",
         "",
+        "factors:",
     ]
-    if not result.coaching_points:
-        lines.append("coaching_points: []")
-        lines.append("")
-        lines.append(_support_block_dev(result))
-        return "\n".join(lines).rstrip() + "\n"
-
-    for point in result.coaching_points:
-        lines.extend(
-            [
-                f"Claim: {point.claim_id.value}",
-                f"Statement: {point.statement}",
-                f"statement_internal: {point.statement_internal}",
-                f"Interpretation: {_null(point.interpretation)}",
-                f"Recommendation: {_null(point.recommendation)}",
-                f"evidence_paths: {point.evidence_paths}",
-                "",
-            ]
+    for factor in result.factors:
+        mark = "active" if factor.active else "inactive"
+        lines.append(
+            f"  - {factor.factor_id}: {mark} "
+            f"weight={factor.weight} contribution={factor.contribution}"
         )
+        if factor.active and factor.statement_player:
+            lines.append(f"    statement: {factor.statement_player}")
+            lines.append(f"    statement_internal: {_null(factor.statement_internal)}")
+            lines.append(f"    interpretation: {_null(factor.interpretation)}")
+            lines.append(f"    recommendation: {_null(factor.recommendation)}")
+    lines.append("")
     lines.append(_support_block_dev(result))
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _player_point(point: CoachingPoint) -> str:
-    lines = [
-        "Statement",
-        f"  {point.statement}",
-        "",
-    ]
-    if point.interpretation or point.recommendation:
-        if point.interpretation:
-            lines.extend(["Interpretation", f"  {point.interpretation}", ""])
-        if point.recommendation:
-            lines.extend(["Recommendation", f"  {point.recommendation}"])
-        else:
-            lines.extend(["Coaching", f"  {NO_RECOMMENDATION_MESSAGE}"])
-    else:
-        lines.extend(["Coaching", f"  {NO_RECOMMENDATION_MESSAGE}"])
-    return "\n".join(lines).rstrip()
+def _score_block(result: CoachingUnitResult) -> str:
+    return (
+        "Importance\n"
+        f"  score: {result.importance_score}\n"
+        f"  rank: {result.rank}\n"
+        f"  selected_for_llm: {result.selected_for_llm}"
+    )
+
+
+def _factors_block_player(active: list[ImportanceFactorContribution]) -> str:
+    lines = ["Importance factors"]
+    if not active:
+        lines.append("  (none active)")
+        return "\n".join(lines)
+    for factor in active:
+        lines.append(f"  • {factor.factor_id}: +{factor.contribution}")
+        if factor.statement_player:
+            lines.append(f"      {factor.statement_player}")
+        if factor.interpretation:
+            lines.append(f"      Interpretation: {factor.interpretation}")
+        if factor.recommendation:
+            lines.append(f"      Recommendation: {factor.recommendation}")
+        elif factor.statement_player and factor.recommendation is None:
+            # Statement-only factors (e.g. special ready).
+            if factor.interpretation is None:
+                lines.append(f"      Coaching: {NO_RECOMMENDATION_MESSAGE}")
+    return "\n".join(lines)
 
 
 def _support_block(result: CoachingUnitResult) -> str:

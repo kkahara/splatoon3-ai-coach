@@ -18,6 +18,22 @@ Dependency direction is one-way:
 | Analysis | `analysis/` | `GameSession`, metrics, scenarios, ScenarioContext |
 | Coach | `coach/` | Evidence-constrained LLM coaching |
 
+### Future vision layers
+
+Extension path without rewriting the pipeline contract:
+
+- **Detector** = per-frame `Reading` only (`BaseDetector.detect`); no phase/death
+  policy; no track IDs as identity of GameEvents.
+- **Tracker / associator** (`BaseTracker`) = sibling to splat-style fusers
+  (temporal identity across frames); lives under `vision/` but **not** inside
+  `detect()` and **not** registered as `enabled_detectors`.
+- **Secondary spatial evidence** (YOLO boxes, depth, segmentation masks) =
+  readings or sparse artifacts → ScenarioContext / CoachInput later; do **not**
+  invent Scenario types for them until the evidence contract allows.
+- Match side-effects (Ready gate, team color, map ink) stay co-located; map ink
+  is not an `enabled_detectors` entry.
+- Training assets stay under `training/` at the repo root.
+
 ## Scenario / evidence freeze
 
 The Scenario **ownership** layer (`analysis/scenarios.py`, `Scenario.event_ids`,
@@ -119,11 +135,12 @@ Coaching consumes **one unit** at a time via `coach.coach_input.CoachInput`:
 Prototype path (does not reopen evidence builders):
 
 ```text
-CoachInput → Ollama (gpt-oss:20b / llama3.1:8b) → CoachingAssessment
+analyze → coach-inputs → CoachInput + claims
+coach-prototype → Ollama / NVIDIA → CoachingAssessment
 ```
 
 Claim-pattern flags are **experiment annotations only**; they never rewrite
-model output. CLI: `s3-coach coach-prototype`.
+model output. CLI: `s3-coach coach-inputs` then `s3-coach coach-prototype`.
 
 ## Coaching evidence contract
 
@@ -200,8 +217,8 @@ Do not gate kill/death events on OCR.
 1. Add a `*Reading` model to `vision/models.py` and include it in the `Reading` union
 2. Implement a detector with `name` and
    `detect(image: np.ndarray, timestamp: float | None = None) -> tuple[Reading | None, float]`
-   Cadence scheduling belongs to `vision/pipeline.py`; detectors only observe the
-   in-memory frame they are given.
+   Cadence scheduling belongs to `vision/cadence_scan.py`; detectors only observe
+   the in-memory frame they are given.
 3. Register it in `vision/registry.py` when listed in `vision.enabled_detectors`
 4. Fuse readings into `GameStateSnapshot` in `vision/state.py` (do not emit events here)
 5. Add transition rules in `vision/events.py` that consume snapshots only

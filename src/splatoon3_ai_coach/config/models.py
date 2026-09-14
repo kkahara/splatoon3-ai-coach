@@ -278,6 +278,28 @@ class MatchIntroDetectorConfig(BaseModel):
         return box
 
 
+class ReadyDetectorConfig(BaseModel):
+    """Centered pre-match ``Ready?`` plate (templates under ``en/`` / ``ja/``).
+
+    ``roi`` is required and must come from YAML (no code default).
+    """
+
+    roi: NormalizedBox
+    template_dir: Path | None = None
+    match_threshold: float = Field(default=0.70, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+
+    @field_validator("roi")
+    @classmethod
+    def _check_box(cls, box: NormalizedBox) -> NormalizedBox:
+        x1, y1, x2, y2 = box
+        if not all(0.0 <= value <= 1.0 for value in box):
+            raise ValueError(f"region coordinates must be in [0, 1]: {box}")
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError(f"region must have positive area: {box}")
+        return box
+
+
 class MapInkAnalyzerConfig(BaseModel):
     """2D map ink sampling while MAP_OVERLAY is present (not a detector).
 
@@ -499,6 +521,8 @@ class VisionConfig(BaseModel):
     match_intro: MatchIntroDetectorConfig = Field(
         default_factory=MatchIntroDetectorConfig
     )
+    # ROI/template_dir come from YAML when ``ready`` is enabled; optional otherwise.
+    ready: ReadyDetectorConfig | None = None
     review_icon: ReviewIconConfig = Field(default_factory=ReviewIconConfig)
     map_ink: MapInkAnalyzerConfig = Field(default_factory=MapInkAnalyzerConfig)
     player_count: PlayerCountDetectorConfig = Field(
@@ -553,6 +577,10 @@ class CoachConfig(BaseModel):
     ``model`` / ``baseline_model`` are Ollama model names only.
     ``nvidia_model`` is used when ``provider`` is ``nvidia``.
     API keys stay in environment variables (never YAML).
+
+    ``max_llm_units`` caps type-agnostic top-N selection across coaching
+    candidates. ``death_importance_weights`` are death-domain factor weights
+    only (not global coaching concepts).
     """
 
     provider: str = "ollama"
@@ -561,6 +589,17 @@ class CoachConfig(BaseModel):
     ollama_base_url: str = "http://127.0.0.1:11434"
     openai_compatible_base_url: str = "https://integrate.api.nvidia.com/v1"
     nvidia_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+    max_llm_units: int = Field(default=3, ge=0)
+    death_importance_weights: dict[str, float] = Field(
+        default_factory=lambda: {
+            "death_redeath_le_10s": 3.0,
+            "death_last_ally_alive": 2.5,
+            "death_special_ready": 2.0,
+            "death_map_overlay_before_false": 1.5,
+            "death_final_30s": 1.0,
+            "death_first_30s": 0.5,
+        }
+    )
     game_clock_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_window_offsets_seconds: list[float] = Field(

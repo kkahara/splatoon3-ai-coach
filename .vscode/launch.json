@@ -73,6 +73,25 @@
             "justMyCode": true
         },
         {
+            "name": "s3-coach: coach-inputs",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "coach-inputs",
+                "${workspaceFolder}/analysis/${input:videoName}",
+                "--config",
+                "${workspaceFolder}/configs/default.yaml",
+                "--limit",
+                "10"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "s3-coach: coach-prototype",
             "type": "debugpy",
             "request": "launch",

@@ -189,7 +189,7 @@ def test_run_vision_opens_video_once(
             super().__init__(*args, **kwargs)
 
     monkeypatch.setattr(
-        "splatoon3_ai_coach.vision.pipeline.VideoLoader",
+        "splatoon3_ai_coach.vision.cadence_scan.VideoLoader",
         _CountingLoader,
     )
     config = load_config(default_config_path())

@@ -126,33 +126,84 @@ primary Scenario + ScenarioContext
 `CoachInput` describes **evidence**. It does not define good/bad play, advice,
 or fight quality. Assessments and recommendations are a later LLM output layer.
 
-Prototype: `s3-coach coach-prototype` sends identical CoachInput JSON + system
-prompt to one or more Ollama models and writes `CoachingAssessment` JSON.
+Prototype: `s3-coach coach-inputs` then `s3-coach coach-prototype` sends
+identical CoachInput / CoachLlmView + system prompt to one or more Ollama
+models and writes `CoachingAssessment` JSON.
 Empty `recommendations` is a valid success. Claim flags are separate annotation
 files and must not rewrite assessments.
 
 See `splatoon3_ai_coach.coach.evidence_contract` and
 `splatoon3_ai_coach.coach.coach_input` for the enforceable API.
 
-## Coaching points (coaching layer)
+## CoachInput vs CoachLlmView
 
-Deterministic claim selection builds 0–3 coaching points per primary
-`DEATH_EPISODE` (see `coach.claim_catalog` / `coach.claim_selection`):
+| Object | Role |
+|--------|------|
+| `CoachInput` | Internal evidence unit (full ScenarioContext + related + samples) |
+| `CoachLlmView` | Deterministic **projection** for `complete()` — omit/reshape only |
 
 ```text
-Evidence → Eligible claims → Select 0–3 → Statement → [Interpretation] → [Recommendation]
+CoachInput (+ CoachingUnitResult importance)
+        ↓
+build_coach_llm_view()   # project; never invent facts
+        ↓
+CoachLlmView → user prompt → LLM
 ```
 
-- **Statement** required only when a claim is emitted.
-- **Interpretation** = coaching principle only (no intent / causation / mistake /
-  fight quality).
-- **Recommendation** optional; empty / “no recommendation supported” is success.
-- Supporting evidence is separate from coaching points (VMV “why” vs “what”).
-- Primary units are `DEATH_EPISODE`; ENGAGEMENT / MAP_CHECK are relation-linked
-  support, not laundry-list primaries.
+Rules:
 
-Locked examples: `death_last_ally_alive` (full triad); `death_special_ready`
-(statement only — never “should have used special”).
+- Every value in `CoachLlmView` must be copyable from existing `CoachInput` /
+  ScenarioContext fields (or from `CoachingUnitResult` already derived from
+  that CoachInput).
+- Compression = **omit or reshape**, never enrich. Absent stays absent.
+- Each compact fact should carry a `source_path` **audit reference** into
+  CoachInput / ScenarioContext vocabulary (stable dotted labels for
+  `evidence_used`). It is not required to be an executable JSONPath.
+- Locked statement / interpretation / recommendation triad text stays on
+  `CoachingUnitResult` / VMV — **not** in `CoachLlmView` (pre-interpreted;
+  the model words from evidence + factor ids).
+- Do not send raw `CoachInput.model_dump()` as the production LLM payload.
+- `build_coach_llm_view` dispatches on **`candidate_type` only** (authoritative;
+  no scenario_type fallback).
+
+## Coaching candidates (coaching layer)
+
+Selection policy ≠ definition of what is coachable.
+
+```text
+Game evidence / ScenarioContext
+        ↓
+Candidate generation   (domain-specific; today: DEATH_EPISODE only)
+        ↓
+CoachingCandidate      (common shape: id, type, factors, importance_score)
+        ↓
+Importance scoring     (per candidate_type factor model)
+        ↓
+Top-N selection        (type-agnostic; coach.max_llm_units)
+        ↓
+CoachLlmView builder   (compact projection of selected CoachInput)
+        ↓
+LLM
+```
+
+- **Every generated candidate is eligible** for ranking. Importance factors are
+  **not** eligibility gates.
+- Death is the **first** candidate domain, not the boundary of coaching.
+- Death-scoped factors (`death_last_ally_alive`, `death_redeath_le_10s`, …)
+  contribute to `importance_score` only for death candidates.
+- Top-N ranking ignores `candidate_type` (future domains share the same ranker).
+- `importance_score` means coaching **attention** worthiness — not “how bad”
+  the death was, and not “only death is coachable.”
+- LLM receives **CoachLlmView** (projected evidence + active factors), not the
+  full serialized CoachInput dump.
+- Supporting evidence is separate from factor annotations (VMV “why” vs attention
+  context).
+
+See `coach.coaching_candidates`, `coach.death_importance`, `coach.llm_view`,
+`coach.claim_catalog`.
+
+Locked factor annotations (VMV only): `death_last_ally_alive` (full triad);
+`death_special_ready` (statement only — never “should have used special”).
 
 ## Scenario membership / ownership
 

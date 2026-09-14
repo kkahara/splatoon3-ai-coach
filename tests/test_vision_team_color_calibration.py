@@ -34,6 +34,12 @@ def _default_slots() -> tuple[list, list]:
     return list(cfg.ally_slots), list(cfg.opponent_slots)
 
 
+def _timer_adjacent_slots() -> tuple[list, list]:
+    """Ally-4 and opponent-1 only (timer-adjacent HUD icons)."""
+    ally_slots, opp_slots = _default_slots()
+    return [ally_slots[3]], [opp_slots[0]]
+
+
 def _paint_slot(
     hsv: np.ndarray,
     box: tuple[float, float, float, float],
@@ -68,7 +74,7 @@ def _synthetic_hud(
 
 
 def _calibrator(**overrides: object) -> TeamColorCalibrator:
-    ally_slots, opp_slots = _default_slots()
+    ally_slots, opp_slots = _timer_adjacent_slots()
     kwargs: dict = {
         "ally_slots": ally_slots,
         "opponent_slots": opp_slots,
@@ -94,7 +100,7 @@ def test_a_synthetic_hud_latches_h11_h119_separation_108() -> None:
     assert abs(result.opponent_h - 119.0) <= 2.0
     # |119-11|=108 long arc; shortest OpenCV-H circle distance is 72.
     assert abs(result.separation_degrees - 72.0) <= 2.0
-    assert result.source == "hud_roster_slots"
+    assert result.source == "ready_hud_timer_adjacent_slots"
     assert result.calibrated_at == pytest.approx(3.0)
 
 
@@ -194,7 +200,7 @@ def test_g_persistence_roundtrip_separation_108(tmp_path: Path) -> None:
     assert restored.ally_h == pytest.approx(11.0)
     assert restored.opponent_h == pytest.approx(119.0)
     assert restored.separation_degrees == pytest.approx(72.0)
-    assert restored.source == "hud_roster_slots"
+    assert restored.source == "ready_hud_timer_adjacent_slots"
 
     cfg = load_config(default_config_path())
     cfg.vision.map_ink.enabled = True
@@ -206,10 +212,40 @@ def test_g_persistence_roundtrip_separation_108(tmp_path: Path) -> None:
     )
     _persist_map_artifacts(map_ctx, tmp_path)
     raw = (tmp_path / "match_identity.json").read_text(encoding="utf-8")
-    assert '"source": "hud_roster_slots"' in raw
+    assert '"source": "ready_hud_timer_adjacent_slots"' in raw
     assert "72" in raw
     assert "11" in raw
     assert "119" in raw
+
+
+def test_from_configs_uses_ally4_and_opponent1_only() -> None:
+    """Outer slots can be wrong; only ally-4 / opp-1 drive the latch."""
+    cfg = load_config(default_config_path())
+    cal = TeamColorCalibrator.from_configs(cfg.vision.map_ink, cfg.vision.player_count)
+    assert len(cal.ally_slots) == 1
+    assert len(cal.opponent_slots) == 1
+    assert cal.ally_slots[0] == cfg.vision.player_count.ally_slots[3]
+    assert cal.opponent_slots[0] == cfg.vision.player_count.opponent_slots[0]
+
+    hsv = np.zeros((1080, 1920, 3), dtype=np.uint8)
+    hsv[:] = (0, 0, 20)
+    ally_slots, opp_slots = _default_slots()
+    # Contaminate outer ally slots with blue; keep ally-4 orange / opp-1 blue.
+    for box in ally_slots[:3]:
+        _paint_slot(hsv, box, 110)
+    _paint_slot(hsv, ally_slots[3], 11)
+    _paint_slot(hsv, opp_slots[0], 119)
+    for box in opp_slots[1:]:
+        _paint_slot(hsv, box, 11)
+    frame = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+    for t in (1.0, 1.5, 2.0):
+        cal.observe(frame, t)
+    assert cal.is_latched
+    assert cal.result is not None
+    assert abs(cal.result.ally_h - 11.0) <= 2.0
+    assert abs(cal.result.opponent_h - 119.0) <= 2.0
+    assert cal.result.source == "ready_hud_timer_adjacent_slots"
 
 
 def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
@@ -236,6 +272,7 @@ def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
         classifier=clf,
         config=app,
         calibrator=cal,
+        ready_seen=True,
     )
     frame_img = _synthetic_hud(11, 119)
     for t in (2.0, 2.5, 3.0):
@@ -244,7 +281,7 @@ def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
             frame_index=int(t * 60),
             image=frame_img,
         )
-        _maybe_calibrate_team_colors(map_ctx, vf)
+        _maybe_calibrate_team_colors(map_ctx, vf, [])
 
     assert map_ctx.calibration is not None
     assert clf.calibration is map_ctx.calibration
@@ -258,8 +295,106 @@ def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
         frame_index=400,
         image=weird,
     )
-    _maybe_calibrate_team_colors(map_ctx, vf2)
+    _maybe_calibrate_team_colors(map_ctx, vf2, [])
     assert map_ctx.calibration is first
+
+
+def test_pipeline_skips_color_until_ready_seen() -> None:
+    """Team-color observe requires Ready? before the opening clock ticks."""
+    cfg = MapInkAnalyzerConfig(
+        enabled=True,
+        team_color_calibration_enabled=True,
+        min_accepted_frames=1,
+    )
+    app = load_config(default_config_path())
+    app.vision.map_ink = cfg
+    cal = _calibrator(min_accepted_frames=1)
+    map_ctx = MapInkScanContext(
+        identity=MatchIdentityTracker(),
+        classifier=MapInkClassifier(cfg),
+        config=app,
+        calibrator=cal,
+    )
+    frame = _synthetic_hud(11, 119)
+    vf = VideoFrame(timestamp=2.0, frame_index=120, image=frame)
+    _maybe_calibrate_team_colors(map_ctx, vf, [])
+    assert map_ctx.calibration is None
+
+    map_ctx.ready_seen = True
+    _maybe_calibrate_team_colors(map_ctx, vf, [])
+    assert map_ctx.calibration is not None
+
+    map_ctx.calibration = None
+    cal2 = _calibrator(min_accepted_frames=1)
+    map_ctx.calibrator = cal2
+    map_ctx.opening_clock_ticked = True
+    _maybe_calibrate_team_colors(map_ctx, vf, [])
+    assert map_ctx.calibration is None
+
+
+def test_no_ready_drops_colors_and_map_ink(tmp_path: Path) -> None:
+    """Ready? miss clears calibration + observations and disables map ink."""
+    from splatoon3_ai_coach.vision.pipeline import (
+        _finalize_ready_gated_map_artifacts,
+        _persist_map_artifacts,
+        _update_ready_gate_from_detections,
+    )
+    from splatoon3_ai_coach.vision.models import DetectorResult, TimerReading
+    from splatoon3_ai_coach.vision.map_ink import MapObservation
+
+    cfg = MapInkAnalyzerConfig(enabled=True, team_color_calibration_enabled=True)
+    app = load_config(default_config_path())
+    app.vision.map_ink = cfg
+    clf = MapInkClassifier(cfg)
+    clf.apply_calibration(
+        TeamColorCalibrationResult(
+            ally_h=11.0,
+            opponent_h=119.0,
+            separation_degrees=72.0,
+            calibrated_at=1.0,
+        )
+    )
+    identity = MatchIdentityTracker()
+    identity.identity.stage_id = "mahi_mahi_resort"
+    map_ctx = MapInkScanContext(
+        identity=identity,
+        classifier=clf,
+        config=app,
+        calibration=clf.calibration,
+        observations=[
+            MapObservation(
+                video_time=30.0,
+                stage_id="mahi_mahi_resort",
+                battle_mode_id=None,
+                confidence=0.5,
+                evidence_ids=[],
+            )
+        ],
+    )
+    assert map_ctx.ready_seen is False
+    _update_ready_gate_from_detections(
+        map_ctx,
+        [
+            DetectorResult(
+                id="t",
+                detector_name="timer",
+                detector_version="1",
+                confidence=0.9,
+                reading=TimerReading(display="4:59", seconds_remaining=299.0),
+            )
+        ],
+    )
+    assert map_ctx.map_ink_dropped is True
+    assert map_ctx.calibration is None
+    assert map_ctx.observations == []
+    assert clf.calibration is None
+
+    _finalize_ready_gated_map_artifacts(map_ctx)
+    _persist_map_artifacts(map_ctx, tmp_path)
+    raw = (tmp_path / "match_identity.json").read_text(encoding="utf-8")
+    assert '"ready_seen": false' in raw
+    assert '"map_ink_enabled": false' in raw
+    assert '"team_color_calibration": null' in raw
 
 
 def test_color_profile_contains_hsv() -> None:

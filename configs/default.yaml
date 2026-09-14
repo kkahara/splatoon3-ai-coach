@@ -36,7 +36,7 @@ vision:
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro", "ready"]
   # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
@@ -125,6 +125,14 @@ vision:
     match_threshold: 0.70
     min_usable_confidence: 0.50
     intro_deadline_seconds: 90.0
+  # Pre-match Ready? plate (center). Runs only after stage identity and before
+  # the opening clock first ticks (5:00→4:59 / 3:00→2:59). Templates under
+  # calibration/templates/ready/<en|ja>/.
+  ready:
+    roi: [0.390104, 0.450926, 0.541667, 0.567593]
+    template_dir: "../calibration/templates/ready"
+    match_threshold: 0.70
+    min_usable_confidence: 0.50
   # Early Review chrome (pink TV / replay icon). Acquisition metadata only.
   review_icon:
     template_dir: "../calibration/templates/review"
@@ -242,6 +250,15 @@ coach:
   ollama_base_url: http://127.0.0.1:11434
   openai_compatible_base_url: https://integrate.api.nvidia.com/v1
   nvidia_model: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+  # Type-agnostic top-N across coaching candidates (death is first domain).
+  max_llm_units: 3
+  death_importance_weights:
+    death_redeath_le_10s: 3.0
+    death_last_ally_alive: 2.5
+    death_special_ready: 2.0
+    death_map_overlay_before_false: 1.5
+    death_final_30s: 1.0
+    death_first_30s: 0.5
   game_clock_max_lookup_gap_seconds: 1.0
   player_count_max_lookup_gap_seconds: 1.0
   player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]

@@ -32,6 +32,11 @@ from splatoon3_ai_coach.vision.stage_maps import (
     StageMapRegion,
     resolve_stage_map_geometry,
 )
+from splatoon3_ai_coach.vision.stage_mask import (
+    StageMaskConfig,
+    resolve_stage_mask,
+    stage_mask_to_bool,
+)
 
 
 def _write_gray_png(path: Path, value: int = 200, *, pattern: bool = True) -> None:
@@ -312,3 +317,162 @@ def test_repo_stage_default_pack_loads() -> None:
         x1, y1, x2, y2 = region.roi
         assert 0.0 <= x1 < x2 <= 1.0
         assert 0.0 <= y1 < y2 <= 1.0
+
+
+def _full_frame_geometry() -> StageMapGeometry:
+    return StageMapGeometry(
+        stage_id="scorch_gorge",
+        regions=[StageMapRegion(id="R01", roi=(0.0, 0.0, 1.0, 1.0))],
+    )
+
+
+def _center_square_mask() -> StageMaskConfig:
+    return StageMaskConfig(
+        stage_id="scorch_gorge",
+        polygon=[(0.25, 0.25), (0.75, 0.25), (0.75, 0.75), (0.25, 0.75)],
+        erosion_pixels=0,
+    )
+
+
+def test_analyze_without_mask_uses_roi_union() -> None:
+    geometry = _full_frame_geometry()
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    image = np.full((100, 100, 3), 80, dtype=np.uint8)
+    image[10:40, 10:40] = (40, 200, 40)
+    obs = analyze_map_ink(
+        image, geometry, classifier, video_time=1.0, battle_mode_id=None
+    )
+    assert obs.sample_mask_source == "roi_union"
+    assert obs.total_sample_pixels == 100 * 100
+
+
+def test_analyze_with_mask_ignores_outside_team_color() -> None:
+    """Test A: outside stage = team-colored, inside = unpainted → ~0% paint."""
+    geometry = _full_frame_geometry()
+    mask = _center_square_mask()
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    inside = stage_mask_to_bool(mask, 100, 100)
+    image = np.full((100, 100, 3), (40, 200, 40), dtype=np.uint8)  # ally outside
+    image[inside] = (80, 80, 80)  # unpainted inside
+    obs = analyze_map_ink(
+        image,
+        geometry,
+        classifier,
+        video_time=1.0,
+        battle_mode_id=None,
+        stage_mask=mask,
+    )
+    assert obs.sample_mask_source == "stage_mask"
+    assert obs.total_sample_pixels == int(np.count_nonzero(inside))
+    assert obs.classified_pixels == 0
+    assert obs.ally_classified_fraction is None
+    assert obs.classified_fraction == pytest.approx(0.0)
+
+
+def test_analyze_mask_half_painted_inside() -> None:
+    """Test B: outside team-colored, inside 50% team → ~50% classified_frac."""
+    geometry = _full_frame_geometry()
+    mask = _center_square_mask()
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    inside = stage_mask_to_bool(mask, 100, 100)
+    image = np.full((100, 100, 3), (40, 200, 40), dtype=np.uint8)
+    image[inside] = (80, 80, 80)
+    # Left half of the stage square (normalized x < 0.5).
+    left_half = inside & (np.arange(100)[None, :] < 50)
+    image[left_half] = (40, 200, 40)
+    obs = analyze_map_ink(
+        image,
+        geometry,
+        classifier,
+        video_time=1.0,
+        battle_mode_id=None,
+        stage_mask=mask,
+    )
+    assert obs.classified_fraction == pytest.approx(0.5, abs=0.05)
+    assert obs.ally_classified_fraction == pytest.approx(1.0)
+
+
+def test_analyze_mask_fully_painted_inside() -> None:
+    """Test C: inside fully team-colored → ~100% of sample classified."""
+    geometry = _full_frame_geometry()
+    mask = _center_square_mask()
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    inside = stage_mask_to_bool(mask, 100, 100)
+    image = np.full((100, 100, 3), 30, dtype=np.uint8)
+    image[inside] = (40, 200, 40)
+    obs = analyze_map_ink(
+        image,
+        geometry,
+        classifier,
+        video_time=1.0,
+        battle_mode_id=None,
+        stage_mask=mask,
+    )
+    assert obs.classified_fraction == pytest.approx(1.0)
+    assert obs.ally_classified_fraction == pytest.approx(1.0)
+
+
+def test_analyze_mask_unpainted_inside() -> None:
+    """Test D: completely unpainted stage → ~0%."""
+    geometry = _full_frame_geometry()
+    mask = _center_square_mask()
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    image = np.full((100, 100, 3), 80, dtype=np.uint8)
+    obs = analyze_map_ink(
+        image,
+        geometry,
+        classifier,
+        video_time=1.0,
+        battle_mode_id=None,
+        stage_mask=mask,
+    )
+    assert obs.classified_pixels == 0
+    assert obs.classified_fraction == pytest.approx(0.0)
+
+
+def test_analyze_mask_boundary_adjacent_paint() -> None:
+    """Test E: paint just outside polygon must not enter the sample."""
+    geometry = _full_frame_geometry()
+    mask = _center_square_mask()
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    image = np.full((100, 100, 3), 80, dtype=np.uint8)
+    # Strip immediately outside the left edge of the [25,75) square.
+    image[25:75, 20:25] = (40, 200, 40)
+    obs = analyze_map_ink(
+        image,
+        geometry,
+        classifier,
+        video_time=1.0,
+        battle_mode_id=None,
+        stage_mask=mask,
+    )
+    assert obs.ally_ink_pixels == 0
+    # Paint just inside left edge should count.
+    image[25:75, 25:30] = (40, 200, 40)
+    obs_in = analyze_map_ink(
+        image,
+        geometry,
+        classifier,
+        video_time=1.0,
+        battle_mode_id=None,
+        stage_mask=mask,
+    )
+    assert obs_in.ally_ink_pixels > 0
+
+
+def test_resolve_missing_mask_keeps_roi_path(tmp_path: Path) -> None:
+    geometry = StageMapGeometry(
+        stage_id="scorch_gorge",
+        regions=[
+            StageMapRegion(id="R01", roi=(0.0, 0.0, 0.5, 0.5)),
+            StageMapRegion(id="R02", roi=(0.5, 0.5, 1.0, 1.0)),
+        ],
+    )
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    image = np.full((100, 100, 3), (40, 200, 40), dtype=np.uint8)
+    assert resolve_stage_mask(tmp_path, stage_id="scorch_gorge") is None
+    obs = analyze_map_ink(
+        image, geometry, classifier, video_time=1.0, battle_mode_id=None, stage_mask=None
+    )
+    assert obs.sample_mask_source == "roi_union"
+    assert obs.total_sample_pixels == 5000
