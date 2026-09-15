@@ -177,13 +177,13 @@ vision:
   ready:
     roi: [0.376042, 0.448148, 0.627083, 0.570370]
     template_dir: ../calibration/templates/ready
-    match_threshold: 0.60
+    match_threshold: 0.50
     min_usable_confidence: 0.50
   # Keep in sync with configs/default.yaml. Provisional above-kill-feed ROI.
   low_ink:
-    roi: [0.28, 0.70, 0.72, 0.82]
+    roi: [0.472917, 0.738889, 0.557813, 0.790741]
     template_dir: ../calibration/templates/low_ink
-    match_threshold: 0.70
+    match_threshold: 0.50
     min_usable_confidence: 0.50
   map_ink:
     enabled: true

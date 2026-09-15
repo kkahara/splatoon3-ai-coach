@@ -4,6 +4,8 @@ python3 tools/roi_calibrate.py --name specials_loaded
 # specify a file name
 python3 tools/roi_calibrate.py --name ready 
 
+python3 tools/roi_calibrate.py --name low_ink 
+
 
 # preview to union regions for map ink only
 python tools/map_ink_roi_preview.py --stage inkblot_art_academy \
@@ -16,10 +18,11 @@ python tools/roi_visualize.py \
   --roi R02='[0.50,0.20,0.80,0.40]' \
   -o /tmp/rois.jpg
 
-python tools/roi_visualize.py --roi '[0.385417, 0.461111, 0.614062, 0.570370]' -o ./calibration/reference/reverse_roi.jpg
+python tools/roi_visualize.py --roi '[0.30, 0.28, 0.70, 0.52]' -o ./calibration/reference/reverse_roi2.jpg
 python tools/roi_visualize.py --roi '[0.743229, 0.905556, 0.998437, 0.975000]' -o ./calibration/reference/stage_roi.jpg
 
 [0.385417, 0.461111, 0.614062, 0.570370]
+[0.30, 0.28, 0.70, 0.52]
 
 # Stage pack (ink-map workflow) — also omit path to pick a frame
 python tools/roi_visualize.py --stage inkblot_art_academy
@@ -51,3 +54,12 @@ python tools/stage_mask_ab_compare.py --stage museum_dalfonsino \
   analysis/map_ink_validation/stage_mask_calibrate/museum_dalfonsino_game.png
 python tools/stage_mask_ab_compare.py --stage mahi_mahi_resort \
   analysis/map_ink_validation/stage_mask_calibrate/mahi_mahi_resort_game.jpg
+
+bash analysis/map_ink_validation/stage_mask_calibrate/CALIBRATE_HAMMERHEAD.sh
+
+cd /Users/kenjikahara/splatoon3-ai-coach
+source .venv/bin/activate
+
+python tools/stage_mask_calibrate.py --stage undertow_spillway \
+  --overlay analysis/map_ink_validation/stage_mask_calibrate/undertow_mask_overlay.jpg \
+  analysis/map_ink_validation/stage_mask_calibrate/undertow_spillway_game.jpg
