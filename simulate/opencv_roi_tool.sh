@@ -30,3 +30,24 @@ python tools/roi_visualize.py --geometry configs/stage_maps/inkblot_art_academy/
 python tools/stage_mask_calibrate.py --stage mahi_mahi_resort path/to/map_overlay_frame.jpg
 python tools/stage_mask_calibrate.py --stage mahi_mahi_resort --view \
   configs/stage_maps/mahi_mahi_resort/stage_mask.yaml path/to/map_overlay_frame.jpg
+
+# Manta / Museum calibrate frames (prep under analysis/map_ink_validation/stage_mask_calibrate/)
+# Prefer *_game.png + verified video frames (do not invent vertices).
+python tools/stage_mask_calibrate.py --stage manta_maria \
+  analysis/map_ink_validation/stage_mask_calibrate/manta_maria_game.png
+python tools/stage_mask_calibrate.py --stage museum_dalfonsino \
+  analysis/map_ink_validation/stage_mask_calibrate/museum_dalfonsino_game.png
+
+# Mahi-Mahi (Sep-10 map overlay frame)
+python tools/stage_mask_calibrate.py --stage mahi_mahi_resort \
+  --overlay analysis/map_ink_validation/stage_mask_calibrate/mahi_mask_overlay.jpg \
+  analysis/map_ink_validation/stage_mask_calibrate/mahi_mahi_resort_game.jpg
+# or: ./analysis/map_ink_validation/stage_mask_calibrate/CALIBRATE_MAHI.sh
+
+# After YAML exists: paint % A/B (mask vs ROI union) + dual diagnostics
+python tools/stage_mask_ab_compare.py --stage manta_maria \
+  analysis/map_ink_validation/stage_mask_calibrate/manta_maria_game.png
+python tools/stage_mask_ab_compare.py --stage museum_dalfonsino \
+  analysis/map_ink_validation/stage_mask_calibrate/museum_dalfonsino_game.png
+python tools/stage_mask_ab_compare.py --stage mahi_mahi_resort \
+  analysis/map_ink_validation/stage_mask_calibrate/mahi_mahi_resort_game.jpg

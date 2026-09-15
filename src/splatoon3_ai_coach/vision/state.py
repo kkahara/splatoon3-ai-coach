@@ -6,6 +6,7 @@ from splatoon3_ai_coach.config.models import (
     ActiveGameplayDetectorConfig,
     DeathDetectorConfig,
     LifecycleFusionConfig,
+    LowInkDetectorConfig,
     MapOverlayDetectorConfig,
     PlayerCountDetectorConfig,
     RespawnDetectorConfig,
@@ -51,6 +52,7 @@ def fuse_game_state(
     lifecycle_config: LifecycleFusionConfig | None = None,
     map_overlay_config: MapOverlayDetectorConfig | None = None,
     player_count_config: PlayerCountDetectorConfig | None = None,
+    low_ink_config: LowInkDetectorConfig | None = None,
 ) -> list[GameStateSnapshot]:
     """Fuse detector readings into domain snapshots. Does not emit game events."""
     death_cfg = death_config or DeathDetectorConfig()
@@ -90,6 +92,7 @@ def fuse_game_state(
             respawn_config=respawn_cfg,
             active_config=active_cfg,
             map_overlay_config=map_cfg,
+            low_ink_config=low_ink_config,
             timer_config=timer_config,
         )
         # Held timer from fusion also counts as in-match context.
@@ -120,6 +123,7 @@ def fuse_game_state(
                 countdown_present=life.countdown_present,
                 active_gameplay=life.active_gameplay,
                 map_overlay_present=life.map_overlay_present,
+                low_ink_present=life.low_ink_present,
                 match_phase=life.match_phase,
                 player_lifecycle=life.player_lifecycle,
                 countdown_confirmed_this_death_episode=(

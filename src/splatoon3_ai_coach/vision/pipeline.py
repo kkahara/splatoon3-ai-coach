@@ -174,5 +174,6 @@ def _interpret_observations(
         config.vision.lifecycle,
         config.vision.map_overlay,
         config.vision.player_count,
+        config.vision.low_ink,
     )
     return snapshots, infer_events(snapshots, config.vision.events)

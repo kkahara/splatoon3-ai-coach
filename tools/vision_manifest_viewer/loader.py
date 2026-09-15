@@ -59,6 +59,7 @@ _DEFAULT_ROIS: dict[str, tuple[float, float, float, float]] = {
     "active_gameplay": (0.32, 0.48, 0.68, 0.90),
     "map_overlay": (0.0138889, 0.0171875, 0.1777778, 0.16875),
     "special_gauge": (0.86, 0.01, 0.995, 0.18),
+    "low_ink": (0.28, 0.70, 0.72, 0.82),
 }
 
 
@@ -320,6 +321,8 @@ def _load_rois(config_path: Path | None) -> dict[str, RoiBox]:
         "active_gameplay": ("active_gameplay", "weapon_roi"),
         "map_overlay": ("map_overlay", "map_roi"),
         "special_gauge": ("special_gauge", "roi"),
+        "low_ink": ("low_ink", "roi"),
+        "ready": ("ready", "roi"),
     }
     for label, (section, key) in mapping.items():
         box = (vision.get(section) or {}).get(key)

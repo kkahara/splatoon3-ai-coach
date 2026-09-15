@@ -8,6 +8,7 @@ from splatoon3_ai_coach.config.models import (
     ActiveGameplayDetectorConfig,
     DeathDetectorConfig,
     LifecycleFusionConfig,
+    LowInkDetectorConfig,
     MapOverlayDetectorConfig,
     RespawnDetectorConfig,
     TimerDetectorConfig,
@@ -17,6 +18,7 @@ from splatoon3_ai_coach.vision.models import (
     ActiveGameplayReading,
     DeathReading,
     DetectorResult,
+    LowInkReading,
     MapOverlayReading,
     MatchPhase,
     PlayerLifecycle,
@@ -30,8 +32,8 @@ from splatoon3_ai_coach.vision.models import (
 class LifecycleObservation:
     """Per-frame cues consumed by the lifecycle state machine.
 
-    ``map_overlay_present`` is recorded for snapshot/coaching context only.
-    It must not drive death-recovery transitions (see MapOverlayReading).
+    ``map_overlay_present`` / ``low_ink_present`` are recorded for snapshot
+    context only. They must not drive death-recovery transitions.
     """
 
     death_detected: bool
@@ -40,6 +42,7 @@ class LifecycleObservation:
     # Softer weapon+center cue for awaiting_control → alive only.
     return_control: bool | None = None
     map_overlay_present: bool | None = None
+    low_ink_present: bool | None = None
     match_context: bool | None = None
     timer_seconds: float | None = None
     evidence_ids: list[str] = field(default_factory=list)
@@ -55,6 +58,7 @@ class LifecycleStepResult:
     countdown_present: bool | None
     active_gameplay: bool | None
     map_overlay_present: bool | None
+    low_ink_present: bool | None
     evidence_ids: list[str]
     countdown_confirmed_this_death_episode: bool
     awaiting_control_confirmed_this_death_episode: bool
@@ -156,6 +160,7 @@ class LifecycleFuser:
             active_gameplay=_active_for_snapshot(obs, match_phase, mem.phase),
             # Passthrough only — never used to advance phases above.
             map_overlay_present=obs.map_overlay_present,
+            low_ink_present=obs.low_ink_present,
             evidence_ids=list(obs.evidence_ids),
             countdown_confirmed_this_death_episode=mem.latch,
             awaiting_control_confirmed_this_death_episode=mem.awaiting_control_latch,
@@ -386,9 +391,10 @@ def extract_lifecycle_observation(
     respawn_config: RespawnDetectorConfig,
     active_config: ActiveGameplayDetectorConfig,
     map_overlay_config: MapOverlayDetectorConfig | None = None,
+    low_ink_config: LowInkDetectorConfig | None = None,
     timer_config: TimerDetectorConfig | None = None,
 ) -> LifecycleObservation:
-    """Pull usable death/respawn/active/map/match cues from one vision frame."""
+    """Pull usable death/respawn/active/map/low-ink/match cues from one vision frame."""
     map_cfg = map_overlay_config or MapOverlayDetectorConfig()
     evidence: list[str] = []
     death_detected = False
@@ -443,6 +449,19 @@ def extract_lifecycle_observation(
         map_overlay_present = reading.present
         evidence.append(best_map.id)
 
+    low_ink_present: bool | None = None
+    if low_ink_config is not None:
+        best_low = _best_named(frame, "low_ink", LowInkReading)
+        low_usable = (
+            best_low is not None
+            and best_low.confidence >= low_ink_config.min_usable_confidence
+        )
+        if low_usable:
+            reading = best_low.reading
+            assert isinstance(reading, LowInkReading)
+            low_ink_present = reading.present
+            evidence.append(best_low.id)
+
     match_context: bool | None = None
     best_timer = _best_named(frame, "timer", TimerReading)
     timer_min = (
@@ -463,6 +482,7 @@ def extract_lifecycle_observation(
         active_detected=active_detected,
         return_control=return_control,
         map_overlay_present=map_overlay_present,
+        low_ink_present=low_ink_present,
         match_context=match_context,
         timer_seconds=timer_seconds,
         evidence_ids=evidence,

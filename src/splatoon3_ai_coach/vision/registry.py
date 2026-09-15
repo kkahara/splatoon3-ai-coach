@@ -13,6 +13,7 @@ from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
 from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
 from splatoon3_ai_coach.vision.player_count import PlayerCountDetector
 from splatoon3_ai_coach.vision.ready import ReadyDetector
+from splatoon3_ai_coach.vision.low_ink import LowInkDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
@@ -82,6 +83,19 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             ReadyDetector(
                 config.ready,
+                language=config.language,
+                cadence_fps=config.hud_cadence_fps,
+            )
+        )
+    if "low_ink" in config.enabled_detectors:
+        if config.low_ink is None:
+            raise ValueError(
+                "vision.low_ink config is required when 'low_ink' is in "
+                "enabled_detectors (set roi/template_dir in YAML)"
+            )
+        detectors.append(
+            LowInkDetector(
+                config.low_ink,
                 language=config.language,
                 cadence_fps=config.hud_cadence_fps,
             )

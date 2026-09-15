@@ -20,6 +20,7 @@ class GameEventType(StrEnum):
     RESPAWN = "respawn"
     ACTIVE_AGAIN = "active_again"
     MAP_OVERLAY = "map_overlay"
+    LOW_INK = "low_ink"
     SPECIAL_USED = "special_used"
     SPECIAL_READY = "special_ready"
     OBJECTIVE_UPDATE = "objective_update"
@@ -48,6 +49,7 @@ class GameEventReason(StrEnum):
     AWAITING_CONTROL_TO_ALIVE = "awaiting_control_to_alive"
     SPLAT_INSTANCE_OPENED = "splat_instance_opened"
     MAP_OVERLAY_PRESENT = "map_overlay_present"
+    LOW_INK_PRESENT = "low_ink_present"
 
 
 PlayerLifecycle = Literal[
@@ -198,6 +200,19 @@ class ReadyReading(BaseModel):
     template_score: float = Field(default=0.0, ge=0, le=1)
 
 
+class LowInkReading(BaseModel):
+    """Per-frame floating ``Low ink!`` / 「インク不足！」 plate observation.
+
+    Detector evidence only. Fusion maps usable confidence into snapshot
+    ``low_ink_present`` (True/False) and leaves None when unusable — never
+    treat an unusable reading as False on the snapshot.
+    """
+
+    kind: Literal["low_ink"] = "low_ink"
+    present: bool = False
+    template_score: float = Field(default=0.0, ge=0, le=1)
+
+
 class PlayerCountReading(BaseModel):
     """Per-frame HUD roster-X observations. Detector evidence only.
 
@@ -256,6 +271,7 @@ Reading = Annotated[
     | MapOverlayReading
     | MatchIntroReading
     | ReadyReading
+    | LowInkReading
     | PlayerCountReading
     | SpecialGaugeReading,
     Field(discriminator="kind"),
@@ -310,6 +326,8 @@ class GameStateSnapshot(BaseModel):
     countdown_present: bool | None = None
     active_gameplay: bool | None = None
     map_overlay_present: bool | None = None
+    # True/False = usable low-ink evidence; None = no usable observation.
+    low_ink_present: bool | None = None
     match_phase: MatchPhase = "out_of_match"
     player_lifecycle: PlayerLifecycle = "unknown"
     # Episode latches for respawn / control-return diagnostics (viewer).

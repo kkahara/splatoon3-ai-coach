@@ -36,7 +36,7 @@ vision:
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro", "ready"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro", "ready", "low_ink"]
   # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
@@ -129,8 +129,15 @@ vision:
   # the opening clock first ticks (5:00→4:59 / 3:00→2:59). Templates under
   # calibration/templates/ready/<en|ja>/.
   ready:
-    roi: [0.390104, 0.450926, 0.541667, 0.567593]
+    roi: [0.376042, 0.448148, 0.627083, 0.570370]
     template_dir: "../calibration/templates/ready"
+    match_threshold: 0.60
+    min_usable_confidence: 0.50
+  # Floating Low ink! / インク不足！ above local player (above kill-feed).
+  # Provisional ROI — refine with tools/roi_calibrate.py on a real frame.
+  low_ink:
+    roi: [0.28, 0.70, 0.72, 0.82]
+    template_dir: "../calibration/templates/low_ink"
     match_threshold: 0.70
     min_usable_confidence: 0.50
   # Early Review chrome (pink TV / replay icon). Acquisition metadata only.

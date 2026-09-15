@@ -63,6 +63,7 @@ def test_detectors_do_not_decode_video() -> None:
         "respawn.py",
         "active_gameplay.py",
         "map_overlay.py",
+        "low_ink.py",
     )
     for name in detector_files:
         imports = _import_modules(Path("src/splatoon3_ai_coach/vision") / name)

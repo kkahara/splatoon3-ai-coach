@@ -300,6 +300,28 @@ class ReadyDetectorConfig(BaseModel):
         return box
 
 
+class LowInkDetectorConfig(BaseModel):
+    """Floating low-ink plate (templates under ``en/`` / ``ja/``).
+
+    ``roi`` is required and must come from YAML (no code default).
+    """
+
+    roi: NormalizedBox
+    template_dir: Path | None = None
+    match_threshold: float = Field(default=0.70, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+
+    @field_validator("roi")
+    @classmethod
+    def _check_box(cls, box: NormalizedBox) -> NormalizedBox:
+        x1, y1, x2, y2 = box
+        if not all(0.0 <= value <= 1.0 for value in box):
+            raise ValueError(f"region coordinates must be in [0, 1]: {box}")
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError(f"region must have positive area: {box}")
+        return box
+
+
 class MapInkAnalyzerConfig(BaseModel):
     """2D map ink sampling while MAP_OVERLAY is present (not a detector).
 
@@ -523,6 +545,8 @@ class VisionConfig(BaseModel):
     )
     # ROI/template_dir come from YAML when ``ready`` is enabled; optional otherwise.
     ready: ReadyDetectorConfig | None = None
+    # ROI/template_dir required when ``low_ink`` is in enabled_detectors.
+    low_ink: LowInkDetectorConfig | None = None
     review_icon: ReviewIconConfig = Field(default_factory=ReviewIconConfig)
     map_ink: MapInkAnalyzerConfig = Field(default_factory=MapInkAnalyzerConfig)
     player_count: PlayerCountDetectorConfig = Field(

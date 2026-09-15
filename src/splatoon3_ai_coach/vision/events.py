@@ -29,6 +29,8 @@ def infer_events(
     SPLAT: one event per newly opened splat episode (banner-instance identity
     via fingerprint and occupied stack slot — see ``SplatEpisodeFuser``).
     MAP_OVERLAY: interval while fused ``map_overlay_present`` is true.
+    LOW_INK: interval while fused ``low_ink_present`` is true (same ``is True``
+    open/close rules as MAP_OVERLAY — None does not keep an interval open).
 
     ``EventFusionConfig.debounce_ms`` only guards lifecycle edges. It must
     not define splat episodes.
@@ -38,12 +40,14 @@ def infer_events(
     previous_alive: bool | None = None
     previous_lifecycle: PlayerLifecycle | None = None
     previous_map: bool | None = None
+    previous_low_ink: bool | None = None
     last_death_at = float("-inf")
     last_respawn_at = float("-inf")
     last_active_again_at = float("-inf")
     respawn_emitted_this_death_episode = False
     splat_fuser = SplatEpisodeFuser(config)
     open_map: GameEvent | None = None
+    open_low_ink: GameEvent | None = None
 
     for snapshot in snapshots:
         death = _death_event(
@@ -84,8 +88,17 @@ def infer_events(
             events.append(started)
         previous_map = snapshot.map_overlay_present
 
+        open_low_ink, started_low = _step_low_ink(
+            snapshot, previous_low_ink, open_low_ink
+        )
+        if started_low is not None:
+            events.append(started_low)
+        previous_low_ink = snapshot.low_ink_present
+
     if open_map is not None and snapshots:
         open_map.end_time = snapshots[-1].timestamp
+    if open_low_ink is not None and snapshots:
+        open_low_ink.end_time = snapshots[-1].timestamp
     return events
 
 
@@ -200,6 +213,28 @@ def _step_map_overlay(
             GameEventType.MAP_OVERLAY,
             source=GameEventSource.STATE,
             reason=GameEventReason.MAP_OVERLAY_PRESENT,
+        )
+        return started, started
+    if was and not present and open_event is not None:
+        open_event.end_time = snapshot.timestamp
+        return None, None
+    return open_event, None
+
+
+def _step_low_ink(
+    snapshot: GameStateSnapshot,
+    previous_low_ink: bool | None,
+    open_event: GameEvent | None,
+) -> tuple[GameEvent | None, GameEvent | None]:
+    """Open or close a fused low-ink interval (same ``is True`` rules as map)."""
+    present = snapshot.low_ink_present is True
+    was = previous_low_ink is True
+    if present and not was:
+        started = _event(
+            snapshot,
+            GameEventType.LOW_INK,
+            source=GameEventSource.STATE,
+            reason=GameEventReason.LOW_INK_PRESENT,
         )
         return started, started
     if was and not present and open_event is not None:

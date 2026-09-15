@@ -20,6 +20,7 @@ def _snap(
     alive: bool | None = None,
     life: str = "unknown",
     map_present: bool | None = None,
+    low_ink_present: bool | None = None,
     latch: bool | None = None,
     instances: list[SplatBannerInstance] | None = None,
     evidence: list[str] | None = None,
@@ -36,6 +37,7 @@ def _snap(
         player_lifecycle=life,  # type: ignore[arg-type]
         active_gameplay=life == "alive",
         map_overlay_present=map_present,
+        low_ink_present=low_ink_present,
         countdown_confirmed_this_death_episode=latch,
         splat_instances=instances or [],
         evidence_ids=evidence or [],
@@ -149,3 +151,24 @@ def test_map_overlay_interval_from_fused_state() -> None:
     assert maps[0].source_frames[0].frame_id == "f:2"
     assert maps[1].start_time == 4.0
     assert maps[1].end_time == 4.5
+
+
+def test_low_ink_interval_from_fused_state() -> None:
+    snaps = [
+        _snap(1.0, low_ink_present=False),
+        _snap(2.0, low_ink_present=True, evidence=["low:2"], frame_id="f:2"),
+        _snap(2.5, low_ink_present=True),
+        _snap(3.0, low_ink_present=None),  # closes (MAP_OVERLAY is-True rules)
+        _snap(4.0, low_ink_present=True, evidence=["low:4"]),
+        _snap(4.5, low_ink_present=False),
+    ]
+    events = infer_events(snaps, EventFusionConfig(debounce_ms=0))
+    lows = [e for e in events if e.event_type is GameEventType.LOW_INK]
+    assert len(lows) == 2
+    assert lows[0].source is GameEventSource.STATE
+    assert lows[0].reason is GameEventReason.LOW_INK_PRESENT
+    assert lows[0].start_time == 2.0
+    assert lows[0].end_time == 3.0
+    assert lows[0].source_frames[0].frame_id == "f:2"
+    assert lows[1].start_time == 4.0
+    assert lows[1].end_time == 4.5
