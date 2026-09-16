@@ -49,6 +49,7 @@ _CONTEXT_SRC_FILES = (
     _CONTEXT_SRC_DIR / "death_episode_context.py",
     _CONTEXT_SRC_DIR / "map_overlay_context.py",
     _CONTEXT_SRC_DIR / "combat_context.py",
+    _CONTEXT_SRC_DIR / "low_ink_context.py",
 )
 _COACHING_WORDS = (
     "you should",

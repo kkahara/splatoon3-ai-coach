@@ -3,6 +3,8 @@
 Facts and measurements only. No coaching judgments. Scenario grouping stays
 in ``scenarios.py``. Sparse secondary evidence (map ink, roster, special)
 comes from persisted artifacts via ``ScenarioEvidencePack`` — not detectors.
+LOW_INK intervals come from the event timeline under an explicit overlap
+rule (``low_ink_context``) and never become scenario members.
 
 Measurement helpers live in sibling modules; this module owns the
 ``ScenarioContext`` models and the build/serialize facade.
@@ -17,7 +19,13 @@ from pydantic import BaseModel, Field
 from splatoon3_ai_coach.analysis.combat_context import combat_context as _combat_context
 from splatoon3_ai_coach.analysis.death_episode_context import (
     death_episode_context as _death_episode_context,
+)
+from splatoon3_ai_coach.analysis.death_episode_context import (
     enrich_death_episode_level2 as _enrich_death_episode_level2,
+)
+from splatoon3_ai_coach.analysis.low_ink_context import (
+    LowInkEvidence,
+    build_low_ink_evidence,
 )
 from splatoon3_ai_coach.analysis.map_overlay_context import map_context as _map_context
 from splatoon3_ai_coach.analysis.player_count_series import NumbersState
@@ -149,6 +157,7 @@ class ScenarioContext(BaseModel):
     death_episode: DeathEpisodeContext | None = None
     players: PlayersEvidence | None = None
     special: SpecialEvidence | None = None
+    low_ink: LowInkEvidence | None = None
     relations: ScenarioRelations = Field(default_factory=ScenarioRelations)
 
 
@@ -232,6 +241,7 @@ def build_scenario_context(
         death_episode=death_episode,
         players=players,
         special=special,
+        low_ink=build_low_ink_evidence(ordered, scenario),
         relations=ScenarioRelations(),
     )
 

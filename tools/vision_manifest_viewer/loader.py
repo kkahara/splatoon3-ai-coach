@@ -27,8 +27,8 @@ from vision_manifest_viewer.model import (
     ManifestWarning,
     MapInkRegionSampleView,
     MapInkSampleView,
-    MatchIdentityView,
     MarkerCategory,
+    MatchIdentityView,
     ObservationView,
     RoiBox,
     RosterSampleView,
@@ -672,12 +672,13 @@ def _is_positive(detector: str, reading: dict[str, Any]) -> bool:
     """Whether a reading counts as a positive detection for filters/gallery."""
     if detector == "respawn":
         return bool(reading.get("detected"))
-    if detector in {"countdown", "map_overlay"}:
-        return bool(reading.get("present"))
     if detector == "special_gauge":
         return bool(reading.get("visible"))
     if "detected" in reading:
         return bool(reading.get("detected"))
+    # Presence-style readings (countdown, map_overlay, ready, low_ink).
+    if "present" in reading:
+        return bool(reading.get("present"))
     if detector == "timer":
         return reading.get("seconds_remaining") is not None
     return False

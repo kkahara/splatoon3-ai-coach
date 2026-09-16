@@ -136,7 +136,7 @@ vision:
   # Floating Low ink! / インク不足！ above local player (above kill-feed).
   # Provisional ROI — refine with tools/roi_calibrate.py on a real frame.
   low_ink:
-    roi: [0.472917, 0.738889, 0.557813, 0.790741]
+    roi: [0.426042, 0.702778, 0.576562, 0.813889]
     template_dir: "../calibration/templates/low_ink"
     match_threshold: 0.50
     min_usable_confidence: 0.50

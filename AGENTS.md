@@ -46,6 +46,7 @@ evidence required for coaching units:
 - map ink observations (`map.ink` from `map_observations.json`)
 - roster trajectory from fused `state_snapshots` (`players`)
 - special gauge readings + presentation-only ready onset markers (`special`)
+- `LOW_INK` intervals overlapping the scenario interval (`low_ink`)
 
 Do **not** encode judgments, fight-quality conclusions, “should have used
 special”, interpolated continuous state, or invented causal relationships.
@@ -69,6 +70,9 @@ Ownership rules:
 - `ENGAGEMENT` owns **SPLAT events only**. A following DEATH belongs to its
   `DEATH_EPISODE`; it may be referenced via `following_death_id` (compat) and
   ScenarioContext relations, never as an ENGAGEMENT member.
+- `LOW_INK` is owned by **no** scenario. It reaches `ScenarioContext.low_ink`
+  only when its interval overlaps the scenario interval (closed intervals,
+  no proximity window) — see `analysis/low_ink_context.py`.
 
 Relations (`leads_to_death_episode_id`, `preceded_by_engagement_id`, …) and
 `trade_candidate` are **temporal associations / window flags**, never causal

@@ -379,6 +379,7 @@ const GT_LABELS = {
   real_map_overlay:"Real map overlay", not_a_map_overlay:"Not an overlay",
   real_respawn:"Real respawn", not_a_respawn:"Not a respawn",
   real_timer:"Real timer", not_a_timer:"Not a timer",
+  special_used:"Special used", not_a_special_used:"Not a special use",
   intro:"Intro", opening_countdown:"Opening countdown", in_match:"In match",
   post_match:"Post match", results_lobby:"Results / lobby",
   death_state:"Death state", respawn_state:"Respawn state",
@@ -390,6 +391,7 @@ const GT_BY_DETECTOR = {
   map_overlay:["unknown","real_map_overlay","not_a_map_overlay"],
   respawn:["unknown","real_respawn","not_a_respawn"],
   timer:["unknown","real_timer","not_a_timer"],
+  special_gauge:["unknown","special_used","not_a_special_used"],
   match_phase:["unknown","intro","opening_countdown","in_match","post_match","results_lobby"],
 };
 const GT_LABEL_MEANINGS = {
@@ -406,6 +408,8 @@ const GT_LABEL_MEANINGS = {
   not_a_map_overlay:"Map detector false positive.",
   real_timer:"Match timer was readable.",
   not_a_timer:"Timer detector false positive.",
+  special_used:"The player activated their special here. This is a study label for the activation trajectory survey, not a SPECIAL_USED event — no such event exists. A fill_fraction drop ≠ activation, and ready=true ≠ activation.",
+  not_a_special_used:"A candidate gauge change that was not an activation — charge loss on death, a fill re-estimate, or dial flicker.",
 };
 const GT_CHEAT = {
   death:[
@@ -418,6 +422,10 @@ const GT_CHEAT = {
   map_overlay:[["Real map overlay","the map was open"],["Not an overlay","pipeline was wrong"]],
   respawn:[["Real respawn","RESPAWN event / landing"],["Not a respawn","respawn detector false positive"]],
   timer:[["Real timer","match timer was readable"],["Not a timer","pipeline was wrong"]],
+  special_gauge:[
+    ["Special used", GT_LABEL_MEANINGS.special_used],
+    ["Not a special use", GT_LABEL_MEANINGS.not_a_special_used],
+  ],
   match_phase:[
     ["Intro","pre-match, no ticking clock"],
     ["Opening countdown","frozen 5:00 / 3:00 before GO"],
@@ -430,7 +438,15 @@ const DETECTOR_TITLE = {
   map_overlay:"Map overlay", respawn:"Respawn", timer:"Timer",
   match_phase:"Match state", special_gauge:"Special gauge",
 };
-const GT_CHIP_DETECTORS = ["timer","death","splat","respawn","active_gameplay","map_overlay"];
+const GT_CHIP_DETECTORS = ["timer","death","splat","respawn","active_gameplay","map_overlay","special_gauge"];
+
+/** Channels labeled for an external study, with no pipeline subject to score.
+ *
+ * special_gauge has no SPECIAL_USED event, and its `positive` means the dial
+ * was visible. Scoring "special used" against visibility would invent an
+ * accuracy number for a question the pipeline never answers.
+ */
+function isUnscoredChannel(det){ return det === "special_gauge"; }
 
 function loadGt(){
   try {
@@ -538,6 +554,7 @@ function gtRealPositive(o, detector){
 }
 
 function isFalsePositiveObs(o){
+  if (isUnscoredChannel(o.detector)) return false;
   if (!gtSubjectPositive(o)) return false;
   const g = gtAt(o.timestamp, o.detector);
   if (!g) return false;
@@ -545,6 +562,7 @@ function isFalsePositiveObs(o){
 }
 
 function isMissedObs(o){
+  if (isUnscoredChannel(o.detector)) return false;
   const g = gtAt(o.timestamp, o.detector);
   if (!g || !isRealLabel(g.label, o.detector)) return false;
   return !gtRealPositive(o, o.detector);
@@ -568,6 +586,14 @@ function gtVerdict(o){
     return want.includes(got)
       ? {kind:"hit", title:"MATCH", detail:`match_phase is ${got}, GT says ${shown}.`}
       : {kind:"mismatch", title:"MISMATCH", detail:`match_phase is ${got}, GT says ${shown}.`};
+  }
+  if (isUnscoredChannel(det)) {
+    const r = o.reading || {};
+    const fill = r.fill_fraction==null ? "—" : num(r.fill_fraction);
+    const seen = r.visible ? "visible" : "not visible";
+    return {kind:"unmarked", title:"MARKED", detail:
+      `GT says ${shown}. Gauge ${seen}, fill ${fill}, ready ${r.ready?"true":"false"}. `+
+      `Not scored here — there is no SPECIAL_USED event to compare against.`};
   }
   const real = isRealLabel(g.label, det);
   const fired = real ? gtRealPositive(o, det) : gtSubjectPositive(o, det);
@@ -1972,9 +1998,29 @@ function predictionHits(detector){
     .map(o => o.timestamp);
 }
 
+/** Label tally for an unscored study channel; precision and recall do not apply. */
+function renderStudyStats(det, title){
+  if ($("stats-title")) $("stats-title").textContent = `${title} study labels (GT)`;
+  const marks = state.gt.filter(g => gtDetector(g)===det);
+  const used = marks.filter(g => g.label==="special_used").length;
+  const rejected = marks.filter(g => g.label==="not_a_special_used").length;
+  const samples = DATA.observations.filter(o => o.detector===det);
+  const visible = samples.filter(o => gtSubjectPositive(o, det)).length;
+  $("stats-grid").innerHTML = `
+    <div><strong>${used}</strong><span>Special used</span></div>
+    <div><strong>${rejected}</strong><span>Not a special use</span></div>
+    <div><strong>${marks.length}</strong><span>GT intervals</span></div>
+    <div><strong>${visible}</strong><span>Gauge visible</span></div>
+    <div><strong>${samples.length}</strong><span>Samples</span></div>
+    <div><strong>${samples.length?Math.round(100*visible/samples.length):0}%</strong><span>Visible rate</span></div>
+    <div><strong>—</strong><span>Precision (n/a)</span></div>
+    <div><strong>—</strong><span>Recall (n/a)</span></div>`;
+}
+
 function renderStats(){
   const det = reviewDetector();
   const title = DETECTOR_TITLE[det] || det.replace(/_/g, " ");
+  if (isUnscoredChannel(det)) { renderStudyStats(det, title); return; }
   if ($("stats-title")) $("stats-title").textContent = `${title} performance (GT)`;
   const hits = predictionHits(det);
   const real = state.gt.filter(g => gtDetector(g)===det && isRealLabel(g.label, det));

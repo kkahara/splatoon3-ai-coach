@@ -1,5 +1,6 @@
 # start UI for general use
 # use a picker
+python3 source .venv/bin/activate
 python3 tools/roi_calibrate.py --name specials_loaded
 # specify a file name
 python3 tools/roi_calibrate.py --name ready 

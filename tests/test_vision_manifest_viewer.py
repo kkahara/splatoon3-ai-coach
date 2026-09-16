@@ -351,7 +351,16 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
     assert "function preferredReading(" in html
     assert "function ensureCanonicalObservations(" in html
     assert "function chipReadings(" in html
-    assert '["timer","death","splat","respawn","active_gameplay","map_overlay"]' in html
+    assert (
+        '["timer","death","splat","respawn","active_gameplay","map_overlay",'
+        '"special_gauge"]' in html
+    )
+    # special_gauge GT channel: study labels only, never scored as accuracy.
+    assert 'special_gauge:["unknown","special_used","not_a_special_used"]' in html
+    assert 'special_used:"Special used"' in html
+    assert 'not_a_special_used:"Not a special use"' in html
+    assert "function isUnscoredChannel(" in html
+    assert "function renderStudyStats(" in html
 
     assert "function isTileSelected(" in html
     assert "function frameKey(" in html
