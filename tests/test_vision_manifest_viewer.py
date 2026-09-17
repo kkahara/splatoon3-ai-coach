@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import json
+import re
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
 from vision_manifest_viewer.cli import build_parser, main as viewer_main
-from vision_manifest_viewer.html import render_html, write_html
+from vision_manifest_viewer.html import _HTML_TEMPLATE, render_html, write_html
 from vision_manifest_viewer.loader import load_manifest_view
 from vision_manifest_viewer.model import ObservationView
 from vision_manifest_viewer.server import (
@@ -361,6 +365,11 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
     assert 'not_a_special_used:"Not a special use"' in html
     assert "function isUnscoredChannel(" in html
     assert "function renderStudyStats(" in html
+    # Special lane labels are thinned to decile milestones, not one per sample.
+    assert "function planSpecialLabels(" in html
+    assert "const SPECIAL_LABEL_MIN_GAP_PX = 34;" in html
+    assert "const SPECIAL_LABEL_FORCE_DROP = 0.25;" in html
+    assert "renderSpecialLane(duration, width)" in html
 
     assert "function isTileSelected(" in html
     assert "function frameKey(" in html
@@ -1570,3 +1579,112 @@ def test_special_gauge_visibility_and_timeline_html(tmp_path: Path) -> None:
     assert len(visible) == 2
     assert any(o["reading"].get("ready") for o in visible)
     assert any(not o["reading"].get("ready") for o in visible)
+
+
+def _extract_js_function(source: str, name: str) -> str:
+    """Slice one top-level JS function out of the viewer template by brace depth."""
+    start = source.index(f"function {name}(")
+    depth = 0
+    for index in range(start, len(source)):
+        if source[index] == "{":
+            depth += 1
+        elif source[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return source[start : index + 1]
+    raise AssertionError(f"unterminated JS function {name}")
+
+
+def _plan_special_labels(
+    series: list[tuple[float, float, bool]],
+    duration: float,
+    width: float,
+) -> list[tuple[str, str]]:
+    """Run the viewer's planSpecialLabels under node against ``(t, fill, ready)``."""
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is unavailable for viewer JS behavioral tests")
+    constants = re.findall(r"^const SPECIAL_LABEL_\w+ = [\d.]+;$", _HTML_TEMPLATE, re.M)
+    assert len(constants) == 2, "expected both special-label tuning constants"
+    samples = [
+        {
+            "id": f"s{i}",
+            "timestamp": timestamp,
+            "reading": {"fill_fraction": fill, "ready": ready, "visible": True},
+        }
+        for i, (timestamp, fill, ready) in enumerate(series)
+    ]
+    script = "\n".join(
+        [
+            *constants,
+            _extract_js_function(_HTML_TEMPLATE, "planSpecialLabels"),
+            f"const planned = planSpecialLabels({json.dumps(samples)},"
+            f" {duration}, {width});",
+            "console.log(JSON.stringify([...planned.entries()]));",
+        ]
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "plan.js"
+        path.write_text(script, encoding="utf-8")
+        result = subprocess.run(
+            [node, str(path)], capture_output=True, text=True, check=True
+        )
+    return [(entry[0], entry[1]) for entry in json.loads(result.stdout)]
+
+
+def test_special_labels_thin_a_ramp_to_decile_milestones() -> None:
+    """A charge ramp labels deciles, not every cadence sample."""
+    series = [(i * 0.5, i / 20, False) for i in range(21)]
+    # 100px per second, so 0.5s spacing clears the 34px gap on its own.
+    planned = _plan_special_labels(series, duration=10.0, width=1000.0)
+
+    texts = [text for _, text in planned]
+    assert len(texts) < len(series)
+    assert all(re.fullmatch(r"\d+%", text) for text in texts)
+    # Decile milestones are distinct and monotonic across a pure ramp.
+    assert texts == sorted(texts, key=lambda t: int(t.rstrip("%")))
+    assert len(set(texts)) == len(texts)
+
+
+def test_special_labels_show_ready_only_at_onset() -> None:
+    """READY marks the onset; a continuing ready run stays unlabeled."""
+    series = [(0.0, 0.90, False), (1.0, 0.90, True), (2.0, 0.90, True), (3.0, 0.90, True)]
+    planned = _plan_special_labels(series, duration=10.0, width=1000.0)
+
+    assert [text for _, text in planned] == ["90%", "READY"]
+    assert [ident for ident, text in planned if text == "READY"] == ["s1"]
+
+
+def test_special_labels_keep_showing_fill_while_ready_holds() -> None:
+    """A decile change during a held ready run shows the value, not READY again.
+
+    This is the flounder shape: ``ready`` stays true across a fill change, so
+    onset-only READY is what keeps the change visible at all.
+    """
+    series = [(0.0, 0.90, True), (1.0, 0.70, True)]
+    planned = _plan_special_labels(series, duration=10.0, width=1000.0)
+
+    assert [text for _, text in planned] == ["READY", "70%"]
+
+
+def test_special_labels_force_large_drops_through_the_spacing_rule() -> None:
+    """Drops of >= 0.25 stay labeled when spacing would otherwise hide them."""
+    # 10px per second, so 0.5s apart is 5px and every pair violates the 34px gap.
+    series = [(0.0, 0.90, False), (0.5, 0.60, False), (1.0, 0.30, False)]
+    planned = _plan_special_labels(series, duration=10.0, width=100.0)
+
+    # s0 is evicted by the first forced drop; both forced labels then survive
+    # side by side, because a forced label never evicts another forced label.
+    assert planned == [("s1", "60%"), ("s2", "30%")]
+
+
+def test_special_labels_drop_evicts_a_too_close_lesser_label() -> None:
+    """A forced drop replaces an ordinary neighbour that sits inside the gap."""
+    series = [(0.0, 0.90, False), (0.5, 0.50, False)]
+    planned = _plan_special_labels(series, duration=10.0, width=100.0)
+
+    assert planned == [("s1", "50%")]
+
+    # With room to breathe, the same pair keeps both labels.
+    spaced = _plan_special_labels(series, duration=10.0, width=1000.0)
+    assert spaced == [("s0", "90%"), ("s1", "50%")]

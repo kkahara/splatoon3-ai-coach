@@ -1588,22 +1588,76 @@ function renderMapInkLane(duration) {
   return `<div class="metric-row map-ink"><span class="lane-name">Map ink</span>${ticks}</div>`;
 }
 
-function renderSpecialLane(duration) {
+const SPECIAL_LABEL_MIN_GAP_PX = 34;
+const SPECIAL_LABEL_FORCE_DROP = 0.25;
+
+/** Which special-gauge ticks get a text label, as a Map of observation id to text.
+ *
+ * The lane samples at cadence (~2 FPS), so labeling every visible sample is
+ * unreadable. Milestones only: a decile change since the last drawn label,
+ * READY at ready onset, and any large drop.
+ *
+ * READY text is onset-only. `ready` can stay true across a fill change, so a
+ * continuing ready run keeps showing deciles rather than hiding the value
+ * behind repeated READY.
+ *
+ * A fall of SPECIAL_LABEL_FORCE_DROP or more since the last drawn label is
+ * always labeled, even against the spacing rule, and may evict a lesser
+ * neighbour. Spacing must not hide the largest changes in the lane.
+ *
+ * Labels are decile-rounded for legibility; the tick tooltip keeps the exact
+ * fill_fraction.
+ */
+function planSpecialLabels(samples, duration, width){
+  const drawn = [];
+  let lastDecile = null, lastFill = null, prevReady = false;
+  for (const o of samples) {
+    const fill = o.reading.fill_fraction;
+    if (fill == null) { prevReady = !!o.reading.ready; continue; }
+    const ready = !!o.reading.ready;
+    const onset = ready && !prevReady;
+    prevReady = ready;
+    const x = (o.timestamp / Math.max(duration, 1e-9)) * width;
+    const last = drawn.length ? drawn[drawn.length - 1] : null;
+    const near = last !== null && (x - last.x) < SPECIAL_LABEL_MIN_GAP_PX;
+    const decile = Math.round(fill * 10) * 10;
+    const forced = lastFill !== null && (lastFill - fill) >= SPECIAL_LABEL_FORCE_DROP;
+    if (forced) {
+      if (near && !last.forced) drawn.pop();
+      drawn.push({x, id:o.id, text:`${decile}%`, forced:true});
+    } else if (near) {
+      continue;
+    } else if (onset) {
+      drawn.push({x, id:o.id, text:"READY", forced:false});
+    } else if (decile !== lastDecile) {
+      drawn.push({x, id:o.id, text:`${decile}%`, forced:false});
+    } else {
+      continue;
+    }
+    lastDecile = decile;
+    lastFill = fill;
+  }
+  return new Map(drawn.map(d => [d.id, d.text]));
+}
+
+function renderSpecialLane(duration, width) {
   const samples = (DATA.observations||[]).filter(o =>
     o.detector==="special_gauge" && o.reading && o.reading.visible
-  );
+  ).slice().sort((a,b)=>a.timestamp-b.timestamp);
   if (!samples.length) {
     return `<div class="metric-row special"><span class="lane-name">Special</span><span style="position:absolute;left:72px;top:10px;font-size:10px;color:var(--muted)">no visible gauge samples</span></div>`;
   }
+  const labels = planSpecialLabels(samples, duration, width);
   const ticks = samples.map(o=>{
     const left=(o.timestamp/duration)*100;
     const ready = !!o.reading.ready;
-    const label = ready ? "READY" : fmtFracPct(o.reading.fill_fraction);
+    const label = labels.get(o.id);
     const picked = o.id===state.selectedId ? "selected":"";
     const tip = ready
-      ? `${fmtTime(o.timestamp, 2)} · READY`
+      ? `${fmtTime(o.timestamp, 2)} · READY · fill≈${fmtFracPct(o.reading.fill_fraction)} (approx)`
       : `${fmtTime(o.timestamp, 2)} · fill≈${fmtFracPct(o.reading.fill_fraction)} (approx)`;
-    return `<button type="button" class="special-tick ${ready?"ready":""} ${picked}" style="left:${left}%" title="${esc(tip)}" data-oid="${esc(o.id)}" data-ts="${o.timestamp}" data-prefer="special_gauge"><span class="lbl">${esc(label)}</span></button>`;
+    const lbl = label===undefined ? "" : `<span class="lbl">${esc(label)}</span>`;
+    return `<button type="button" class="special-tick ${ready?"ready":""} ${picked}" style="left:${left}%" title="${esc(tip)}" data-oid="${esc(o.id)}" data-ts="${o.timestamp}" data-prefer="special_gauge">${lbl}</button>`;
   }).join("");
   return `<div class="metric-row special"><span class="lane-name">Special</span>${ticks}</div>`;
 }
@@ -1710,7 +1764,7 @@ function renderLifecycle() {
   $("lifecycle-strip").innerHTML =
     `<div style="min-width:${width}px"><div class="axis">${ticks.join("")}</div>` +
     `<div class="life-row" style="height:${rowH}px">${segs}${marks}</div>` +
-    `${renderSplatLane(duration)}${renderMapInkLane(duration)}${renderSpecialLane(duration)}</div>`;
+    `${renderSplatLane(duration)}${renderMapInkLane(duration)}${renderSpecialLane(duration, width)}</div>`;
   bindTimelineJump($("lifecycle-strip"));
   $("lifecycle-strip").querySelectorAll(".splat-tick[data-oid], .special-tick[data-oid]").forEach(el=>{
     el.onclick=(ev)=>{
