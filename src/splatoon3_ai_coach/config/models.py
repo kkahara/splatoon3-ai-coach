@@ -486,6 +486,28 @@ class TimerDetectorConfig(BaseModel):
     min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
 
 
+class ScoreDetectorConfig(BaseModel):
+    """Fixed left/right Splat Zones remaining counters (observe-only).
+
+    ROIs are full-frame screen geometry. Ally/opponent mapping is fusion-only
+    (``left→ally``, ``right→opponent``) in ``vision.state`` — not in detect().
+    Penalty ROIs are optional secondary observations.
+    """
+
+    left_roi: NormalizedBox = (0.414062, 0.138889, 0.479167, 0.187037)
+    right_roi: NormalizedBox = (0.528646, 0.138889, 0.598958, 0.192593)
+    left_penalty_roi: NormalizedBox | None = None
+    right_penalty_roi: NormalizedBox | None = None
+    template_dir: Path = Path("../calibration/templates")
+    match_threshold: float = Field(default=0.55, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+    # Provenance only — detect() does not gate on MatchIntro.
+    battle_mode_id: str | None = "splat_zones"
+    # Fusion visibility hold (provisional). Not a detector rule.
+    # Stage 2 unchanged hold-candidate max was 3.5s; start conservative at 2.0.
+    score_max_hold_seconds: float = Field(default=2.0, gt=0)
+
+
 class StateFusionConfig(BaseModel):
     """Settings for temporal state fusion."""
 
@@ -555,6 +577,7 @@ class VisionConfig(BaseModel):
     special_gauge: SpecialGaugeDetectorConfig = Field(
         default_factory=SpecialGaugeDetectorConfig
     )
+    score: ScoreDetectorConfig = Field(default_factory=ScoreDetectorConfig)
     hud_cadence_fps: float = Field(default=2.0, gt=0)
     state_fusion: StateFusionConfig = Field(default_factory=StateFusionConfig)
     lifecycle: LifecycleFusionConfig = Field(default_factory=LifecycleFusionConfig)

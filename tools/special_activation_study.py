@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Observe-only special-activation study (checklist D).
 
-Three modes, sharing one ``GaugeSample``/``Candidate`` foundation:
+Four modes, sharing one ``GaugeSample``/``Candidate`` foundation:
 
 - ``candidates``: find visible-to-visible ``fill_fraction`` declines with no
   label to anchor on, and emit review frame strips. This is what production
-  fusion would eventually run on.
+  fusion would eventually run on. Death proximity is deliberately omitted
+  from this output so raw-candidate review is not biased.
 - ``trajectories``: for every blind-labeled GT activation, dump the full
   windowed signal (visible/fill_fraction/ready/dial/charged/press scores,
   signed distance to nearest DEATH) around the *known* activation time. This
@@ -18,7 +19,15 @@ Three modes, sharing one ``GaugeSample``/``Candidate`` foundation:
   labeled activation uses a separate *activation-association window*
   (``--assoc-pre``/``--assoc-post``) — how far a candidate's peak/trough may
   sit from a label and still count as that activation — which is not the same
-  parameter as the candidate-generation window being swept.
+  parameter as the candidate-generation window being swept. Matching is
+  one-to-one: one activation cannot legitimise several candidates, so extra
+  candidates around a recovered activation stay unmatched and count as false
+  candidates (``_match_one_to_one``).
+- ``review-queue``: classify unmatched candidates on GT runs into
+  ``extra`` / ``post_death`` / ``other`` and write a VMV review queue with
+  attribution context (peak/trough/decline/span/nearest DEATH). Priority for
+  Stage 2 is the ``other`` population. This is study labeling only — not a
+  production ``SPECIAL_USED`` GameEvent.
 
 Reads ``vision_manifest.json`` and the already-dumped ``debug_snapshots/`` of
 analyzed runs. Writes everything under
@@ -44,13 +53,37 @@ false, for a weak ``dial_score``, or for otherwise not "looking like" an
 activation. The later analysis exists to discover what those signals mean, so
 the raw candidate population has to reach it unfiltered.
 
-Death proximity is also **not** recorded here, for a second reason: these
-records drive the manual review pass, and showing the labeler how close a
-candidate sits to a death would bias the very judgment the study is measuring.
-Continuous death distance belongs to the ``trajectories`` and ``score`` modes.
+Death proximity is also **not** recorded on ``candidates.json``, for a second
+reason: those records drive an unbiased candidate-generation population.
+Continuous death distance belongs to ``trajectories``, ``score``, and the
+``review-queue`` attribution export (for VMV).
 
 The drop threshold is a parameter rather than a constant so the eventual sweep
 reuses this exact candidate-generation logic.
+
+Merging is its own hazard in both directions, found by scoring the corrected
+tool against the full 17-run GT rather than assumed:
+
+- Under-merging real declines that share a merge window (e.g. two activations
+  9s apart) into one candidate purely by trough proximity silently discarded
+  whichever had the shallower decline — a real recall bug, not a modeling
+  choice.
+- Over-correcting that by comparing every new peak against the *prior
+  candidate's trough* (a trough is, by construction, always far below any
+  peak) made almost every peak identity change look like a "refill," which
+  fragmented single smooth declines whose true peak ages out of the trailing
+  window into many near-duplicate candidates (one 11s Kraken Royale decline
+  produced 10 of them).
+
+``_group_firings`` instead asks whether the *new peak itself* is a genuine
+local rise compared to the immediately preceding measured sample
+(``_is_rise``). A rise is real evidence of recharge; its absence means the
+peak identity only shifted because an earlier, higher sample left the
+trailing window, and the firing still belongs to the decline already in
+progress. Verified against the full 56-activation GT: 0/56 unmatched, 36/56
+match exactly one candidate, the remainder mostly two — that residual
+duplication reflects genuine gauge read noise in specific spans, not a merge
+defect (see ``CANDIDATE_REVIEW.md`` in the study output directory).
 """
 
 from __future__ import annotations
@@ -77,14 +110,23 @@ MANIFEST_NAME = "vision_manifest.json"
 DEFAULT_MIN_DECLINE = 0.30
 DEFAULT_WINDOW_SECONDS = 6.0
 # Firings this close together describe one decline, not several — but only
-# when there was no genuine refill between them. See _group_firings.
+# when the new peak isn't itself a genuine rise. See _group_firings.
 DEFAULT_MERGE_SECONDS = 8.0
-# A rise above the prior trough smaller than this is cadence/sensor jitter,
-# not a real recharge; a rise above it means the peak change was a real
-# refill, not just the earlier peak aging out of the trailing window.
-DEFAULT_REFILL_TOLERANCE = 0.15
+# A peak sample only ~2 dial sectors (~1/21 fill each) above its immediately
+# preceding measured sample is cadence/sensor jitter, not a real recharge.
+# Empirically verified against the full 56-activation GT: 0.10 keeps every
+# known-separate pair of declines separate (e.g. Triple Splashdown's two
+# activations 12.5s apart) while collapsing single monotonic declines whose
+# peak identity merely ages out of the trailing window (e.g. Kraken Royale's
+# ~11s decline dropped from 10 spurious candidates to 1). 0.15 was tried and
+# is too permissive — it wrongly re-merges the Triple Splashdown pair.
+DEFAULT_REFILL_TOLERANCE = 0.10
 DEFAULT_PRE_SECONDS = 2.0
 DEFAULT_POST_SECONDS = 3.0
+DEFAULT_ASSOC_PRE_SECONDS = 5.0
+DEFAULT_ASSOC_POST_SECONDS = 10.0
+# Peak 0–10s after a DEATH → post_death population (death-penalty confound).
+POST_DEATH_WINDOW_SECONDS = 10.0
 
 # Each strip tile stacks a downscaled context frame over a magnified crop of
 # the gauge ROI. At full-frame scale the dial is a few pixels across and a
@@ -300,8 +342,27 @@ def _firings(
     return fired
 
 
+def _is_rise(measured: list[GaugeSample], index: int, *, refill_tolerance: float) -> bool:
+    """Whether ``measured[index]`` is itself a genuine local rise.
+
+    Compares the sample to the immediately preceding *measured* sample in
+    time (not the current decline's trough). A peak sample that is a rise is
+    real evidence the gauge recharged at that instant. A peak sample that is
+    not a rise — its immediate predecessor was at or above it — only became
+    "the peak" because an earlier, higher sample aged out of the trailing
+    ``window_seconds`` lookback; it is still part of whatever decline was
+    already in progress.
+    """
+    if index == 0:
+        return True
+    sample = measured[index]
+    predecessor = measured[index - 1]
+    return sample.fill_fraction - predecessor.fill_fraction > refill_tolerance  # type: ignore[operator]
+
+
 def _group_firings(
     firings: list[tuple[GaugeSample, GaugeSample]],
+    measured: list[GaugeSample],
     *,
     merge_seconds: float,
     refill_tolerance: float,
@@ -310,16 +371,17 @@ def _group_firings(
 
     Firings sharing the same originating peak are always one decline: they
     are the cascading cadence-sampled troughs on the way to one minimum.
-    Firings with a *different* peak are only the same decline when the peak
-    identity changed merely because the earlier peak aged out of the trailing
-    window — not because the gauge actually recharged. A rise from the prior
-    group's trough to the new peak greater than ``refill_tolerance`` is a
-    genuine refill and always starts a new candidate, regardless of how close
-    in time it is to the last one. This is the fix for a defect where two
-    real, separate declines within ``merge_seconds`` of each other collapsed
-    into one candidate, silently discarding whichever had the shallower
-    decline — see the module-level notes on ``candidates`` mode.
+    Firings with a *different* peak are the same decline unless the new peak
+    is itself a genuine rise (see ``_is_rise``) — i.e. unless the gauge
+    actually recharged at that instant, rather than the peak identity merely
+    shifting because an earlier, higher sample aged out of the trailing
+    window. Comparing the new peak against the *prior group's trough* (an
+    earlier version of this function) was wrong: a trough is by construction
+    far below any peak, so that comparison almost always looked like a
+    "refill" and fragmented one smooth decline into many near-duplicate
+    candidates — see the module-level notes on ``candidates`` mode.
     """
+    index_by_timestamp = {sample.timestamp: i for i, sample in enumerate(measured)}
     groups: list[list[tuple[GaugeSample, GaugeSample]]] = []
     for firing in firings:
         peak, trough = firing
@@ -329,8 +391,12 @@ def _group_firings(
         if groups:
             prior_trough = groups[-1][-1][1]
             gap = trough.timestamp - prior_trough.timestamp
-            refill = peak.fill_fraction - prior_trough.fill_fraction  # type: ignore[operator]
-            if gap <= merge_seconds and refill <= refill_tolerance:
+            genuine_rise = _is_rise(
+                measured,
+                index_by_timestamp[peak.timestamp],
+                refill_tolerance=refill_tolerance,
+            )
+            if gap <= merge_seconds and not genuine_rise:
                 groups[-1].append(firing)
                 continue
         groups.append([firing])
@@ -361,7 +427,10 @@ def find_candidates(
     ]
     firings = _firings(measured, min_decline=min_decline, window_seconds=window_seconds)
     groups = _group_firings(
-        firings, merge_seconds=merge_seconds, refill_tolerance=refill_tolerance
+        firings,
+        measured,
+        merge_seconds=merge_seconds,
+        refill_tolerance=refill_tolerance,
     )
     return [
         _candidate(group, samples, run=run, index=index)
@@ -745,6 +814,18 @@ class ScoreCell(BaseModel):
     is a measurement, not a recommendation: a higher recall at a wider window
     is reported alongside its false-candidate count rather than treated as
     automatically better.
+
+    ``matched_candidate_count`` equals ``recovered_count`` by construction —
+    matching is one-to-one, so a recovered activation consumes exactly one
+    candidate (see ``_match_one_to_one``). Both are reported so that
+    ``false_candidate_count = candidate_count - matched_candidate_count`` is
+    readable without knowing that identity holds.
+
+    ``multi_candidate_activation_count`` counts GT activations with more than
+    one candidate in their association window, independent of which one the
+    matching assigned. It is the transparency number for how much of the
+    candidate population is extra candidates around real activations rather
+    than candidates somewhere else entirely.
     """
 
     window_seconds: float
@@ -754,7 +835,9 @@ class ScoreCell(BaseModel):
     recovered_count: int
     recall: float | None
     candidate_count: int
+    matched_candidate_count: int
     false_candidate_count: int
+    multi_candidate_activation_count: int
 
 
 class ScoreReport(BaseModel):
@@ -790,6 +873,293 @@ def _candidate_in_association_window(
     return candidate.peak_time <= window_end and candidate.trough_time >= window_start
 
 
+def _candidate_distance_seconds(candidate: Candidate, t: float) -> float:
+    """Temporal distance from a labeled press time to a candidate's onset.
+
+    Measured from ``peak_time`` because the peak is where the decline starts
+    and is therefore the physical correlate of the press. Measuring from the
+    whole span instead would tie every candidate whose span happens to contain
+    the label at zero distance, which is common once several candidates
+    overlap one activation.
+    """
+    return abs(candidate.peak_time - t)
+
+
+def _claim_one_to_one(
+    activations: list[GTActivation],
+    candidates_by_run: dict[str, list[Candidate]],
+    *,
+    assoc_pre: float,
+    assoc_post: float,
+) -> tuple[set[int], set[tuple[str, int]], int]:
+    """Assign at most one candidate to each GT activation, and vice versa.
+
+    Returns ``(claimed_activation_indices, claimed_(run, cand_index),
+    multi_candidate_activations)``.
+
+    One activation cannot legitimise N candidates. Counting every candidate
+    that overlaps *any* association window as "matched" — what this mode did
+    previously — understates the extra-candidate population exactly where it
+    matters, because a broad association window routinely puts two to four
+    candidates around one labeled press. Under one-to-one matching each
+    activation may claim at most one candidate, each candidate may satisfy at
+    most one activation, and every leftover candidate stays unmatched and
+    counts as a false candidate.
+
+    Pairs are assigned tightest-first (smallest distance from the labeled
+    press to the candidate's peak; ties broken by greater decline, then by
+    time), so the result does not depend on the order activations appear in
+    the GT file. This is deliberately greedy rather than a global optimum:
+    the study measures the evidence, it does not build the production
+    matcher. Greedy can leave a second activation unrecovered when two real
+    presses have only one candidate between them — that is a real candidate
+    identity collapse and *should* surface as a recall loss, which is what a
+    20s candidate-generation window does to Tacticooler.
+    """
+    pairs: list[tuple[float, float, float, float, int, int]] = []
+    multi_candidate_activations = 0
+    for activation_index, activation in enumerate(activations):
+        overlapping = [
+            candidate_index
+            for candidate_index, candidate in enumerate(
+                candidates_by_run[activation.run]
+            )
+            if _candidate_in_association_window(
+                candidate, activation.t, assoc_pre, assoc_post
+            )
+        ]
+        if len(overlapping) > 1:
+            multi_candidate_activations += 1
+        for candidate_index in overlapping:
+            candidate = candidates_by_run[activation.run][candidate_index]
+            pairs.append(
+                (
+                    _candidate_distance_seconds(candidate, activation.t),
+                    -candidate.decline,
+                    candidate.peak_time,
+                    candidate.trough_time,
+                    activation_index,
+                    candidate_index,
+                )
+            )
+
+    claimed_activations: set[int] = set()
+    claimed_candidates: set[tuple[str, int]] = set()
+    for *_sort_keys, activation_index, candidate_index in sorted(pairs):
+        candidate_key = (activations[activation_index].run, candidate_index)
+        if (
+            activation_index in claimed_activations
+            or candidate_key in claimed_candidates
+        ):
+            continue
+        claimed_activations.add(activation_index)
+        claimed_candidates.add(candidate_key)
+    return claimed_activations, claimed_candidates, multi_candidate_activations
+
+
+def _match_one_to_one(
+    activations: list[GTActivation],
+    candidates_by_run: dict[str, list[Candidate]],
+    *,
+    assoc_pre: float,
+    assoc_post: float,
+) -> tuple[int, int, int]:
+    """Counts from ``_claim_one_to_one`` for score cells."""
+    claimed_activations, claimed_candidates, multi = _claim_one_to_one(
+        activations,
+        candidates_by_run,
+        assoc_pre=assoc_pre,
+        assoc_post=assoc_post,
+    )
+    return len(claimed_activations), len(claimed_candidates), multi
+
+
+def _is_post_death_candidate(
+    nearest_death_signed: float | None, *, window_seconds: float
+) -> bool:
+    """Whether the candidate peak falls in the post-death confound window.
+
+    ``nearest_death_signed`` is ``death - peak`` (see
+    ``nearest_death_signed_seconds``). A value in ``[-window, 0]`` means the
+    peak is 0–``window`` seconds *after* the nearest DEATH — the death-penalty
+    gauge drop becoming visible after the death UI clears.
+    """
+    if nearest_death_signed is None:
+        return False
+    return -window_seconds <= nearest_death_signed <= 0.0
+
+
+class ReviewQueueItem(BaseModel):
+    """One unmatched candidate for VMV attribution review.
+
+    ``population`` is the Stage 1 split: ``extra`` (near a recovered GT
+    activation), ``post_death`` (peak 0–10s after DEATH), or ``other`` (the
+    key unresolved set). Label meanings in VMV: SPECIAL_USED means a special
+    was actually consumed — not that the gauge dropped or a candidate fired.
+    """
+
+    run: str
+    special: str | None = None
+    candidate_index: int
+    population: Literal["extra", "post_death", "other"]
+    peak_time: float
+    trough_time: float
+    decline: float
+    span_seconds: float
+    max_single_step: float
+    peak_fill: float
+    trough_fill: float
+    nearest_death_signed_seconds: float | None = None
+    manifest_path: str
+    strip_path: str | None = None
+
+
+class ReviewQueueReport(BaseModel):
+    """VMV review queue for unmatched candidates on GT runs."""
+
+    mode: Literal["review_queue"] = "review_queue"
+    gt_path: str
+    min_decline: float
+    window_seconds: float
+    merge_seconds: float
+    refill_tolerance: float
+    assoc_pre_seconds: float
+    assoc_post_seconds: float
+    post_death_window_seconds: float
+    review_priority: Literal["other"] = "other"
+    note: str = (
+        "Attribution review only. SPECIAL_USED in VMV means a special was "
+        "actually consumed — not a production GameEvent. Prioritize population "
+        "'other' before post_death / extra."
+    )
+    counts: dict[str, int] = Field(default_factory=dict)
+    items: list[ReviewQueueItem] = Field(default_factory=list)
+
+
+def _strip_path_if_present(out_dir: Path, run: str, index: int) -> str | None:
+    """Existing review strip path, if a previous ``candidates`` run wrote one."""
+    path = out_dir / "strips" / run / f"cand{index:02d}.jpg"
+    return str(path) if path.is_file() else None
+
+
+def run_review_queue_mode(args: argparse.Namespace) -> None:
+    """Classify unmatched GT-run candidates for VMV attribution review."""
+    gt_path = Path(args.gt)
+    activations = load_gt_activations(gt_path)
+    analysis_dir = Path(args.analysis_dir)
+    out_dir = Path(args.out)
+    special_by_run = {
+        activation.run: activation.special for activation in activations
+    }
+    samples_by_run: dict[str, list[GaugeSample]] = {}
+    deaths_by_run: dict[str, list[float]] = {}
+    manifest_path_by_run: dict[str, Path] = {}
+    for activation in activations:
+        if activation.run in samples_by_run:
+            continue
+        manifest_path = analysis_dir / activation.run / MANIFEST_NAME
+        manifest_path_by_run[activation.run] = manifest_path
+        if not manifest_path.is_file():
+            logger.warning("no manifest for GT run {}", activation.run)
+            samples_by_run[activation.run] = []
+            deaths_by_run[activation.run] = []
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        samples_by_run[activation.run] = load_gauge_samples(manifest)
+        deaths_by_run[activation.run] = load_death_times(manifest)
+
+    candidates_by_run = {
+        run: find_candidates(
+            samples,
+            run=run,
+            min_decline=args.min_decline,
+            window_seconds=args.window,
+            merge_seconds=args.merge,
+            refill_tolerance=args.refill_tolerance,
+        )
+        for run, samples in samples_by_run.items()
+    }
+    _claimed_acts, claimed_candidates, _multi = _claim_one_to_one(
+        activations,
+        candidates_by_run,
+        assoc_pre=args.assoc_pre,
+        assoc_post=args.assoc_post,
+    )
+
+    items: list[ReviewQueueItem] = []
+    counts = {"extra": 0, "post_death": 0, "other": 0, "assigned": 0}
+    counts["assigned"] = len(claimed_candidates)
+    for run, candidates in candidates_by_run.items():
+        run_acts = [a for a in activations if a.run == run]
+        deaths = deaths_by_run.get(run, [])
+        manifest_path = manifest_path_by_run[run]
+        for candidate in candidates:
+            key = (run, candidate.index)
+            if key in claimed_candidates:
+                continue
+            in_window = any(
+                _candidate_in_association_window(
+                    candidate, activation.t, args.assoc_pre, args.assoc_post
+                )
+                for activation in run_acts
+            )
+            nearest = nearest_death_signed_seconds(deaths, candidate.peak_time)
+            if in_window:
+                population: Literal["extra", "post_death", "other"] = "extra"
+            elif _is_post_death_candidate(
+                nearest, window_seconds=args.post_death_window
+            ):
+                population = "post_death"
+            else:
+                population = "other"
+            counts[population] += 1
+            items.append(
+                ReviewQueueItem(
+                    run=run,
+                    special=special_by_run.get(run),
+                    candidate_index=candidate.index,
+                    population=population,
+                    peak_time=candidate.peak_time,
+                    trough_time=candidate.trough_time,
+                    decline=candidate.decline,
+                    span_seconds=candidate.span_seconds,
+                    max_single_step=candidate.max_single_step,
+                    peak_fill=candidate.peak_fill,
+                    trough_fill=candidate.trough_fill,
+                    nearest_death_signed_seconds=nearest,
+                    manifest_path=str(manifest_path),
+                    strip_path=_strip_path_if_present(
+                        out_dir, run, candidate.index
+                    ),
+                )
+            )
+
+    items.sort(key=lambda item: (item.population != "other", item.run, item.peak_time))
+    report = ReviewQueueReport(
+        gt_path=str(gt_path),
+        min_decline=args.min_decline,
+        window_seconds=args.window,
+        merge_seconds=args.merge,
+        refill_tolerance=args.refill_tolerance,
+        assoc_pre_seconds=args.assoc_pre,
+        assoc_post_seconds=args.assoc_post,
+        post_death_window_seconds=args.post_death_window,
+        counts=counts,
+        items=items,
+    )
+    out_path = out_dir / "review_queue.json"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+    logger.info(
+        "wrote {} (extra={} post_death={} other={} assigned={}; review priority=other)",
+        out_path,
+        counts["extra"],
+        counts["post_death"],
+        counts["other"],
+        counts["assigned"],
+    )
+
+
 def _score_cell(
     *,
     window_seconds: float,
@@ -819,27 +1189,13 @@ def _score_cell(
         )
         for run in relevant_runs
     }
-    def _in_window(candidate: Candidate, t: float) -> bool:
-        return _candidate_in_association_window(candidate, t, assoc_pre, assoc_post)
-
-    recovered = 0
-    for activation in activations:
-        if any(
-            _in_window(candidate, activation.t)
-            for candidate in candidates_by_run[activation.run]
-        ):
-            recovered += 1
-    total_candidates = sum(len(c) for c in candidates_by_run.values())
-    matched_candidates = sum(
-        1
-        for run, candidates in candidates_by_run.items()
-        for candidate in candidates
-        if any(
-            _in_window(candidate, activation.t)
-            for activation in activations
-            if activation.run == run
-        )
+    recovered, matched_candidates, multi_candidate_activations = _match_one_to_one(
+        activations,
+        candidates_by_run,
+        assoc_pre=assoc_pre,
+        assoc_post=assoc_post,
     )
+    total_candidates = sum(len(c) for c in candidates_by_run.values())
     return ScoreCell(
         window_seconds=window_seconds,
         min_decline=min_decline,
@@ -848,7 +1204,9 @@ def _score_cell(
         recovered_count=recovered,
         recall=round(recovered / len(activations), 4) if activations else None,
         candidate_count=total_candidates,
+        matched_candidate_count=matched_candidates,
         false_candidate_count=total_candidates - matched_candidates,
+        multi_candidate_activation_count=multi_candidate_activations,
     )
 
 
@@ -859,6 +1217,10 @@ def run_score_mode(args: argparse.Namespace) -> None:
     recoverable at each (window, threshold) setting, alongside how many
     candidates that setting generates in total — so a wider window's recall
     gain is never read without its false-candidate cost sitting next to it.
+    Candidates are matched to activations one-to-one, and the count of
+    activations carrying more than one candidate is reported separately, so
+    extra candidates are visible instead of being absorbed by the activations
+    they sit next to.
     """
     gt_path = Path(args.gt)
     activations = load_gt_activations(gt_path)
@@ -1020,9 +1382,32 @@ def build_parser() -> argparse.ArgumentParser:
     # observed peak/trough offsets across the frozen 4-run GT (peak up to 3s
     # before or 4.5s after the label; trough up to 8.5s after), plus margin
     # for slower duration-based specials.
-    score.add_argument("--assoc-pre", type=float, default=5.0)
-    score.add_argument("--assoc-post", type=float, default=10.0)
+    score.add_argument("--assoc-pre", type=float, default=DEFAULT_ASSOC_PRE_SECONDS)
+    score.add_argument("--assoc-post", type=float, default=DEFAULT_ASSOC_POST_SECONDS)
     score.set_defaults(func=run_score_mode)
+
+    review = sub.add_parser(
+        "review-queue",
+        help="classify unmatched candidates for VMV attribution review",
+    )
+    review.add_argument("--analysis-dir", default=str(PROJECT_ROOT / "analysis"))
+    review.add_argument("--gt", default=default_gt)
+    review.add_argument("--out", default=default_out)
+    review.add_argument("--min-decline", type=float, default=DEFAULT_MIN_DECLINE)
+    review.add_argument("--window", type=float, default=DEFAULT_WINDOW_SECONDS)
+    review.add_argument("--merge", type=float, default=DEFAULT_MERGE_SECONDS)
+    review.add_argument(
+        "--refill-tolerance", type=float, default=DEFAULT_REFILL_TOLERANCE
+    )
+    review.add_argument("--assoc-pre", type=float, default=DEFAULT_ASSOC_PRE_SECONDS)
+    review.add_argument("--assoc-post", type=float, default=DEFAULT_ASSOC_POST_SECONDS)
+    review.add_argument(
+        "--post-death-window",
+        type=float,
+        default=POST_DEATH_WINDOW_SECONDS,
+        help="seconds after DEATH that classify a peak as post_death",
+    )
+    review.set_defaults(func=run_review_queue_mode)
     return parser
 
 

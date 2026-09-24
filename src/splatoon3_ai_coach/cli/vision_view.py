@@ -42,6 +42,14 @@ def vision_view(
         "--port",
         help="Preferred review HTTP port when --video is set (0 = auto).",
     ),
+    review_queue: Path | None = typer.Option(
+        None,
+        "--review-queue",
+        help=(
+            "activation_study review_queue.json for SPECIAL_USED attribution "
+            "labeling (default: study path if present)."
+        ),
+    ),
 ) -> None:
     """Open a read-only Vision Manifest Viewer for Phase 2 diagnostics."""
     argv = [str(manifest)]
@@ -53,6 +61,8 @@ def vision_view(
         argv.extend(["--video", str(video)])
         if port:
             argv.extend(["--port", str(port)])
+    if review_queue is not None:
+        argv.extend(["--review-queue", str(review_queue)])
     if no_open:
         argv.append("--no-open")
     code = viewer_main(argv)

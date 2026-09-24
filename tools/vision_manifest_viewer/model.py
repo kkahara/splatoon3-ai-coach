@@ -164,6 +164,10 @@ class ObservationView(BaseModel):
     player_alive: bool | None = None
     ally_alive_count: int | None = None
     opponent_alive_count: int | None = None
+    ally_remaining: int | None = None
+    opponent_remaining: int | None = None
+    ally_score_quality: str | None = None
+    opponent_score_quality: str | None = None
     countdown_present: bool | None = None
     active_gameplay: bool | None = None
     match_phase: str | None = None
@@ -333,6 +337,8 @@ class ManifestSummary(BaseModel):
     cadence_fps: float | None = None
     processing_time_seconds: float | None = None
     processing_rate: float | None = None
+    # Analyze ``--language`` as stored on the manifest. None when absent.
+    language: str | None = None
 
 
 class ScenarioEvidenceView(BaseModel):
@@ -399,6 +405,28 @@ class MapInkSampleView(BaseModel):
     geometry_battle_mode_id: str | None = None
 
 
+class SpecialReviewCandidate(BaseModel):
+    """Study-only unmatched special-gauge candidate for VMV attribution review.
+
+    Not a GameEvent. Populations are ``extra`` / ``post_death`` / ``other``
+    from the activation study ``review-queue`` mode.
+    """
+
+    run: str
+    special: str | None = None
+    candidate_index: int
+    population: Literal["extra", "post_death", "other"]
+    peak_time: float
+    trough_time: float
+    decline: float
+    span_seconds: float
+    max_single_step: float
+    peak_fill: float
+    trough_fill: float
+    nearest_death_signed_seconds: float | None = None
+    strip_path: str | None = None
+
+
 class ManifestView(BaseModel):
     """Normalized viewer payload derived from a vision manifest."""
 
@@ -426,6 +454,8 @@ class ManifestView(BaseModel):
     manifest_path: str = ""
     scenario_evidence: list[ScenarioEvidenceView] = Field(default_factory=list)
     review_video_url: str = ""
+    review_queue: list[SpecialReviewCandidate] = Field(default_factory=list)
+    review_queue_path: str = ""
     ground_truth_labels: list[str] = Field(
         default_factory=lambda: [
             "unknown",

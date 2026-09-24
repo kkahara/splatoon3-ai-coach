@@ -262,6 +262,31 @@ class SpecialGaugeReading(BaseModel):
     ready_prompt_score: float = Field(default=0.0, ge=0, le=1)
 
 
+class ScoreSideReading(BaseModel):
+    """One screen-side remaining counter (left or right). Not ally/opponent."""
+
+    value: int | None = Field(default=None, ge=0, le=100)
+    digit_scores: list[float] = Field(default_factory=list)
+    visible: bool = False
+
+
+class ScoreReading(BaseModel):
+    """Splat Zones dual remaining counters. Screen geometry only.
+
+    ``left`` / ``right`` are observation positions. Ally/opponent mapping is a
+    fusion concern and must not appear here. Penalty fields are optional
+    secondary observations.
+    """
+
+    kind: Literal["score"] = "score"
+    battle_mode_id: str | None = "splat_zones"
+    left: ScoreSideReading = Field(default_factory=ScoreSideReading)
+    right: ScoreSideReading = Field(default_factory=ScoreSideReading)
+    left_penalty: int | None = None
+    right_penalty: int | None = None
+    confidence: float = Field(default=0.0, ge=0, le=1)
+
+
 Reading = Annotated[
     TimerReading
     | DeathReading
@@ -273,7 +298,8 @@ Reading = Annotated[
     | ReadyReading
     | LowInkReading
     | PlayerCountReading
-    | SpecialGaugeReading,
+    | SpecialGaugeReading
+    | ScoreReading,
     Field(discriminator="kind"),
 ]
 
@@ -338,6 +364,12 @@ class GameStateSnapshot(BaseModel):
     opponent_alive_count: int | None = None
     # Detector confidence for the fused roster observation (None if unknown).
     player_count_confidence: float | None = None
+    # Fused SZ remainings: left→ally / right→opponent (fusion interpretation).
+    # Quality is per-side — a frame may be observed on one side and held on the other.
+    ally_remaining: int | None = None
+    opponent_remaining: int | None = None
+    ally_score_quality: StateQuality = "unknown"
+    opponent_score_quality: StateQuality = "unknown"
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None

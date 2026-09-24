@@ -16,6 +16,7 @@ from splatoon3_ai_coach.vision.ready import ReadyDetector
 from splatoon3_ai_coach.vision.low_ink import LowInkDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
+from splatoon3_ai_coach.vision.score import ScoreDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
 from splatoon3_ai_coach.vision.timer import TimerDetector
 
@@ -111,6 +112,13 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             SpecialGaugeDetector(
                 config.special_gauge,
+                cadence_fps=config.hud_cadence_fps,
+            )
+        )
+    if "score" in config.enabled_detectors:
+        detectors.append(
+            ScoreDetector(
+                config.score,
                 cadence_fps=config.hud_cadence_fps,
             )
         )

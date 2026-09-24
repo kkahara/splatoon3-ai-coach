@@ -55,6 +55,7 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
             "active_gameplay",
             "player_count",
             "special_gauge",
+            "score",
         ):
             section = vision.get(key)
             if not isinstance(section, dict):

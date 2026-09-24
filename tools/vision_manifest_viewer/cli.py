@@ -13,6 +13,10 @@ from vision_manifest_viewer.server import (
     review_page_url,
     serve_review,
 )
+from vision_manifest_viewer.special_review import (
+    load_review_queue_for_run,
+    resolve_review_queue_path,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,6 +60,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--review-queue",
+        type=Path,
+        default=None,
+        help=(
+            "activation_study review_queue.json for SPECIAL_USED attribution "
+            "labeling (default: study path if present)."
+        ),
+    )
+    parser.add_argument(
         "--no-open",
         action="store_true",
         help="Write HTML without opening a browser",
@@ -82,6 +95,11 @@ def main(argv: list[str] | None = None) -> int:
     if folder_name and folder_name not in {".", ""}:
         view.summary.video_label = folder_name
 
+    queue_path = resolve_review_queue_path(args.review_queue)
+    if queue_path is not None:
+        view.review_queue = load_review_queue_for_run(queue_path, run=folder_name)
+        view.review_queue_path = str(queue_path)
+
     video_path = args.video.expanduser().resolve() if args.video else None
     if video_path is not None:
         if not video_path.is_file():
@@ -94,7 +112,8 @@ def main(argv: list[str] | None = None) -> int:
         f"episodes={len(view.episodes)} "
         f"observations={len(view.observations)} "
         f"markers={len(view.markers)} "
-        f"scenarios={len(view.scenario_evidence)}"
+        f"scenarios={len(view.scenario_evidence)} "
+        f"review_queue={len(view.review_queue)}"
     )
     if video_path is not None:
         preferred = args.port if args.port and args.port > 0 else None

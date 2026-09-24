@@ -60,6 +60,8 @@ _DEFAULT_ROIS: dict[str, tuple[float, float, float, float]] = {
     "map_overlay": (0.0138889, 0.0171875, 0.1777778, 0.16875),
     "special_gauge": (0.86, 0.01, 0.995, 0.18),
     "low_ink": (0.28, 0.70, 0.72, 0.82),
+    # Score has left+right pods; overlay uses left ROI as the primary box.
+    "score": (0.414062, 0.138889, 0.479167, 0.187037),
 }
 
 
@@ -323,6 +325,7 @@ def _load_rois(config_path: Path | None) -> dict[str, RoiBox]:
         "special_gauge": ("special_gauge", "roi"),
         "low_ink": ("low_ink", "roi"),
         "ready": ("ready", "roi"),
+        "score": ("score", "left_roi"),
     }
     for label, (section, key) in mapping.items():
         box = (vision.get(section) or {}).get(key)
@@ -356,6 +359,10 @@ def _build_observations(
         player_alive = snap.get("player_alive")
         ally_alive_count = _as_int_or_none(snap.get("ally_alive_count"))
         opponent_alive_count = _as_int_or_none(snap.get("opponent_alive_count"))
+        ally_remaining = _as_int_or_none(snap.get("ally_remaining"))
+        opponent_remaining = _as_int_or_none(snap.get("opponent_remaining"))
+        ally_score_quality = snap.get("ally_score_quality")
+        opponent_score_quality = snap.get("opponent_score_quality")
         countdown_present = snap.get("countdown_present")
         active_gameplay = snap.get("active_gameplay")
         match_phase = snap.get("match_phase")
@@ -376,6 +383,14 @@ def _build_observations(
                     player_alive=player_alive,
                     ally_alive_count=ally_alive_count,
                     opponent_alive_count=opponent_alive_count,
+                    ally_remaining=ally_remaining,
+                    opponent_remaining=opponent_remaining,
+                    ally_score_quality=(
+                        str(ally_score_quality) if ally_score_quality else None
+                    ),
+                    opponent_score_quality=(
+                        str(opponent_score_quality) if opponent_score_quality else None
+                    ),
                     countdown_present=countdown_present,
                     active_gameplay=active_gameplay,
                     match_phase=match_phase,
@@ -412,6 +427,14 @@ def _build_observations(
                     player_alive=player_alive,
                     ally_alive_count=ally_alive_count,
                     opponent_alive_count=opponent_alive_count,
+                    ally_remaining=ally_remaining,
+                    opponent_remaining=opponent_remaining,
+                    ally_score_quality=(
+                        str(ally_score_quality) if ally_score_quality else None
+                    ),
+                    opponent_score_quality=(
+                        str(opponent_score_quality) if opponent_score_quality else None
+                    ),
                     countdown_present=countdown_present,
                     active_gameplay=active_gameplay,
                     match_phase=match_phase,
@@ -674,6 +697,10 @@ def _is_positive(detector: str, reading: dict[str, Any]) -> bool:
         return bool(reading.get("detected"))
     if detector == "special_gauge":
         return bool(reading.get("visible"))
+    if detector == "score":
+        left = reading.get("left") or {}
+        right = reading.get("right") or {}
+        return bool(left.get("visible") or right.get("visible"))
     if "detected" in reading:
         return bool(reading.get("detected"))
     # Presence-style readings (countdown, map_overlay, ready, low_ink).
@@ -711,6 +738,21 @@ def _as_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _analysis_language(raw: dict[str, Any]) -> str | None:
+    """Return the analyze ``--language`` stored on the manifest.
+
+    Only an explicit ``en`` or ``ja`` on ``analysis.language`` counts.
+    Filenames, config YAML, and a missing field do not imply a language.
+    """
+    analysis = raw.get("analysis")
+    if not isinstance(analysis, dict):
+        return None
+    language = analysis.get("language")
+    if language in {"en", "ja"}:
+        return str(language)
+    return None
 
 
 def _build_summary(
@@ -800,6 +842,7 @@ def _build_summary(
         cadence_fps=cadence_fps,
         processing_time_seconds=processing_time_seconds,
         processing_rate=processing_rate,
+        language=_analysis_language(raw),
     )
 
 

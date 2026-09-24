@@ -342,6 +342,7 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
     assert "Damage/recovery" in html
     assert "Opening countdown" in html
     assert "gt-channel" in html
+    assert 'value="special_usage">Special usage' in html
     assert "real_map_overlay" in html
     assert "not_a_map_overlay" in html
     assert "detector:o.detector" in html or "detector:gtDetector" in html
@@ -360,11 +361,16 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
         '"special_gauge"]' in html
     )
     # special_gauge GT channel: study labels only, never scored as accuracy.
-    assert 'special_gauge:["unknown","special_used","not_a_special_used"]' in html
-    assert 'special_used:"Special used"' in html
-    assert 'not_a_special_used:"Not a special use"' in html
+    assert 'special_gauge:["unknown","special_used","not_a_special_used","uncertain"]' in html
+    assert 'special_used:"SPECIAL_USED"' in html
+    assert 'not_a_special_used:"NOT_SPECIAL_USED"' in html
+    assert 'uncertain:"UNCERTAIN"' in html
+    assert "a special was actually consumed" in html
     assert "function isUnscoredChannel(" in html
     assert "function renderStudyStats(" in html
+    assert "function renderSpecialReviewPanel(" in html
+    assert '"review_queue"' in html
+    assert "SPECIAL_USED review queue" in html
     # Special lane labels are thinned to decile milestones, not one per sample.
     assert "function planSpecialLabels(" in html
     assert "const SPECIAL_LABEL_MIN_GAP_PX = 34;" in html
@@ -372,6 +378,8 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
     assert "renderSpecialLane(duration, width)" in html
 
     assert "function isTileSelected(" in html
+    assert "overflow-x:scroll;overflow-y:scroll" in html
+    assert ".gallery::-webkit-scrollbar{-webkit-appearance:none;width:14px;height:14px;display:block}" in html
     assert "function frameKey(" in html
     assert "detector===\"death\") || tile.readings[0]" not in html
     assert "o.detector === \"timer\"" in html
@@ -484,6 +492,94 @@ def test_map_overlay_present_is_positive(tmp_path: Path) -> None:
     by_id = {o.id: o for o in view.observations if o.detector == "map_overlay"}
     assert by_id["on"].positive is True
     assert by_id["off"].positive is False
+
+
+def test_score_fused_remainings_surface_in_viewer(tmp_path: Path) -> None:
+    """Stage 3.1: ally/opponent remaining + per-side quality on fused state."""
+    frames_dir = tmp_path / "frames"
+    frames_dir.mkdir()
+    jpg = (
+        b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+        b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
+        b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
+        b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"
+    )
+    (frames_dir / "sz.jpg").write_bytes(jpg)
+    manifest = {
+        "schema_version": 1,
+        "video_identity": "sz1",
+        "extraction_manifest_path": "frames",
+        "analysis": {
+            "analysis_id": "a",
+            "package_version": "0.2.0",
+            "pipeline_version": "3.0.0",
+            "detector_versions": {},
+            "extraction_manifest_sha256": "x",
+            "vision_config_sha256": "y",
+            "video_identity": "sz1",
+        },
+        "frame_results": [
+            {
+                "frame_id": "s0",
+                "timestamp": 5.0,
+                "source": "cadence",
+                "source_frame_index": 10,
+                "frame_path": "frames/sz.jpg",
+                "detections": [
+                    {
+                        "id": "score0",
+                        "detector_name": "score",
+                        "detector_version": "score@0.1.0",
+                        "confidence": 0.91,
+                        "reading": {
+                            "kind": "score",
+                            "left": {
+                                "value": 99,
+                                "visible": True,
+                                "digit_scores": [0.9],
+                            },
+                            "right": {
+                                "value": None,
+                                "visible": False,
+                                "digit_scores": [],
+                            },
+                            "confidence": 0.91,
+                        },
+                    }
+                ],
+            }
+        ],
+        "state_snapshots": [
+            {
+                "timestamp": 5.0,
+                "match_phase": "in_match",
+                "ally_remaining": 99,
+                "opponent_remaining": 100,
+                "ally_score_quality": "observed",
+                "opponent_score_quality": "held",
+                "quality": "observed",
+            }
+        ],
+        "game_events": [],
+    }
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    view = load_manifest_view(path)
+    obs = next(o for o in view.observations if o.detector == "score")
+    assert obs.positive is True
+    assert obs.ally_remaining == 99
+    assert obs.opponent_remaining == 100
+    assert obs.ally_score_quality == "observed"
+    assert obs.opponent_score_quality == "held"
+    html = render_html(view)
+    assert "formatScoreRemaining" in html
+    assert "ally_remaining" in html
+    assert "Score reading" in html
+    # No score GT event chips in Stage 3.1.
+    assert "score" not in html.split("GT_CHIP_DETECTORS")[1].split("]")[0]
 
 
 def test_detector_positive_event_negative_flag(tmp_path: Path) -> None:
@@ -1294,6 +1390,36 @@ def test_map_ink_missing_sidecar_is_empty(tmp_path: Path) -> None:
     view = load_manifest_view(path)
     assert view.map_ink_timeline == []
     assert view.match_identity is None
+
+
+def test_header_language_from_analysis_field(tmp_path: Path) -> None:
+    """Header language is the analyze --language stored on the manifest."""
+    path = tmp_path / "vision_manifest.json"
+    shell = _minimal_manifest_shell(video_identity="ja_inkblot_art_academy")
+    shell["analysis"]["language"] = "ja"
+    path.write_text(json.dumps(shell), encoding="utf-8")
+    view = load_manifest_view(path)
+    assert view.summary.language == "ja"
+    html = render_html(view)
+    assert ">Language<" in html
+    assert '"language": "ja"' in html
+
+    shell["analysis"]["language"] = "en"
+    path.write_text(json.dumps(shell), encoding="utf-8")
+    view = load_manifest_view(path)
+    assert view.summary.language == "en"
+
+
+def test_header_language_absent_is_unset(tmp_path: Path) -> None:
+    """A ja_ filename does not fill in language when the field is missing."""
+    path = tmp_path / "vision_manifest.json"
+    shell = _minimal_manifest_shell(video_identity="ja_inkblot_art_academy")
+    assert "language" not in shell["analysis"]
+    path.write_text(json.dumps(shell), encoding="utf-8")
+    view = load_manifest_view(path)
+    assert view.summary.language is None
+    html = render_html(view)
+    assert ">Language<" in html
 
 
 def test_match_identity_shown_in_header(tmp_path: Path) -> None:

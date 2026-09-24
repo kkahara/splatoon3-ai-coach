@@ -36,7 +36,7 @@ vision:
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro", "ready", "low_ink"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro", "ready", "low_ink", "score"]
   # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
@@ -214,6 +214,17 @@ vision:
     ready_continuity_threshold: 0.80
     ready_prompt_threshold: 0.50
     min_usable_confidence: 0.40
+  # Splat Zones remaining counters (screen left/right). Observe-only detector.
+  # Fusion maps left→ally / right→opponent (Stage 2 identity evidence); hold is
+  # fusion-only (score_max_hold_seconds). No GameEvent in Stage 3.1.
+  score:
+    left_roi: [0.414062, 0.138889, 0.479167, 0.187037]
+    right_roi: [0.528646, 0.138889, 0.598958, 0.192593]
+    template_dir: "../calibration/templates"
+    match_threshold: 0.55
+    min_usable_confidence: 0.50
+    battle_mode_id: splat_zones
+    score_max_hold_seconds: 2.0
   state_fusion:
     smoothing_window: 5
     max_hold_duration: 2.0

@@ -106,7 +106,10 @@ button:hover,button.active{border-color:var(--accent);color:var(--accent)}
 .life-mark .lbl{font-size:10px;line-height:1.2;padding:2px 4px;border-radius:3px;background:rgba(20,22,26,.92);border:1px solid var(--line);white-space:normal;word-break:break-word}
 .life-mark .t{color:var(--muted)}.life-mark .e{color:var(--text)}
 .life-mark.compact .e{font-size:9px}
-.gallery{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.gallery{display:flex;gap:10px;width:100%;min-width:0;max-height:72vh;overflow-x:scroll;overflow-y:scroll;padding-bottom:8px;scrollbar-gutter:stable both-edges;scrollbar-width:auto;scrollbar-color:#c0c4cc #1c1f26}
+.gallery::-webkit-scrollbar{-webkit-appearance:none;width:14px;height:14px;display:block}
+.gallery::-webkit-scrollbar-track{background:#1c1f26}
+.gallery::-webkit-scrollbar-thumb{background:#c0c4cc;border:2px solid #1c1f26;border-radius:8px;min-width:40px;min-height:40px}
 .card{flex:0 0 176px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px;cursor:pointer;box-shadow:none;outline:none}
 .card.no-thumb{flex-basis:148px}
 .card.flag-dpen{border-color:var(--warn)}
@@ -196,6 +199,17 @@ pre.raw.open{display:block}
 .gt-radios label{display:flex;gap:6px;align-items:center;font-size:12px}
 .gt-list{margin-top:8px;display:grid;gap:4px}
 .gt-item{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.special-review-panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;margin-top:10px}
+.special-review-panel h3{margin:0 0 8px;font-size:13px}
+.special-review-panel.hidden{display:none}
+.sr-filters{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px;font-size:12px}
+.sr-list{display:grid;gap:4px;max-height:180px;overflow:auto;margin-top:6px}
+.sr-item{display:grid;grid-template-columns:1fr auto;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:#0b0d10;cursor:pointer;font-size:11px}
+.sr-item:hover{border-color:var(--accent)}
+.sr-item.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.sr-item .meta{color:var(--muted)}
+.sr-context{margin-top:8px;font-size:12px}
+.sr-traj{font-family:var(--mono);font-size:10px;line-height:1.35;max-height:120px;overflow:auto;background:#0b0d10;border:1px solid var(--line);border-radius:4px;padding:6px;margin-top:6px;white-space:pre}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .stats-grid div{background:#0b0d10;border-radius:6px;padding:8px;text-align:center}
 .stats-grid strong{display:block;font-size:18px}
@@ -218,6 +232,11 @@ pre.raw.open{display:block}
     <label>Time start<input id="filter-t0" type="text" inputmode="decimal" value="0" placeholder="0 or 0:00" title="Seconds or mm:ss"/></label>
     <label>Time end<input id="filter-t1" type="text" inputmode="decimal" value="0" placeholder="mm:ss or seconds" title="Seconds or mm:ss"/></label>
     <label>Detector<select id="filter-detector"></select></label>
+    <label>GT channel<select id="gt-channel">
+      <option value="evidence">Detector evidence</option>
+      <option value="special_usage">Special usage</option>
+      <option value="match_phase">Match state</option>
+    </select></label>
     <label>Confidence ≥<input id="filter-conf" type="number" min="0" max="1" step="0.05" value="0"/></label>
   </div>
 </section>
@@ -260,16 +279,29 @@ pre.raw.open{display:block}
     </div>
     <div>
       <div class="verdict" id="gt-verdict"></div>
+      <div class="special-review-panel hidden" id="special-review-panel">
+        <h3>SPECIAL_USED review queue</h3>
+        <p class="howto">Study labeling only — not a production GameEvent. Mark whether a special was <em>actually consumed</em>. Priority: <code>other</code>. Filter does not change candidate generation.</p>
+        <div class="sr-filters" id="sr-filters">
+          <label><input type="radio" name="sr-pop" value="other" checked/> other</label>
+          <label><input type="radio" name="sr-pop" value="post_death"/> post_death</label>
+          <label><input type="radio" name="sr-pop" value="extra"/> extra</label>
+          <label><input type="radio" name="sr-pop" value="all"/> all unmatched</label>
+        </div>
+        <div class="nav-row">
+          <button type="button" id="btn-sr-prev">Prev candidate</button>
+          <button type="button" id="btn-sr-next">Next candidate</button>
+          <span class="meta" id="sr-count" style="color:var(--muted);font-size:11px"></span>
+        </div>
+        <div class="sr-list" id="sr-list"></div>
+        <div class="sr-context" id="sr-context"></div>
+      </div>
       <div class="gt-panel" id="gt-panel">
         <h3>Ground truth</h3>
-        <div class="howto" id="gt-howto">Each mark applies to the selected cadence frame only. <code>real_death</code> is the DEATH event (first alive→dead), not every Ouch / DeathReading. <code>real_splat</code> is the SPLAT event (first rising edge), not every kill-banner frame. Later frames in the same episode stay unmarked. Exporting does not retrain detectors.</div>
+        <div class="howto" id="gt-howto">Each mark applies to the selected cadence frame only. <code>real_death</code> is the DEATH event (first alive→dead), not every Ouch / DeathReading. <code>real_splat</code> is the SPLAT event (first rising edge), not every kill-banner frame. Later frames in the same episode stay unmarked. For <code>special_gauge</code>, SPECIAL_USED means a special was actually consumed — not that the gauge dropped. Exporting does not retrain detectors.</div>
         <ul class="labels" id="gt-cheat"></ul>
         <div class="gt-radios" id="gt-radios"></div>
         <div class="filters" style="margin-top:8px">
-          <label>GT channel<select id="gt-channel">
-            <option value="evidence">Detector evidence</option>
-            <option value="match_phase">Match state</option>
-          </select></label>
           <button type="button" id="btn-gt-export">Export GT JSON</button>
           <button type="button" id="btn-gt-clear">Clear all GT</button>
         </div>
@@ -326,6 +358,8 @@ const state = {
   galleryOffset: 0,  // index into grouped cadence tiles for gallery window start
   reviewIndex: 0,
   coachDevMode: false,
+  specialReviewFilter: "other",
+  specialReviewKey: null,
 };
 const GALLERY_PAGE = 200;
 const REVIEW_VIDEO_ROUTE = "/review-video";
@@ -379,7 +413,8 @@ const GT_LABELS = {
   real_map_overlay:"Real map overlay", not_a_map_overlay:"Not an overlay",
   real_respawn:"Real respawn", not_a_respawn:"Not a respawn",
   real_timer:"Real timer", not_a_timer:"Not a timer",
-  special_used:"Special used", not_a_special_used:"Not a special use",
+  special_used:"SPECIAL_USED", not_a_special_used:"NOT_SPECIAL_USED",
+  uncertain:"UNCERTAIN",
   intro:"Intro", opening_countdown:"Opening countdown", in_match:"In match",
   post_match:"Post match", results_lobby:"Results / lobby",
   death_state:"Death state", respawn_state:"Respawn state",
@@ -391,7 +426,7 @@ const GT_BY_DETECTOR = {
   map_overlay:["unknown","real_map_overlay","not_a_map_overlay"],
   respawn:["unknown","real_respawn","not_a_respawn"],
   timer:["unknown","real_timer","not_a_timer"],
-  special_gauge:["unknown","special_used","not_a_special_used"],
+  special_gauge:["unknown","special_used","not_a_special_used","uncertain"],
   match_phase:["unknown","intro","opening_countdown","in_match","post_match","results_lobby"],
 };
 const GT_LABEL_MEANINGS = {
@@ -408,8 +443,9 @@ const GT_LABEL_MEANINGS = {
   not_a_map_overlay:"Map detector false positive.",
   real_timer:"Match timer was readable.",
   not_a_timer:"Timer detector false positive.",
-  special_used:"The player activated their special here. This is a study label for the activation trajectory survey, not a SPECIAL_USED event — no such event exists. A fill_fraction drop ≠ activation, and ready=true ≠ activation.",
-  not_a_special_used:"A candidate gauge change that was not an activation — charge loss on death, a fill re-estimate, or dial flicker.",
+  special_used:"SPECIAL_USED (study label): a special was actually consumed at this point. Not a production GameEvent. A fill_fraction drop ≠ consumption; a candidate firing ≠ consumption; ready=true ≠ consumption.",
+  not_a_special_used:"NOT_SPECIAL_USED: no special was consumed here — death-related gauge loss, dial flicker, fill re-estimate, or other non-consumption decline.",
+  uncertain:"UNCERTAIN: cannot tell from the available evidence whether a special was consumed.",
 };
 const GT_CHEAT = {
   death:[
@@ -423,8 +459,9 @@ const GT_CHEAT = {
   respawn:[["Real respawn","RESPAWN event / landing"],["Not a respawn","respawn detector false positive"]],
   timer:[["Real timer","match timer was readable"],["Not a timer","pipeline was wrong"]],
   special_gauge:[
-    ["Special used", GT_LABEL_MEANINGS.special_used],
-    ["Not a special use", GT_LABEL_MEANINGS.not_a_special_used],
+    ["SPECIAL_USED", GT_LABEL_MEANINGS.special_used],
+    ["NOT_SPECIAL_USED", GT_LABEL_MEANINGS.not_a_special_used],
+    ["UNCERTAIN", GT_LABEL_MEANINGS.uncertain],
   ],
   match_phase:[
     ["Intro","pre-match, no ticking clock"],
@@ -437,6 +474,7 @@ const DETECTOR_TITLE = {
   death:"Death", splat:"Splat", active_gameplay:"Active gameplay",
   map_overlay:"Map overlay", respawn:"Respawn", timer:"Timer",
   match_phase:"Match state", special_gauge:"Special gauge",
+  score:"Score (SZ remaining)",
 };
 const GT_CHIP_DETECTORS = ["timer","death","splat","respawn","active_gameplay","map_overlay","special_gauge"];
 
@@ -455,6 +493,151 @@ function loadGt(){
   } catch { return []; }
 }
 function saveGt(){ localStorage.setItem(GT_KEY, JSON.stringify(state.gt)); renderGt(); renderStats(); refresh(); }
+
+function specialReviewItems(){
+  const all = DATA.review_queue || [];
+  if (state.specialReviewFilter === "all") return all.slice();
+  return all.filter(c => c.population === state.specialReviewFilter);
+}
+
+function specialReviewKey(c){
+  return `${c.run}::${c.candidate_index}::${c.peak_time}`;
+}
+
+function selectedSpecialReview(){
+  const items = specialReviewItems();
+  if (!items.length) return null;
+  if (state.specialReviewKey) {
+    const hit = items.find(c => specialReviewKey(c) === state.specialReviewKey);
+    if (hit) return hit;
+  }
+  return items[0];
+}
+
+function bindSpecialReviewControls(){
+  const panel = $("special-review-panel");
+  if (!panel) return;
+  if (!(DATA.review_queue||[]).length) {
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  document.querySelectorAll('input[name="sr-pop"]').forEach(inp => {
+    inp.addEventListener("change", () => {
+      if (!inp.checked) return;
+      state.specialReviewFilter = inp.value;
+      state.specialReviewKey = null;
+      renderSpecialReviewPanel();
+    });
+  });
+  $("btn-sr-prev").onclick = () => stepSpecialReview(-1);
+  $("btn-sr-next").onclick = () => stepSpecialReview(1);
+}
+
+function stepSpecialReview(delta){
+  const items = specialReviewItems();
+  if (!items.length) return;
+  let idx = items.findIndex(c => specialReviewKey(c) === state.specialReviewKey);
+  if (idx < 0) idx = 0;
+  idx = (idx + delta + items.length) % items.length;
+  jumpToSpecialReview(items[idx]);
+}
+
+function jumpToSpecialReview(c){
+  if (!c) return;
+  state.specialReviewKey = specialReviewKey(c);
+  // Prefer a special_gauge observation at/near the candidate peak.
+  const gauges = (DATA.observations||[]).filter(o => o.detector === "special_gauge");
+  let best = null;
+  let bestDist = Infinity;
+  for (const o of gauges) {
+    const d = Math.abs(o.timestamp - c.peak_time);
+    if (d < bestDist) { bestDist = d; best = o; }
+  }
+  if (best) {
+    $("filter-detector").value = "special_gauge";
+    $("filter-t0").value = Math.max(0, c.peak_time - 2).toFixed(1);
+    $("filter-t1").value = (c.trough_time + 3).toFixed(1);
+    selectObservation(best.id);
+  }
+  if ($("gt-channel")) $("gt-channel").value = "evidence";
+  renderSpecialReviewPanel();
+  renderGtContext(selectedObs());
+}
+
+function fillTrajectorySnippet(c){
+  const samples = (DATA.observations||[])
+    .filter(o => o.detector === "special_gauge"
+      && o.timestamp >= c.peak_time - 0.01
+      && o.timestamp <= c.trough_time + 0.01)
+    .sort((a,b) => a.timestamp - b.timestamp);
+  if (!samples.length) return "(no special_gauge samples in peak–trough span)";
+  return samples.map(o => {
+    const r = o.reading || {};
+    const vis = r.visible ? "V" : ".";
+    const fill = (r.fill_fraction==null) ? "  --" : Number(r.fill_fraction).toFixed(2);
+    const ready = r.ready ? "R" : " ";
+    return `${fmtMmSs(o.timestamp,1)} [${vis}] fill=${fill} ${ready}`;
+  }).join("\n");
+}
+
+function deathRelativeLabel(signed){
+  if (signed==null) return "no DEATH in run";
+  const abs = Math.abs(signed).toFixed(1);
+  if (signed === 0) return "at DEATH";
+  if (signed > 0) return `DEATH ${abs}s after peak`;
+  return `DEATH ${abs}s before peak (peak after death)`;
+}
+
+function renderSpecialReviewPanel(){
+  const panel = $("special-review-panel");
+  if (!panel) return;
+  const all = DATA.review_queue || [];
+  if (!all.length) {
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  const items = specialReviewItems();
+  const selected = selectedSpecialReview();
+  if (selected) state.specialReviewKey = specialReviewKey(selected);
+  const counts = {other:0, post_death:0, extra:0};
+  for (const c of all) counts[c.population] = (counts[c.population]||0) + 1;
+  $("sr-count").textContent =
+    `${items.length} shown · other=${counts.other||0} post_death=${counts.post_death||0} extra=${counts.extra||0}`;
+  $("sr-list").innerHTML = items.length ? items.map(c => {
+    const key = specialReviewKey(c);
+    const sel = key === state.specialReviewKey ? "selected" : "";
+    return `<div class="sr-item ${sel}" data-key="${esc(key)}">
+      <div><strong>${fmtMmSs(c.peak_time,1)}→${fmtMmSs(c.trough_time,1)}</strong>
+        <span class="meta"> Δ${Number(c.decline).toFixed(2)} span=${Number(c.span_seconds).toFixed(1)}s · ${esc(c.population)}</span></div>
+      <div class="meta">#${c.candidate_index}</div>
+    </div>`;
+  }).join("") : `<div style="color:var(--muted)">No candidates in this filter</div>`;
+  $("sr-list").querySelectorAll(".sr-item").forEach(el => {
+    el.onclick = () => {
+      const c = items.find(x => specialReviewKey(x) === el.getAttribute("data-key"));
+      jumpToSpecialReview(c);
+    };
+  });
+  if (!selected) {
+    $("sr-context").innerHTML = "";
+    return;
+  }
+  const nd = selected.nearest_death_signed_seconds;
+  $("sr-context").innerHTML = `
+    <div class="kv">
+      <span>population</span><strong>${esc(selected.population)}</strong>
+      <span>special (run)</span><strong>${esc(selected.special||"—")}</strong>
+      <span>peak / trough</span><strong>${fmtMmSs(selected.peak_time,2)} / ${fmtMmSs(selected.trough_time,2)}</strong>
+      <span>decline / span</span><strong>${Number(selected.decline).toFixed(3)} / ${Number(selected.span_seconds).toFixed(2)}s</strong>
+      <span>peak→trough fill</span><strong>${Number(selected.peak_fill).toFixed(2)} → ${Number(selected.trough_fill).toFixed(2)}</strong>
+      <span>max single step</span><strong>${Number(selected.max_single_step).toFixed(3)}</strong>
+      <span>nearest DEATH</span><strong>${deathRelativeLabel(nd)}</strong>
+      <span>signed (death−peak)</span><strong>${nd==null?"—":Number(nd).toFixed(2)+"s"}</strong>
+    </div>
+    <div class="sr-traj">${esc(fillTrajectorySnippet(selected))}</div>`;
+}
 
 function init() {
   ensureCanonicalObservations();
@@ -479,12 +662,23 @@ function init() {
     };
   }
   $("gt-channel").addEventListener("change", () => renderGtContext(selectedObs()));
+  $("filter-detector").addEventListener("change", () => {
+    if ($("filter-detector").value === "special_gauge") {
+      $("gt-channel").value = "special_usage";
+      renderGtContext(selectedObs());
+    }
+  });
+  if ((DATA.review_queue || []).length) {
+    $("gt-channel").value = "special_usage";
+  }
   bindReviewControls();
   $("btn-gt-export").onclick = exportGt;
   $("btn-gt-clear").onclick = () => { if(confirm("Clear all ground-truth marks for this manifest?")){ state.gt=[]; saveGt(); } };
+  bindSpecialReviewControls();
   refresh();
   renderGt();
   renderStats();
+  renderSpecialReviewPanel();
 }
 
 function diagFor(o){
@@ -1442,9 +1636,11 @@ function renderHeader() {
       ? `<span class="status ok">resolved${id.resolved_at!=null?` @ ${fmtMmSs(id.resolved_at,1)}`:""}</span>`
       : `<span class="status warn">unresolved</span>`;
   }
+  const language = s.language ? String(s.language).toUpperCase() : "—";
   $("match-info").innerHTML =
     `<div><span class="label">Mode</span><span class="value">${esc(mode)}</span></div>` +
     `<div><span class="label">Stage</span><span class="value">${esc(stage)}</span></div>` +
+    `<div><span class="label">Language</span><span class="value">${esc(language)}</span></div>` +
     renderTeamColors() +
     renderProcessingStats() +
     status;
@@ -1839,6 +2035,8 @@ function renderDetail(){
       <span>active_gameplay</span><strong>${o.active_gameplay??"—"}</strong>
       <span>player_alive</span><strong>${o.player_alive??"—"}</strong>
       <span>roster</span><strong>${esc(formatRosterAvB(o.ally_alive_count, o.opponent_alive_count))}</strong>
+      <span>ally_remaining</span><strong>${formatScoreRemaining(o.ally_remaining, o.ally_score_quality)}</strong>
+      <span>opponent_remaining</span><strong>${formatScoreRemaining(o.opponent_remaining, o.opponent_score_quality)}</strong>
     </div></div>
     <div class="layer"><h3>3. Events</h3><div class="kv">
       <span>nearby</span><strong>${esc(tr?.title||"—")}</strong>
@@ -1900,11 +2098,31 @@ function renderDeathDiag(diag, o){
     </div>`;
 }
 
+function formatScoreRemaining(value, quality){
+  const v = (value===null||value===undefined) ? "—" : String(value);
+  const q = quality ? ` (${quality})` : "";
+  return esc(v + q);
+}
+
+function formatScoreSide(side){
+  if (!side || typeof side !== "object") return "—";
+  if (!side.visible) return "invisible";
+  const v = side.value===null||side.value===undefined ? "—" : String(side.value);
+  return `${v} (visible)`;
+}
+
 function renderReading(o){
   const r=o.reading||{};
   if (!Object.keys(r).length) {
     return `<h2>${esc(DETECTOR_TITLE[o.detector]||o.detector||"Reading")}</h2><div class="kv"><span>reading</span><strong>absent on this frame</strong></div>`;
   }
+  if (o.detector==="score") return `<h2>Score reading (left/right screen)</h2><div class="kv">
+    <span>left</span><strong>${esc(formatScoreSide(r.left))}</strong>
+    <span>right</span><strong>${esc(formatScoreSide(r.right))}</strong>
+    <span>confidence</span><strong>${num(o.confidence??r.confidence)}</strong>
+    <span>fused ally</span><strong>${formatScoreRemaining(o.ally_remaining, o.ally_score_quality)}</strong>
+    <span>fused opponent</span><strong>${formatScoreRemaining(o.opponent_remaining, o.opponent_score_quality)}</strong>
+  </div><p class="howto">Fusion maps left→ally / right→opponent with per-side quality. No score GameEvent in Stage 3.1.</p>`;
   if (o.detector==="respawn") return `<h2>Respawn reading</h2><div class="kv">
     <span>detected</span><strong>${r.detected?"✓ true":"✗ false"}</strong>
     <span>template_score</span><strong>${num(r.template_score)}</strong>
@@ -1973,7 +2191,10 @@ function drawRoi(o){
 }
 
 function gtChannelDetector(o){
-  if ($("gt-channel") && $("gt-channel").value === "match_phase") return "match_phase";
+  const channel = $("gt-channel") && $("gt-channel").value;
+  if (channel === "match_phase") return "match_phase";
+  // Special usage is a study label on the special_gauge channel, not its own detector.
+  if (channel === "special_usage") return "special_gauge";
   return o?.detector || reviewDetector();
 }
 
@@ -2058,17 +2279,18 @@ function renderStudyStats(det, title){
   const marks = state.gt.filter(g => gtDetector(g)===det);
   const used = marks.filter(g => g.label==="special_used").length;
   const rejected = marks.filter(g => g.label==="not_a_special_used").length;
+  const uncertain = marks.filter(g => g.label==="uncertain").length;
   const samples = DATA.observations.filter(o => o.detector===det);
   const visible = samples.filter(o => gtSubjectPositive(o, det)).length;
   $("stats-grid").innerHTML = `
-    <div><strong>${used}</strong><span>Special used</span></div>
-    <div><strong>${rejected}</strong><span>Not a special use</span></div>
+    <div><strong>${used}</strong><span>SPECIAL_USED</span></div>
+    <div><strong>${rejected}</strong><span>NOT_SPECIAL_USED</span></div>
+    <div><strong>${uncertain}</strong><span>UNCERTAIN</span></div>
     <div><strong>${marks.length}</strong><span>GT intervals</span></div>
     <div><strong>${visible}</strong><span>Gauge visible</span></div>
     <div><strong>${samples.length}</strong><span>Samples</span></div>
     <div><strong>${samples.length?Math.round(100*visible/samples.length):0}%</strong><span>Visible rate</span></div>
-    <div><strong>—</strong><span>Precision (n/a)</span></div>
-    <div><strong>—</strong><span>Recall (n/a)</span></div>`;
+    <div><strong>—</strong><span>Precision (n/a)</span></div>`;
 }
 
 function renderStats(){
