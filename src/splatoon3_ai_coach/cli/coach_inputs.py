@@ -226,7 +226,8 @@ def coach_inputs(
         console.print(f"[bold]Wrote[/bold] {eval_path}")
         console.print(
             f"[bold]Next:[/bold] s3-coach coach-prototype {analysis_dir} "
-            f"--inputs {out_dir}"
+            f"--inputs {out_dir} writes prompts. Add --call-llm to call the "
+            "provider for selected units."
         )
     except (ConfigError, S3CoachError, FileNotFoundError, ValueError, OSError) as exc:
         console.print(f"[red]Error:[/red] {exc}")

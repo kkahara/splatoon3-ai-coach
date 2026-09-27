@@ -1,0 +1,13 @@
+.venv
+.git
+analysis
+frames
+training
+tests
+web/vmv
+web/public/node_modules
+web/public/src
+calibration/reference
+**/__pycache__
+**/*.pyc
+.env

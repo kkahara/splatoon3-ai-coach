@@ -1,0 +1,123 @@
+:root {
+  color: #e8e6e3;
+  background: #14161a;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  line-height: 1.45;
+}
+
+body {
+  margin: 0;
+}
+
+.sheet {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.brand {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #c6a15b;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.15;
+  margin: 0.2rem 0 0.8rem;
+}
+
+form,
+.steps,
+.moments {
+  display: grid;
+  gap: 0.9rem;
+}
+
+label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.check {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select {
+  background: #1d2026;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+}
+
+button {
+  background: #c6a15b;
+  color: #1a1408;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.note,
+.assessment {
+  color: #b7b3ac;
+}
+
+.error {
+  color: #f0a8a8;
+}
+
+.steps {
+  list-style: none;
+  padding: 0;
+}
+
+.steps li.done {
+  color: #d7c39a;
+}
+
+.moments {
+  list-style: none;
+  padding: 0;
+}
+
+.moments li {
+  border-top: 1px solid #3a3f48;
+  padding-top: 0.8rem;
+}
+
+.still {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  background: #1d2026;
+}
+
+h2,
+h3 {
+  margin-bottom: 0.3rem;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.6rem;
+  }
+}

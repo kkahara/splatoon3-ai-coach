@@ -1,0 +1,866 @@
+"""Public submissions: token privacy, upload checks, worker, and notices."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import uuid
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+from loguru import logger
+from public_site.app import create_app
+from public_site.errors import (
+    ANALYSIS_FAILED,
+    CAPACITY,
+    EXPIRED,
+    INTERRUPTED,
+    PROBE_CONTAINER,
+    PROBE_DIMENSIONS,
+    PROBE_DURATION,
+    PROBE_STREAM,
+    RATE_LIMIT,
+    UPLOAD_MISSING,
+    UPLOAD_UNFINISHED,
+)
+from public_site.frames import extract_frames, ffmpeg_argv, frame_seek
+from public_site.media_probe import ProbeFacts, ProbeRejected, interpret_probe
+from public_site.models import Submission
+from public_site.s3sign import presign
+from public_site.settings import PublicSettings
+from public_site.storage import LocalStorage, R2Storage
+from public_site.store import PublicStore, add_days, utc_now
+from public_site.worker import PublicWorker
+from typer.testing import CliRunner
+
+from splatoon3_ai_coach.cli.app import app as cli_app
+from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
+from splatoon3_ai_coach.config.paths import default_config_path
+
+STATEMENT = "No map overlay was observed before death."
+_AWS_SIGNATURE = "aeeed9bbccd4d02ee5c0109b86d86835f995330da4c265957d157751f604d404"
+
+
+def _settings(tmp_path: Path, **overrides) -> PublicSettings:
+    root = tmp_path / "public"
+    root.mkdir(parents=True, exist_ok=True)
+    values = {
+        "root": root,
+        "config_path": default_config_path(),
+        "static_dir": tmp_path / "no-dist",
+        "dev_mode": True,
+        "worker_id": "worker-test",
+        "public_base_url": "http://coach.example",
+        "max_video_bytes": 1000,
+    }
+    values.update(overrides)
+    return PublicSettings(**values)
+
+
+def _probe_ok(_path: Path) -> ProbeFacts:
+    return ProbeFacts(12.0, 1920, 1080, "mp4")
+
+
+def _client(tmp_path: Path, **kwargs) -> TestClient:
+    probe = kwargs.pop("probe", _probe_ok)
+    run_command = kwargs.pop("run_command", lambda _argv: 0)
+    storage = kwargs.pop("storage", None)
+    settings = _settings(tmp_path, **kwargs)
+    store = PublicStore(settings.root)
+    app = create_app(
+        settings,
+        store=store,
+        storage=storage,
+        verifier=lambda token: token == "ok",
+        probe=probe,
+        run_command=run_command,
+        start_worker=False,
+    )
+    client = TestClient(app)
+    client.app = app
+    return client
+
+
+def _create(client: TestClient, **extra) -> dict:
+    body = {
+        "turnstile_token": "ok",
+        "filename": "match.mp4",
+        "size_bytes": 8,
+        "content_type": "video/mp4",
+        "language": "en",
+    }
+    body.update(extra)
+    response = client.post("/api/submissions", json=body)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def _put(client: TestClient, created: dict, content: bytes = b"12345678") -> str:
+    upload = created["upload"]
+    response = client.put(upload["url"], content=content, headers=upload["headers"])
+    assert response.status_code == 200, response.text
+    return created["token"]
+
+
+def test_turnstile_failure_writes_nothing(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    response = client.post(
+        "/api/submissions",
+        json={
+            "turnstile_token": "nope",
+            "filename": "match.mp4",
+            "size_bytes": 8,
+            "content_type": "video/mp4",
+        },
+    )
+    assert response.status_code == 400
+    root = client.app.state.settings.root
+    assert list((root / "submissions").glob("*.json")) == []
+    assert not (root / "rate_limits.json").is_file()
+
+
+def test_token_is_hashed_and_absent_from_json(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    created = _create(client, notify=True, email="player@example.com", display_name="Rin")
+    token = created["token"]
+    assert token not in created["upload"]["url"]
+    root = client.app.state.settings.root
+    blob = "\n".join(path.read_text() for path in root.rglob("*.json"))
+    assert token not in blob
+    assert "player@example.com" in blob
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.access_token_hash != token
+    assert stored.input_type == "video"
+
+
+def test_review_code_is_not_a_route_or_a_stored_input(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    created = _create(client, review_code="ABCD-1234", input_type="review_code")
+    assert created["review_path"].endswith(created["token"])
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.input_type == "video"
+    assert stored.source == "upload"
+    paths = client.app.openapi()["paths"]
+    assert not any("review_code" in path or "review-code" in path for path in paths)
+    assert client.get("/api/submissions").status_code in {404, 405}
+    assert client.get(f"/api/submissions/{stored.id}").status_code == 404
+
+
+def test_rate_limit_and_queue_cap(tmp_path: Path) -> None:
+    client = _client(tmp_path, max_queued=2)
+    _create(client)
+    _create(client)
+    limited = client.post(
+        "/api/submissions",
+        json={
+            "turnstile_token": "ok",
+            "filename": "match.mp4",
+            "size_bytes": 8,
+            "content_type": "video/mp4",
+        },
+    )
+    assert limited.status_code == 429
+    assert limited.json()["detail"] == RATE_LIMIT
+    rate = (client.app.state.settings.root / "rate_limits.json").read_text()
+    assert "testclient" not in rate
+
+    capped = _client(tmp_path / "cap", max_queued=1)
+    _create(capped)
+    again = capped.post(
+        "/api/submissions",
+        json={
+            "turnstile_token": "ok",
+            "filename": "other.mov",
+            "size_bytes": 4,
+            "content_type": "video/quicktime",
+        },
+    )
+    assert again.status_code == 429
+    assert again.json()["detail"] == CAPACITY
+
+
+def test_confirm_checks_the_object_before_queueing(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    created = _create(client)
+    missing = client.post(f"/api/submissions/{created['token']}/uploaded")
+    assert missing.status_code == 400
+    assert missing.json()["detail"] == UPLOAD_MISSING
+    assert client.app.state.store.list_submissions()[0].status == "received"
+
+    short = _put(client, created, content=b"1234")
+    mismatch = client.post(f"/api/submissions/{short}/uploaded")
+    assert mismatch.status_code == 400
+    assert client.app.state.store.list_submissions()[0].status == "received"
+
+    owned = _client(tmp_path / "owned")
+    created = _create(owned)
+    _put(owned, created)
+    submission = owned.app.state.store.list_submissions()[0]
+    video = owned.app.state.store.get_video(submission.id)
+    video.object_key = "submissions/ffffffffffffffffffffffffffffffff/source.mp4"
+    other = owned.app.state.settings.root / "objects" / video.object_key
+    other.parent.mkdir(parents=True)
+    other.write_bytes(b"12345678")
+    owned.app.state.store.save_video(video)
+    rejected = owned.post(f"/api/submissions/{created['token']}/uploaded")
+    assert rejected.status_code == 400
+    assert owned.app.state.store.list_submissions()[0].status == "received"
+
+
+def test_probe_failure_does_not_take_a_slot(tmp_path: Path) -> None:
+    def reject(_path: Path) -> ProbeFacts:
+        raise ProbeRejected(PROBE_DURATION)
+
+    client = _client(tmp_path, probe=reject)
+    created = _create(client)
+    token = _put(client, created)
+    response = client.post(f"/api/submissions/{token}/uploaded")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "failed"
+    assert body["error"] == PROBE_DURATION
+    assert body["result"] is None
+    submission = client.app.state.store.list_submissions()[0]
+    video = client.app.state.store.get_video(submission.id)
+    assert client.app.state.service.storage.head(video.object_key) is None
+
+
+def test_public_view_hides_internal_fields(tmp_path: Path) -> None:
+    calls: list[list[str]] = []
+
+    def run(argv: list[str]) -> int:
+        calls.append(argv)
+        if "coach-inputs" in argv:
+            _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
+        if "coach-prototype" in argv:
+            _write_assessment(Path(argv[argv.index("coach-prototype") + 1]))
+        return 0
+
+    client = _client(tmp_path, run_command=run)
+    created = _create(client, display_name="Rin")
+    token = _put(client, created)
+    queued = client.post(f"/api/submissions/{token}/uploaded")
+    assert queued.json()["status"] == "queued"
+    assert queued.json()["step"] == "queued"
+    assert client.app.state.worker.pump() is True
+    response = client.get(f"/api/submissions/{token}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "complete"
+    assert body["display_name"] == "Rin"
+    moment = body["result"]["moments"][0]
+    assert moment["statements"] == [STATEMENT]
+    assert moment["video_time"] == 72.5
+    assert moment["scenario_type"] == "death_episode"
+    prose = "The player did not check the map overlay before death."
+    assert moment["assessment"] == prose
+    text = response.text
+    for hidden in (
+        "analysis_dir",
+        "object_key",
+        "worker_id",
+        "access_token",
+        "email",
+        "user_prompt",
+        "system_prompt",
+        empty_coaching_assessment().assessment,
+    ):
+        assert hidden not in text
+    assert calls[0][calls[0].index("analyze") + 0] == "analyze"
+    assert "--call-llm" in calls[2]
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.worker_id == "worker-test"
+    assert stored.processing_started_at
+
+
+def test_startup_fails_in_flight_without_running_the_cli(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    store = PublicStore(settings.root)
+    now = utc_now()
+    processing = _record(
+        status="processing",
+        worker_id="old-worker",
+        started=now,
+        now=now,
+    )
+    validating = _record(status="validating", now=now)
+    queued = _record(status="queued", now=now)
+    for item in (processing, validating, queued):
+        store.save_submission(item)
+    calls: list[list[str]] = []
+    PublicWorker(
+        settings,
+        store,
+        create_app(
+            settings,
+            store=store,
+            verifier=lambda _token: False,
+            start_worker=False,
+            run_command=lambda argv: calls.append(argv) or 0,
+        ).state.service,
+        run_command=lambda argv: calls.append(argv) or 0,
+        start_thread=False,
+    )
+    assert store.get(processing.id).status == "failed"
+    assert store.get(processing.id).error == INTERRUPTED
+    assert store.get(processing.id).worker_id == "old-worker"
+    assert store.get(validating.id).status == "failed"
+    assert store.get(queued.id).status == "queued"
+    assert calls == []
+
+
+def test_analyze_failure_skips_later_stages(tmp_path: Path) -> None:
+    calls: list[str] = []
+
+    def run(argv: list[str]) -> int:
+        if "analyze" in argv:
+            calls.append("analyze")
+            return 1
+        calls.append(argv[1] if len(argv) > 1 else "")
+        return 0
+
+    client = _client(tmp_path, run_command=run)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.app.state.worker.pump() is True
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed"
+    assert stored.error == ANALYSIS_FAILED
+    assert calls == ["analyze"]
+
+
+def test_llm_failure_still_completes_when_inputs_exist(tmp_path: Path) -> None:
+    def run(argv: list[str]) -> int:
+        if "coach-inputs" in argv:
+            _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
+            return 0
+        if "coach-prototype" in argv:
+            return 1
+        return 0
+
+    client = _client(tmp_path, run_command=run)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    body = client.get(f"/api/submissions/{token}").json()
+    assert body["status"] == "complete"
+    assert body["result"]["moments"][0]["statements"] == [STATEMENT]
+    assert body["result"]["moments"][0]["assessment"] is None
+
+
+def test_notices_keep_the_token_out_of_the_subject_and_logs(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    created = _create(client, notify=True, email="player@example.com")
+    token = _put(client, created)
+    lines: list[str] = []
+    sink = logger.add(lambda message: lines.append(str(message)))
+    try:
+        client.post(f"/api/submissions/{token}/uploaded")
+    finally:
+        logger.remove(sink)
+    root = client.app.state.settings.root
+    outbox = list((root / "outbox").glob("*.txt"))
+    assert len(outbox) == 1
+    submission_id = client.app.state.store.list_submissions()[0].id
+    assert outbox[0].name == f"{submission_id}.received.txt"
+    mail = outbox[0].read_text().splitlines()
+    assert mail[1] == "Subject: We received your Splatoon 3 match"
+    assert token not in mail[1]
+    assert "View your review" in outbox[0].read_text()
+    assert all(token not in line for line in lines)
+    assert any("notice received sent" in line for line in lines)
+
+
+def test_expiry_deletes_media_and_email(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    created = _create(client, notify=True, email="player@example.com", display_name="Rin")
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    later = datetime.now(UTC) + timedelta(days=31)
+    client.app.state.service.maintain(later)
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "expired"
+    assert stored.email is None
+    assert stored.display_name is None
+    assert stored.access_token_hash
+    video = client.app.state.store.get_video(stored.id)
+    assert video.object_key == ""
+    body = client.get(f"/api/submissions/{token}").json()
+    assert body["status"] == "expired"
+    assert body["error"] == EXPIRED
+    assert "player@example.com" not in client.get(f"/api/submissions/{token}").text
+
+
+def test_abandoned_upload_releases_the_queue(tmp_path: Path) -> None:
+    client = _client(tmp_path, upload_url_seconds=60)
+    _create(client)
+    later = datetime.now(UTC) + timedelta(minutes=5)
+    client.app.state.service.maintain(later)
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed"
+    assert stored.error == UPLOAD_UNFINISHED
+
+
+def test_r2_mode_has_no_dev_upload_route(tmp_path: Path) -> None:
+    storage = R2Storage(
+        account_id="account",
+        access_key_id="key",
+        secret_access_key="secret",
+        bucket="bucket",
+    )
+    client = _client(tmp_path, storage=storage)
+    assert "/api/dev-upload/{grant_id}" not in client.app.openapi()["paths"]
+    assert client.put("/api/dev-upload/abcdefghijklmnop").status_code == 404
+
+
+def test_interpret_probe_accepts_a_normal_mp4_and_rejects_limits(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    payload = {
+        "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "90.5"},
+        "streams": [
+            {
+                "codec_type": "video",
+                "width": 1920,
+                "height": 1080,
+                "codec_name": "av1",
+            }
+        ],
+    }
+    facts = interpret_probe(payload, settings)
+    assert facts.duration_seconds == 90.5
+    payload["format"]["duration"] = "1801"
+    _raises(payload, settings, PROBE_DURATION)
+    payload["format"]["duration"] = "10"
+    payload["streams"][0]["width"] = 100
+    _raises(payload, settings, PROBE_DIMENSIONS)
+    payload["streams"] = [{"codec_type": "audio"}]
+    _raises(payload, settings, PROBE_STREAM)
+    payload["streams"] = [{"codec_type": "video", "width": 1280, "height": 720}]
+    payload["format"]["format_name"] = "matroska"
+    _raises(payload, settings, PROBE_CONTAINER)
+
+
+def test_complete_deletes_the_source_video_outside_dev_mode(tmp_path: Path) -> None:
+    client = _client(tmp_path, dev_mode=False, run_command=_finish_coaching)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.app.state.worker.pump() is True
+    stored = client.app.state.store.list_submissions()[0]
+    video = client.app.state.store.get_video(stored.id)
+    assert stored.status == "complete"
+    assert video.object_key == ""
+    assert client.app.state.service.storage.head(
+        f"submissions/{stored.id}/source.mp4"
+    ) is None
+    assert client.get(f"/api/submissions/{token}").json()["status"] == "complete"
+
+
+def test_dev_mode_keeps_the_source_video(tmp_path: Path) -> None:
+    client = _client(tmp_path, run_command=_finish_coaching)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    stored = client.app.state.store.list_submissions()[0]
+    video = client.app.state.store.get_video(stored.id)
+    assert video.object_key.endswith("source.mp4")
+    assert client.app.state.service.storage.head(video.object_key) is not None
+
+
+def test_failed_analysis_keeps_the_source_video(tmp_path: Path) -> None:
+    def fail_analyze(argv: list[str]) -> int:
+        return 1 if "analyze" in argv else 0
+
+    client = _client(tmp_path, dev_mode=False, run_command=fail_analyze)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    stored = client.app.state.store.list_submissions()[0]
+    video = client.app.state.store.get_video(stored.id)
+    assert stored.status == "failed"
+    assert video.object_key.endswith("source.mp4")
+    assert client.app.state.service.storage.head(video.object_key) is not None
+
+
+def test_failed_video_delete_keeps_the_review(tmp_path: Path) -> None:
+    settings = _settings(tmp_path, dev_mode=False)
+    storage = _StickyStorage(settings.root)
+    app = create_app(
+        settings,
+        storage=storage,
+        verifier=lambda token: token == "ok",
+        probe=_probe_ok,
+        run_command=_finish_coaching,
+        start_worker=False,
+    )
+    client = TestClient(app)
+    created = _create(client, notify=True, email="player@example.com")
+    token = _put(client, created)
+    lines: list[str] = []
+    sink = logger.add(lambda message: lines.append(str(message)))
+    try:
+        client.post(f"/api/submissions/{token}/uploaded")
+        assert app.state.worker.pump() is True
+    finally:
+        logger.remove(sink)
+    stored = app.state.store.list_submissions()[0]
+    video = app.state.store.get_video(stored.id)
+    body = client.get(f"/api/submissions/{token}").json()
+    assert body["status"] == "complete"
+    assert body["result"]["moments"]
+    assert video.object_key.endswith("source.mp4")
+    assert storage.head(video.object_key) is not None
+    assert any("source video delete failed" in line for line in lines)
+    assert token not in "\n".join(lines)
+    storage.fail = False
+    app.state.service.maintain(datetime.now(UTC) + timedelta(days=31))
+    expired = app.state.store.get_video(stored.id)
+    assert expired.object_key == ""
+    assert storage.head(f"submissions/{stored.id}/source.mp4") is None
+
+
+class _StickyStorage(LocalStorage):
+    """Delete fails until ``fail`` is cleared, as a transient object store would."""
+
+    def __init__(self, root: Path) -> None:
+        super().__init__(root)
+        self.fail = True
+
+    def delete(self, key: str) -> None:
+        if self.fail:
+            raise OSError("unavailable")
+        super().delete(key)
+
+
+def _finish_coaching(argv: list[str]) -> int:
+    if "coach-inputs" in argv:
+        _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
+    return 0
+
+
+def test_prototype_llm_can_select_a_provider(tmp_path: Path) -> None:
+    from public_site.worker import prototype_extra
+
+    plain = _settings(tmp_path)
+    assert prototype_extra(plain) == ["--call-llm"]
+    nvidia = _settings(tmp_path / "nvidia", llm_provider="nvidia")
+    assert prototype_extra(nvidia) == ["--call-llm", "--provider", "nvidia"]
+
+
+def test_presign_matches_the_aws_query_string_example() -> None:
+    url = presign(
+        method="GET",
+        host="examplebucket.s3.amazonaws.com",
+        canonical_uri="/test.txt",
+        access_key="AKIAIOSFODNN7EXAMPLE",
+        secret="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="s3",
+        now=datetime(2013, 5, 24, tzinfo=UTC),
+        expires=86400,
+        signed_headers={},
+    )
+    assert _AWS_SIGNATURE in url
+
+
+def test_dev_mode_allows_fifty_submissions_per_day(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("PUBLIC_DEV_MODE", "1")
+    monkeypatch.setenv("PUBLIC_ROOT", str(tmp_path))
+    monkeypatch.delenv("PUBLIC_VIDEO_PER_HOUR", raising=False)
+    monkeypatch.delenv("PUBLIC_VIDEO_WINDOW_SECONDS", raising=False)
+    settings = PublicSettings.from_env()
+    assert settings.submissions_per_hour == 50
+    assert settings.submission_window_seconds == 86400
+    monkeypatch.delenv("PUBLIC_DEV_MODE", raising=False)
+    production = PublicSettings.from_env()
+    assert production.submissions_per_hour == 2
+    assert production.submission_window_seconds == 3600
+
+
+def test_public_site_refuses_to_start_without_turnstile(monkeypatch) -> None:
+    monkeypatch.delenv("PUBLIC_TURNSTILE_SECRET", raising=False)
+    monkeypatch.delenv("PUBLIC_DEV_MODE", raising=False)
+    result = CliRunner().invoke(cli_app, ["public-site", "--no-open"])
+    assert result.exit_code != 0
+    assert "TURNSTILE" in result.output
+
+
+def _raises(payload: dict, settings: PublicSettings, detail: str) -> None:
+    try:
+        interpret_probe(payload, settings)
+    except ProbeRejected as exc:
+        assert exc.detail == detail
+        return
+    raise AssertionError(detail)
+
+
+def _record(
+    status: str,
+    now: str,
+    worker_id: str | None = None,
+    started: str | None = None,
+) -> Submission:
+    return Submission(
+        id=uuid.uuid4().hex,
+        access_token_hash=uuid.uuid4().hex + uuid.uuid4().hex,
+        status=status,  # type: ignore[arg-type]
+        created_at=now,
+        updated_at=now,
+        expires_at=add_days(now, 30),
+        worker_id=worker_id,
+        processing_started_at=started,
+    )
+
+
+def _write_coaching(analysis: Path) -> None:
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir(parents=True, exist_ok=True)
+    (inputs / "coaching_index.json").write_text(
+        json.dumps(
+            [
+                {
+                    "candidate_type": "death_episode",
+                    "safe_id": "death_episode_72.5",
+                    "video_time": 72.5,
+                    "rank": 1,
+                    "coaching_json": "death_episode_72.5.coaching.json",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (inputs / "death_episode_72.5.coaching.json").write_text(
+        json.dumps(
+            {
+                "factors": [
+                    {"active": True, "statement_player": STATEMENT},
+                    {"active": False, "statement_player": "should not appear"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def _write_assessment(analysis: Path) -> None:
+    prototype = analysis / "coach_prototype"
+    prototype.mkdir(parents=True, exist_ok=True)
+    (prototype / "death_episode_72.5.model.output.json").write_text(
+        json.dumps(
+            {"assessment": "The player did not check the map overlay before death."}
+        ),
+        encoding="utf-8",
+    )
+    (prototype / "death_episode_72.5.skip.output.json").write_text(
+        json.dumps({"assessment": empty_coaching_assessment().assessment}),
+        encoding="utf-8",
+    )
+
+
+def test_moment_jpeg_remains_after_the_source_video_is_deleted(tmp_path: Path) -> None:
+    video = _sample_video(tmp_path / "clip.mp4")
+    entry = _moment_entry("death_episode_1.0", 1.0, 1)
+    client, token = _finish_video(tmp_path, video, [entry], dev_mode=False)
+    stored = client.app.state.store.list_submissions()[0]
+    video_row = client.app.state.store.get_video(stored.id)
+    jpeg = Path(stored.analysis_dir) / "public_frames" / "death_episode_1.0.jpg"
+    assert video_row.object_key == ""
+    assert jpeg.is_file()
+    assert jpeg.read_bytes()[:2] == b"\xff\xd8"
+    body = client.get(f"/api/submissions/{token}").json()
+    moment = body["result"]["moments"][0]
+    blob = json.dumps(moment)
+    assert moment["frame"] is True
+    assert moment["statements"] == [STATEMENT]
+    assert "public_frames" not in blob
+    assert "source.mp4" not in blob
+    assert "http" not in blob
+    frame = client.get(_frame_url(token, 0))
+    assert frame.status_code == 200
+    assert frame.headers["content-type"].startswith("image/jpeg")
+    assert frame.content == jpeg.read_bytes()
+    wrong = client.get(_frame_url("not-the-review-token", 0))
+    assert wrong.status_code == 404
+
+
+def test_frame_seek_clamps_a_moment_near_the_start(tmp_path: Path) -> None:
+    assert frame_seek(0.2) == 0.0
+    video = tmp_path / "clip.mp4"
+    _sample_video(video)
+    analysis = tmp_path / "analysis"
+    _write_index(analysis, [_moment_entry("death_episode_0.2", 0.2, 1)])
+    seen: list[list[str]] = []
+
+    def run(argv: list[str]) -> int:
+        seen.append(argv)
+        completed = subprocess.run(argv, capture_output=True, check=False)
+        return int(completed.returncode)
+
+    extract_frames(analysis, video, run=run)
+    argv = seen[0]
+    seek = argv[argv.index("-ss") + 1]
+    assert argv.index("-ss") > argv.index("-i")
+    assert seek == "0.000"
+    assert float(seek) == 0.0
+    jpeg = analysis / "public_frames" / "death_episode_0.2.jpg"
+    assert jpeg.read_bytes()[:2] == b"\xff\xd8"
+    direct = ffmpeg_argv(video, tmp_path / "at-zero.jpg", 0.0)
+    assert direct[direct.index("-ss") + 1] == seek
+
+
+def test_frame_urls_follow_result_moment_order(tmp_path: Path) -> None:
+    video = _sample_video(tmp_path / "clip.mp4")
+    early = _moment_entry("early_0.5", 0.5, 2)
+    late = _moment_entry("late_2.0", 2.0, 1)
+    client, token = _finish_video(tmp_path, video, [early, late])
+    body = client.get(f"/api/submissions/{token}").json()
+    moments = body["result"]["moments"]
+    assert [item["video_time"] for item in moments] == [2.0, 0.5]
+    stored = client.app.state.store.list_submissions()[0]
+    root = Path(stored.analysis_dir) / "public_frames"
+    first = client.get(_frame_url(token, 0))
+    second = client.get(_frame_url(token, 1))
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.content == (root / "late_2.0.jpg").read_bytes()
+    assert second.content == (root / "early_0.5.jpg").read_bytes()
+    assert first.content != second.content
+    assert client.get(_frame_url(token, 2)).status_code == 404
+
+
+def test_failed_grab_still_completes_without_an_image(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    def boom(*_args, **_kwargs) -> None:
+        raise OSError("ffmpeg")
+
+    monkeypatch.setattr("public_site.worker.extract_frames", boom)
+    client = _client(tmp_path, dev_mode=False, run_command=_finish_coaching)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.app.state.worker.pump() is True
+    stored = client.app.state.store.list_submissions()[0]
+    video_row = client.app.state.store.get_video(stored.id)
+    body = client.get(f"/api/submissions/{token}").json()
+    moment = body["result"]["moments"][0]
+    assert stored.status == "complete"
+    assert video_row.object_key == ""
+    assert moment["frame"] is False
+    assert moment["statements"] == [STATEMENT]
+    assert "public_frames" not in json.dumps(moment)
+    assert client.get(_frame_url(token, 0)).status_code == 404
+
+
+def test_stored_source_fills_a_missing_still_on_first_view(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        "public_site.worker.extract_frames",
+        lambda *_args, **_kwargs: None,
+    )
+    video = _sample_video(tmp_path / "clip.mp4")
+    entry = _moment_entry("death_episode_1.0", 1.0, 1)
+    client, token = _finish_video(tmp_path, video, [entry], dev_mode=True)
+    body = client.get(f"/api/submissions/{token}").json()
+    assert body["result"]["moments"][0]["frame"] is True
+    frame = client.get(_frame_url(token, 0))
+    assert frame.status_code == 200
+    assert frame.content[:2] == b"\xff\xd8"
+
+
+def _finish_video(
+    tmp_path: Path,
+    video: bytes,
+    entries: list[dict],
+    **kwargs,
+) -> tuple[TestClient, str]:
+    client = _client(
+        tmp_path,
+        max_video_bytes=len(video),
+        run_command=_coaching_command(entries),
+        **kwargs,
+    )
+    created = _create(client, size_bytes=len(video))
+    token = _put(client, created, content=video)
+    uploaded = client.post(f"/api/submissions/{token}/uploaded")
+    assert uploaded.status_code == 200
+    assert client.app.state.worker.pump() is True
+    return client, token
+
+
+def _coaching_command(entries: list[dict]) -> Callable[[list[str]], int]:
+    def run(argv: list[str]) -> int:
+        if "coach-inputs" in argv:
+            folder = Path(argv[argv.index("coach-inputs") + 1])
+            _write_index(folder, entries)
+        return 0
+
+    return run
+
+
+def _write_index(analysis: Path, entries: list[dict]) -> None:
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir(parents=True, exist_ok=True)
+    (inputs / "coaching_index.json").write_text(json.dumps(entries), encoding="utf-8")
+    for entry in entries:
+        name = str(entry["coaching_json"])
+        (inputs / name).write_text(
+            json.dumps(
+                {"factors": [{"active": True, "statement_player": STATEMENT}]}
+            ),
+            encoding="utf-8",
+        )
+
+
+def _moment_entry(safe_id: str, video_time: float, rank: int) -> dict:
+    return {
+        "candidate_type": "death_episode",
+        "safe_id": safe_id,
+        "video_time": video_time,
+        "rank": rank,
+        "coaching_json": f"{safe_id}.coaching.json",
+    }
+
+
+def _sample_video(path: Path) -> bytes:
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=red:s=320x180:d=1:r=10",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=blue:s=320x180:d=2:r=10",
+            "-filter_complex",
+            "[0:v][1:v]concat=n=2:v=1:a=0",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:v",
+            "libx264",
+            str(path),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    return path.read_bytes()
+
+
+def _frame_url(token: str, index: int) -> str:
+    return f"/api/submissions/{token}/moments/{index}/frame"
+

@@ -1,0 +1,13 @@
+To restart Public website
+
+cd /Users/kenjikahara/splatoon3-ai-coach
+source .venv/bin/activate
+PUBLIC_DEV_MODE=1 s3-coach public-site
+
+
+Public Site Local: http://127.0.0.1:8770/
+Public Site Production: https://s3-coaching.1000texts.com/
+
+see jobs
+
+docker exec s3-coaching-web s3-coach public-monitor

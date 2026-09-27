@@ -9,7 +9,10 @@ from splatoon3_ai_coach.cli.coach_prototype import coach_prototype
 from splatoon3_ai_coach.cli.coach_reannotate_flags import coach_reannotate_flags
 from splatoon3_ai_coach.cli.extract import extract
 from splatoon3_ai_coach.cli.inspect import inspect
+from splatoon3_ai_coach.cli.public_monitor import public_monitor
+from splatoon3_ai_coach.cli.public_site import public_site
 from splatoon3_ai_coach.cli.vision_view import vision_view
+from splatoon3_ai_coach.cli.vmv_site import vmv_site
 from splatoon3_ai_coach.logging_config import configure_logging
 
 app = typer.Typer(no_args_is_help=True, help="Splatoon 3 gameplay analysis.")
@@ -28,6 +31,9 @@ app.command("extract")(extract)
 app.command("analyze")(analyze)
 app.command("calibrate-timer")(calibrate_timer_command)
 app.command("vision-view")(vision_view)
+app.command("vmv-site")(vmv_site)
+app.command("public-site")(public_site)
+app.command("public-monitor")(public_monitor)
 app.command("coach-inputs")(coach_inputs)
 app.command("coach-prototype")(coach_prototype)
 app.command("coach-reannotate-flags")(coach_reannotate_flags)

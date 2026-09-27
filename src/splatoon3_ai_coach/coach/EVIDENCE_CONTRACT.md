@@ -126,9 +126,10 @@ primary Scenario + ScenarioContext
 `CoachInput` describes **evidence**. It does not define good/bad play, advice,
 or fight quality. Assessments and recommendations are a later LLM output layer.
 
-Prototype: `s3-coach coach-inputs` then `s3-coach coach-prototype` sends
-identical CoachInput / CoachLlmView + system prompt to one or more Ollama
-models and writes `CoachingAssessment` JSON.
+Prototype: `s3-coach coach-inputs` then `s3-coach coach-prototype` writes the
+system prompt and each selected unit's user prompt. `s3-coach coach-prototype
+--call-llm` sends those same bytes to one or more Ollama models and writes
+`CoachingAssessment` JSON.
 Empty `recommendations` is a valid success. Claim flags are separate annotation
 files and must not rewrite assessments.
 

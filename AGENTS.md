@@ -140,11 +140,13 @@ Prototype path (does not reopen evidence builders):
 
 ```text
 analyze → coach-inputs → CoachInput + claims
-coach-prototype → Ollama / NVIDIA → CoachingAssessment
+coach-prototype → system prompt + selected user prompts
+coach-prototype --call-llm → Ollama / NVIDIA → CoachingAssessment
 ```
 
 Claim-pattern flags are **experiment annotations only**; they never rewrite
-model output. CLI: `s3-coach coach-inputs` then `s3-coach coach-prototype`.
+model output. CLI: `s3-coach coach-inputs`, then `s3-coach coach-prototype`.
+Add `--call-llm` to call the provider for `selected_for_llm` units.
 
 ## Coaching evidence contract
 

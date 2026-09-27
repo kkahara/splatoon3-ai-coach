@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    container_name: s3-coaching-web
+    restart: unless-stopped
+    env_file: [.env]
+    ports:
+      - "127.0.0.1:8770:8770"
+    volumes:
+      - coaching-data:/data
+    networks: [default, edge]
+
+volumes:
+  coaching-data:
+
+networks:
+  edge:
+    external: true
+    name: textroute_web

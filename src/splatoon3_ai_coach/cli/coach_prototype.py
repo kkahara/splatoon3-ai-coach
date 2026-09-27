@@ -32,11 +32,11 @@ from splatoon3_ai_coach.coach.llm_runs import (
     approx_token_count,
     build_llm_runs,
     empty_coaching_assessment,
-    should_skip_llm,
 )
 from splatoon3_ai_coach.coach.llm_view import CoachLlmView, build_coach_llm_view
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
 from splatoon3_ai_coach.config import load_config
+from splatoon3_ai_coach.config.models import CoachConfig
 from splatoon3_ai_coach.config.paths import resolve_config_path
 from splatoon3_ai_coach.config.settings import CoachSettings
 from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
@@ -53,10 +53,22 @@ __all__ = [
     "approx_token_count",
     "coach_prototype",
     "empty_coaching_assessment",
-    "should_skip_llm",
     "_build_llm_runs",
     "_LlmRun",
 ]
+
+
+def _prepared_model_label(
+    provider_name: str,
+    coach_cfg: CoachConfig,
+    *,
+    model_override: str | None,
+    nvidia_override: str | None,
+) -> str:
+    """Model label for skip artifacts written before any provider call."""
+    if provider_name == "nvidia":
+        return nvidia_override or coach_cfg.nvidia_model
+    return model_override or coach_cfg.model
 
 
 def coach_prototype(
@@ -109,12 +121,21 @@ def coach_prototype(
         "--claims-only",
         help="Skip LLM calls; copy/verify saved claim artifacts only.",
     ),
+    call_llm: bool = typer.Option(
+        False,
+        "--call-llm",
+        help=(
+            "Call the provider for units with selected_for_llm. "
+            "Default writes system_prompt.txt and those units' user_prompt.txt "
+            "without calling the provider."
+        ),
+    ),
     force_llm: bool = typer.Option(
         False,
         "--force-llm",
         help=(
-            "Always call the LLM even when claim selection emits zero points "
-            "(A/B comparison). Default skips LLM when selected=[]."
+            "With --call-llm, also call the provider for units that are not "
+            "selected_for_llm."
         ),
     ),
     out: Path | None = typer.Option(
@@ -123,10 +144,10 @@ def coach_prototype(
         help="Output directory (default: ANALYSIS_DIR/coach_prototype).",
     ),
 ) -> None:
-    """Run LLM verbalization on saved CoachInput + claim selection artifacts.
+    """Prepare prototype prompts, and call the provider only with --call-llm.
 
     Requires ``s3-coach coach-inputs`` first. Does not rebuild CoachInput from
-    the analysis bundle.
+    the analysis bundle. ``selected_for_llm`` stays an eligibility mark.
     """
     try:
         cfg_path = resolve_config_path(config)
@@ -135,7 +156,8 @@ def coach_prototype(
         provider_name = normalize_coach_provider(
             provider or settings.llm_provider or app_config.coach.provider
         )
-        llm_runs = [] if claims_only else build_llm_runs(
+        spend_calls = call_llm and not claims_only
+        llm_runs = [] if not spend_calls else build_llm_runs(
             provider_name=provider_name,
             coach_cfg=app_config.coach,
             settings=settings,
@@ -169,11 +191,18 @@ def coach_prototype(
         (out_dir / "system_prompt.txt").write_text(system_prompt, encoding="utf-8")
 
         run_labels = [run.label for run in llm_runs]
+        prepared_label = _prepared_model_label(
+            provider_name,
+            app_config.coach,
+            model_override=model,
+            nvidia_override=nvidia_model,
+        )
         summary_lines = [
             f"# Coach prototype — {analysis_dir}",
             "",
             f"- inputs: `{inputs_dir}`",
             f"- claims_only: {claims_only}",
+            f"- call_llm: {spend_calls}",
             f"- force_llm: {force_llm}",
             f"- provider: {provider_name}",
             f"- models: {', '.join(run_labels) if run_labels else '(none)'}",
@@ -202,11 +231,7 @@ def coach_prototype(
                 )
                 active = active_factor_ids(unit.to_candidate())
                 selected_for_llm = bool(unit.selected_for_llm)
-                skip_llm = should_skip_llm(
-                    selected_for_llm=selected_for_llm,
-                    force_llm=force_llm,
-                    has_llm_runs=bool(llm_runs),
-                )
+                skip_llm = (not selected_for_llm) and not (spend_calls and force_llm)
 
                 write_json(
                     out_dir / f"{safe_id}.coach_input.json",
@@ -249,17 +274,19 @@ def coach_prototype(
 
                 if skip_llm:
                     assessment = empty_coaching_assessment()
-                    for run in llm_runs:
+                    raw_text = json.dumps(
+                        assessment.model_dump(mode="json"),
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    )
+                    labels = run_labels or [prepared_label]
+                    for label in labels:
                         write_assessment_artifacts(
                             out_dir=out_dir,
                             safe_id=safe_id,
-                            model_label=run.label,
+                            model_label=label,
                             assessment=assessment,
-                            raw_text=json.dumps(
-                                assessment.model_dump(mode="json"),
-                                ensure_ascii=False,
-                                sort_keys=True,
-                            ),
+                            raw_text=raw_text,
                         )
                         write_metric(
                             metrics_file,
@@ -271,7 +298,7 @@ def coach_prototype(
                                 "active_factors": active,
                                 "skipped_llm": True,
                                 "provider": provider_name,
-                                "model": run.label,
+                                "model": label,
                                 "system_tokens_est": None,
                                 "user_tokens_est": None,
                                 "input_tokens_est": None,
@@ -282,10 +309,10 @@ def coach_prototype(
                             },
                         )
                         summary_lines.append(
-                            f"- `{scenario_id}` / `{run.label}` → skipped_llm=true"
+                            f"- `{scenario_id}` / `{label}` → skipped_llm=true"
                         )
                         console.print(
-                            f"[yellow]skip[/yellow] {scenario_id} / {run.label} "
+                            f"[yellow]skip[/yellow] {scenario_id} / {label} "
                             f"(selected_for_llm=false; no LLM)"
                         )
                     summary_lines.append("")
@@ -306,11 +333,16 @@ def coach_prototype(
                 user_prompt_path = out_dir / f"{safe_id}.user_prompt.txt"
                 user_prompt_path.write_bytes(user_prompt.encode("utf-8"))
 
-                if not llm_runs:
+                if not spend_calls:
                     summary_lines.append(
-                        f"- `{scenario_id}` → claims-only (no LLM provider)"
+                        f"- `{scenario_id}` → prepared `{user_prompt_path.name}` "
+                        "(no provider call)"
                     )
                     summary_lines.append("")
+                    console.print(
+                        "[yellow]prepared[/yellow] "
+                        f"{scenario_id} → {user_prompt_path.name}"
+                    )
                     continue
 
                 system_tokens = approx_token_count(system_prompt)
