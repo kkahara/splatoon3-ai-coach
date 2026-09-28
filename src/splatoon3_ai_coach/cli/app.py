@@ -11,6 +11,7 @@ from splatoon3_ai_coach.cli.extract import extract
 from splatoon3_ai_coach.cli.inspect import inspect
 from splatoon3_ai_coach.cli.public_monitor import public_monitor
 from splatoon3_ai_coach.cli.public_site import public_site
+from splatoon3_ai_coach.cli.refuse import refuse
 from splatoon3_ai_coach.cli.vision_view import vision_view
 from splatoon3_ai_coach.cli.vmv_site import vmv_site
 from splatoon3_ai_coach.logging_config import configure_logging
@@ -29,6 +30,7 @@ def main(
 app.command("inspect")(inspect)
 app.command("extract")(extract)
 app.command("analyze")(analyze)
+app.command("refuse")(refuse)
 app.command("calibrate-timer")(calibrate_timer_command)
 app.command("vision-view")(vision_view)
 app.command("vmv-site")(vmv_site)

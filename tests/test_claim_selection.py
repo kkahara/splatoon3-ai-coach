@@ -75,12 +75,14 @@ def _death_unit(
     )
     players = None
     if ally is not None and opponent is not None:
+        point = PlayerCountPoint(
+            video_time=start - 2.0,
+            ally_alive_count=ally,
+            opponent_alive_count=opponent,
+        )
         players = PlayersEvidence(
-            at_death=PlayerCountPoint(
-                video_time=start,
-                ally_alive_count=ally,
-                opponent_alive_count=opponent,
-            )
+            trajectory=[point],
+            at_death=point.model_copy(update={"video_time": start}),
         )
     special = None
     if special_ready:
@@ -134,14 +136,22 @@ def _active_ids(unit) -> set[str]:
     return {f.factor_id for f in unit.factors if f.active}
 
 
-def test_last_ally_factor_and_annotation() -> None:
-    unit = score_death_candidate(_death_unit(ally=1, opponent=3))
-    assert DeathImportanceFactorId.DEATH_LAST_ALLY_ALIVE.value in _active_ids(unit)
+def test_outnumbered_factor_quotes_both_counts() -> None:
+    unit = score_death_candidate(_death_unit(ally=1, opponent=4))
+    assert _active_ids(unit) == {DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED.value}
     assert unit.importance_score == pytest.approx(2.5)
     factor = next(f for f in unit.factors if f.active)
-    assert "last ally alive" in (factor.statement_player or "").lower()
-    assert factor.interpretation is not None
-    assert factor.recommendation is not None
+    assert factor.statement_player == (
+        "Just before you were splatted, your team had 1 player alive "
+        "and the opponents had 4."
+    )
+    assert factor.interpretation is None
+    assert factor.recommendation is None
+
+
+def test_one_player_gap_is_below_the_default_roster_gap() -> None:
+    assert _active_ids(score_death_candidate(_death_unit(ally=3, opponent=4))) == set()
+    assert _active_ids(score_death_candidate(_death_unit(ally=4, opponent=3))) == set()
 
 
 def test_special_ready_statement_only_annotation() -> None:
@@ -161,11 +171,11 @@ def test_special_ready_statement_only_annotation() -> None:
 
 def test_weighted_sum_multiple_factors() -> None:
     unit = score_death_candidate(
-        _death_unit(ally=1, opponent=3, special_ready=True, seconds_remaining=20),
+        _death_unit(ally=2, opponent=4, special_ready=True, seconds_remaining=20),
         match_duration_seconds=300,
     )
     active = _active_ids(unit)
-    assert ClaimId.DEATH_LAST_ALLY_ALIVE.value in active
+    assert ClaimId.DEATH_WHILE_OUTNUMBERED.value in active
     assert ClaimId.DEATH_SPECIAL_READY.value in active
     assert ClaimId.DEATH_FINAL_30S.value in active
     expected = 2.5 + 2.0 + 1.0
@@ -279,9 +289,9 @@ def test_tie_break_earlier_video_time() -> None:
 
 def test_weight_override_changes_score() -> None:
     weights = dict(DEFAULT_DEATH_IMPORTANCE_WEIGHTS)
-    weights["death_last_ally_alive"] = 10.0
+    weights["death_while_outnumbered"] = 10.0
     unit = score_death_candidate(
-        _death_unit(ally=1, opponent=3),
+        _death_unit(ally=2, opponent=4),
         weights=weights,
     )
     assert unit.importance_score == pytest.approx(10.0)
@@ -391,11 +401,5 @@ def test_sep10_six_deaths_importance_top_n() -> None:
     units = apply_candidate_ranking(scored, ranked)
     selected = [u for u in units if u.selected_for_llm]
     assert len(selected) == 3
-    by_id = {u.candidate_id: u for u in units}
-    assert by_id["death_episode:235.000"].importance_score >= 2.5
-    assert ClaimId.DEATH_LAST_ALLY_ALIVE.value in _active_ids(
-        by_id["death_episode:235.000"]
-    )
-    assert by_id["death_episode:235.000"].selected_for_llm is True
     # All deaths are candidates (scored), not gated out of existence.
     assert all(u.rank is not None for u in units)

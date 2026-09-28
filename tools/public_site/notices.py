@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import smtplib
+import uuid
 from email.message import EmailMessage
 from pathlib import Path
 
 from loguru import logger
 
+from public_site.errors import MAIL_FAILED, RequestRejected
 from public_site.models import Submission
 from public_site.settings import PublicSettings
 
@@ -15,6 +17,10 @@ SUBJECTS = {
     "received": "We received your Splatoon 3 match",
     "ready": "Your Splatoon 3 coaching review is ready",
     "failed": "Your Splatoon 3 coaching review could not be completed",
+}
+ACCOUNT_SUBJECTS = {
+    "verify": "Confirm your Splatoon 3 coaching account",
+    "reset": "Reset your Splatoon 3 coaching password",
 }
 
 
@@ -61,6 +67,22 @@ class NoticeSender:
         submission.notices_sent.append(kind)
         logger.info("notice {} sent for submission {}", kind, submission.id)
 
+    def send_account(self, email: str, kind: str, url: str) -> None:
+        """Send a verify or reset link. The raw token stays in the message body."""
+        subject = ACCOUNT_SUBJECTS[kind]
+        body = _account_body(kind, url)
+        if self.settings.smtp_host:
+            try:
+                _smtp(self.settings, email, subject, body)
+            except smtplib.SMTPException:
+                logger.exception("account notice {} failed", kind)
+                raise RequestRejected(502, MAIL_FAILED) from None
+        else:
+            name = f"account.{kind}.{uuid.uuid4().hex}.txt"
+            text = f"To: {email}\nSubject: {subject}\n\n{body}"
+            (self.outbox / name).write_text(text, encoding="utf-8")
+        logger.info("account notice {} sent", kind)
+
     def _write_outbox(
         self,
         submission_id: str,
@@ -74,6 +96,14 @@ class NoticeSender:
 
     def _secret(self, submission_id: str) -> Path:
         return self.secrets / submission_id
+
+
+def _account_body(kind: str, url: str) -> str:
+    if kind == "verify":
+        lead = "Confirm your email address to finish registration."
+    else:
+        lead = "Reset your password."
+    return f"{lead}\n\n{url}\n"
 
 
 def _body(kind: str, review_url: str) -> str:

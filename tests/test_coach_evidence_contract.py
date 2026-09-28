@@ -214,6 +214,37 @@ def test_prohibited_patterns_cover_contract_examples() -> None:
         assert not claim_contains_prohibited_language(claim), claim
 
 
+def test_roster_counts_allowed_but_not_as_fights_or_verdicts() -> None:
+    permitted = [
+        "Your team had 3 players alive against 4 just before you were splatted.",
+        "Your team had more players alive than the opponents before this death.",
+        "Your team was outnumbered 3v4 on the roster just before this death.",
+    ]
+    for claim in permitted:
+        assert not claim_contains_prohibited_language(claim), claim
+    prohibited = [
+        "You were outnumbered.",
+        "You fought outnumbered.",
+        "You took an outnumbered fight.",
+        "You were outnumbered in the fight.",
+        "You should have pushed while your team had more players.",
+        "You should have played more passively.",
+        "You should have retreated.",
+    ]
+    for claim in prohibited:
+        assert claim_contains_prohibited_language(claim), claim
+
+
+def test_system_prompt_keeps_roster_counts_from_becoming_verdicts() -> None:
+    prompt = load_system_prompt().lower()
+    assert "death_while_outnumbered" in prompt
+    assert "death_while_ahead_in_numbers" in prompt
+    assert "should have pushed" in prompt
+    assert "should have\n  retreated" in prompt or "should have retreated" in prompt
+    assert "roster.before_death" in prompt
+    assert "roster avb" not in prompt
+
+
 def test_system_prompt_encodes_evidence_boundary() -> None:
     prompt = load_system_prompt().lower()
     assert "associated" in prompt or "temporal rule" in prompt

@@ -28,14 +28,17 @@ from public_site.errors import (
 from public_site.frames import extract_frames, ffmpeg_argv, frame_seek
 from public_site.media_probe import ProbeFacts, ProbeRejected, interpret_probe
 from public_site.models import Submission
+from public_site.results import load_result
 from public_site.s3sign import presign
 from public_site.settings import PublicSettings
+from public_site.share_page import review_html
 from public_site.storage import LocalStorage, R2Storage
 from public_site.store import PublicStore, add_days, utc_now
 from public_site.worker import PublicWorker
 from typer.testing import CliRunner
 
 from splatoon3_ai_coach.cli.app import app as cli_app
+from splatoon3_ai_coach.coach.claim_catalog import NO_RECOMMENDATION_MESSAGE
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
 from splatoon3_ai_coach.config.paths import default_config_path
 
@@ -721,15 +724,15 @@ def test_frame_urls_follow_result_moment_order(tmp_path: Path) -> None:
     client, token = _finish_video(tmp_path, video, [early, late])
     body = client.get(f"/api/submissions/{token}").json()
     moments = body["result"]["moments"]
-    assert [item["video_time"] for item in moments] == [2.0, 0.5]
+    assert [item["video_time"] for item in moments] == [0.5, 2.0]
     stored = client.app.state.store.list_submissions()[0]
     root = Path(stored.analysis_dir) / "public_frames"
     first = client.get(_frame_url(token, 0))
     second = client.get(_frame_url(token, 1))
     assert first.status_code == 200
     assert second.status_code == 200
-    assert first.content == (root / "late_2.0.jpg").read_bytes()
-    assert second.content == (root / "early_0.5.jpg").read_bytes()
+    assert first.content == (root / "early_0.5.jpg").read_bytes()
+    assert second.content == (root / "late_2.0.jpg").read_bytes()
     assert first.content != second.content
     assert client.get(_frame_url(token, 2)).status_code == 404
 
@@ -863,4 +866,377 @@ def _sample_video(path: Path) -> bytes:
 
 def _frame_url(token: str, index: int) -> str:
     return f"/api/submissions/{token}/moments/{index}/frame"
+
+
+def test_review_html_describes_the_finished_coaching(tmp_path: Path) -> None:
+    video = _sample_video(tmp_path / "clip.mp4")
+    entry = _moment_entry("death_episode_1.0", 1.0, 1)
+    client, token = _finish_video(tmp_path, video, [entry], dev_mode=True)
+    body = client.get(f"/api/submissions/{token}").json()
+    assert body["match_seconds"] == 12
+    html = review_html(
+        client.app.state.service,
+        client.app.state.settings,
+        "<html><head><title>old</title></head><body></body></html>",
+        token,
+    )
+    assert html is not None
+    assert "Splatoon 3 Coaching Review" in html
+    assert "1 coaching moment · 0:12 match" in html
+    assert f"http://coach.example/review/{token}" in html
+    assert f"/api/submissions/{token}/moments/0/frame" in html
+    assert 'name="twitter:card" content="summary_large_image"' in html
+    assert review_html(
+        client.app.state.service,
+        client.app.state.settings,
+        "<head></head>",
+        "missing-token",
+    ) is None
+
+
+def test_death_episode_review_projects_existing_lifecycle(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir(parents=True)
+    entries = [
+        _indexed("late", "death_episode", 200.0, 1),
+        _indexed("engage", "engagement", 120.0, 9),
+        _indexed("early", "death_episode", 100.0, 3),
+        _indexed("mid", "death_episode", 160.0, 2),
+    ]
+    (inputs / "coaching_index.json").write_text(json.dumps(entries), encoding="utf-8")
+    _write_episode(
+        inputs,
+        "early",
+        death={
+            **_clocked_death(),
+            "map_check_before_death": True,
+            "seconds_since_map_check": 61.5,
+            "map_checked_while_dead": True,
+        },
+        special_ready=True,
+        roster=(2, 4),
+        factors=[
+            _factor("death_special_ready", "Your special gauge was ready."),
+            _factor("death_map_overlay_before_false", STATEMENT),
+            _factor("death_final_30s", "Death occurred during the final 30 seconds."),
+            _factor("hidden", "should not appear", active=False),
+        ],
+    )
+    _write_episode(
+        inputs,
+        "mid",
+        death={
+            "death_time": 160.0,
+            "map_check_before_death": False,
+            "map_checked_while_dead": False,
+        },
+        samples=[_sample("death", 140)],
+        factors=[_factor("death_map_overlay_before_false", STATEMENT)],
+    )
+    _write_episode(
+        inputs,
+        "late",
+        death={
+            "death_time": 50.0,
+            "respawn_time": 50.0,
+            "death_to_respawn": 0.0,
+            "map_check_before_death": None,
+        },
+        samples=[_sample("death", None)],
+        factors=[],
+    )
+    _write_coaching_file(
+        inputs, "engage.coaching.json", [_factor("splat", "Observed splats.")]
+    )
+    _write_named_assessment(analysis, "early", "Keep the high ground.")
+    _write_named_assessment(analysis, "late", "A note.")
+    _write_events(
+        analysis,
+        [
+            ("death", 50.0),
+            ("death", 160.0),
+            ("splat", 165.0),
+            ("splat", 170.0),
+            ("map_overlay", 191.5),
+            ("splat", 200.0),
+            ("death", 206.5),
+            ("map_overlay", 207.5),
+            ("splat", 208.0),
+            ("map_overlay", 211.0),
+            ("respawn", 214.0),
+            ("active_again", 215.5),
+            ("special_used", 218.0),
+            ("low_ink", 218.5),
+            ("splat", 219.0),
+            ("death", 250.0),
+            ("splat", 260.0),
+        ],
+    )
+
+    moments = [item.model_dump() for item in load_result(analysis).moments]
+    assert [item["video_time"] for item in moments] == [100.0, 120.0, 160.0, 200.0]
+
+    early, engage, mid, late = moments
+    assert early["heading"] == "Death — 1:24 remaining"
+    assert "1:40" not in early["heading"]
+    assert "3:26" not in early["heading"]
+    assert [mark["title"] for mark in early["marks"]] == [
+        "Splat",
+        "Map check",
+        "Splat",
+        "Death",
+        "Splat",
+        "Splat",
+    ]
+    assert [mark["clock"] for mark in early["marks"]] == [
+        "2:50.0",
+        "3:11.5",
+        "3:20.0",
+        "3:26.5",
+        "3:28.0",
+        "3:39.0",
+    ]
+    assert [mark["anchor"] for mark in early["marks"]] == [
+        False,
+        False,
+        False,
+        True,
+        False,
+        False,
+    ]
+    assert "Respawn" not in [mark["title"] for mark in early["marks"]]
+    assert "2:45.0" not in [mark["clock"] for mark in early["marks"]]
+    assert "3:27.5" not in [mark["clock"] for mark in early["marks"]]
+    assert "3:31.0" not in [mark["clock"] for mark in early["marks"]]
+    assert "4:20.0" not in [mark["clock"] for mark in early["marks"]]
+    assert early["gaps"] == []
+    assert early["until_active_again"] == "9.0s out of play"
+    assert early["recovery_context"] == "The player checked the map during recovery."
+    assert early["recording_times"] == []
+    assert "Last observed map check: 61.5s before death" in early["context"]
+    assert "No map check observed before death" not in early["context"]
+    assert "Special was ready." in early["context"]
+    assert "Your special gauge was ready." not in early["context"]
+    assert STATEMENT not in early["context"]
+    assert "Death occurred during the final 30 seconds." in early["context"]
+    assert "Roster at death: 2v4." in early["context"]
+    assert "should not appear" not in early["context"]
+    assert early["assessment"] == "Keep the high ground."
+
+    assert engage["heading"] is None
+    assert engage["marks"] == []
+    assert engage["statements"] == ["Observed splats."]
+    assert engage["assessment"] is None
+
+    assert mid["heading"] == "Death — 2:20 remaining"
+    assert "2:40" not in mid["heading"]
+    assert [mark["title"] for mark in mid["marks"]] == ["Death", "Splat", "Splat"]
+    assert [mark["clock"] for mark in mid["marks"]] == ["2:40.0", "2:45.0", "2:50.0"]
+    assert mid["gaps"] == []
+    assert mid["until_active_again"] is None
+    assert mid["recovery_context"] is None
+    assert "No map check observed before death" in mid["context"]
+    assert "Last observed map check" not in " ".join(mid["context"])
+    assert not any(line.startswith("Special") for line in mid["context"])
+    assert "No roster information was available." in mid["context"]
+    assert mid["assessment"] == NO_RECOMMENDATION_MESSAGE
+    assert mid["recording_times"] == []
+
+    assert late["heading"] == "Death"
+    assert "remaining" not in late["heading"]
+    assert [mark["title"] for mark in late["marks"]] == ["Death"]
+    assert [mark["clock"] for mark in late["marks"]] == ["0:50.0"]
+    assert late["marks"][0]["anchor"] is True
+    assert late["until_active_again"] == "0.0s until respawn"
+    assert late["recovery_context"] is None
+    assert late["gaps"] == []
+    assert not any("map check" in line.lower() for line in late["context"])
+    assert late["assessment"] == "A note."
+
+
+def test_timeline_clusters_nearby_map_checks(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir(parents=True)
+    entries = [
+        _indexed("first", "death_episode", 170.0, 1),
+        _indexed("second", "death_episode", 300.0, 2),
+    ]
+    (inputs / "coaching_index.json").write_text(json.dumps(entries), encoding="utf-8")
+    _write_episode(
+        inputs,
+        "first",
+        death={
+            "death_time": 170.0,
+            "map_check_before_death": True,
+            "seconds_since_map_check": 10.5,
+        },
+        factors=[],
+    )
+    _write_episode(
+        inputs,
+        "second",
+        death={
+            "death_time": 300.0,
+            "active_again_time": 305.0,
+            "death_to_active_again": 5.0,
+            "map_check_before_death": True,
+            "seconds_since_map_check": 2.0,
+            "map_checked_while_dead": True,
+        },
+        factors=[],
+    )
+    raw = [
+        ("map_overlay", 130.0),
+        ("map_overlay", 152.5),
+        ("splat", 153.0),
+        ("map_overlay", 154.5),
+        ("map_overlay", 159.5),
+        ("death", 170.0),
+        ("map_overlay", 270.0),
+        ("map_overlay", 278.0),
+        ("map_overlay", 286.0),
+        ("map_overlay", 298.0),
+        ("death", 300.0),
+        ("map_overlay", 301.0),
+        ("map_overlay", 303.0),
+        ("map_overlay", 307.0),
+        ("map_overlay", 309.0),
+        ("splat", 312.0),
+    ]
+    _write_events(analysis, raw)
+
+    first, second = [item.model_dump() for item in load_result(analysis).moments]
+
+    assert [(mark["title"], mark["clock"]) for mark in first["marks"]] == [
+        ("Map check", "2:10.0"),
+        ("Map check", "2:32.5"),
+        ("Splat", "2:33.0"),
+        ("Death", "2:50.0"),
+    ]
+    assert first["recovery_context"] is None
+
+    assert [(mark["title"], mark["clock"]) for mark in second["marks"]] == [
+        ("Map check", "4:30.0"),
+        ("Map check", "4:58.0"),
+        ("Death", "5:00.0"),
+        ("Map check", "5:07.0"),
+        ("Splat", "5:12.0"),
+    ]
+    clocks = [mark["clock"] for mark in second["marks"]]
+    for hidden in ("4:38.0", "4:46.0", "5:01.0", "5:03.0", "5:09.0"):
+        assert hidden not in clocks
+    assert second["recovery_context"] == "The player checked the map during recovery."
+
+    manifest = json.loads((analysis / "vision_manifest.json").read_text())
+    assert [
+        (row["event_type"], row["start_time"]) for row in manifest["game_events"]
+    ] == raw
+
+
+def _indexed(safe_id: str, candidate_type: str, video_time: float, rank: int) -> dict:
+    return {
+        "candidate_type": candidate_type,
+        "safe_id": safe_id,
+        "video_time": video_time,
+        "rank": rank,
+        "coaching_json": f"{safe_id}.coaching.json",
+        "coach_input_json": f"{safe_id}.coach_input.json",
+    }
+
+
+def _clocked_death() -> dict:
+    return {
+        "death_time": 206.5,
+        "respawn_time": 214.0,
+        "active_again_time": 215.5,
+        "death_to_respawn": 7.5,
+        "respawn_to_active_again": 1.5,
+        "death_to_active_again": 9.0,
+    }
+
+
+def _write_episode(
+    inputs: Path,
+    safe_id: str,
+    *,
+    death: dict,
+    factors: list[dict],
+    samples: list[dict] | None = None,
+    special_ready: bool | None = None,
+    roster: tuple[int, int] | None = None,
+) -> None:
+    skipped = {
+        "map_check_before_death",
+        "map_checked_while_dead",
+        "seconds_since_map_check",
+    }
+    episode = {key: value for key, value in death.items() if key not in skipped}
+    primary: dict = {"death_episode": episode}
+    map_fields = {}
+    if "map_check_before_death" in death:
+        map_fields["map_check_before_death"] = death["map_check_before_death"]
+        map_fields["seconds_since_map_check_before_death"] = death.get(
+            "seconds_since_map_check"
+        )
+    if "map_checked_while_dead" in death:
+        map_fields["map_checked_while_dead"] = death["map_checked_while_dead"]
+    if map_fields:
+        primary["map"] = map_fields
+    if special_ready is not None:
+        primary["special"] = {"nearest_before_anchor": {"ready": special_ready}}
+    if roster is not None:
+        primary["players"] = {
+            "at_death": {"ally_alive_count": roster[0], "opponent_alive_count": roster[1]}
+        }
+    payload = {
+        "primary_context": primary,
+        "game_clock_samples": samples
+        if samples is not None
+        else [
+            _sample("death", 84),
+            _sample("respawn", 76),
+            _sample("active_again", 75),
+        ],
+    }
+    (inputs / f"{safe_id}.coach_input.json").write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
+    _write_coaching_file(inputs, f"{safe_id}.coaching.json", factors)
+
+
+def _sample(label: str, seconds: int | None) -> dict:
+    observation = None if seconds is None else {"seconds_remaining": seconds}
+    return {"label": label, "observation": observation}
+
+
+def _factor(factor_id: str, statement: str, *, active: bool = True) -> dict:
+    return {
+        "factor_id": factor_id,
+        "active": active,
+        "statement_player": statement,
+    }
+
+
+def _write_coaching_file(inputs: Path, name: str, factors: list[dict]) -> None:
+    (inputs / name).write_text(json.dumps({"factors": factors}), encoding="utf-8")
+
+
+def _write_events(analysis: Path, events: list[tuple[str, float]]) -> None:
+    rows = [
+        {"event_type": kind, "start_time": when} for kind, when in events
+    ]
+    (analysis / "vision_manifest.json").write_text(
+        json.dumps({"game_events": rows}), encoding="utf-8"
+    )
+
+
+def _write_named_assessment(analysis: Path, safe_id: str, assessment: str) -> None:
+    prototype = analysis / "coach_prototype"
+    prototype.mkdir(parents=True, exist_ok=True)
+    (prototype / f"{safe_id}.model.output.json").write_text(
+        json.dumps({"assessment": assessment}),
+        encoding="utf-8",
+    )
 

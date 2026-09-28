@@ -412,6 +412,10 @@ class AnalysisIdentity(BaseModel):
     video_identity: str
     # Analysis-level UI language; also hashed into vision_config_sha256.
     language: str = "en"
+    # Set when state_snapshots / game_events were re-fused from the stored
+    # frame_results: hash of the config whose fusion and event settings produced
+    # them. vision_config_sha256 still describes the run that made the readings.
+    refused_vision_config_sha256: str | None = None
 
 
 class VisionTimingMetrics(BaseModel):

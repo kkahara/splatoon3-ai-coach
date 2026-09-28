@@ -42,6 +42,7 @@ class Submission(BaseModel):
     email: str | None = None
     display_name: str | None = None
     notify: bool = False
+    user_id: str | None = None
     language: LanguageCode = "en"
     status: PublicStatus = "received"
     step: PublicStep = "received"
@@ -95,6 +96,17 @@ class CreateSubmissionResponse(BaseModel):
     upload: PresignedUpload
 
 
+class LifecycleMark(BaseModel):
+    """One observed event on a death card's context strip."""
+
+    label: str
+    title: str
+    video_time: float = Field(ge=0)
+    seconds_remaining: int | None = None
+    clock: str | None = None
+    anchor: bool = False
+
+
 class CoachingMoment(BaseModel):
     """One ranked coaching unit safe to show on the public review page."""
 
@@ -103,6 +115,13 @@ class CoachingMoment(BaseModel):
     statements: list[str] = Field(default_factory=list)
     assessment: str | None = None
     frame: bool = False
+    heading: str | None = None
+    marks: list[LifecycleMark] = Field(default_factory=list)
+    gaps: list[str | None] = Field(default_factory=list)
+    until_active_again: str | None = None
+    recovery_context: str | None = None
+    context: list[str] = Field(default_factory=list)
+    recording_times: list[str] = Field(default_factory=list)
 
 
 class PublicSubmissionResult(BaseModel):
@@ -120,7 +139,19 @@ class PublicSubmissionResponse(BaseModel):
     expires_at: str
     display_name: str | None = None
     error: str | None = None
+    match_seconds: int | None = None
     result: PublicSubmissionResult | None = None
+
+
+class HistoryItem(BaseModel):
+    """One owned submission on the past-coaching list."""
+
+    id: str
+    created_at: str
+    expires_at: str
+    status: PublicStatus
+    step: PublicStep
+    display_name: str | None = None
 
 
 class PublicConfig(BaseModel):
@@ -130,3 +161,4 @@ class PublicConfig(BaseModel):
     dev_mode: bool = False
     max_video_bytes: int
     max_duration_seconds: int
+    feedback: bool = False

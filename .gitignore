@@ -241,3 +241,5 @@ training/datasets/**
 # Local archive dumps
 *.zip
 
+./NOTES
+NOTES

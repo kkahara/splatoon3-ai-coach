@@ -103,6 +103,10 @@ samples (`map.ink`) are separate from MAP_OVERLAY facts and never set overlay
   in configured player-slot ROIs (`PlayerCountReading`). Field names may still
   say `*_dead_slots` — that means “X present on that slot,” **not** local-player
   `DEATH`. Coaching vocabulary: `ally_alive_count` / `opponent_alive_count` only.
+- Fusion debounces each side: a changed count needs
+ `vision.player_count.confirm_readings` consecutive agreeing readings; one-frame
+ misreads never become the fused count. `s3-coach refuse <analysis_dir>` re-runs
+ fusion from stored `frame_results` (no decode) after fusion settings change.
 - Describes **roster state at a video time**, not who participated in an
   engagement. Never infer counts from splat/death/scenario membership.
 - Sparse roster trajectory may appear on `ScenarioContext.players` as factual

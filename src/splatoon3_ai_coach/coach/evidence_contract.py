@@ -52,7 +52,14 @@ PROHIBITED_CLAIM_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
         r"\bbad engagement\b",
         r"\bgood engagement\b",
         r"\boverextend(?:ed|ing)?\b",
-        r"\boutnumbered\b",
+        # Team roster counts may be stated; "outnumbered" as a fight claim may not.
+        r"\byou were outnumbered\b",
+        r"\b(?:fought|fighting|took|take|taking)\s+(?:an?\s+)?outnumbered\b",
+        r"\boutnumbered\s+(?:fight|engagement|duel)\b",
+        r"\boutnumbered\s+(?:in|during)\s+(?:the\s+|a\s+|that\s+|this\s+)?"
+        r"(?:fight|engagement|duel)\b",
+        r"\bshould have pushed\b",
+        r"\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\b",
         r"\bshould have retreated\b",
         r"\bshould have checked (the )?map\b",
         r"\bmap usage was (good|bad)\b",
@@ -399,6 +406,7 @@ def evidence_contract_summary() -> dict[str, list[str]]:
             "won/lost fight, clean duel, outnumbered in the fight, overextended",
             "bad/good engagement or map usage judgments",
             "should have retreated / checked map",
+            "should have pushed / played passively because of roster counts",
             "gear / Quick Respawn / Super Jump attributions",
             "rushed / hesitated / spawn-camped intent",
             "splat caused death (use association wording instead)",

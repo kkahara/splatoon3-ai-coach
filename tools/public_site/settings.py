@@ -16,6 +16,16 @@ def _flag(name: str) -> bool:
     return os.environ.get(name, "").strip() == "1"
 
 
+def _load_env() -> None:
+    """Load the repo ``.env`` without overriding variables already set."""
+    path = PROJECT_ROOT / ".env"
+    if not path.is_file():
+        return
+    from dotenv import load_dotenv
+
+    load_dotenv(path, override=False)
+
+
 @dataclass(frozen=True)
 class PublicSettings:
     """Locations, limits, and optional Cloudflare credentials."""
@@ -35,6 +45,8 @@ class PublicSettings:
     max_queued: int = 20
     max_concurrent: int = 1
     retention_days: int = 30
+    account_retention_days: int = 365
+    database_url: str = ""
     upload_url_seconds: int = 900
     turnstile_secret: str | None = None
     turnstile_site_key: str | None = None
@@ -66,6 +78,7 @@ class PublicSettings:
     @classmethod
     def from_env(cls) -> PublicSettings:
         """Build settings from the repo layout and ``PUBLIC_*`` env vars."""
+        _load_env()
         analysis = Path(
             os.environ.get("VMV_ANALYSIS_ROOT", PROJECT_ROOT / "analysis")
         ).expanduser()
@@ -93,6 +106,8 @@ class PublicSettings:
             max_queued=int(os.environ.get("PUBLIC_MAX_QUEUED", "20")),
             max_concurrent=int(os.environ.get("PUBLIC_MAX_CONCURRENT", "1")),
             retention_days=int(os.environ.get("PUBLIC_RETENTION_DAYS", "30")),
+            account_retention_days=int(os.environ.get("PUBLIC_ACCOUNT_RETENTION_DAYS", "365")),
+            database_url=os.environ.get("PUBLIC_DATABASE_URL", "").strip(),
             turnstile_secret=os.environ.get("PUBLIC_TURNSTILE_SECRET") or None,
             turnstile_site_key=os.environ.get("PUBLIC_TURNSTILE_SITE_KEY") or None,
             dev_mode=dev_mode,

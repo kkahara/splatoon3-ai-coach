@@ -43,7 +43,7 @@ def has_frame(analysis: Path, safe_id: str) -> bool:
 
 
 def missing_frames(analysis: Path) -> bool:
-    """True when a ranked moment has no JPEG yet."""
+    """True when a public moment has no JPEG yet."""
     for entry in ranked_entries(analysis):
         path = frame_path(analysis, str(entry.get("safe_id") or ""))
         if path is not None and not path.is_file():
@@ -52,7 +52,7 @@ def missing_frames(analysis: Path) -> bool:
 
 
 def ranked_entries(analysis: Path) -> list[dict]:
-    """Coaching index rows in the same order as the public result."""
+    """Coaching moments in video-time order, matching the public review."""
     path = analysis / COACH_INPUTS_DIRNAME / COACHING_INDEX_FILENAME
     if not path.is_file():
         return []
@@ -60,7 +60,19 @@ def ranked_entries(analysis: Path) -> list[dict]:
     if not isinstance(payload, list):
         return []
     rows = [item for item in payload if isinstance(item, dict)]
-    return sorted(rows, key=lambda item: item.get("rank") or 10**9)
+    return sorted(rows, key=_chrono)
+
+
+def _chrono(item: dict) -> tuple[float, int]:
+    try:
+        when = float(item.get("video_time") or 0)
+    except (TypeError, ValueError):
+        when = 0.0
+    try:
+        rank = int(item.get("rank"))
+    except (TypeError, ValueError):
+        rank = 10**9
+    return (when, rank)
 
 
 def ffmpeg_argv(video: Path, dest: Path, at: float) -> list[str]:

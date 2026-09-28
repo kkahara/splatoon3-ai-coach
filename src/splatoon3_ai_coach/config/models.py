@@ -390,6 +390,13 @@ class PlayerCountDetectorConfig(BaseModel):
     # Empirically true X ≤ ~0.016, alive ≥ ~0.164; 0.08 is midway/conservative.
     sqdiff_match_threshold: float = Field(default=0.08, ge=0, le=1)
     min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+    # Fusion debounce, per side: a changed alive count is accepted only after
+    # this many consecutive usable readings agree (1 = no debounce). The first
+    # reading is accepted as is; an unusable frame restarts confirmation.
+    confirm_readings: int = Field(default=2, ge=1)
+    # While a change is unconfirmed, the accepted count stands in only if it
+    # was last read within this many seconds; otherwise the side is unknown.
+    hold_seconds: float = Field(default=1.0, ge=0)
 
     @field_validator("ally_slots", "opponent_slots")
     @classmethod
@@ -618,6 +625,32 @@ class ScenarioBuilderConfig(BaseModel):
     )
 
 
+class DeathFactorThresholds(BaseModel):
+    """Thresholds that decide when a death importance factor is active."""
+
+    redeath_max_gap_seconds: float = Field(default=10.0, ge=0)
+    final_window_seconds: int = Field(default=30, ge=0)
+    first_window_seconds: int = Field(default=30, ge=0)
+    roster_pre_death_offset_seconds: float = Field(
+        default=0.5,
+        ge=0,
+        description=(
+            "Roster factors read the last trajectory point at or before "
+            "death_time minus this offset, so the player's own roster X "
+            "marker is not counted."
+        ),
+    )
+    roster_min_gap: int = Field(
+        default=2,
+        ge=1,
+        le=4,
+        description=(
+            "Outnumbered / ahead-in-numbers need at least this many more "
+            "players alive on one side than the other in the pre-death sample."
+        ),
+    )
+
+
 class CoachConfig(BaseModel):
     """Settings for the LLM coaching layer (Phase 5).
 
@@ -627,7 +660,8 @@ class CoachConfig(BaseModel):
 
     ``max_llm_units`` caps type-agnostic top-N selection across coaching
     candidates. ``death_importance_weights`` are death-domain factor weights
-    only (not global coaching concepts).
+    only (not global coaching concepts). Weights are attention, so they are
+    never negative.
     """
 
     provider: str = "ollama"
@@ -640,12 +674,16 @@ class CoachConfig(BaseModel):
     death_importance_weights: dict[str, float] = Field(
         default_factory=lambda: {
             "death_redeath_le_10s": 3.0,
-            "death_last_ally_alive": 2.5,
+            "death_while_outnumbered": 2.5,
             "death_special_ready": 2.0,
             "death_map_overlay_before_false": 1.5,
+            "death_while_ahead_in_numbers": 1.5,
             "death_final_30s": 1.0,
             "death_first_30s": 0.5,
         }
+    )
+    death_factor_thresholds: DeathFactorThresholds = Field(
+        default_factory=DeathFactorThresholds
     )
     game_clock_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
@@ -660,6 +698,16 @@ class CoachConfig(BaseModel):
             "present_by / trajectory. Presentation window offsets may be shorter."
         ),
     )
+
+    @field_validator("death_importance_weights")
+    @classmethod
+    def _weights_not_negative(cls, value: dict[str, float]) -> dict[str, float]:
+        negative = sorted(k for k, weight in value.items() if float(weight) < 0)
+        if negative:
+            raise ValueError(
+                f"death_importance_weights must not be negative: {negative}"
+            )
+        return value
 
 
 class AppConfig(BaseModel):

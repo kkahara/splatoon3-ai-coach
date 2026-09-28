@@ -15,11 +15,9 @@ from splatoon3_ai_coach.coach.claim_catalog import (
     DEFAULT_DEATH_IMPORTANCE_WEIGHTS,
     DEFAULT_MATCH_DURATION_CANDIDATES,
     FACTOR_ANNOTATIONS,
-    FINAL_30S_REMAINING,
-    FIRST_30S_ELAPSED,
-    REDEATH_MAX_GAP_SECONDS,
     CoachingUnitResult,
     DeathImportanceFactorId,
+    RosterSample,
     SupportingEvidenceItem,
 )
 from splatoon3_ai_coach.coach.coach_input import CoachInput, GameClockSample
@@ -28,6 +26,7 @@ from splatoon3_ai_coach.coach.coaching_candidates import (
     ImportanceFactorContribution,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClock
+from splatoon3_ai_coach.config.models import DeathFactorThresholds
 
 
 def resolve_match_duration_seconds(
@@ -57,30 +56,66 @@ def death_game_clock_sample(coach_input: CoachInput) -> GameClockSample | None:
     return None
 
 
+def pre_death_roster(
+    coach_input: CoachInput,
+    *,
+    offset_seconds: float,
+) -> RosterSample | None:
+    """Last roster trajectory point at or before ``death_time - offset_seconds``.
+
+    ``players.at_death`` is nearest by ``|Δt|`` and can land just after the
+    death, already counting the player's own roster X marker. This never
+    looks past the cutoff. ``None`` when no trajectory point qualifies.
+    """
+    ctx = coach_input.primary_context
+    death = ctx.death_episode
+    if ctx.players is None or death is None or death.death_time is None:
+        return None
+    cutoff = float(death.death_time) - float(offset_seconds)
+    chosen = None
+    for index, point in enumerate(ctx.players.trajectory):
+        if float(point.video_time) > cutoff:
+            continue
+        if chosen is None or float(point.video_time) >= float(chosen[1].video_time):
+            chosen = (index, point)
+    if chosen is None:
+        return None
+    index, point = chosen
+    return RosterSample(
+        video_time=float(point.video_time),
+        ally_alive_count=int(point.ally_alive_count),
+        opponent_alive_count=int(point.opponent_alive_count),
+        source_path=f"primary_context.players.trajectory[{index}]",
+    )
+
+
 def detect_death_importance_factors(
     coach_input: CoachInput,
     *,
     match_duration_seconds: int | None = None,
+    thresholds: DeathFactorThresholds | None = None,
 ) -> dict[DeathImportanceFactorId, bool]:
-    """Evaluate death-scoped importance factors (True when evidence supports)."""
+    """Evaluate death-scoped importance factors (True when evidence supports).
+
+    Factors name factual circumstances only; they are never verdicts.
+    """
     flags = {factor_id: False for factor_id in DeathImportanceFactorId}
     if coach_input.primary_scenario.scenario_type is not ScenarioType.DEATH_EPISODE:
         return flags
+    limits = thresholds or DeathFactorThresholds()
+    roster = pre_death_roster(
+        coach_input, offset_seconds=limits.roster_pre_death_offset_seconds
+    )
+    flags.update(_roster_flags(roster, limits.roster_min_gap))
+    flags.update(_clock_flags(coach_input, match_duration_seconds, limits))
 
     ctx = coach_input.primary_context
-    players = ctx.players
-    if (
-        players is not None
-        and players.at_death is not None
-        and int(players.at_death.ally_alive_count) == 1
-    ):
-        flags[DeathImportanceFactorId.DEATH_LAST_ALLY_ALIVE] = True
-
     timeline = ctx.timeline
     if (
         timeline is not None
         and timeline.time_since_previous_death is not None
-        and float(timeline.time_since_previous_death) <= REDEATH_MAX_GAP_SECONDS
+        and float(timeline.time_since_previous_death)
+        <= limits.redeath_max_gap_seconds
     ):
         flags[DeathImportanceFactorId.DEATH_REDEATH_LE_10S] = True
 
@@ -92,26 +127,42 @@ def detect_death_importance_factors(
     ):
         flags[DeathImportanceFactorId.DEATH_SPECIAL_READY] = True
 
-    clock = death_game_clock_sample(coach_input)
-    rem = (
-        clock.observation.seconds_remaining
-        if clock is not None and clock.observation is not None
-        else None
-    )
-    if rem is not None and int(rem) <= FINAL_30S_REMAINING:
-        flags[DeathImportanceFactorId.DEATH_FINAL_30S] = True
-    if (
-        rem is not None
-        and match_duration_seconds is not None
-        and int(rem) >= int(match_duration_seconds) - FIRST_30S_ELAPSED
-    ):
-        flags[DeathImportanceFactorId.DEATH_FIRST_30S] = True
-
     map_ctx = ctx.map
     if map_ctx is not None and map_ctx.map_check_before_death is False:
         flags[DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE] = True
-
     return flags
+
+
+def _roster_flags(
+    roster: RosterSample | None,
+    min_gap: int,
+) -> dict[DeathImportanceFactorId, bool]:
+    if roster is None:
+        return {}
+    gap = roster.ally_alive_count - roster.opponent_alive_count
+    return {
+        DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED: gap <= -min_gap,
+        DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS: gap >= min_gap,
+    }
+
+
+def _clock_flags(
+    coach_input: CoachInput,
+    match_duration_seconds: int | None,
+    limits: DeathFactorThresholds,
+) -> dict[DeathImportanceFactorId, bool]:
+    clock = death_game_clock_sample(coach_input)
+    if clock is None or clock.observation is None:
+        return {}
+    rem = int(clock.observation.seconds_remaining)
+    first = (
+        match_duration_seconds is not None
+        and rem >= int(match_duration_seconds) - limits.first_window_seconds
+    )
+    return {
+        DeathImportanceFactorId.DEATH_FINAL_30S: rem <= limits.final_window_seconds,
+        DeathImportanceFactorId.DEATH_FIRST_30S: first,
+    }
 
 
 def score_death_candidate(
@@ -119,6 +170,7 @@ def score_death_candidate(
     *,
     match_duration_seconds: int | None = None,
     weights: Mapping[str, float] | None = None,
+    thresholds: DeathFactorThresholds | None = None,
 ) -> CoachingUnitResult:
     """Build a scored death-episode coaching unit (not yet match-ranked)."""
     scenario = coach_input.primary_scenario
@@ -126,49 +178,114 @@ def score_death_candidate(
         raise ValueError(
             f"score_death_candidate expects DEATH_EPISODE, got {scenario.scenario_type}"
         )
-
+    limits = thresholds or DeathFactorThresholds()
     weight_map = dict(DEFAULT_DEATH_IMPORTANCE_WEIGHTS)
     if weights:
         weight_map.update({str(k): float(v) for k, v in weights.items()})
 
     flags = detect_death_importance_factors(
-        coach_input, match_duration_seconds=match_duration_seconds
+        coach_input,
+        match_duration_seconds=match_duration_seconds,
+        thresholds=limits,
     )
-    factors: list[ImportanceFactorContribution] = []
-    score = 0.0
-    for factor_id in DeathImportanceFactorId:
-        active = bool(flags[factor_id])
-        weight = float(weight_map.get(factor_id.value, 0.0))
-        contribution = weight if active else 0.0
-        score += contribution
-        annotation = FACTOR_ANNOTATIONS[factor_id]
-        statement_player = annotation.statement_player
-        statement_internal = annotation.statement_internal
-        if active and factor_id is DeathImportanceFactorId.DEATH_REDEATH_LE_10S:
-            statement_player, statement_internal = _redeath_statements(coach_input)
-        factors.append(
-            ImportanceFactorContribution(
-                factor_id=factor_id.value,
-                weight=weight,
-                contribution=contribution,
-                active=active,
-                statement_player=statement_player if active else None,
-                statement_internal=statement_internal if active else None,
-                interpretation=annotation.interpretation if active else None,
-                recommendation=annotation.recommendation if active else None,
-            )
+    factors = [
+        _factor_contribution(
+            factor_id,
+            active=bool(flags[factor_id]),
+            weight=float(weight_map.get(factor_id.value, 0.0)),
+            coach_input=coach_input,
+            limits=limits,
         )
-
+        for factor_id in DeathImportanceFactorId
+    ]
+    roster = pre_death_roster(
+        coach_input, offset_seconds=limits.roster_pre_death_offset_seconds
+    )
     return CoachingUnitResult(
         candidate_id=scenario.scenario_id,
         candidate_type=CANDIDATE_TYPE_DEATH_EPISODE,
         video_time=float(scenario.start_time),
-        importance_score=score,
+        importance_score=sum(f.contribution for f in factors),
         factors=factors,
         rank=None,
         selected_for_llm=False,
-        supporting_evidence=build_supporting_evidence(coach_input),
+        supporting_evidence=build_supporting_evidence(coach_input, roster=roster),
         match_duration_seconds=match_duration_seconds,
+        roster_before_death=roster,
+    )
+
+
+def _factor_contribution(
+    factor_id: DeathImportanceFactorId,
+    *,
+    active: bool,
+    weight: float,
+    coach_input: CoachInput,
+    limits: DeathFactorThresholds,
+) -> ImportanceFactorContribution:
+    annotation = FACTOR_ANNOTATIONS[factor_id]
+    statement_player = annotation.statement_player
+    statement_internal = annotation.statement_internal
+    if active:
+        custom = _threshold_statements(factor_id, coach_input, limits)
+        if custom is not None:
+            statement_player, statement_internal = custom
+    return ImportanceFactorContribution(
+        factor_id=factor_id.value,
+        weight=weight,
+        contribution=weight if active else 0.0,
+        active=active,
+        statement_player=statement_player if active else None,
+        statement_internal=statement_internal if active else None,
+        interpretation=annotation.interpretation if active else None,
+        recommendation=annotation.recommendation if active else None,
+    )
+
+
+def _threshold_statements(
+    factor_id: DeathImportanceFactorId,
+    coach_input: CoachInput,
+    limits: DeathFactorThresholds,
+) -> tuple[str, str] | None:
+    """Copy that quotes the configured threshold rather than a fixed number."""
+    if factor_id is DeathImportanceFactorId.DEATH_REDEATH_LE_10S:
+        return _redeath_statements(coach_input, limits.redeath_max_gap_seconds)
+    if factor_id is DeathImportanceFactorId.DEATH_FINAL_30S:
+        seconds = limits.final_window_seconds
+        return (
+            f"Death occurred during the final {seconds} seconds of the match.",
+            f"Death-labeled game clock seconds_remaining <= {seconds}.",
+        )
+    if factor_id is DeathImportanceFactorId.DEATH_FIRST_30S:
+        seconds = limits.first_window_seconds
+        return (
+            f"Death occurred during the first {seconds} seconds of the match.",
+            f"Death-labeled game clock seconds_remaining >= D - {seconds} "
+            "(match duration D known).",
+        )
+    if factor_id in (
+        DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED,
+        DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS,
+    ):
+        return _roster_statements(coach_input, limits)
+    return None
+
+
+def _roster_statements(
+    coach_input: CoachInput, limits: DeathFactorThresholds
+) -> tuple[str, str] | None:
+    roster = pre_death_roster(
+        coach_input, offset_seconds=limits.roster_pre_death_offset_seconds
+    )
+    if roster is None:
+        return None
+    ally, opponent = roster.ally_alive_count, roster.opponent_alive_count
+    players = "player" if ally == 1 else "players"
+    return (
+        f"Just before you were splatted, your team had {ally} {players} alive "
+        f"and the opponents had {opponent}.",
+        f"Pre-death roster sample at {roster.video_time:.1f}s: {ally} vs "
+        f"{opponent} alive (gap >= {limits.roster_min_gap}; {roster.source_path}).",
     )
 
 
@@ -190,6 +307,8 @@ def apply_candidate_ranking(
 
 def build_supporting_evidence(
     coach_input: CoachInput,
+    *,
+    roster: RosterSample | None = None,
 ) -> list[SupportingEvidenceItem]:
     """Compact facts for VMV 'why' — not coaching cards."""
     items: list[SupportingEvidenceItem] = []
@@ -206,6 +325,15 @@ def build_supporting_evidence(
             path="primary_scenario.start_time",
         )
     )
+
+    if roster is not None:
+        items.append(
+            SupportingEvidenceItem(
+                label="Roster before death",
+                value=format_avb(roster.ally_alive_count, roster.opponent_alive_count),
+                path=roster.source_path,
+            )
+        )
 
     if ctx.players is not None and ctx.players.at_death is not None:
         at = ctx.players.at_death
@@ -293,18 +421,20 @@ def build_supporting_evidence(
     return items
 
 
-def _redeath_statements(coach_input: CoachInput) -> tuple[str, str]:
+def _redeath_statements(
+    coach_input: CoachInput, max_gap_seconds: float
+) -> tuple[str, str]:
     timeline = coach_input.primary_context.timeline
     if timeline is None or timeline.time_since_previous_death is None:
         return (
-            "Two consecutive deaths occurred within 10 seconds.",
-            f"timeline.time_since_previous_death <= {REDEATH_MAX_GAP_SECONDS}",
+            f"Two consecutive deaths occurred within {max_gap_seconds:g} seconds.",
+            f"timeline.time_since_previous_death <= {max_gap_seconds}",
         )
     gap = float(timeline.time_since_previous_death)
     return (
         f"Two consecutive deaths occurred {gap:.1f} seconds apart.",
         f"timeline.time_since_previous_death={gap:.1f} "
-        f"(<= {REDEATH_MAX_GAP_SECONDS})",
+        f"(<= {max_gap_seconds})",
     )
 
 

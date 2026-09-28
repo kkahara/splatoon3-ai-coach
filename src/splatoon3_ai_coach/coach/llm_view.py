@@ -125,7 +125,7 @@ def build_death_llm_view(
 
     death_block = _project_death(ctx.death_episode)
     clock_block = _project_clock(coach_input)
-    roster_block = _project_roster(coach_input)
+    roster_block = _project_roster(coach_input, unit)
     special_block = _project_special(ctx.special)
     map_block = _project_map(ctx.map)
     related_blocks = [
@@ -221,8 +221,21 @@ def _project_clock(coach_input: CoachInput) -> dict[str, Any] | None:
     }
 
 
-def _project_roster(coach_input: CoachInput) -> dict[str, Any] | None:
+def _project_roster(
+    coach_input: CoachInput, unit: CoachingUnitResult
+) -> dict[str, Any] | None:
     ctx = coach_input.primary_context
+    before = unit.roster_before_death
+    before_death = (
+        None
+        if before is None
+        else {
+            "video_time": before.video_time,
+            "ally_alive_count": before.ally_alive_count,
+            "opponent_alive_count": before.opponent_alive_count,
+            "source_path": before.source_path,
+        }
+    )
     at_death = None
     if ctx.players is not None and ctx.players.at_death is not None:
         point = ctx.players.at_death
@@ -274,9 +287,16 @@ def _project_roster(coach_input: CoachInput) -> dict[str, Any] | None:
             "source_path": "primary_context.timeline",
         }
 
-    if at_death is None and not window_points and present is None and timeline_gap is None:
+    if (
+        before_death is None
+        and at_death is None
+        and not window_points
+        and present is None
+        and timeline_gap is None
+    ):
         return None
     return {
+        "before_death": before_death,
         "at_death": at_death,
         "player_count_window": window_points,
         "player_count_context": present,

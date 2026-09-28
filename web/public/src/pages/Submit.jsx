@@ -1,13 +1,26 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createSubmission, loadConfig, markUploaded, uploadVideo } from "../api.js";
+import { AccountBar } from "../AccountBar.jsx";
+import { createSubmission, loadAccount, loadConfig, markUploaded, uploadVideo } from "../api.js";
+
+function systemLanguage() {
+  const tags = navigator.languages?.length ? navigator.languages : [navigator.language || "en"];
+  return tags.some((tag) => String(tag).toLowerCase().startsWith("ja")) ? "ja" : "en";
+}
+
+function videoLabel(config) {
+  const bytes = config?.max_video_bytes || 500 * 1024 * 1024;
+  const mb = Math.round(bytes / (1024 * 1024));
+  return `Choose video (${mb}MB max)`;
+}
 
 export function SubmitPage() {
   const navigate = useNavigate();
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(systemLanguage());
   const [displayName, setDisplayName] = useState("");
+  const [account, setAccount] = useState(null);
   const [notify, setNotify] = useState(false);
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -16,6 +29,14 @@ export function SubmitPage() {
 
   useEffect(() => {
     loadConfig().then(setConfig).catch((exc) => setError(exc.message));
+    loadAccount()
+      .then((next) => {
+        setAccount(next);
+        if (next?.name) {
+          setDisplayName((current) => current || next.name);
+        }
+      })
+      .catch((exc) => setError(exc.message));
   }, []);
 
   useEffect(() => {
@@ -62,8 +83,8 @@ export function SubmitPage() {
         size_bytes: file.size,
         content_type: file.type || "video/mp4",
         language,
-        email: notify ? email : null,
-        notify,
+        email: account ? null : notify ? email : null,
+        notify: account ? false : notify,
         display_name: displayName || null,
       });
       await uploadVideo(created.upload, file);
@@ -77,12 +98,12 @@ export function SubmitPage() {
 
   return (
     <main className="sheet">
-      <p className="brand">Splatoon 3 AI Coach</p>
+      <AccountBar account={account} onChange={setAccount} />
       <h1>Get AI Coaching for Your Splatoon 3 Match</h1>
       <p>Upload your gameplay recording.</p>
       <form onSubmit={onSubmit}>
         <label>
-          Choose video
+          {videoLabel(config)}
           <input
             type="file"
             accept=".mp4,.mov,video/mp4,video/quicktime"
@@ -90,7 +111,7 @@ export function SubmitPage() {
           />
         </label>
         <label>
-          Language
+          System language
           <select value={language} onChange={(event) => setLanguage(event.target.value)}>
             <option value="en">English</option>
             <option value="ja">日本語</option>
@@ -105,15 +126,17 @@ export function SubmitPage() {
             placeholder="Optional"
           />
         </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={notify}
-            onChange={(event) => setNotify(event.target.checked)}
-          />
-          Email me when my review is ready
-        </label>
-        {notify ? (
+        {account ? null : (
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={notify}
+              onChange={(event) => setNotify(event.target.checked)}
+            />
+            Email me when my review is ready
+          </label>
+        )}
+        {!account && notify ? (
           <label>
             Email address
             <input

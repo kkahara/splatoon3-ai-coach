@@ -61,6 +61,7 @@ __all__ = [
     "CadenceScanStats",
     "MapInkScanContext",
     "observe_cadence_stream",
+    "refuse_vision_manifest",
     "run_vision",
     "_detectors_for_frame",
     "_finalize_ready_gated_map_artifacts",
@@ -156,6 +157,21 @@ def run_vision(
     save_vision_manifest(manifest, output_dir)
     log_completion(manifest, timing)
     return manifest
+
+
+def refuse_vision_manifest(manifest: VisionManifest, config: AppConfig) -> VisionManifest:
+    """Re-run state fusion and event inference over stored frame readings.
+
+    Detector readings are reused as recorded; only fusion and event settings
+    from ``config`` take effect. No video is decoded.
+    """
+    snapshots, events = _interpret_observations(manifest.frame_results, config)
+    analysis = manifest.analysis.model_copy(
+        update={"refused_vision_config_sha256": hash_vision_config(config.vision)}
+    )
+    return manifest.model_copy(
+        update={"analysis": analysis, "state_snapshots": snapshots, "game_events": events}
+    )
 
 
 def _interpret_observations(

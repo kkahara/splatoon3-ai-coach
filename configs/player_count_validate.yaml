@@ -242,6 +242,8 @@ vision:
     template_dir: ../calibration/templates/players
     sqdiff_match_threshold: 0.08
     min_usable_confidence: 0.5
+    confirm_readings: 2
+    hold_seconds: 1.0
   state_fusion:
     smoothing_window: 5
     max_hold_duration: 2.0

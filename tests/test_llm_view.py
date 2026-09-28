@@ -101,9 +101,7 @@ def _death_input(
         timeline=TimelineContext(duration=8.0, time_since_previous_death=8.0),
         map=MapContext(
             map_check_before_death=map_before,
-            seconds_since_map_check_before_death=(
-                12.0 if map_before is False else 20.0
-            ),
+            seconds_since_map_check_before_death=(12.0 if map_before is False else 20.0),
             map_check_count=1,
         ),
         death_episode=DeathEpisodeContext(
@@ -249,7 +247,9 @@ def test_no_invention_at_death_and_special_match_source() -> None:
         == coach_input.primary_context.map.map_check_before_death
     )
     assert view.death is not None
-    assert view.death["death_time"] == coach_input.primary_context.death_episode.death_time
+    assert (
+        view.death["death_time"] == coach_input.primary_context.death_episode.death_time
+    )
 
 
 def test_view_smaller_than_full_coach_input() -> None:
@@ -291,12 +291,11 @@ def test_serialize_llm_view_used_by_provider() -> None:
     assert len(provider.user or "") < len(full)
 
 
-
 @pytest.mark.skipif(
     not (_ANALYSIS_SEP10 / "vision_manifest.json").is_file(),
     reason="Sep-10 analysis missing",
 )
-def test_sep10_llm_view_size_and_last_ally() -> None:
+def test_sep10_llm_view_size_and_roster() -> None:
     config = load_config(default_config_path())
     bundle = load_coach_analysis_bundle(
         _ANALYSIS_SEP10,
@@ -335,7 +334,6 @@ def test_sep10_llm_view_size_and_last_ally() -> None:
     assert len(compact) < 0.2 * len(full)
     assert view.roster is not None
     assert view.roster["at_death"]["ally_alive_count"] == 1
-    assert "death_last_ally_alive" in view.importance["active_factor_ids"]
     assert "observations" not in json.dumps(view.special or {})
 
 

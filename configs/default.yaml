@@ -36,7 +36,7 @@ vision:
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "special_gauge", "match_intro", "ready", "low_ink", "score"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "player_count", "special_gauge", "match_intro", "ready", "low_ink", "score"]
   # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
@@ -171,8 +171,9 @@ vision:
       - [0, 70, 70, 15, 255, 255]
       - [120, 70, 70, 170, 255, 255]
       - [165, 70, 70, 180, 255, 255]
-  # HUD roster-X counts (teammate/opponent icon X). Off by default — enable
-  # "player_count" in enabled_detectors after verifying templates/ROIs.
+  # HUD roster-X counts (teammate/opponent icon X). Enabled: the roster
+  # coaching factors depend on it. Validated settings live in
+  # configs/player_count_validate.yaml; keep the two in sync.
   # Not local-player DEATH. Slot boxes are fractional (x1,y1,x2,y2) @ 1920×1080.
   # Pixel xywh origins:
   # ally-1 [488,17,143,105] ally-2 [592,19,129,102] ally-3 [689,12,110,110]
@@ -193,6 +194,11 @@ vision:
     # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X (lower=better).
     sqdiff_match_threshold: 0.08
     min_usable_confidence: 0.50
+    # Fusion debounce per side: a changed count needs this many consecutive
+    # agreeing readings (at hud_cadence_fps 2.0, one reading = 0.5s).
+    confirm_readings: 2
+    # Unconfirmed change: keep the accepted count only if read this recently.
+    hold_seconds: 1.0
   # Top-right circular Special gauge (vision). Off by default — enable
   # "special_gauge" in enabled_detectors after real-video validation.
   # Do NOT reuse extraction.hud.special_gauge (misaligned top-center box).
@@ -270,13 +276,26 @@ coach:
   nvidia_model: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
   # Type-agnostic top-N across coaching candidates (death is first domain).
   max_llm_units: 3
+  # Attention weights, never negative. Provisional until reviewed against
+  # the library re-scoring report (tools/importance_report.py).
   death_importance_weights:
     death_redeath_le_10s: 3.0
-    death_last_ally_alive: 2.5
+    death_while_outnumbered: 2.5
     death_special_ready: 2.0
     death_map_overlay_before_false: 1.5
+    death_while_ahead_in_numbers: 1.5
     death_final_30s: 1.0
     death_first_30s: 0.5
+  death_factor_thresholds:
+    redeath_max_gap_seconds: 10.0
+    final_window_seconds: 30
+    first_window_seconds: 30
+    # Roster factors read the trajectory at or before death minus this
+    # offset, so the player's own roster X marker is not counted.
+    roster_pre_death_offset_seconds: 0.5
+    # Outnumbered / ahead need at least this many more players alive on one
+    # side. A 1-player gap fired on most deaths and stopped discriminating.
+    roster_min_gap: 2
   game_clock_max_lookup_gap_seconds: 1.0
   player_count_max_lookup_gap_seconds: 1.0
   player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]

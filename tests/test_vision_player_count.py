@@ -183,9 +183,15 @@ def test_default_config_has_eight_slots() -> None:
     assert len(cfg.opponent_slots) == 4
 
 
-def test_player_count_not_in_default_enabled_detectors() -> None:
-    enabled = load_config(default_config_path()).vision.enabled_detectors
-    assert "player_count" not in enabled
+def test_player_count_enabled_by_default_with_validated_settings() -> None:
+    default = load_config(default_config_path()).vision
+    validated = load_config(
+        default_config_path().parent / "player_count_validate.yaml"
+    ).vision
+    assert "player_count" in default.enabled_detectors
+    assert default.player_count == validated.player_count
+    assert default.player_count.template_dir is not None
+    assert sorted(default.player_count.template_dir.glob("player-x-*.png"))
 
 
 @pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")

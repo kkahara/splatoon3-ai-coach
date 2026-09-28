@@ -48,6 +48,29 @@ class _ScoreSideMemory:
     evidence_ids: list[str] = field(default_factory=list)
 
 
+@dataclass
+class _RosterSideMemory:
+    """Debounce state for one roster side's alive count."""
+
+    accepted: int | None = None
+    last_seen_at: float | None = None
+    evidence_ids: list[str] = field(default_factory=list)
+    pending: int | None = None
+    pending_count: int = 0
+    pending_ids: list[str] = field(default_factory=list)
+
+    def accept(self, value: int, timestamp: float, ids: list[str]) -> None:
+        """Make ``value`` the accepted count, last read at ``timestamp``."""
+        self.accepted = value
+        self.last_seen_at = timestamp
+        self.evidence_ids = list(ids)
+        self.clear_pending()
+
+    def clear_pending(self) -> None:
+        """Drop any unconfirmed change."""
+        self.pending, self.pending_count, self.pending_ids = None, 0, []
+
+
 def fuse_timer_state(
     frame_results: list[VisionFrameResult],
     timer_config: TimerDetectorConfig,
@@ -92,6 +115,8 @@ def fuse_game_state(
     last_splatted_ids: list[str] = []
     ally_score_mem = _ScoreSideMemory()
     opponent_score_mem = _ScoreSideMemory()
+    ally_roster_mem = _RosterSideMemory()
+    opponent_roster_mem = _RosterSideMemory()
 
     for frame in sorted(frame_results, key=lambda item: item.timestamp):
         source = _source_reference(frame)
@@ -131,7 +156,9 @@ def fuse_game_state(
             )
         )
         ally_alive, opponent_alive, player_count_ids, player_count_conf = (
-            _fuse_player_count_frame(frame, player_count_cfg)
+            _fuse_player_count_frame(
+                frame, player_count_cfg, ally_roster_mem, opponent_roster_mem
+            )
         )
         (
             ally_remaining,
@@ -299,9 +326,7 @@ def _fuse_score_frame(
 ]:
     """Map ScoreReading left/right → ally/opponent with per-side hold."""
     best = _best_score(frame)
-    usable = (
-        best is not None and best.confidence >= score_config.min_usable_confidence
-    )
+    usable = best is not None and best.confidence >= score_config.min_usable_confidence
     reading: ScoreReading | None = None
     evidence_id: str | None = None
     if usable and best is not None:
@@ -440,15 +465,67 @@ def _best_score(frame: VisionFrameResult) -> DetectorResult | None:
 def _fuse_player_count_frame(
     frame: VisionFrameResult,
     player_count_config: PlayerCountDetectorConfig,
+    ally_mem: _RosterSideMemory,
+    opponent_mem: _RosterSideMemory,
 ) -> tuple[int | None, int | None, list[str], float | None]:
-    """Fuse roster alive counts from an X-marker reading (no hold)."""
+    """Fuse roster alive counts from an X-marker reading, debounced per side."""
     best = _best_player_count(frame)
-    if best is None or best.confidence < player_count_config.min_usable_confidence:
+    ally_read: int | None = None
+    opponent_read: int | None = None
+    reading_id: str | None = None
+    confidence: float | None = None
+    if best is not None and best.confidence >= player_count_config.min_usable_confidence:
+        reading = best.reading
+        assert isinstance(reading, PlayerCountReading)
+        ally_read, opponent_read = alive_counts_from_reading(reading)
+        reading_id, confidence = best.id, float(best.confidence)
+    ally, ally_ids = debounce_roster_side(
+        ally_mem, ally_read, reading_id, frame.timestamp, player_count_config
+    )
+    opponent, opponent_ids = debounce_roster_side(
+        opponent_mem, opponent_read, reading_id, frame.timestamp, player_count_config
+    )
+    if ally is None and opponent is None:
         return None, None, [], None
-    reading = best.reading
-    assert isinstance(reading, PlayerCountReading)
-    ally_alive, opponent_alive = alive_counts_from_reading(reading)
-    return ally_alive, opponent_alive, [best.id], float(best.confidence)
+    ids = list(dict.fromkeys([*ally_ids, *opponent_ids]))
+    return ally, opponent, ids, confidence
+
+
+def debounce_roster_side(
+    mem: _RosterSideMemory,
+    value: int | None,
+    reading_id: str | None,
+    timestamp: float,
+    config: PlayerCountDetectorConfig,
+) -> tuple[int | None, list[str]]:
+    """Accept a changed alive count only after consecutive agreeing readings.
+
+    Returns the count this frame asserts and the reading IDs supporting it.
+    One-frame misreads never become the accepted count; a real change is
+    delayed by ``confirm_readings - 1`` readings. ``None`` input (no usable
+    reading) returns ``None`` and restarts any pending confirmation.
+    """
+    if value is None:
+        mem.clear_pending()
+        return None, []
+    ids = [reading_id] if reading_id else []
+    if mem.accepted is None or value == mem.accepted:
+        mem.accept(value, timestamp, ids)
+        return value, ids
+    if value == mem.pending:
+        mem.pending_count += 1
+        mem.pending_ids.extend(ids)
+    else:
+        mem.pending, mem.pending_count, mem.pending_ids = value, 1, list(ids)
+    if mem.pending_count >= config.confirm_readings:
+        mem.accept(value, timestamp, mem.pending_ids)
+        return value, list(mem.evidence_ids)
+    if (
+        mem.last_seen_at is not None
+        and timestamp - mem.last_seen_at <= config.hold_seconds
+    ):
+        return mem.accepted, list(mem.evidence_ids)
+    return None, []
 
 
 def _best_player_count(frame: VisionFrameResult) -> DetectorResult | None:

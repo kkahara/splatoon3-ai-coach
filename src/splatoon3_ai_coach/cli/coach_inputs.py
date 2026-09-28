@@ -14,21 +14,13 @@ from splatoon3_ai_coach.cli.coach_common import (
     safe_filename,
     write_json,
 )
-from splatoon3_ai_coach.coach.coaching_candidates import (
-    active_factor_ids,
-    rank_candidates,
-)
-from splatoon3_ai_coach.coach.death_importance import (
-    apply_candidate_ranking,
-    resolve_match_duration_seconds,
-    score_death_candidate,
-)
-from splatoon3_ai_coach.coach.coach_input import CoachInput, build_coach_input_for_scenario
+from splatoon3_ai_coach.coach.coaching_candidates import active_factor_ids
 from splatoon3_ai_coach.coach.llm_view import build_coach_llm_view
 from splatoon3_ai_coach.coach.load_analysis import (
     load_coach_analysis_bundle,
     select_primary_scenario_ids,
 )
+from splatoon3_ai_coach.coach.match_scoring import score_match
 from splatoon3_ai_coach.coach.vmv import format_vmv_developer, format_vmv_player
 from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.paths import resolve_config_path
@@ -80,62 +72,24 @@ def coach_inputs(
             console.print("[yellow]No scenarios to coach.[/yellow]")
             raise typer.Exit(code=1)
 
-        match_duration = resolve_match_duration_seconds(
-            bundle.game_clock,
-            candidates=tuple(app_config.vision.lifecycle.opening_clock_seconds),
+        scoring = score_match(
+            bundle, app_config, limit=limit, max_llm_units=max_llm_units
         )
-        top_n = (
-            max_llm_units
-            if max_llm_units is not None
-            else int(app_config.coach.max_llm_units)
-        )
-        weights = dict(app_config.coach.death_importance_weights)
+        match_duration = scoring.match_duration_seconds
+        top_n = scoring.max_llm_units
+        units = scoring.units
+        units_by_rank = scoring.units_by_rank()
+        coach_inputs_by_id = scoring.coach_inputs
+        config_hash = scoring.importance_config_hash
         out_dir = (out or default_coach_inputs_dir(analysis_dir)).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
-
-        scored_units = []
-        coach_inputs_by_id: dict[str, CoachInput] = {}
-        for scenario_id in primary_ids:
-            coach_input = build_coach_input_for_scenario(
-                scenario_id,
-                bundle.scenarios,
-                bundle.contexts,
-                bundle.game_clock,
-                max_gap_seconds=app_config.coach.game_clock_max_lookup_gap_seconds,
-                player_count_clock=bundle.player_count_clock,
-                player_count_max_gap_seconds=(
-                    app_config.coach.player_count_max_lookup_gap_seconds
-                ),
-                player_count_window_offsets_seconds=(
-                    app_config.coach.player_count_window_offsets_seconds
-                ),
-                player_count_context_lookback_seconds=(
-                    app_config.coach.player_count_context_lookback_seconds
-                ),
-            )
-            unit = score_death_candidate(
-                coach_input,
-                match_duration_seconds=match_duration,
-                weights=weights,
-            )
-            scored_units.append(unit)
-            coach_inputs_by_id[scenario_id] = coach_input
-
-        ranked = rank_candidates(
-            [u.to_candidate() for u in scored_units],
-            max_llm_units=top_n,
-        )
-        units = apply_candidate_ranking(scored_units, ranked)
-        units_by_rank = sorted(
-            units,
-            key=lambda u: (u.rank is None, u.rank if u.rank is not None else 10**9),
-        )
 
         eval_lines = [
             f"# Claim eval — {analysis_dir.name}",
             "",
             f"match_duration_seconds: {match_duration}",
             f"max_llm_units: {top_n}",
+            f"importance_config_hash: {config_hash}",
             "",
             "| rank | candidate | type | score | selected | active factors |",
             "| ---: | --- | --- | ---: | --- | --- |",
@@ -177,6 +131,7 @@ def coach_inputs(
                     "importance_score": unit.importance_score,
                     "rank": unit.rank,
                     "selected_for_llm": unit.selected_for_llm,
+                    "importance_config_hash": config_hash,
                     "active_factors": active,
                     "coach_input_json": input_name,
                     "coaching_json": coaching_name,
@@ -218,6 +173,8 @@ def coach_inputs(
                 "selected_for_llm_count": sum(
                     1 for u in units if u.selected_for_llm
                 ),
+                "importance_config_hash": config_hash,
+                "importance_config": scoring.importance_config,
             },
         )
         eval_path = out_dir / "claim_eval.md"

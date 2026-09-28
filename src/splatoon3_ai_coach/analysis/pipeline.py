@@ -17,8 +17,11 @@ from splatoon3_ai_coach.analysis.scenario_evidence import (
     special_reading_from_persisted,
 )
 from splatoon3_ai_coach.analysis.scenario_models import Scenario
-from splatoon3_ai_coach.analysis.scenarios import build_scenarios, format_scenario_timeline
-from splatoon3_ai_coach.config.models import AppConfig
+from splatoon3_ai_coach.analysis.scenarios import (
+    build_scenarios,
+    format_scenario_timeline,
+)
+from splatoon3_ai_coach.config.models import AppConfig, VisionLanguage
 from splatoon3_ai_coach.media.video_source import Observability, VideoSource
 from splatoon3_ai_coach.vision.map_ink import MAP_OBSERVATIONS_FILENAME, MapObservation
 from splatoon3_ai_coach.vision.models import (
@@ -28,7 +31,11 @@ from splatoon3_ai_coach.vision.models import (
     VisionFrameResult,
     VisionManifest,
 )
-from splatoon3_ai_coach.vision.pipeline import run_vision
+from splatoon3_ai_coach.media.vision_manifest import (
+    load_vision_manifest,
+    save_vision_manifest,
+)
+from splatoon3_ai_coach.vision.pipeline import refuse_vision_manifest, run_vision
 
 SCENARIOS_JSON_FILENAME = "scenarios.json"
 SCENARIOS_TXT_FILENAME = "scenarios.txt"
@@ -60,6 +67,22 @@ def run_analysis(
     return manifest
 
 
+def refuse_analysis(analysis_dir: Path, config: AppConfig) -> VisionManifest:
+    """Re-fuse an existing analysis from its stored readings, then rebuild scenarios.
+
+    Rewrites the vision manifest's snapshots and events, scenarios and
+    scenario contexts in place. Map ink and match identity files are reused.
+    The analysis language recorded in the manifest overrides ``config``.
+    """
+    manifest = load_vision_manifest(analysis_dir)
+    config = config.model_copy(deep=True)
+    config.vision.language = VisionLanguage(manifest.analysis.language)
+    refused = refuse_vision_manifest(manifest, config)
+    save_vision_manifest(refused, analysis_dir)
+    write_scenarios(refused.game_events, config, analysis_dir, manifest=refused)
+    return refused
+
+
 def write_scenarios(
     events: list[GameEvent],
     config: AppConfig,
@@ -85,9 +108,7 @@ def write_scenarios(
         format_scenario_timeline(events, scenarios),
         encoding="utf-8",
     )
-    _write_scenario_contexts(
-        events, scenarios, config, output_dir, manifest=manifest
-    )
+    _write_scenario_contexts(events, scenarios, config, output_dir, manifest=manifest)
     logger.info(
         "Wrote {} scenarios to {} and {}",
         len(scenarios),

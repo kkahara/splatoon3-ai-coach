@@ -1,9 +1,33 @@
 services:
+  db:
+    image: postgres:16
+    container_name: s3-coaching-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coach
+      POSTGRES_PASSWORD: ${PUBLIC_DB_PASSWORD:-coach}
+      POSTGRES_DB: coach
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - coaching-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coach -d coach"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [default]
+
   app:
     build: .
     container_name: s3-coaching-web
     restart: unless-stopped
     env_file: [.env]
+    environment:
+      PUBLIC_DATABASE_URL: postgresql://coach:${PUBLIC_DB_PASSWORD:-coach}@db:5432/coach
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "127.0.0.1:8770:8770"
     volumes:
@@ -12,6 +36,7 @@ services:
 
 volumes:
   coaching-data:
+  coaching-db:
 
 networks:
   edge:

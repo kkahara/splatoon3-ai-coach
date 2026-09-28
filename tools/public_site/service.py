@@ -10,6 +10,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from public_site.accounts import AccountStore
 from public_site.errors import (
     BAD_EMAIL,
     BAD_FILE,
@@ -60,11 +61,13 @@ class SubmissionService:
         notices: NoticeSender,
         *,
         probe: Probe | None = None,
+        accounts: AccountStore | None = None,
     ) -> None:
         self.settings = settings
         self.store = store
         self.storage = storage
         self.notices = notices
+        self.accounts = accounts
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
             store,
@@ -86,6 +89,8 @@ class SubmissionService:
         ip: str,
         verifier: Verifier,
         now: datetime | None = None,
+        user_id: str | None = None,
+        retention_days: int | None = None,
     ) -> CreateSubmissionResponse:
         """Verify, limit, then create. A failed Turnstile check writes nothing."""
         if not verifier(turnstile_token):
@@ -108,6 +113,8 @@ class SubmissionService:
             notify=notify,
             display_name=name,
             now=moment,
+            user_id=user_id,
+            retention_days=retention_days,
         )
 
     def confirm(self, token: str) -> PublicSubmissionResponse:
@@ -139,12 +146,17 @@ class SubmissionService:
             expires_at=submission.expires_at,
             display_name=submission.display_name,
             error=error,
+            match_seconds=_match_seconds(self.store.get_video(submission.id)),
             result=result,
         )
 
     def moment_frame(self, token: str, index: int) -> Path:
         """JPEG for one ranked moment. A missing still is a 404."""
-        path = self._stored_frame(self._require(token), index)
+        return self.frame_file(self._require(token), index)
+
+    def frame_file(self, submission: Submission, index: int) -> Path:
+        """JPEG for one ranked moment on a known submission."""
+        path = self._stored_frame(submission, index)
         if path is None:
             raise RequestRejected(404, "not found")
         return path
@@ -166,20 +178,24 @@ class SubmissionService:
         notify: bool,
         display_name: str | None,
         now: datetime,
+        user_id: str | None = None,
+        retention_days: int | None = None,
     ) -> CreateSubmissionResponse:
         stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         submission_id = uuid.uuid4().hex
         token = new_token()
+        days = self.settings.retention_days if retention_days is None else retention_days
         submission = Submission(
             id=submission_id,
             access_token_hash=hash_token(token),
             email=email,
             display_name=display_name,
             notify=notify,
+            user_id=user_id,
             language=language,  # type: ignore[arg-type]
             created_at=stamp,
             updated_at=stamp,
-            expires_at=add_days(stamp, self.settings.retention_days),
+            expires_at=add_days(stamp, days),
         )
         video = VideoInput(
             submission_id=submission_id,
@@ -191,6 +207,7 @@ class SubmissionService:
         self.store.save_submission(submission)
         self.store.save_video(video)
         self.store.remember_token(submission_id, submission.access_token_hash)
+        self._remember_account(user_id, submission)
         if notify:
             self.notices.seal(submission_id, token)
         upload = self.storage.presign_put(video.object_key, mime, size_bytes)
@@ -383,12 +400,25 @@ class SubmissionService:
             _remove_tree(Path(submission.analysis_dir))
             submission.analysis_dir = None
         self.notices.clear_sealed(submission.id)
+        if self.accounts is not None:
+            self.accounts.drop_history(submission.id)
         submission.email = None
         submission.display_name = None
+        submission.user_id = None
         submission.status = "expired"
         submission.error = EXPIRED
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
+
+
+    def _remember_account(self, user_id: str | None, submission: Submission) -> None:
+        if user_id and self.accounts is not None:
+            self.accounts.record_history(
+                user_id,
+                submission.id,
+                submission.created_at,
+                submission.expires_at,
+            )
 
 
 def _declared_file(
@@ -431,3 +461,13 @@ def _remove_tree(path: Path) -> None:
 
     if path.is_dir():
         shutil.rmtree(path, ignore_errors=True)
+
+
+def _match_seconds(video: object) -> int | None:
+    """Whole seconds from the probed video, when that length was stored."""
+    raw = getattr(video, "duration_seconds", None)
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return None
+    if raw <= 0:
+        return None
+    return int(raw)

@@ -190,7 +190,7 @@ LLM
 - **Every generated candidate is eligible** for ranking. Importance factors are
   **not** eligibility gates.
 - Death is the **first** candidate domain, not the boundary of coaching.
-- Death-scoped factors (`death_last_ally_alive`, `death_redeath_le_10s`, …)
+- Death-scoped factors (`death_while_outnumbered`, `death_redeath_le_10s`, …)
   contribute to `importance_score` only for death candidates.
 - Top-N ranking ignores `candidate_type` (future domains share the same ranker).
 - `importance_score` means coaching **attention** worthiness — not “how bad”
@@ -203,7 +203,9 @@ LLM
 See `coach.coaching_candidates`, `coach.death_importance`, `coach.llm_view`,
 `coach.claim_catalog`.
 
-Locked factor annotations (VMV only): `death_last_ally_alive` (full triad);
+Locked factor annotations (VMV only): `death_while_outnumbered` /
+`death_while_ahead_in_numbers` (statement only, quoting both pre-death counts;
+active only at a gap of at least `death_factor_thresholds.roster_min_gap`);
 `death_special_ready` (statement only — never “should have used special”).
 
 ## Scenario membership / ownership
@@ -266,7 +268,9 @@ are present, `ally_alive_count` / `opponent_alive_count` roster state at a
 time (including roster difference wording — not fight participation).
 
 **Prohibited as facts:** fight win/lose/quality; overextension; outnumbered
-**in the fight**; should-have advice; gear attributions; rush/hesitate/camp
+**in the fight**; should-have advice, including "should have pushed" or
+"should have retreated" because of roster counts (a roster count is a
+circumstance, never a verdict); gear attributions; rush/hesitate/camp
 intent; causal "splat caused death"; "same fight" without richer evidence;
 inferring alive counts from splat/death/scenario membership.
 

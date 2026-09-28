@@ -20,7 +20,8 @@ from splatoon3_ai_coach.coach.coaching_candidates import (
 class DeathImportanceFactorId(StrEnum):
     """Death-scoped importance factor IDs."""
 
-    DEATH_LAST_ALLY_ALIVE = "death_last_ally_alive"
+    DEATH_WHILE_OUTNUMBERED = "death_while_outnumbered"
+    DEATH_WHILE_AHEAD_IN_NUMBERS = "death_while_ahead_in_numbers"
     DEATH_REDEATH_LE_10S = "death_redeath_le_10s"
     DEATH_SPECIAL_READY = "death_special_ready"
     DEATH_FINAL_30S = "death_final_30s"
@@ -39,6 +40,7 @@ NO_RECOMMENDATION_MESSAGE = (
 
 DEFAULT_MAX_LLM_UNITS = 3
 
+# Defaults only; the live values come from ``CoachConfig.death_factor_thresholds``.
 # Consecutive death spacing (video seconds).
 REDEATH_MAX_GAP_SECONDS = 10.0
 
@@ -46,14 +48,21 @@ REDEATH_MAX_GAP_SECONDS = 10.0
 FINAL_30S_REMAINING = 30
 FIRST_30S_ELAPSED = 30
 
+# Roster factors sample at or before death_time minus this offset.
+ROSTER_PRE_DEATH_OFFSET_SECONDS = 0.5
+
+# Minimum alive-count gap for the outnumbered / ahead-in-numbers factors.
+ROSTER_MIN_GAP = 2
+
 # Candidate match durations (seconds) when resolving D from observed timers.
 DEFAULT_MATCH_DURATION_CANDIDATES: tuple[int, ...] = (180, 300)
 
 DEFAULT_DEATH_IMPORTANCE_WEIGHTS: dict[str, float] = {
     DeathImportanceFactorId.DEATH_REDEATH_LE_10S.value: 3.0,
-    DeathImportanceFactorId.DEATH_LAST_ALLY_ALIVE.value: 2.5,
+    DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED.value: 2.5,
     DeathImportanceFactorId.DEATH_SPECIAL_READY.value: 2.0,
     DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value: 1.5,
+    DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS.value: 1.5,
     DeathImportanceFactorId.DEATH_FINAL_30S.value: 1.0,
     DeathImportanceFactorId.DEATH_FIRST_30S.value: 0.5,
 }
@@ -70,20 +79,26 @@ class FactorAnnotation(BaseModel):
 
 
 FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
-    DeathImportanceFactorId.DEATH_LAST_ALLY_ALIVE: FactorAnnotation(
-        factor_id=DeathImportanceFactorId.DEATH_LAST_ALLY_ALIVE,
+    DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED,
         statement_player=(
-            "You were the last ally alive when you were splatted."
+            "Your team had fewer players alive than the opponents "
+            "just before you were splatted."
         ),
         statement_internal=(
-            "At the death-anchored roster sample, ally_alive_count was 1."
+            "At the pre-death roster sample, opponent_alive_count - "
+            "ally_alive_count >= roster_min_gap."
         ),
-        interpretation=(
-            "Being the last ally alive can make survival especially important."
+    ),
+    DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS,
+        statement_player=(
+            "Your team had more players alive than the opponents "
+            "just before you were splatted."
         ),
-        recommendation=(
-            "When you're the last ally alive, prioritize staying alive "
-            "until teammates return."
+        statement_internal=(
+            "At the pre-death roster sample, ally_alive_count - "
+            "opponent_alive_count >= roster_min_gap."
         ),
     ),
     DeathImportanceFactorId.DEATH_REDEATH_LE_10S: FactorAnnotation(
@@ -139,6 +154,15 @@ class SupportingEvidenceItem(BaseModel):
     path: str | None = None
 
 
+class RosterSample(BaseModel):
+    """The roster trajectory point roster factors were evaluated against."""
+
+    video_time: float = Field(ge=0)
+    ally_alive_count: int = Field(ge=0, le=4)
+    opponent_alive_count: int = Field(ge=0, le=4)
+    source_path: str
+
+
 class CoachingUnitResult(BaseModel):
     """Persisted coaching artifact for one candidate (any domain).
 
@@ -155,6 +179,7 @@ class CoachingUnitResult(BaseModel):
     selected_for_llm: bool = False
     supporting_evidence: list[SupportingEvidenceItem] = Field(default_factory=list)
     match_duration_seconds: int | None = None
+    roster_before_death: RosterSample | None = None
 
     @property
     def scenario_id(self) -> str:

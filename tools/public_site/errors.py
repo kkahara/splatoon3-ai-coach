@@ -20,6 +20,22 @@ BAD_EMAIL = "Enter an email address to receive a notice."
 BAD_FILE = "Choose an MP4 or MOV video."
 BAD_SIZE = "That video is too large."
 BAD_NAME = "Display name is not valid."
+BAD_ACCOUNT_EMAIL = "Enter a valid email address."
+BAD_ACCOUNT_NAME = "Enter your name."
+BAD_PASSWORD = "Password must be at least 8 characters."
+BAD_PASSWORD_LONG = "That password is too long."
+EMAIL_TAKEN = "An account with that email already exists."
+BAD_LOGIN = "Email or password is wrong."
+UNVERIFIED = "Confirm your email before logging in."
+BAD_LINK = "That link is no longer valid."
+ACCOUNTS_UNAVAILABLE = "Accounts are unavailable."
+LOGIN_REQUIRED = "Log in to continue."
+BAD_FEEDBACK = "Enter your feedback."
+BAD_FEEDBACK_LONG = "Feedback must be 2000 characters or fewer."
+MAIL_FAILED = (
+    "The confirmation email could not be sent. Brevo rejected this computer's "
+    "address. Add it under authorized IPs, then try again."
+)
 
 
 class RequestRejected(Exception):
