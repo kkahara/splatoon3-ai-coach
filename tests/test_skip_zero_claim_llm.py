@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
+from splatoon3_ai_coach.coach.llm_client import LLMProvider
 from splatoon3_ai_coach.coach.llm_runs import (
     approx_token_count,
     empty_coaching_assessment,
     should_skip_llm,
 )
-from splatoon3_ai_coach.coach.llm_client import LLMProvider
 
 
 class RecordingProvider(LLMProvider):
     """Records complete() calls; never hits the network."""
 
-    def __init__(self, reply: str = '{"assessment":"x","evidence_used":[],'
-                 '"limitations":[],"recommendations":[],"selected_claim_ids":[]}') -> None:
+    def __init__(
+        self,
+        reply: str = '{"assessment":"x","evidence_used":[],'
+        '"limitations":[],"recommendations":[],"selected_claim_ids":[]}',
+    ) -> None:
         self.reply = reply
         self.calls: list[tuple[str, str]] = []
 

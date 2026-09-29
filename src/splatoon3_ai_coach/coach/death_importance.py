@@ -6,13 +6,15 @@ importance factors. Match-wide top-N ranking lives in ``coaching_candidates``.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 
 from splatoon3_ai_coach.analysis.player_count_series import format_avb
 from splatoon3_ai_coach.analysis.scenario_models import ScenarioType
 from splatoon3_ai_coach.coach.claim_catalog import (
     CANDIDATE_TYPE_DEATH_EPISODE,
     DEFAULT_DEATH_IMPORTANCE_WEIGHTS,
+    DEFAULT_DEATH_MODIFIER_FACTORS,
+    DEFAULT_DEATH_RANKING_EXCLUDED_FACTORS,
     DEFAULT_MATCH_DURATION_CANDIDATES,
     FACTOR_ANNOTATIONS,
     CoachingUnitResult,
@@ -26,6 +28,7 @@ from splatoon3_ai_coach.coach.coaching_candidates import (
     ImportanceFactorContribution,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClock
+from splatoon3_ai_coach.coach.score_facts import ScoreFacts
 from splatoon3_ai_coach.config.models import DeathFactorThresholds
 
 
@@ -98,6 +101,8 @@ def detect_death_importance_factors(
     """Evaluate death-scoped importance factors (True when evidence supports).
 
     Factors name factual circumstances only; they are never verdicts.
+    No map check is not counted for a death in the first window: there has
+    hardly been time to open the map.
     """
     flags = {factor_id: False for factor_id in DeathImportanceFactorId}
     if coach_input.primary_scenario.scenario_type is not ScenarioType.DEATH_EPISODE:
@@ -108,29 +113,51 @@ def detect_death_importance_factors(
     )
     flags.update(_roster_flags(roster, limits.roster_min_gap))
     flags.update(_clock_flags(coach_input, match_duration_seconds, limits))
+    flags.update(_count_flags(coach_input.score_facts, limits.count_min_diff))
 
     ctx = coach_input.primary_context
     timeline = ctx.timeline
     if (
         timeline is not None
         and timeline.time_since_previous_death is not None
-        and float(timeline.time_since_previous_death)
-        <= limits.redeath_max_gap_seconds
+        and float(timeline.time_since_previous_death) <= limits.redeath_max_gap_seconds
     ):
         flags[DeathImportanceFactorId.DEATH_REDEATH_LE_10S] = True
 
-    special = ctx.special
-    if (
-        special is not None
-        and special.nearest_before_anchor is not None
-        and special.nearest_before_anchor.ready is True
-    ):
+    if _special_ready_run(coach_input) >= limits.special_ready_min_readings:
         flags[DeathImportanceFactorId.DEATH_SPECIAL_READY] = True
 
     map_ctx = ctx.map
-    if map_ctx is not None and map_ctx.map_check_before_death is False:
+    if (
+        map_ctx is not None
+        and map_ctx.map_check_before_death is False
+        and not flags[DeathImportanceFactorId.DEATH_FIRST_30S]
+    ):
         flags[DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE] = True
     return flags
+
+
+def _special_ready_run(coach_input: CoachInput) -> int:
+    """Consecutive ready gauge readings ending at the nearest one before death.
+
+    Zero unless ``special.nearest_before_anchor`` (the recency-bounded reading
+    before the death) is itself ready.
+    """
+    ctx = coach_input.primary_context
+    special = ctx.special
+    if special is None or special.nearest_before_anchor is None:
+        return 0
+    nearest = special.nearest_before_anchor
+    if nearest.ready is not True:
+        return 0
+    run = 0
+    for reading in sorted(special.observations, key=lambda r: -float(r.video_time)):
+        if float(reading.video_time) > float(nearest.video_time):
+            continue
+        if not reading.ready:
+            break
+        run += 1
+    return max(run, 1)
 
 
 def _roster_flags(
@@ -144,6 +171,24 @@ def _roster_flags(
         DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED: gap <= -min_gap,
         DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS: gap >= min_gap,
     }
+
+
+def _count_flags(
+    facts: ScoreFacts | None, min_diff: int
+) -> dict[DeathImportanceFactorId, bool]:
+    """Splat Zones count circumstances at the pre-death sample (mode-scoped)."""
+    if facts is None or not facts.is_splat_zones or facts.sample_label != "pre_death":
+        return {}
+    flags = {
+        DeathImportanceFactorId.DEATH_OPPONENT_COUNTER_TICKED: (
+            facts.opponent_counter_decreased_before_death is True
+        )
+    }
+    diff = facts.remaining_diff
+    if diff is not None:
+        flags[DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT] = diff <= -min_diff
+        flags[DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT] = diff >= min_diff
+    return flags
 
 
 def _clock_flags(
@@ -171,8 +216,14 @@ def score_death_candidate(
     match_duration_seconds: int | None = None,
     weights: Mapping[str, float] | None = None,
     thresholds: DeathFactorThresholds | None = None,
+    modifier_factors: Collection[str] | None = None,
+    ranking_excluded_factors: Collection[str] | None = None,
 ) -> CoachingUnitResult:
-    """Build a scored death-episode coaching unit (not yet match-ranked)."""
+    """Build a scored death-episode coaching unit (not yet match-ranked).
+
+    A modifier factor stays active as a fact but contributes its weight only
+    when some non-modifier factor is active too.
+    """
     scenario = coach_input.primary_scenario
     if scenario.scenario_type is not ScenarioType.DEATH_EPISODE:
         raise ValueError(
@@ -188,10 +239,26 @@ def score_death_candidate(
         match_duration_seconds=match_duration_seconds,
         thresholds=limits,
     )
+    modifiers = set(
+        DEFAULT_DEATH_MODIFIER_FACTORS if modifier_factors is None else modifier_factors
+    )
+    excluded = set(
+        DEFAULT_DEATH_RANKING_EXCLUDED_FACTORS
+        if ranking_excluded_factors is None
+        else ranking_excluded_factors
+    )
+    supported = any(
+        on and f.value not in modifiers and f.value not in excluded
+        for f, on in flags.items()
+    )
     factors = [
         _factor_contribution(
             factor_id,
             active=bool(flags[factor_id]),
+            counts=(
+                factor_id.value not in excluded
+                and (supported or factor_id.value not in modifiers)
+            ),
             weight=float(weight_map.get(factor_id.value, 0.0)),
             coach_input=coach_input,
             limits=limits,
@@ -219,6 +286,7 @@ def _factor_contribution(
     factor_id: DeathImportanceFactorId,
     *,
     active: bool,
+    counts: bool,
     weight: float,
     coach_input: CoachInput,
     limits: DeathFactorThresholds,
@@ -233,7 +301,7 @@ def _factor_contribution(
     return ImportanceFactorContribution(
         factor_id=factor_id.value,
         weight=weight,
-        contribution=weight if active else 0.0,
+        contribution=weight if active and counts else 0.0,
         active=active,
         statement_player=statement_player if active else None,
         statement_internal=statement_internal if active else None,
@@ -268,7 +336,24 @@ def _threshold_statements(
         DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS,
     ):
         return _roster_statements(coach_input, limits)
+    if factor_id in (
+        DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT,
+        DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT,
+    ):
+        return _count_statements(coach_input.score_facts, limits.count_min_diff)
     return None
+
+
+def _count_statements(facts: ScoreFacts | None, min_diff: int) -> tuple[str, str] | None:
+    if facts is None or facts.ally_remaining is None or facts.opponent_remaining is None:
+        return None
+    ally, opponent = facts.ally_remaining, facts.opponent_remaining
+    return (
+        f"Just before you were splatted, your team needed {ally} more counts "
+        f"and the opponents needed {opponent}.",
+        f"Splat Zones pre-death sample at {facts.video_time:.1f}s: remaining "
+        f"{ally} vs {opponent} (|diff| >= {min_diff}; {facts.source_path}).",
+    )
 
 
 def _roster_statements(
@@ -371,11 +456,7 @@ def build_supporting_evidence(
     if ctx.special is not None and ctx.special.nearest_before_anchor is not None:
         nb = ctx.special.nearest_before_anchor
         ready = "ready" if nb.ready else "not ready"
-        fill = (
-            f", fill={nb.fill_fraction:.2f}"
-            if nb.fill_fraction is not None
-            else ""
-        )
+        fill = f", fill={nb.fill_fraction:.2f}" if nb.fill_fraction is not None else ""
         items.append(
             SupportingEvidenceItem(
                 label="Special",
@@ -395,10 +476,7 @@ def build_supporting_evidence(
             )
         )
 
-    if (
-        ctx.timeline is not None
-        and ctx.timeline.time_since_previous_death is not None
-    ):
+    if ctx.timeline is not None and ctx.timeline.time_since_previous_death is not None:
         items.append(
             SupportingEvidenceItem(
                 label="Since previous death",
@@ -433,8 +511,7 @@ def _redeath_statements(
     gap = float(timeline.time_since_previous_death)
     return (
         f"Two consecutive deaths occurred {gap:.1f} seconds apart.",
-        f"timeline.time_since_previous_death={gap:.1f} "
-        f"(<= {max_gap_seconds})",
+        f"timeline.time_since_previous_death={gap:.1f} (<= {max_gap_seconds})",
     )
 
 

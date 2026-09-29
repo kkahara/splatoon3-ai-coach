@@ -7,8 +7,10 @@ the two fixed SZ remaining counters?
 Subcommands:
 
 - ``extract``: pull deliberately selected full frames from SZ videos
+  (``--set stage1`` main counters, ``--set penalty`` Stage 0 ``+N`` transitions)
 - ``read``: crop left/right ROIs, segment digits, match_glyph → readings.json
-- ``compare``: side-level GT metrics vs gt.json
+- ``compare``: side-level GT metrics vs gt.json, plus penalty exact / presence /
+  absence on frames whose GT has ``penalty_labeled``
 
 Screen geometry only (left/right). No ally/opponent, fusion, or GameEvent.
 Reader delegates to ``vision.score`` (promoted after Stage 1 REPORT green).
@@ -29,7 +31,6 @@ from pydantic import BaseModel
 
 from splatoon3_ai_coach.config.paths import PROJECT_ROOT
 from splatoon3_ai_coach.vision.models import ScoreReading, ScoreSideReading
-from splatoon3_ai_coach.vision.roi import crop_roi
 from splatoon3_ai_coach.vision.score import read_score_frame
 from splatoon3_ai_coach.vision.templates import load_templates
 
@@ -109,6 +110,45 @@ EXTRACT_PLAN: list[dict[str, Any]] = [
     },
 ]
 
+# Stage 0 penalty matrix: +N appearing, counting down, clearing, faded/hidden.
+PENALTY_EXTRACT_PLAN: list[dict[str, Any]] = [
+    {
+        "run": "ja_kraken",
+        "video": "ja_mahi_mahi_kraken_2026-09-16 20-18-04.mov",
+        "language": "ja",
+        "times": [
+            (33.5, "penalty_right_appears"),
+            (49.0, "penalty_left_appears"),
+            (53.0, "penalty_countdown"),
+            (54.5, "penalty_faded_tick"),
+            (62.0, "penalty_last_1"),
+            (62.5, "penalty_cleared_main_ticks"),
+            (75.0, "penalty_both_sides"),
+            (119.5, "penalty_2digit_appears"),
+            (122.5, "penalty_right_last_1"),
+            (123.0, "penalty_right_cleared"),
+        ],
+    },
+    {
+        "run": "en_hagglefish",
+        "video": "en-hagglefish_market_2026-09-15 20-18-11.mov",
+        "language": "en",
+        "times": [
+            (138.0, "penalty_both_2digit"),
+            (150.0, "penalty_last_1"),
+            (150.5, "penalty_cleared_main_ticks"),
+            (191.0, "penalty_large_appears"),
+            (198.0, "penalty_hidden_by_animation"),
+            (234.5, "penalty_last_1_late"),
+        ],
+    },
+]
+
+SAMPLE_SETS: dict[str, tuple[list[dict[str, Any]], Path]] = {
+    "stage1": (EXTRACT_PLAN, STUDY_DIR / "samples"),
+    "penalty": (PENALTY_EXTRACT_PLAN, STUDY_DIR / "samples_penalty"),
+}
+
 
 class FrameRecord(BaseModel):
     """One sample frame plus its reading and metadata."""
@@ -136,6 +176,8 @@ class GroundTruthFrame(BaseModel):
     right: GroundTruthSide
     left_penalty: int | None = None
     right_penalty: int | None = None
+    # True when penalties were labeled: ``None`` then means "no +N on screen".
+    penalty_labeled: bool = False
     cell: str | None = None
     language: str | None = None
     notes: str | None = None
@@ -194,13 +236,15 @@ def _extract_frame(video: Path, time_s: float) -> np.ndarray:
 
 
 def cmd_extract(args: argparse.Namespace) -> int:
-    """Extract deliberate full-frame sample PNGs + manifest."""
+    """Extract deliberate full-frame sample PNGs + manifest for one sample set."""
     movies = Path(args.movies_dir)
-    out_root = Path(args.out)
+    plan, default_out = SAMPLE_SETS[args.set]
+    out_root = Path(args.out) if args.out else default_out
     out_root.mkdir(parents=True, exist_ok=True)
     manifest: list[dict[str, Any]] = []
+    id_prefix = "" if args.set == "stage1" else f"{args.set}/"
 
-    for entry in EXTRACT_PLAN:
+    for entry in plan:
         run = entry["run"]
         video_path = movies / entry["video"]
         if not video_path.is_file():
@@ -210,12 +254,10 @@ def cmd_extract(args: argparse.Namespace) -> int:
         run_dir.mkdir(parents=True, exist_ok=True)
         for time_s, cell in entry["times"]:
             frame = _extract_frame(video_path, float(time_s))
-            name = f"t{time_s:07.1f}.png".replace(" ", "0")
-            # Normalize: t0020.5.png style
             name = f"t{float(time_s):07.1f}.png"
             dest = run_dir / name
             cv2.imwrite(str(dest), frame)
-            frame_id = f"{run}/{name}"
+            frame_id = f"{id_prefix}{run}/{name}"
             manifest.append(
                 {
                     "frame_id": frame_id,
@@ -229,7 +271,9 @@ def cmd_extract(args: argparse.Namespace) -> int:
                     "height": int(frame.shape[0]),
                 }
             )
-            logger.info("wrote {} ({}x{}) cell={}", dest, frame.shape[1], frame.shape[0], cell)
+            logger.info(
+                "wrote {} ({}x{}) cell={}", dest, frame.shape[1], frame.shape[0], cell
+            )
 
     manifest_path = out_root / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -237,16 +281,26 @@ def cmd_extract(args: argparse.Namespace) -> int:
     return 0
 
 
+def _load_manifests(sample_dirs: list[Path]) -> list[dict[str, Any]] | None:
+    """Concatenate sample manifests; ``None`` if any is missing."""
+    manifest: list[dict[str, Any]] = []
+    for samples_root in sample_dirs:
+        manifest_path = samples_root / "manifest.json"
+        if not manifest_path.is_file():
+            logger.error("missing {}; run extract first", manifest_path)
+            return None
+        manifest.extend(json.loads(manifest_path.read_text(encoding="utf-8")))
+    return manifest
+
+
 def cmd_read(args: argparse.Namespace) -> int:
     """Read all sample frames → readings.json + debug crops."""
     rois = _load_rois(Path(args.rois))
     templates = load_templates(Path(args.templates))
-    samples_root = Path(args.samples)
-    manifest_path = samples_root / "manifest.json"
-    if not manifest_path.is_file():
-        logger.error("missing {}; run extract first", manifest_path)
+    sample_dirs = args.samples or [d for _, d in SAMPLE_SETS.values()]
+    manifest = _load_manifests([Path(d) for d in sample_dirs])
+    if manifest is None:
         return 1
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     debug_root = STUDY_DIR / "debug"
     debug_root.mkdir(parents=True, exist_ok=True)
 
@@ -280,10 +334,12 @@ def cmd_read(args: argparse.Namespace) -> int:
             )
         )
         logger.info(
-            "{} L={} R={} conf={:.3f}",
+            "{} L={} R={} LP={} RP={} conf={:.3f}",
             item["frame_id"],
             reading.left.value,
             reading.right.value,
+            reading.left_penalty,
+            reading.right_penalty,
             reading.confidence,
         )
 
@@ -309,14 +365,18 @@ def _write_debug(
     from splatoon3_ai_coach.vision.roi import pixel_box_from_normalized
 
     h, w = image.shape[:2]
-    band = image[0 : min(h, 240), :].copy()
-    for name, key, side in (
-        ("L", "left_roi", reading.left),
-        ("R", "right_roi", reading.right),
-    ):
+    band = image[0 : min(h, 280), :].copy()
+    boxes: list[tuple[str, str, str]] = [
+        ("L", "left_roi", str(reading.left.value if reading.left.visible else "?")),
+        ("R", "right_roi", str(reading.right.value if reading.right.visible else "?")),
+    ]
+    if rois.get("left_penalty_roi") and rois.get("right_penalty_roi"):
+        boxes.append(("LP", "left_penalty_roi", str(reading.left_penalty)))
+        boxes.append(("RP", "right_penalty_roi", str(reading.right_penalty)))
+    for name, key, shown in boxes:
         x1, y1, x2, y2 = pixel_box_from_normalized(tuple(rois[key]), w, h)
         cv2.rectangle(band, (x1, y1), (x2, y2), (0, 255, 255), 2)
-        label = f"{name}={side.value if side.visible else '?'}"
+        label = f"{name}={shown}"
         cv2.putText(
             band,
             label,
@@ -346,8 +406,18 @@ def cmd_compare(args: argparse.Namespace) -> int:
     both_exact = 0
     vis_ok = 0
     vis_n = 0
-    pen_ok = 0
-    pen_n = 0
+    pen: dict[str, Any] = {
+        "sides": 0,
+        "exact": 0,
+        "present_gt": 0,
+        "present_exact": 0,
+        "absent_gt": 0,
+        "absent_ok": 0,
+        "missed": 0,
+        "false_positive": 0,
+        "wrong_value": 0,
+        "failures": [],
+    }
     failures: list[dict[str, Any]] = []
 
     for frame in readings["frames"]:
@@ -393,15 +463,8 @@ def cmd_compare(args: argparse.Namespace) -> int:
             if pred_side.visible == gt_side.visible:
                 vis_ok += 1
 
-        for pred_pen, gt_pen in (
-            (reading.left_penalty, gt.left_penalty),
-            (reading.right_penalty, gt.right_penalty),
-        ):
-            if gt_pen is None and pred_pen is None:
-                continue
-            pen_n += 1
-            if pred_pen == gt_pen:
-                pen_ok += 1
+        if gt.penalty_labeled:
+            _tally_penalty(fid, reading, gt, pen)
 
     metrics = {
         "n_frames": n,
@@ -409,14 +472,19 @@ def cmd_compare(args: argparse.Namespace) -> int:
         "right_exact_accuracy": right_exact / n if n else 0.0,
         "both_sides_exact_accuracy": both_exact / n if n else 0.0,
         "visibility_accuracy": vis_ok / vis_n if vis_n else 0.0,
-        "optional_penalty_accuracy": pen_ok / pen_n if pen_n else None,
+        "penalty_exact_accuracy": pen["exact"] / pen["sides"] if pen["sides"] else None,
+        "penalty_present_exact_accuracy": (
+            pen["present_exact"] / pen["present_gt"] if pen["present_gt"] else None
+        ),
+        "penalty_absent_accuracy": (
+            pen["absent_ok"] / pen["absent_gt"] if pen["absent_gt"] else None
+        ),
         "left_exact": left_exact,
         "right_exact": right_exact,
         "both_exact": both_exact,
         "visibility_ok": vis_ok,
         "visibility_n": vis_n,
-        "penalty_ok": pen_ok,
-        "penalty_n": pen_n,
+        "penalty": pen,
         "failures": failures,
     }
     out = Path(args.out)
@@ -426,11 +494,50 @@ def cmd_compare(args: argparse.Namespace) -> int:
         f"frames={n}  left={metrics['left_exact_accuracy']:.3f}  "
         f"right={metrics['right_exact_accuracy']:.3f}  "
         f"both={metrics['both_sides_exact_accuracy']:.3f}  "
-        f"vis={metrics['visibility_accuracy']:.3f}  "
-        f"penalty={metrics['optional_penalty_accuracy']}"
+        f"vis={metrics['visibility_accuracy']:.3f}"
+    )
+    print(
+        f"penalty sides={pen['sides']}  exact={pen['exact']}  "
+        f"present={pen['present_exact']}/{pen['present_gt']}  "
+        f"absent={pen['absent_ok']}/{pen['absent_gt']}  missed={pen['missed']}  "
+        f"false_positive={pen['false_positive']}  wrong_value={pen['wrong_value']}"
     )
     print(f"wrote {out}")
     return 0
+
+
+def _tally_penalty(
+    frame_id: str,
+    reading: ScoreReading,
+    gt: GroundTruthFrame,
+    pen: dict[str, Any],
+) -> None:
+    """Per-side penalty exact / presence / absence tallies (GT = on-screen +N)."""
+    for side, pred_pen, gt_pen in (
+        ("left", reading.left_penalty, gt.left_penalty),
+        ("right", reading.right_penalty, gt.right_penalty),
+    ):
+        pen["sides"] += 1
+        if pred_pen == gt_pen:
+            pen["exact"] += 1
+        if gt_pen is None:
+            pen["absent_gt"] += 1
+            if pred_pen is None:
+                pen["absent_ok"] += 1
+            else:
+                pen["false_positive"] += 1
+        else:
+            pen["present_gt"] += 1
+            if pred_pen == gt_pen:
+                pen["present_exact"] += 1
+            elif pred_pen is None:
+                pen["missed"] += 1
+            else:
+                pen["wrong_value"] += 1
+        if pred_pen != gt_pen:
+            pen["failures"].append(
+                {"frame_id": frame_id, "side": side, "pred": pred_pen, "gt": gt_pen}
+            )
 
 
 def _side_exact(pred: ScoreSideReading, gt: GroundTruthSide) -> bool:
@@ -447,12 +554,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_ext = sub.add_parser("extract", help="Extract sample frames from Movies/")
     p_ext.add_argument("--movies-dir", type=Path, default=_movies_dir())
-    p_ext.add_argument("--out", type=Path, default=STUDY_DIR / "samples")
+    p_ext.add_argument("--set", choices=sorted(SAMPLE_SETS), default="stage1")
+    p_ext.add_argument("--out", type=Path, default=None)
     p_ext.set_defaults(func=cmd_extract)
 
     p_read = sub.add_parser("read", help="Run study reader on samples")
     p_read.add_argument("--rois", type=Path, default=DEFAULT_ROIS)
-    p_read.add_argument("--samples", type=Path, default=STUDY_DIR / "samples")
+    p_read.add_argument(
+        "--samples",
+        type=Path,
+        action="append",
+        default=None,
+        help="Sample dir with manifest.json (repeatable; default: all sets).",
+    )
     p_read.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES)
     p_read.add_argument("--match-threshold", type=float, default=0.55)
     p_read.add_argument("--out", type=Path, default=DEFAULT_READINGS)

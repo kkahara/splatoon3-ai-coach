@@ -10,12 +10,12 @@ from typing import Any
 
 import pytest
 
-from splatoon3_ai_coach.coach.llm_runs import _build_llm_runs
 from splatoon3_ai_coach.coach.llm_client import (
     OllamaProvider,
     OpenAICompatibleProvider,
     normalize_coach_provider,
 )
+from splatoon3_ai_coach.coach.llm_runs import _build_llm_runs
 from splatoon3_ai_coach.config.models import CoachConfig
 from splatoon3_ai_coach.config.settings import CoachSettings
 from splatoon3_ai_coach.exceptions import ConfigError
@@ -54,7 +54,9 @@ def test_openai_compatible_request_construction(monkeypatch: pytest.MonkeyPatch)
                 }
             ).encode("utf-8")
 
-    def fake_urlopen(request: urllib.request.Request, timeout: float = 0) -> _FakeResponse:
+    def fake_urlopen(
+        request: urllib.request.Request, timeout: float = 0
+    ) -> _FakeResponse:
         captured["url"] = request.full_url
         captured["method"] = request.get_method()
         captured["headers"] = {k.lower(): v for k, v in request.header_items()}

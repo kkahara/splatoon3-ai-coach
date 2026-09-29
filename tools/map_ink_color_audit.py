@@ -11,7 +11,8 @@ Examples::
     python tools/map_ink_color_audit.py \\
       "analysis/2026-09-09 23-29-20/debug_snapshots/00006360_000106.000.jpg" \\
       --stage inkblot_art_academy --label "106.0s"
-    python tools/map_ink_color_audit.py frame.jpg --stage inkblot_art_academy -o /tmp/color_audit.jpg
+    python tools/map_ink_color_audit.py frame.jpg --stage inkblot_art_academy \\
+      -o /tmp/color_audit.jpg
 """
 
 from __future__ import annotations
@@ -153,7 +154,9 @@ def audit_map_union_colors(
             break
         h_lo = int(bi * bin_width)
         h_hi = min(H_MAX, h_lo + bin_width)
-        in_bin = candidates & (h_ch >= h_lo) & (h_ch < h_hi if h_hi < H_MAX else h_ch <= 179)
+        in_bin = (
+            candidates & (h_ch >= h_lo) & (h_ch < h_hi if h_hi < H_MAX else h_ch <= 179)
+        )
         # Last bin: include H==179
         if h_hi >= H_MAX:
             in_bin = candidates & (h_ch >= h_lo)
@@ -264,7 +267,8 @@ def render_audit_overlay(
         else:
             mask = candidates & (h_ch >= cluster.h_lo) & (h_ch < cluster.h_hi)
         canvas[mask] = (
-            canvas[mask].astype(np.float32) * 0.25 + np.array(color, dtype=np.float32) * 0.75
+            canvas[mask].astype(np.float32) * 0.25
+            + np.array(color, dtype=np.float32) * 0.75
         ).astype(np.uint8)
     union_u8 = (union.astype(np.uint8) * 255)
     contours, _ = cv2.findContours(union_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -291,17 +295,23 @@ def build_parser() -> argparse.ArgumentParser:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--stage", help="Stage id under configs/stage_maps/")
     group.add_argument("--geometry", type=Path, help="Explicit stage geometry YAML")
-    parser.add_argument("--mode", default=None, help="Optional battle_mode_id for --stage")
+    parser.add_argument(
+        "--mode", default=None, help="Optional battle_mode_id for --stage"
+    )
     parser.add_argument("--label", default="", help="Label for the report (e.g. 106.0s)")
     parser.add_argument("--time", type=float, default=None, help="Video seek seconds")
-    parser.add_argument("--s-min", type=int, default=70, help="Min saturation for candidates")
+    parser.add_argument(
+        "--s-min", type=int, default=70, help="Min saturation for candidates"
+    )
     parser.add_argument(
         "--v-min",
         type=int,
         default=40,
         help="Soft min value (darkness reject only)",
     )
-    parser.add_argument("--bin-width", type=int, default=10, help="Hue histogram bin width")
+    parser.add_argument(
+        "--bin-width", type=int, default=10, help="Hue histogram bin width"
+    )
     parser.add_argument("--top-n", type=int, default=5, help="Number of top H clusters")
     parser.add_argument(
         "--output",

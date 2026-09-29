@@ -98,6 +98,7 @@ def test_observation_model_has_no_quality() -> None:
         confidence=1.0,
     )
     assert "quality" not in PlayerCountObservation.model_fields
+    assert not hasattr(obs, "quality")
 
 
 def test_numbers_semantics() -> None:

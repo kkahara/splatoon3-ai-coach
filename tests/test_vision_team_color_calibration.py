@@ -334,13 +334,13 @@ def test_pipeline_skips_color_until_ready_seen() -> None:
 
 def test_no_ready_drops_colors_and_map_ink(tmp_path: Path) -> None:
     """Ready? miss clears calibration + observations and disables map ink."""
+    from splatoon3_ai_coach.vision.map_ink import MapObservation
+    from splatoon3_ai_coach.vision.models import DetectorResult, TimerReading
     from splatoon3_ai_coach.vision.pipeline import (
         _finalize_ready_gated_map_artifacts,
         _persist_map_artifacts,
         _update_ready_gate_from_detections,
     )
-    from splatoon3_ai_coach.vision.models import DetectorResult, TimerReading
-    from splatoon3_ai_coach.vision.map_ink import MapObservation
 
     cfg = MapInkAnalyzerConfig(enabled=True, team_color_calibration_enabled=True)
     app = load_config(default_config_path())

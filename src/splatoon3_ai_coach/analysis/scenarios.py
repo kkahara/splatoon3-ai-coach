@@ -131,7 +131,9 @@ def _one_death_episode(
     for event in events:
         if event.event_type is not GameEventType.MAP_OVERLAY:
             continue
-        if _map_in_death_lifecycle(event.start_time, death.start_time, map_deadline, active):
+        if _map_in_death_lifecycle(
+            event.start_time, death.start_time, map_deadline, active
+        ):
             members.append(event)
 
     members = _unique_members(members)
@@ -243,7 +245,9 @@ def _build_map_checks(
     for overlay in _of_type(events, GameEventType.MAP_OVERLAY):
         if event_id(overlay) in claimed_maps:
             continue
-        end_time = overlay.end_time if overlay.end_time is not None else overlay.start_time
+        end_time = (
+            overlay.end_time if overlay.end_time is not None else overlay.start_time
+        )
         scenarios.append(
             _scenario(
                 ScenarioType.MAP_CHECK,

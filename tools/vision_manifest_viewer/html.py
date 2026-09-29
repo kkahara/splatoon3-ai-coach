@@ -2037,6 +2037,8 @@ function renderDetail(){
       <span>roster</span><strong>${esc(formatRosterAvB(o.ally_alive_count, o.opponent_alive_count))}</strong>
       <span>ally_remaining</span><strong>${formatScoreRemaining(o.ally_remaining, o.ally_score_quality)}</strong>
       <span>opponent_remaining</span><strong>${formatScoreRemaining(o.opponent_remaining, o.opponent_score_quality)}</strong>
+      <span>ally_penalty</span><strong>${formatScoreRemaining(o.ally_penalty, o.ally_penalty_quality)}</strong>
+      <span>opponent_penalty</span><strong>${formatScoreRemaining(o.opponent_penalty, o.opponent_penalty_quality)}</strong>
     </div></div>
     <div class="layer"><h3>3. Events</h3><div class="kv">
       <span>nearby</span><strong>${esc(tr?.title||"—")}</strong>
@@ -2122,7 +2124,10 @@ function renderReading(o){
     <span>confidence</span><strong>${num(o.confidence??r.confidence)}</strong>
     <span>fused ally</span><strong>${formatScoreRemaining(o.ally_remaining, o.ally_score_quality)}</strong>
     <span>fused opponent</span><strong>${formatScoreRemaining(o.opponent_remaining, o.opponent_score_quality)}</strong>
-  </div><p class="howto">Fusion maps left→ally / right→opponent with per-side quality. No score GameEvent in Stage 3.1.</p>`;
+    <span>penalty left / right (raw)</span><strong>${esc(String(r.left_penalty??"—"))} / ${esc(String(r.right_penalty??"—"))}</strong>
+    <span>fused ally penalty</span><strong>${formatScoreRemaining(o.ally_penalty, o.ally_penalty_quality)}</strong>
+    <span>fused opponent penalty</span><strong>${formatScoreRemaining(o.opponent_penalty, o.opponent_penalty_quality)}</strong>
+  </div><p class="howto">Fusion maps left→ally / right→opponent with per-side quality, Splat Zones only. Penalty not_shown means no +N on screen, not zero. No score GameEvent.</p>`;
   if (o.detector==="respawn") return `<h2>Respawn reading</h2><div class="kv">
     <span>detected</span><strong>${r.detected?"✓ true":"✗ false"}</strong>
     <span>template_score</span><strong>${num(r.template_score)}</strong>

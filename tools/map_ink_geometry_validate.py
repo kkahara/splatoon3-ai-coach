@@ -20,8 +20,6 @@ import cv2
 import numpy as np
 from loguru import logger
 
-logger.disable("splatoon3_ai_coach")
-
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.vision.map_ink import (
     MapInkClassifier,
@@ -31,6 +29,8 @@ from splatoon3_ai_coach.vision.map_ink import (
 )
 from splatoon3_ai_coach.vision.stage_maps import resolve_stage_map_geometry
 from splatoon3_ai_coach.vision.stage_mask import resolve_stage_mask
+
+logger.disable("splatoon3_ai_coach")
 
 # ---------------------------------------------------------------------------
 # Explicit knobs (do not bury thresholds in magic literals mid-logic)
@@ -158,8 +158,9 @@ def main() -> int:
             combined.append(manual)
         selected[stage] = combined
         print(
-            f"selected {stage}: video={sum(1 for c in combined if c.source_type=='video')} "
-            f"manual={sum(1 for c in combined if c.source_type=='manual')}"
+            f"selected {stage}: "
+            f"video={sum(1 for c in combined if c.source_type == 'video')} "
+            f"manual={sum(1 for c in combined if c.source_type == 'manual')}"
         )
 
     results: dict[str, list[SelectedResult]] = {}
@@ -667,7 +668,8 @@ def _geometry_auto_notes(
             right_band = _crop_norm(image, (min(0.95, union_x2), 0.35, 0.82, 0.70))
             # Band just outside union on the right.
             outside = _crop_norm(
-                image, (min(0.98, union_x2 + 0.01), 0.35, min(0.99, union_x2 + 0.08), 0.70)
+                image,
+                (min(0.98, union_x2 + 0.01), 0.35, min(0.99, union_x2 + 0.08), 0.70),
             )
             notes.append(_inkish_band_note("inside_near_right", right_band))
             notes.append(_inkish_band_note("outside_right_of_union", outside))
@@ -726,7 +728,11 @@ def _stage_metrics_block(
             }
         )
     n_video = len(video_results)
-    verdict = "INSUFFICIENT_FRAMES" if n_video + len(manual_results) < MIN_USEFUL_FRAMES else "PENDING_VISUAL"
+    verdict = (
+        "INSUFFICIENT_FRAMES"
+        if n_video + len(manual_results) < MIN_USEFUL_FRAMES
+        else "PENDING_VISUAL"
+    )
     return {
         "overlay_intervals_total": len(inventory),
         "attributed_video_candidates": len(attributed),
@@ -815,7 +821,8 @@ def _render_report(
             )
         else:
             lines.append(
-                "> Is the far-right paintable wing consistently inside the geometry union?\n"
+                "> Is the far-right paintable wing consistently inside the geometry "
+                "union?\n"
             )
             lines.append(
                 "**Conclusion (auto draft — confirm on overlays):** "
@@ -871,7 +878,9 @@ def _draft_manta_conclusion(results: list[SelectedResult]) -> str:
     if len(results) < MIN_USEFUL_FRAMES:
         return "inconclusive (too few frames)"
     if hits >= max(2, len(results) // 2):
-        return "repeatable defect suspected (ink-like pixels above R01) — inspect overlays"
+        return (
+            "repeatable defect suspected (ink-like pixels above R01) — inspect overlays"
+        )
     return "no repeatable defect suggested by band heuristic — confirm on overlays"
 
 
@@ -890,7 +899,10 @@ def _draft_museum_conclusion(results: list[SelectedResult]) -> str:
     if len(results) < MIN_USEFUL_FRAMES:
         return "inconclusive (too few frames)"
     if hits >= max(2, len(results) // 2):
-        return "repeatable defect suspected (ink-like pixels right of union) — inspect overlays"
+        return (
+            "repeatable defect suspected (ink-like pixels right of union) "
+            "— inspect overlays"
+        )
     return "no repeatable defect suggested by band heuristic — confirm on overlays"
 
 

@@ -31,6 +31,9 @@ def importance_config_payload(
         },
         "death_factor_thresholds": coach.death_factor_thresholds.model_dump(mode="json"),
         "max_llm_units": int(max_llm_units),
+        "llm_units_require_positive_score": bool(coach.llm_units_require_positive_score),
+        "death_modifier_factors": sorted(coach.death_modifier_factors),
+        "death_ranking_excluded_factors": sorted(coach.death_ranking_excluded_factors),
     }
 
 

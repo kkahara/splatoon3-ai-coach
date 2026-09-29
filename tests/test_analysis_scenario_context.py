@@ -132,7 +132,9 @@ def _context(events: list[GameEvent], scenario_type: ScenarioType, **cfg: float)
     config = _cfg(**cfg)
     scenarios = build_scenarios(events, config)
     contexts = build_scenario_contexts(events, scenarios, config)
-    chosen = [item for item in contexts if item.scenario_id.startswith(scenario_type.value)]
+    chosen = [
+        item for item in contexts if item.scenario_id.startswith(scenario_type.value)
+    ]
     assert chosen
     return chosen[0]
 
@@ -440,7 +442,9 @@ def test_140214_fixture_scenario_contexts() -> None:
     _assert_with_dump(engagement is not None, "missing engagement:192.000", dump)
     assert first is not None and second is not None and engagement is not None
 
-    _assert_with_dump(first.death_episode is not None, "first death_episode nest missing", dump)
+    _assert_with_dump(
+        first.death_episode is not None, "first death_episode nest missing", dump
+    )
     _assert_with_dump(
         first.death_episode.death_to_respawn == pytest.approx(7.5, abs=0.26),
         f"death_to_respawn={first.death_episode.death_to_respawn}",
@@ -480,7 +484,9 @@ def test_140214_fixture_scenario_contexts() -> None:
         dump,
     )
 
-    _assert_with_dump(second.death_episode is not None, "second death_episode nest missing", dump)
+    _assert_with_dump(
+        second.death_episode is not None, "second death_episode nest missing", dump
+    )
     _assert_with_dump(second.timeline is not None, "second timeline missing", dump)
     _assert_with_dump(
         second.timeline.time_since_previous_death == pytest.approx(20.0, abs=0.26),
@@ -541,7 +547,9 @@ def _fixture_dump(events, scenarios, contexts) -> str:
 def _events_and_scenarios_from_slice(config: AppConfig):
     """Fuse the 14-02-14 recorded slice, then build unchanged scenarios."""
     payload = json.loads(_SLICE_140214.read_text(encoding="utf-8"))
-    frames = [VisionFrameResult.model_validate(frame) for frame in payload["frame_results"]]
+    frames = [
+        VisionFrameResult.model_validate(frame) for frame in payload["frame_results"]
+    ]
     snaps = fuse_game_state(
         frames,
         config.vision.timer,

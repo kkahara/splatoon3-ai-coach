@@ -69,7 +69,9 @@ class ActiveGameplayDetector:
         score = _structure_score(
             self.config, weapon_edge, weapon_std, hud_edge, center_edge
         )
-        confidence = max(score, 0.55) if detected or return_control else max(0.55, 1.0 - score)
+        confidence = (
+            max(score, 0.55) if detected or return_control else max(0.55, 1.0 - score)
+        )
         return (
             ActiveGameplayReading(
                 detected=detected,

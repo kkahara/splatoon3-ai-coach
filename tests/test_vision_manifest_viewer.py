@@ -10,7 +10,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from vision_manifest_viewer.cli import build_parser, main as viewer_main
+from vision_manifest_viewer.cli import build_parser
+from vision_manifest_viewer.cli import main as viewer_main
 from vision_manifest_viewer.html import _HTML_TEMPLATE, render_html, write_html
 from vision_manifest_viewer.loader import load_manifest_view
 from vision_manifest_viewer.model import ObservationView
@@ -361,7 +362,10 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
         '"special_gauge"]' in html
     )
     # special_gauge GT channel: study labels only, never scored as accuracy.
-    assert 'special_gauge:["unknown","special_used","not_a_special_used","uncertain"]' in html
+    assert (
+        'special_gauge:["unknown","special_used","not_a_special_used","uncertain"]'
+        in html
+    )
     assert 'special_used:"SPECIAL_USED"' in html
     assert 'not_a_special_used:"NOT_SPECIAL_USED"' in html
     assert 'uncertain:"UNCERTAIN"' in html
@@ -379,7 +383,10 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
 
     assert "function isTileSelected(" in html
     assert "overflow-x:scroll;overflow-y:scroll" in html
-    assert ".gallery::-webkit-scrollbar{-webkit-appearance:none;width:14px;height:14px;display:block}" in html
+    assert (
+        ".gallery::-webkit-scrollbar{-webkit-appearance:none;width:14px;height:14px;display:block}"
+        in html
+    )
     assert "function frameKey(" in html
     assert "detector===\"death\") || tile.readings[0]" not in html
     assert "o.detector === \"timer\"" in html
@@ -732,16 +739,16 @@ def test_death_rejection_rule_lines(tmp_path: Path) -> None:
 
 def test_fuse_exposes_episode_latch() -> None:
     from splatoon3_ai_coach.config.models import (
-        RespawnDetectorConfig,
         DeathDetectorConfig,
         LifecycleFusionConfig,
+        RespawnDetectorConfig,
         StateFusionConfig,
         TimerDetectorConfig,
     )
     from splatoon3_ai_coach.vision.models import (
-        RespawnReading,
         DeathReading,
         DetectorResult,
+        RespawnReading,
         TimerReading,
         VisionFrameResult,
     )
@@ -772,7 +779,13 @@ def test_fuse_exposes_episode_latch() -> None:
                     detector_name="respawn",
                     detector_version="t",
                     confidence=0.9,
-                    reading=RespawnReading(detected=True, confidence=0.9, presence_score=0.7, template_score=0.8, evidence_type="template"),
+                    reading=RespawnReading(
+                        detected=True,
+                        confidence=0.9,
+                        presence_score=0.7,
+                        template_score=0.8,
+                        evidence_type="template",
+                    ),
                 )
             ],
         ),
@@ -786,7 +799,13 @@ def test_fuse_exposes_episode_latch() -> None:
                     detector_name="respawn",
                     detector_version="t",
                     confidence=0.9,
-                    reading=RespawnReading(detected=True, confidence=0.9, presence_score=0.7, template_score=0.8, evidence_type="template"),
+                    reading=RespawnReading(
+                        detected=True,
+                        confidence=0.9,
+                        presence_score=0.7,
+                        template_score=0.8,
+                        evidence_type="template",
+                    ),
                 ),
                 DetectorResult(
                     id="t",
@@ -947,10 +966,16 @@ def test_load_joins_scenario_contexts(tmp_path: Path) -> None:
     assert "VISION MANIFEST VIEWER" in html
     assert "Cadence frames" in html
     # JSON enum values stay in embedded data; display qualifies separately.
-    assert '"outcome": "fragged"' in html or "outcome: \"fragged\"" in html or engagement.outcome == "fragged"
+    assert (
+        '"outcome": "fragged"' in html
+        or 'outcome: "fragged"' in html
+        or engagement.outcome == "fragged"
+    )
 
 
-def test_join_passes_following_death_id_and_qualifies_died_outcome(tmp_path: Path) -> None:
+def test_join_passes_following_death_id_and_qualifies_died_outcome(
+    tmp_path: Path,
+) -> None:
     """Viewer-only following_death_id pass-through; outcome enums stay unchanged."""
     from vision_manifest_viewer.loader import _join_scenario_card
 
@@ -1040,8 +1065,12 @@ def test_join_passes_following_death_id_and_qualifies_died_outcome(tmp_path: Pat
     assert card.event_ids == [splat_eid]
 
     view = load_manifest_view(path)
-    eng = next(c for c in view.scenario_evidence if c.scenario_id.startswith("engagement:"))
-    death = next(c for c in view.scenario_evidence if c.scenario_id.startswith("death_episode:"))
+    eng = next(
+        c for c in view.scenario_evidence if c.scenario_id.startswith("engagement:")
+    )
+    death = next(
+        c for c in view.scenario_evidence if c.scenario_id.startswith("death_episode:")
+    )
     assert eng.following_death_id == death_eid
     assert eng.outcome == "died"
     assert death.following_death_id is None

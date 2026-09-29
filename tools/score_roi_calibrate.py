@@ -15,7 +15,6 @@ import argparse
 import sys
 from pathlib import Path
 
-import cv2
 import yaml
 
 from splatoon3_ai_coach.config.paths import PROJECT_ROOT

@@ -125,7 +125,9 @@ def test_respawn_loads_only_language_templates() -> None:
     assert _template_names(ja._templates) == len(list((_RESPAWN / "ja").glob("*.png")))
     assert en._templates and ja._templates
     # Distinct packs: do not silently merge both languages.
-    assert len(en._templates) != len(ja._templates) or en._template_dir != ja._template_dir
+    assert (
+        len(en._templates) != len(ja._templates) or en._template_dir != ja._template_dir
+    )
 
 
 def test_splat_loads_only_language_templates() -> None:

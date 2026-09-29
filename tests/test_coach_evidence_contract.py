@@ -61,9 +61,7 @@ def _death(t: float) -> GameEvent:
 
 
 def _respawn(t: float) -> GameEvent:
-    return _event(
-        t, GameEventType.RESPAWN, reason=GameEventReason.COUNTDOWN_PLATE_ENDED
-    )
+    return _event(t, GameEventType.RESPAWN, reason=GameEventReason.COUNTDOWN_PLATE_ENDED)
 
 
 def _active(t: float) -> GameEvent:
@@ -235,6 +233,46 @@ def test_roster_counts_allowed_but_not_as_fights_or_verdicts() -> None:
         assert claim_contains_prohibited_language(claim), claim
 
 
+def test_score_counts_and_team_zone_control_are_permitted() -> None:
+    permitted = [
+        "At 120.0s the ally team needed 42 more counts and the opponents 30.",
+        "The opponent penalty was +7 at 118.5s.",
+        "The opponent counter ticked shortly before the death.",
+        "The count does not identify the zone holder.",
+        "In Splat Zones the ally remaining count was 42.",
+        "At 120.0s the opponent team controlled the zone.",
+        "The zone became neutral and the opponent subsequently regained control.",
+    ]
+    for claim in permitted:
+        assert not claim_contains_prohibited_language(claim), claim
+    prohibited = [
+        "You caused the opponents to control the zone.",
+        "Your death caused the zone to be lost.",
+        "You failed to capture the zone.",
+        "The count caused the death.",
+        "You died because your team was behind.",
+    ]
+    for claim in prohibited:
+        assert claim_contains_prohibited_language(claim), claim
+
+
+def test_system_prompt_keeps_counts_from_becoming_zone_claims() -> None:
+    prompt = load_system_prompt().lower()
+    assert "remaining_diff" in prompt
+    assert "count_before_progress" in prompt
+    assert "never who held the zone" in prompt
+    assert "score block is absent" in prompt
+
+
+def test_zone_control_requires_evidence_but_player_attribution_is_prohibited() -> None:
+    from splatoon3_ai_coach.coach.evidence_contract import classify_unsupported_desire
+
+    assert (
+        classify_unsupported_desire("zone_control") is ClaimSupport.REQUIRES_NEW_EVIDENCE
+    )
+    assert classify_unsupported_desire("zone_holder") is ClaimSupport.PROHIBITED
+
+
 def test_system_prompt_keeps_roster_counts_from_becoming_verdicts() -> None:
     prompt = load_system_prompt().lower()
     assert "death_while_outnumbered" in prompt
@@ -259,7 +297,9 @@ def test_system_prompt_encodes_evidence_boundary() -> None:
 def test_unsupported_desire_classification() -> None:
     from splatoon3_ai_coach.coach.evidence_contract import classify_unsupported_desire
 
-    assert classify_unsupported_desire("map_advice") is ClaimSupport.REQUIRES_INTERPRETATION
+    assert (
+        classify_unsupported_desire("map_advice") is ClaimSupport.REQUIRES_INTERPRETATION
+    )
     assert (
         classify_unsupported_desire("fight_boundaries")
         is ClaimSupport.REQUIRES_NEW_EVIDENCE
@@ -286,7 +326,11 @@ def test_180224_fixture_membership_and_contract_regression() -> None:
     scenarios = build_scenarios(events, config.scenarios)
     contexts = build_scenario_contexts(events, scenarios, config.scenarios)
 
-    by_type = {ScenarioType.DEATH_EPISODE: 0, ScenarioType.ENGAGEMENT: 0, ScenarioType.MAP_CHECK: 0}
+    by_type = {
+        ScenarioType.DEATH_EPISODE: 0,
+        ScenarioType.ENGAGEMENT: 0,
+        ScenarioType.MAP_CHECK: 0,
+    }
     for item in scenarios:
         by_type[item.scenario_type] = by_type.get(item.scenario_type, 0) + 1
     assert by_type[ScenarioType.DEATH_EPISODE] == 2

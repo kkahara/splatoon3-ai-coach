@@ -27,9 +27,6 @@ from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.ids import compute_analysis_id
 from splatoon3_ai_coach.vision.match_side_effects import (
     MapInkScanContext,
-    build_map_ink_context,
-    finalize_ready_gated_map_artifacts,
-    persist_map_artifacts,
     # Re-export underscore aliases used by tests.
     _detectors_for_frame,
     _finalize_ready_gated_map_artifacts,
@@ -37,6 +34,9 @@ from splatoon3_ai_coach.vision.match_side_effects import (
     _persist_map_artifacts,
     _should_run_ready_detector,
     _update_ready_gate_from_detections,
+    build_map_ink_context,
+    finalize_ready_gated_map_artifacts,
+    persist_map_artifacts,
 )
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
@@ -192,5 +192,6 @@ def _interpret_observations(
         config.vision.player_count,
         config.vision.low_ink,
         config.vision.score,
+        config.vision.zone_control,
     )
     return snapshots, infer_events(snapshots, config.vision.events)

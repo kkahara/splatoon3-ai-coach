@@ -5,7 +5,11 @@ from __future__ import annotations
 import pytest
 
 from splatoon3_ai_coach.analysis.scenario_context import build_scenario_context
-from splatoon3_ai_coach.analysis.scenario_models import Scenario, ScenarioOutcome, ScenarioType
+from splatoon3_ai_coach.analysis.scenario_models import (
+    Scenario,
+    ScenarioOutcome,
+    ScenarioType,
+)
 from splatoon3_ai_coach.coach.coach_input import collect_evidence_limits
 from splatoon3_ai_coach.coach.evidence_contract import map_observation_statements
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
@@ -83,7 +87,9 @@ def test_analysis_frame_size_downscale_and_equal() -> None:
 
 
 def test_map_overlay_observability_table() -> None:
-    assert map_overlay_observability(VideoSource.SCREEN_CAPTURE) is Observability.OBSERVABLE
+    assert (
+        map_overlay_observability(VideoSource.SCREEN_CAPTURE) is Observability.OBSERVABLE
+    )
     assert map_overlay_observability(VideoSource.REVIEW) is Observability.UNOBSERVABLE
     assert (
         map_overlay_observability(VideoSource.HAND_CAPTURE)
@@ -167,14 +173,17 @@ def test_hand_capture_map_check_absence_is_none() -> None:
 
 
 def test_review_icon_tracker_matches_template() -> None:
+    from pathlib import Path
+
     import cv2
     import numpy as np
-    from pathlib import Path
 
     from splatoon3_ai_coach.config.models import ReviewIconConfig
     from splatoon3_ai_coach.vision.review_icon import ReviewIconTracker
 
-    template_dir = Path(__file__).resolve().parents[1] / "calibration" / "templates" / "review"
+    template_dir = (
+        Path(__file__).resolve().parents[1] / "calibration" / "templates" / "review"
+    )
     tmpl = cv2.imread(str(template_dir / "review-icon-01.png"))
     assert tmpl is not None
     frame = np.zeros((1080, 1920, 3), dtype=np.uint8)

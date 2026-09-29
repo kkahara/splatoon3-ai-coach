@@ -328,12 +328,39 @@ def coverage_section(matches: list[MatchComparison], app_config: AppConfig) -> l
         f"{totals[ROSTER_SAMPLE]}. Stale (last observation more than "
         f"{gap_limit:g}s before the cutoff): {totals[ROSTER_STALE]}. "
         f"No sample: {totals[ROSTER_MISSING]}.",
+        *freshness_lines(matches, app_config),
         "",
         "| match | in-match snapshots with counts | deaths | sample | stale | missing |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     lines.extend(_coverage_row(match) for match in matches)
     return lines
+
+
+def freshness_lines(matches: list[MatchComparison], app_config: AppConfig) -> list[str]:
+    """Markdown: how old the last raw roster reading is at each death's cutoff."""
+    gaps = sorted(
+        d.roster_gap_seconds
+        for m in matches
+        for d in m.new.values()
+        if d.roster_gap_seconds is not None
+    )
+    if not gaps:
+        return []
+    offset = app_config.coach.death_factor_thresholds.roster_pre_death_offset_seconds
+    within = sum(gap <= 1.0 for gap in gaps)
+    return [
+        f"Last raw reading before the cutoff ({offset:g}s before death), over "
+        f"{len(gaps)} deaths: median {_quantile(gaps, 0.5):.2f}s, "
+        f"p90 {_quantile(gaps, 0.9):.2f}s, max {gaps[-1]:.2f}s; within 1s of the "
+        f"cutoff: {within} ({100 * within / len(gaps):.0f}%).",
+    ]
+
+
+def _quantile(values: list[float], q: float) -> float:
+    """Nearest-rank quantile of an already sorted list."""
+    index = min(len(values) - 1, max(0, round(q * (len(values) - 1))))
+    return values[index]
 
 
 def _coverage_row(match: MatchComparison) -> str:

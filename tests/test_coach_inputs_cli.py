@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from splatoon3_ai_coach.cli import app
@@ -22,11 +23,8 @@ runner = CliRunner()
 def test_resolve_coach_inputs_dir_requires_existing(tmp_path: Path) -> None:
     analysis = tmp_path / "analysis"
     analysis.mkdir()
-    try:
+    with pytest.raises(FileNotFoundError, match="coach-inputs"):
         resolve_coach_inputs_dir(analysis, None)
-        assert False, "expected FileNotFoundError"
-    except FileNotFoundError as exc:
-        assert "coach-inputs" in str(exc)
 
 
 def test_coach_prototype_errors_without_inputs(tmp_path: Path) -> None:

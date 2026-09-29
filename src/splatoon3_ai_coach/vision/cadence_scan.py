@@ -14,6 +14,10 @@ from splatoon3_ai_coach.extraction.sampler import FrameSampler
 from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader, VideoMetadata
 from splatoon3_ai_coach.paths import portable_path
 from splatoon3_ai_coach.vision.base import BaseDetector
+from splatoon3_ai_coach.vision.detector_schedule import (
+    DetectorSchedule,
+    build_detector_schedule,
+)
 from splatoon3_ai_coach.vision.ids import make_frame_id, make_result_id
 from splatoon3_ai_coach.vision.match_side_effects import (
     MapInkScanContext,
@@ -54,11 +58,13 @@ def observe_cadence_stream(
     output_dir: Path | None = None,
     map_ctx: MapInkScanContext | None = None,
     review_tracker: ReviewIconTracker | None = None,
+    schedule: DetectorSchedule | None = None,
 ) -> tuple[list[VisionFrameResult], CadenceScanStats]:
     """Sample a decoded stream at ``cadence_fps`` and run all detectors per frame.
 
     Each cadence frame is decoded once. All detectors receive that same in-memory
-    image. ``frame_path`` stays ``None`` unless ``debug_dir`` is set.
+    image. ``frame_path`` stays ``None`` unless ``debug_dir`` is set. ``schedule``
+    lets individual detectors sample below ``cadence_fps``.
     """
     stats = CadenceScanStats()
     sampler = FrameSampler(1.0 / cadence_fps)
@@ -68,9 +74,7 @@ def observe_cadence_stream(
     results: list[VisionFrameResult] = []
     for video_frame in sampler.sample(_pulled_frames(frames, stats)):
         if review_tracker is not None:
-            review_tracker.observe(
-                video_frame.image, video_time=video_frame.timestamp
-            )
+            review_tracker.observe(video_frame.image, video_time=video_frame.timestamp)
         results.append(
             _observe_cadence_frame(
                 video_frame,
@@ -81,6 +85,7 @@ def observe_cadence_stream(
                 debug_dir,
                 output_dir,
                 map_ctx,
+                schedule,
             )
         )
         stats.cadence_frame_count += 1
@@ -116,6 +121,7 @@ def scan_video(
             output_dir=output_dir,
             map_ctx=map_ctx,
             review_tracker=review_tracker,
+            schedule=build_detector_schedule(config.vision),
         )
         stats.decode_seconds = loader.decode_seconds
         stats.decoded_frame_count = loader.decoded_frame_count
@@ -141,9 +147,12 @@ def _observe_cadence_frame(
     debug_dir: Path | None,
     output_dir: Path | None,
     map_ctx: MapInkScanContext | None,
+    schedule: DetectorSchedule | None = None,
 ) -> VisionFrameResult:
     """Run detectors on one cadence frame; optionally sample map ink."""
     active = detectors_for_frame(detectors, map_ctx, video_frame.timestamp)
+    if schedule is not None:
+        active = schedule.filter(active, video_frame.timestamp)
     detections = run_detectors(
         video_frame,
         active,

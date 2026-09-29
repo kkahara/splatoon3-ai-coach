@@ -208,8 +208,8 @@ def coach_prototype(
             f"- models: {', '.join(run_labels) if run_labels else '(none)'}",
             f"- units: {len(units)}",
             f"- match_duration_seconds: {match_duration}",
-            f"- system_prompt: `system_prompt.txt`",
-            f"- llm_metrics: `llm_metrics.jsonl`",
+            "- system_prompt: `system_prompt.txt`",
+            "- llm_metrics: `llm_metrics.jsonl`",
             "",
             "## LLM runs",
             "",
@@ -319,7 +319,10 @@ def coach_prototype(
                     continue
 
                 llm_view_name = entry.get("llm_view_json")
-                if isinstance(llm_view_name, str) and (inputs_dir / llm_view_name).is_file():
+                if (
+                    isinstance(llm_view_name, str)
+                    and (inputs_dir / llm_view_name).is_file()
+                ):
                     llm_view = CoachLlmView.model_validate(
                         load_json(inputs_dir / llm_view_name)
                     )

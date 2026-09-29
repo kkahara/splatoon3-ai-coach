@@ -10,6 +10,10 @@ coaching units:
 - map ink observations (`map.ink` from `map_observations.json`)
 - roster trajectory from fused `state_snapshots` (`players`)
 - special gauge readings + presentation-only ready onset markers (`special`)
+- Splat Zones remaining counts + penalties from fused `state_snapshots`
+  (`score`, observed samples only)
+- Splat Zones control state and confirmed team-level transitions from fused
+  `state_snapshots` (`zone_control`, with explicit observed/held quality)
 
 Do **not** encode coaching judgments, fight quality, “should have used special”,
 interpolated continuous state, or invented causal relationships. Do **not** emit
@@ -42,6 +46,7 @@ MAP_OVERLAY facts (`map.map_check_*`) stay distinct from map **ink**
 | `map.ink.nearest_before_anchor` | at/before anchor only | Latest ink sample with `video_time ≤ anchor` within max gap |
 | `special.nearest_before_anchor` | at/before anchor only | Latest special reading with `video_time ≤ anchor` within max gap |
 | `players.at_anchor` / `players.at_death` | nearest within max gap | Closest fused roster sample by `\|Δt\|` (may be slightly after the labeled time) |
+| `score.at_anchor` / `score.pre_death` / `score.lookback` | at/before target only | Latest fused snapshot in `[target − max gap, target]` that observed any score field (prefers both main counters observed); `pre_death` target = `death_time − score_pre_death_offset_seconds`; `lookback` target = pre-death target − `score_lookback_seconds` |
 
 Roster nearest-in-gap is intentional: alive counts are held state sampled on a
 cadence, not one-shot UI flashes. Ink/special “nearest before” stay
@@ -109,6 +114,60 @@ describes tactical context; it does not define scenario ownership.
 
 **Stage 1:** `CoachInput.player_count_*` APIs remain unchanged (still derived
 via `PlayerCountClock` in the coaching layer).
+
+## Splat Zones score samples (`ScenarioContext.score`)
+
+Sparse facts from fused `GameStateSnapshot` score/penalty fields
+(`vision/score_fusion.py`, Stage 3.2). Fusion is mode-gated: any match whose
+battle mode is not `splat_zones` (or is unresolved) has no score samples.
+
+- `ally_remaining` / `opponent_remaining`: the counts each team still needs
+  (lower is closer to winning). A value is present only when that side's
+  quality is `observed`; `held`, `rejected_implausible` and `unknown` stay
+  `None` with the quality recorded.
+- `ally_penalty` / `opponent_penalty`: the `+N` penalty under a team's count.
+  Present only when `observed`. `not_shown` means the penalty region was read
+  and no `+N` was visible — it is **not** zero in evidence; only the coaching
+  layer may treat it as zero, under a stated `EvidenceLimit`. Penalty never
+  counts toward the result.
+- Samples: `at_anchor` for every implemented unit; `pre_death` and
+  `lookback` (`score_lookback_seconds` before the pre-death target) for
+  `DEATH_EPISODE` only. Two samples let coaching state that a counter changed
+  between them — nothing about why.
+
+Permitted: “ally/opponent remaining count and penalty at time T (Splat Zones
+only)”. Coaching-layer arithmetic (remaining difference, counts before
+progress, which counter changed shortly before the death) is derived in the
+coaching layer, never stored here: `coach/score_facts.py` →
+`CoachInput.score_facts` → `CoachLlmView.score`, with `EvidenceLimit`s
+`score_not_splat_zones`, `score_count_unavailable`, `score_not_zone_holder`
+and `penalty_not_shown_as_zero`.
+
+Prohibited: which player caused a control change, “pushing / losing the
+objective” as player attribution, and any causal link between control/count
+and the death. Team-level control at a sampled time and confirmed team-level
+transitions are permitted. Do not emit score GameEvents.
+
+## Splat Zones control samples (`ScenarioContext.zone_control`)
+
+Control samples are sparse factual state from the fused scoreboard highlight.
+The state vocabulary is `neutral`, `ally_control`, `opponent_control`, and
+`unknown`; quality distinguishes `observed`, `held`, and `unknown`.
+
+- `at_anchor`, `pre_death`, and `lookback` use the same at/before target
+  convention as score samples.
+- `trajectory` and `transitions` preserve only persisted state evidence.
+- Held state is not a fresh observation and must not be used as proof that a
+  transition occurred at that timestamp.
+- Unknown gaps are not bridged into a transition.
+
+Permitted: “At time T, the zone was controlled by the ally/opponent team,” and
+“The zone became neutral and was subsequently regained by the opponent/ally
+team,” when the corresponding observed samples and transition evidence exist.
+
+Prohibited: identifying which player caused a capture/loss, claiming that a
+death caused a control change, or calling the factual sequence a missed/seized
+opportunity inside ScenarioContext. Those are coaching interpretations.
 
 ## CoachInput unit
 
@@ -265,18 +324,23 @@ requirement needs a bounded pre-death map-check fact.
 death spacing; ENGAGEMENT splat observations; temporal associations;
 cross-episode comparisons of the same fields; when `player_count_samples`
 are present, `ally_alive_count` / `opponent_alive_count` roster state at a
-time (including roster difference wording — not fight participation).
+time (including roster difference wording — not fight participation); in
+Splat Zones, ally/opponent remaining count and penalty at a time from
+`score` samples; team-level control state and transitions from
+`zone_control` samples.
 
 **Prohibited as facts:** fight win/lose/quality; overextension; outnumbered
 **in the fight**; should-have advice, including "should have pushed" or
 "should have retreated" because of roster counts (a roster count is a
 circumstance, never a verdict); gear attributions; rush/hesitate/camp
 intent; causal "splat caused death"; "same fight" without richer evidence;
-inferring alive counts from splat/death/scenario membership.
+inferring alive counts from splat/death/scenario membership; player causality
+for zone control, pushing or losing the objective as player attribution, or
+the count/control state causing the death.
 
 **Requires new evidence:** fight boundaries, damage, weapons, positions,
-generic enemy_count / fight participants, loadout, objective/score/special,
-map content. (Match clock uses GameClock samples when present.)
+generic enemy_count / fight participants, loadout, objective state beyond
+Splat Zones counts, special state, map content. (Match clock uses GameClock samples when present.)
 
 **Requires interpretation (not a ScenarioContext field):** good/bad map or
 engagement, avoidability, what the player should have done.

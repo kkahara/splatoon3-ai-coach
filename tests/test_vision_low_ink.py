@@ -6,11 +6,13 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import pytest
 
 from splatoon3_ai_coach.config.models import (
+    ActiveGameplayDetectorConfig,
+    DeathDetectorConfig,
     EventFusionConfig,
     LowInkDetectorConfig,
+    RespawnDetectorConfig,
     VisionLanguage,
 )
 from splatoon3_ai_coach.vision.events import infer_events
@@ -25,11 +27,6 @@ from splatoon3_ai_coach.vision.models import (
     GameStateSnapshot,
     LowInkReading,
     VisionFrameResult,
-)
-from splatoon3_ai_coach.config.models import (
-    ActiveGameplayDetectorConfig,
-    DeathDetectorConfig,
-    RespawnDetectorConfig,
 )
 
 _REPO = Path(__file__).resolve().parents[1]

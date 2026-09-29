@@ -168,6 +168,10 @@ class ObservationView(BaseModel):
     opponent_remaining: int | None = None
     ally_score_quality: str | None = None
     opponent_score_quality: str | None = None
+    ally_penalty: int | None = None
+    opponent_penalty: int | None = None
+    ally_penalty_quality: str | None = None
+    opponent_penalty_quality: str | None = None
     countdown_present: bool | None = None
     active_gameplay: bool | None = None
     match_phase: str | None = None

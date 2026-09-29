@@ -360,7 +360,9 @@ def build_delta_inventory(samples: list[TrajectorySample]) -> list[dict[str, Any
     return rows
 
 
-def _mean_hue_sat(crop: np.ndarray, *, s_min: int = 40, v_min: int = 40) -> tuple[float, float] | None:
+def _mean_hue_sat(
+    crop: np.ndarray, *, s_min: int = 40, v_min: int = 40
+) -> tuple[float, float] | None:
     """Mean hue/sat of saturated pixels in a BGR crop."""
     if crop.size == 0:
         return None
@@ -392,7 +394,9 @@ def identity_check_frame(
     left_score_hue = _mean_hue_sat(crop_roi(frame, left_roi))
     right_score_hue = _mean_hue_sat(crop_roi(frame, right_roi))
 
-    def bank_hue(slots: list[tuple[float, float, float, float]]) -> tuple[float, float] | None:
+    def bank_hue(
+        slots: list[tuple[float, float, float, float]],
+    ) -> tuple[float, float] | None:
         hues: list[float] = []
         sats: list[float] = []
         for box in slots:
@@ -427,7 +431,9 @@ def identity_check_frame(
         "left_value": reading.left.value if reading.left.visible else None,
         "right_value": reading.right.value if reading.right.visible else None,
         "left_score_hue": None if left_score_hue is None else round(left_score_hue[0], 1),
-        "right_score_hue": None if right_score_hue is None else round(right_score_hue[0], 1),
+        "right_score_hue": None
+        if right_score_hue is None
+        else round(right_score_hue[0], 1),
         "left_roster_hue": None if left_roster is None else round(left_roster[0], 1),
         "right_roster_hue": None if right_roster is None else round(right_roster[0], 1),
         "same_side_color_match_preferred": same_side_ok,
@@ -520,7 +526,9 @@ def summarize_run(
 
     same_side = [c for c in identity if c.get("same_side_color_match_preferred") is True]
     crossed = [c for c in identity if c.get("crossed_color_match_preferred") is True]
-    decided = [c for c in identity if c.get("same_side_color_match_preferred") is not None]
+    decided = [
+        c for c in identity if c.get("same_side_color_match_preferred") is not None
+    ]
 
     duration = max(t1 - t0, 1e-6)
     value_changes = sum(
@@ -597,7 +605,8 @@ def write_report(
     lines.append("- Authoritative score series: **fresh 2 FPS video → `ScoreDetector`**")
     lines.append("- Manifests: **`in_match` boundaries only** (no score rows)")
     lines.append(
-        "- No hold, team mapping, or GameEvent inside the detector or this tool's extract path"
+        "- No hold, team mapping, or GameEvent inside the detector or this tool's "
+        "extract path"
     )
     lines.append("- Interpretation stays in this offline report")
     lines.append("")
@@ -683,7 +692,9 @@ def write_report(
             f"- Gap seconds: min={min(secs):.2f} median={float(np.median(secs)):.2f} "
             f"max={max(secs):.2f}"
         )
-        unchanged = [g["gap_seconds"] for g in hold_gaps if not g.get("changed_during_gap")]
+        unchanged = [
+            g["gap_seconds"] for g in hold_gaps if not g.get("changed_during_gap")
+        ]
         if unchanged:
             lines.append(
                 f"- Unchanged-across-gap seconds (safe-hold evidence): "
@@ -697,7 +708,8 @@ def write_report(
             )
         else:
             lines.append(
-                "- No unchanged hold-candidate gaps; hold is not justified from this set alone."
+                "- No unchanged hold-candidate gaps; hold is not justified from this set "
+                "alone."
             )
     else:
         lines.append("- No hold-candidate gaps observed.")
@@ -756,9 +768,18 @@ def write_report(
     lines.append(
         "5. **Candidate Stage 3 items (recommendations only):**"
     )
-    lines.append("   - Optional fused snapshot fields `ally_remaining`/`opponent_remaining` **if** left↔local-team evidence is accepted")
-    lines.append("   - Visibility hold with a max duration grounded in unchanged hold-candidate gaps")
-    lines.append("   - Possibly a sparse score-change fact for coaching — **not** justified as a GameEvent until fusion semantics are designed")
+    lines.append(
+        "   - Optional fused snapshot fields `ally_remaining`/`opponent_remaining` "
+        "**if** left↔local-team evidence is accepted"
+    )
+    lines.append(
+        "   - Visibility hold with a max duration grounded in unchanged hold-candidate "
+        "gaps"
+    )
+    lines.append(
+        "   - Possibly a sparse score-change fact for coaching — **not** justified as a "
+        "GameEvent until fusion semantics are designed"
+    )
     lines.append("")
     lines.append("## Explicit non-outcomes")
     lines.append("")
@@ -786,7 +807,9 @@ def cmd_run(args: argparse.Namespace) -> int:
     review_dir = out_root / "identity_review"
     traj_dir.mkdir(parents=True, exist_ok=True)
 
-    config = load_config(default_config_path() if args.config is None else Path(args.config))
+    config = load_config(
+        default_config_path() if args.config is None else Path(args.config)
+    )
     detector = ScoreDetector(config.vision.score, cadence_fps=args.sample_fps)
     left_roi = tuple(config.vision.score.left_roi)
     right_roi = tuple(config.vision.score.right_roi)

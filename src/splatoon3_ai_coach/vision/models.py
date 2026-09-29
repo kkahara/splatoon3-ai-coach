@@ -5,11 +5,21 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, computed_field
 
-from splatoon3_ai_coach.vision.provenance import PIPELINE_VERSION
 from splatoon3_ai_coach.media.video_source import VideoRunMetadata
+from splatoon3_ai_coach.vision.provenance import PIPELINE_VERSION
 
 FrameSource = Literal["evidence", "cadence"]
 StateQuality = Literal["observed", "smoothed", "held", "unknown"]
+# Fused SZ main counter: ``rejected_implausible`` = a reading was seen but did
+# not fit the accepted trajectory (value withheld, never replaced).
+ScoreQuality = Literal["observed", "held", "rejected_implausible", "unknown"]
+# Fused SZ penalty: ``not_shown`` = main counter visible, no ``+N`` on screen.
+# Not zero — a missed or animating ``+N`` looks the same.
+PenaltyQuality = Literal["observed", "held", "not_shown", "unknown"]
+ZoneControlState = Literal[
+    "neutral", "ally_control", "opponent_control", "unknown"
+]
+ZoneControlQuality = Literal["observed", "held", "unknown"]
 
 
 class GameEventType(StrEnum):
@@ -24,6 +34,11 @@ class GameEventType(StrEnum):
     SPECIAL_USED = "special_used"
     SPECIAL_READY = "special_ready"
     OBJECTIVE_UPDATE = "objective_update"
+    ALLY_GAIN_CONTROL = "ally_gain_control"
+    ALLY_LOSE_CONTROL = "ally_lose_control"
+    OPPONENT_GAIN_CONTROL = "opponent_gain_control"
+    OPPONENT_LOSE_CONTROL = "opponent_lose_control"
+    ZONE_CONTROL_CHANGED = "zone_control_changed"
     PLAYER_DETECTED = "player_detected"
     ENEMY_DETECTED = "enemy_detected"
     BOMB_DETECTED = "bomb_detected"
@@ -50,6 +65,7 @@ class GameEventReason(StrEnum):
     SPLAT_INSTANCE_OPENED = "splat_instance_opened"
     MAP_OVERLAY_PRESENT = "map_overlay_present"
     LOW_INK_PRESENT = "low_ink_present"
+    ZONE_CONTROL_TRANSITION = "zone_control_transition"
 
 
 PlayerLifecycle = Literal[
@@ -223,6 +239,10 @@ class PlayerCountReading(BaseModel):
     ``TM_SQDIFF_NORMED`` distances (lower = better X match); detection is
     decided by the detector against ``sqdiff_match_threshold``, not by
     consumers reversing these scores. ``*_dead_slots`` means “X present.”
+
+    ``roster_visible`` is False when a slot ROI has no icon edges (map open,
+    respawn map): no slot is scored and the frame carries no roster evidence.
+    ``slot_edge_energy`` lists ally slots 1..4 then opponent slots 1..4.
     """
 
     kind: Literal["player_count"] = "player_count"
@@ -230,6 +250,8 @@ class PlayerCountReading(BaseModel):
     opponent_dead_slots: tuple[int, ...] = ()
     ally_slot_scores: tuple[float, ...] = ()
     opponent_slot_scores: tuple[float, ...] = ()
+    roster_visible: bool = True
+    slot_edge_energy: tuple[float, ...] = ()
 
 
 class SpecialGaugeReading(BaseModel):
@@ -275,15 +297,40 @@ class ScoreReading(BaseModel):
 
     ``left`` / ``right`` are observation positions. Ally/opponent mapping is a
     fusion concern and must not appear here. Penalty fields are optional
-    secondary observations.
+    secondary observations: ``*_penalty`` is the ``+N`` value when a ``+``
+    glyph followed by digits was seen. ``penalty_evaluated`` says the penalty
+    regions were configured and inspected on this frame, so ``None`` there
+    means "no ``+N`` visible" rather than "not looked at". Penalty never
+    contributes to ``confidence``.
     """
 
     kind: Literal["score"] = "score"
     battle_mode_id: str | None = "splat_zones"
     left: ScoreSideReading = Field(default_factory=ScoreSideReading)
     right: ScoreSideReading = Field(default_factory=ScoreSideReading)
-    left_penalty: int | None = None
-    right_penalty: int | None = None
+    left_penalty: int | None = Field(default=None, ge=0)
+    right_penalty: int | None = Field(default=None, ge=0)
+    left_penalty_scores: list[float] = Field(default_factory=list)
+    right_penalty_scores: list[float] = Field(default_factory=list)
+    penalty_evaluated: bool = False
+    confidence: float = Field(default=0.0, ge=0, le=1)
+
+
+class ZoneControlReading(BaseModel):
+    """Per-frame visual observation of the Splat Zones control highlight.
+
+    ``*_signal`` is the lit-pixel fraction of each pod; ``*_dark`` is the
+    dark-pixel fraction. ``*_pod`` is the per-pod classification.
+    """
+
+    kind: Literal["zone_control"] = "zone_control"
+    observed_state: ZoneControlState = "unknown"
+    left_signal: float = Field(default=0.0, ge=0, le=1)
+    right_signal: float = Field(default=0.0, ge=0, le=1)
+    left_dark: float = Field(default=0.0, ge=0, le=1)
+    right_dark: float = Field(default=0.0, ge=0, le=1)
+    left_pod: Literal["lit", "dim", "ambiguous"] = "ambiguous"
+    right_pod: Literal["lit", "dim", "ambiguous"] = "ambiguous"
     confidence: float = Field(default=0.0, ge=0, le=1)
 
 
@@ -299,7 +346,8 @@ Reading = Annotated[
     | LowInkReading
     | PlayerCountReading
     | SpecialGaugeReading
-    | ScoreReading,
+    | ScoreReading
+    | ZoneControlReading,
     Field(discriminator="kind"),
 ]
 
@@ -366,10 +414,19 @@ class GameStateSnapshot(BaseModel):
     player_count_confidence: float | None = None
     # Fused SZ remainings: left→ally / right→opponent (fusion interpretation).
     # Quality is per-side — a frame may be observed on one side and held on the other.
+    # Only populated when the match's battle mode is Splat Zones.
     ally_remaining: int | None = None
     opponent_remaining: int | None = None
-    ally_score_quality: StateQuality = "unknown"
-    opponent_score_quality: StateQuality = "unknown"
+    ally_score_quality: ScoreQuality = "unknown"
+    opponent_score_quality: ScoreQuality = "unknown"
+    # Fused SZ ``+N`` penalties, tracked separately from the remaining counts.
+    ally_penalty: int | None = None
+    opponent_penalty: int | None = None
+    ally_penalty_quality: PenaltyQuality = "unknown"
+    opponent_penalty_quality: PenaltyQuality = "unknown"
+    # Fused SZ ownership state; absent outside Splat Zones or without evidence.
+    zone_control_state: ZoneControlState = "unknown"
+    zone_control_quality: ZoneControlQuality = "unknown"
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None
@@ -393,6 +450,8 @@ class GameEvent(BaseModel):
     reason: GameEventReason | None = None
     from_lifecycle: PlayerLifecycle | None = None
     to_lifecycle: PlayerLifecycle | None = None
+    from_zone_control: ZoneControlState | None = None
+    to_zone_control: ZoneControlState | None = None
     splat_fingerprint: str | None = None
     confidence: float = Field(ge=0, le=1)
     evidence_ids: list[str] = Field(default_factory=list)

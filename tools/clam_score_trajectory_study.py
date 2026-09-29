@@ -754,7 +754,8 @@ def write_report(
     lines.append("## Runs")
     lines.append("")
     lines.append(
-        "| Run | Lang | in_match | samples | both-visible frac | changes/min | invariants |"
+        "| Run | Lang | in_match | samples | both-visible frac | changes/min | "
+        "invariants |"
     )
     lines.append(
         "|-----|------|----------|---------|-------------------|-------------|------------|"

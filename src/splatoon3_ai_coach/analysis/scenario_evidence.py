@@ -290,7 +290,7 @@ def _nearest_before(
     best: T | None = None
     best_gap = float("inf")
     for sample in samples:
-        ts = float(getattr(sample, "video_time"))
+        ts = float(sample.video_time)
         if ts > anchor:
             continue
         gap = anchor - ts

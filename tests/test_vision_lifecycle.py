@@ -10,27 +10,27 @@ import pytest
 
 from splatoon3_ai_coach.config.models import (
     ActiveGameplayDetectorConfig,
-    RespawnDetectorConfig,
     DeathDetectorConfig,
     EventFusionConfig,
     LifecycleFusionConfig,
     MapOverlayDetectorConfig,
+    RespawnDetectorConfig,
     StateFusionConfig,
     TimerDetectorConfig,
 )
 from splatoon3_ai_coach.vision.active_gameplay import ActiveGameplayDetector
-from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.models import (
     ActiveGameplayReading,
-    MapOverlayReading,
-    RespawnReading,
     DeathReading,
     DetectorResult,
     GameEventType,
+    MapOverlayReading,
+    RespawnReading,
     TimerReading,
     VisionFrameResult,
 )
+from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.state import fuse_game_state
 
 
@@ -384,7 +384,9 @@ def test_plate_less_death_skips_to_respawn_then_active_again() -> None:
     assert types.count(GameEventType.DEATH) == 1
     assert GameEventType.RESPAWN in types
     assert GameEventType.ACTIVE_AGAIN in types
-    respawn_at = next(e.start_time for e in events if e.event_type is GameEventType.RESPAWN)
+    respawn_at = next(
+        e.start_time for e in events if e.event_type is GameEventType.RESPAWN
+    )
     active_at = next(
         e.start_time for e in events if e.event_type is GameEventType.ACTIVE_AGAIN
     )
@@ -721,8 +723,22 @@ def test_mid_tier_blocked_by_map_or_missing_timer() -> None:
     """Map-view or missing timer vetoes the HUD shortcut; latch stays."""
     mapped = _to_respawned() + [
         _frame(10.0, 5, respawn=_absent(), active=_hud_only(), timer_seconds=90.0),
-        _frame(12.5, 6, respawn=_absent(), active=_hud_only(), timer_seconds=87.0, map_overlay=_map(True)),
-        _frame(13.0, 7, respawn=_absent(), active=_hud_only(), timer_seconds=87.0, map_overlay=_map(True)),
+        _frame(
+            12.5,
+            6,
+            respawn=_absent(),
+            active=_hud_only(),
+            timer_seconds=87.0,
+            map_overlay=_map(True),
+        ),
+        _frame(
+            13.0,
+            7,
+            respawn=_absent(),
+            active=_hud_only(),
+            timer_seconds=87.0,
+            map_overlay=_map(True),
+        ),
     ]
     mapped_snaps = _fuse(mapped, _prod_life())
     assert mapped_snaps[-1].player_lifecycle == "awaiting_control"

@@ -35,6 +35,7 @@ _VALID_SLOT_INDEXES = frozenset({1, 2, 3, 4})
 _X_GRAY_LO = 70
 _X_GRAY_HI = 140
 _DIAG_THICKNESS = 0.11
+_EDGE_SIZE = 96
 
 
 @dataclass(frozen=True)
@@ -161,6 +162,20 @@ def _best_masked_sqdiff(
     return best, best_name
 
 
+def slot_edge_energy(roi: np.ndarray) -> float:
+    """Mean absolute Sobel gradient of a slot crop at a fixed 96×96 size.
+
+    Roster icons have hard outlines; the blurred background shown where the
+    roster HUD is absent has almost none.
+    """
+    if roi.size == 0:
+        return 0.0
+    gray = cv2.resize(_to_raw_gray(roi), (_EDGE_SIZE, _EDGE_SIZE))
+    gx = cv2.Sobel(gray, cv2.CV_64F, 1, 0)
+    gy = cv2.Sobel(gray, cv2.CV_64F, 0, 1)
+    return float(np.mean(np.abs(gx)) + np.mean(np.abs(gy)))
+
+
 def _sanitize_dead_slots(indexes: tuple[int, ...]) -> tuple[int, ...]:
     """Keep unique 1-based slot indexes in ascending order."""
     return tuple(sorted({idx for idx in indexes if idx in _VALID_SLOT_INDEXES}))
@@ -219,7 +234,15 @@ class PlayerCountDetector:
         return self._observe(image)
 
     def _observe(self, image: np.ndarray) -> tuple[PlayerCountReading, float]:
-        """Score each slot ROI; mark dead when best SQDIFF ≤ threshold."""
+        """Score each slot ROI; mark dead when best SQDIFF ≤ threshold.
+
+        If any slot lacks icon edges the roster HUD is not on screen: the
+        reading is marked not visible with zero confidence and no slot scores.
+        """
+        slots = [*self.config.ally_slots, *self.config.opponent_slots]
+        edges = tuple(slot_edge_energy(crop_roi(image, box)) for box in slots)
+        if min(edges) < self.config.min_slot_edge_energy:
+            return PlayerCountReading(roster_visible=False, slot_edge_energy=edges), 0.0
         ally_scores, ally_dead = self._score_side(image, self.config.ally_slots)
         opp_scores, opp_dead = self._score_side(image, self.config.opponent_slots)
         all_scores = ally_scores + opp_scores
@@ -229,6 +252,7 @@ class PlayerCountDetector:
             opponent_dead_slots=_sanitize_dead_slots(tuple(opp_dead)),
             ally_slot_scores=tuple(float(s) for s in ally_scores),
             opponent_slot_scores=tuple(float(s) for s in opp_scores),
+            slot_edge_energy=edges,
         )
         return reading, confidence
 

@@ -73,6 +73,21 @@ Evidence classes you may cite as facts:
    duration_since_present_by alone — that field is a sampled presence bound
    (contiguous observations; holes larger than max lookup gap end the run),
    not continuous disadvantaged time or an exact transition instant.
+6. Splat Zones counts (score block, Splat Zones only): ally_remaining /
+   opponent_remaining = counts each team still needs (lower is closer to
+   winning), observed at score.video_time. remaining_diff =
+   opponent_remaining - ally_remaining (positive: the ally team needs fewer).
+   *_penalty = the +N shown under a team's count; *_count_before_progress =
+   counts that team must hold before its counter can drop again (a not_shown
+   penalty is taken as 0 — see evidence_limits). Penalty never counts toward
+   the result; do not add it to the score when stating who is ahead.
+   *_counter_decreased_before_death compares score.lookback_video_time with
+   score.video_time: say "the opponent counter went down in the few seconds
+   before the death", never who held the zone.
+7. Splat Zones control (zone_control block, Splat Zones only): control_at_death
+   and control_before_death are observed team-level states. The block may also
+   establish that the zone became neutral and was subsequently regained by the
+   ally or opponent team. These are state/transition facts, not player actions.
 
 Critical semantic rules:
 - Video time is canonical for when events happened in the recording.
@@ -104,7 +119,13 @@ Critical semantic rules:
   fields alone.
 - Do not invent mode, score, objective, special, weapons, gear, loadout,
   teammate participation, or match clock values that were not observed via
-  timer detection / player-count samples.
+  timer detection / player-count samples / the Splat Zones score block.
+- When the score block is absent, say nothing about counts. When the
+  zone_control block is absent, say nothing about zone ownership or
+  transitions. Counts and control are circumstances, never verdicts: do not
+  identify a player who caused a capture/loss, call a team action pushing or
+  losing the objective, claim that count/control caused the death, or say that
+  the player should have played differently because of these fields.
 - Player-count samples describe the observed alive roster at a time. They do
   not establish which players participated in a particular engagement.
 - Never infer alive counts from splat counts, death events, or scenario
@@ -179,6 +200,7 @@ Permitted factual examples:
 - "This death lasted 9.0 seconds until active again."
 - "Respawn occurred 7.5 seconds after death."
 - "At video time 87.0s the match timer showed 2:33 remaining (timer detection)."
+- "Just before the death your team needed 42 more counts and the opponents 30."
 
 Prohibited as factual claims:
 - You won/lost the fight; bad engagement; overextended; you fought
@@ -189,6 +211,9 @@ Prohibited as factual claims:
 - Gear made respawn slow; you rushed / hesitated / spawn-camped
 - This splat caused your death; these splats were the same fight
 - Outcome fragged/died means fight quality
+- A player caused the capture/loss; your death caused the control change; the
+  team was pushing or losing the objective; the count/control caused your
+  death
 
 If evidence is missing, say what was not observed. Do not fill gaps with
 speculation. Empty recommendations is a successful result when evidence does
@@ -209,11 +234,13 @@ one-card-per-factor emission requirements):
 - death_final_30s / death_first_30s: only from death-labeled game_clock_samples
   (never invent remaining time from video time). Statement only initially;
   no "play safer" advice from the clock alone.
-- death_redeath_le_10s: timeline.time_since_previous_death <= 10. Timing fact;
+- death_redeath_le_10s: timeline.time_since_previous_death <= the configured
+  gap (default 20 seconds; the ID keeps its original name). Timing fact;
   do not auto-interpret as tilt / "slow down" unless you have a principle
   that stays non-judgmental.
 - death_map_overlay_before_false: only when map_check_before_death is false
-  (observable source). Do not claim the death happened because of no map check.
+  (observable source), and never for a death in the first match window.
+  Do not claim the death happened because of no map check.
 
 When evidence does not support a behavioral recommendation, keep recommendations
 empty and say so in assessment/limitations.

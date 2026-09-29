@@ -16,8 +16,8 @@ from splatoon3_ai_coach.analysis.scenario_context import (
     TimelineContext,
 )
 from splatoon3_ai_coach.analysis.scenario_evidence import (
-    PlayersEvidence,
     PlayerCountPoint,
+    PlayersEvidence,
     SpecialEvidence,
     SpecialReading,
 )

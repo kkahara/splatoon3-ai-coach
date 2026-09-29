@@ -45,6 +45,11 @@ from splatoon3_ai_coach.coach.player_count_context import (
     PlayerCountTrajectoryPoint,
     player_count_window_and_context,
 )
+from splatoon3_ai_coach.coach.score_facts import ScoreFacts, derive_score_facts
+from splatoon3_ai_coach.coach.zone_control_facts import (
+    ZoneControlFacts,
+    derive_zone_control_facts,
+)
 
 RelationRole = Literal[
     "preceded_by_engagement",
@@ -79,6 +84,8 @@ class CoachInput(BaseModel):
     player_count_samples: list[PlayerCountSample] = Field(default_factory=list)
     player_count_window: list[PlayerCountWindowPoint] = Field(default_factory=list)
     player_count_context: PlayerCountContext | None = None
+    score_facts: ScoreFacts | None = None
+    zone_control_facts: ZoneControlFacts | None = None
     evidence_limits: list[EvidenceLimit] = Field(default_factory=list)
 
 
@@ -93,11 +100,16 @@ def build_coach_input_for_scenario(
     player_count_max_gap_seconds: float | None = None,
     player_count_window_offsets_seconds: Sequence[float] | None = None,
     player_count_context_lookback_seconds: float | None = None,
+    battle_mode_id: str | None = None,
+    include_score_facts: bool = False,
+    include_zone_control_facts: bool = False,
 ) -> CoachInput:
     """Assemble one coaching unit for ``primary_id``.
 
     Related scenarios come only from ``primary_context.relations``.
-    Does not mutate ``scenarios`` or ``contexts``.
+    Does not mutate ``scenarios`` or ``contexts``. With ``include_score_facts``
+    the unit carries Splat Zones count facts (and their limits) for
+    ``battle_mode_id``.
     """
     by_scenario = {item.scenario_id: item for item in scenarios}
     by_context = {item.scenario_id: item for item in contexts}
@@ -119,9 +131,7 @@ def build_coach_input_for_scenario(
         if player_count_max_gap_seconds is None
         else player_count_max_gap_seconds
     )
-    pc_samples = player_count_samples(
-        labeled_times, pc_clock, max_gap_seconds=pc_gap
-    )
+    pc_samples = player_count_samples(labeled_times, pc_clock, max_gap_seconds=pc_gap)
     offsets = (
         tuple(float(x) for x in player_count_window_offsets_seconds)
         if player_count_window_offsets_seconds is not None
@@ -140,6 +150,16 @@ def build_coach_input_for_scenario(
         max_gap_seconds=pc_gap,
         context_lookback_seconds=context_lookback,
     )
+    score_facts = (
+        derive_score_facts(primary_context, battle_mode_id=battle_mode_id)
+        if include_score_facts
+        else None
+    )
+    zone_control_facts = (
+        derive_zone_control_facts(primary_context, battle_mode_id=battle_mode_id)
+        if include_zone_control_facts
+        else None
+    )
     limits = collect_evidence_limits(
         primary_scenario,
         primary_context,
@@ -147,6 +167,8 @@ def build_coach_input_for_scenario(
         pc_samples,
         player_count_window=player_count_window,
         player_count_context=player_count_context,
+        score_facts=score_facts,
+        zone_control_facts=zone_control_facts,
     )
     return CoachInput(
         primary_scenario=primary_scenario,
@@ -156,6 +178,8 @@ def build_coach_input_for_scenario(
         player_count_samples=pc_samples,
         player_count_window=player_count_window,
         player_count_context=player_count_context,
+        score_facts=score_facts,
+        zone_control_facts=zone_control_facts,
         evidence_limits=limits,
     )
 

@@ -3,10 +3,10 @@
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.media.video_source import VideoSource
+from splatoon3_ai_coach.types import NormalizedBox
 
 
 class VisionLanguage(StrEnum):
@@ -387,9 +387,15 @@ class PlayerCountDetectorConfig(BaseModel):
     )
     template_dir: Path | None = None
     # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X detected (lower=better).
-    # Empirically true X ≤ ~0.016, alive ≥ ~0.164; 0.08 is midway/conservative.
-    sqdiff_match_threshold: float = Field(default=0.08, ge=0, le=1)
+    # Library scores: X markers peak at 0.00–0.02, live icons start near 0.04.
+    sqdiff_match_threshold: float = Field(default=0.03, ge=0, le=1)
     min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
+    # Mean |Sobel| of a slot crop resized to 96×96. Below this on any slot the
+    # roster HUD is not drawn (map open, respawn map); 0 disables the check.
+    min_slot_edge_energy: float = Field(default=20.0, ge=0)
+    # Run this detector at most this often (Hz); None = every HUD cadence frame.
+    # Frames it skips carry no roster counts (not held, not unreadable).
+    sample_fps: float | None = Field(default=None, gt=0)
     # Fusion debounce, per side: a changed alive count is accepted only after
     # this many consecutive usable readings agree (1 = no debounce). The first
     # reading is accepted as is; an unusable frame restarts confirmation.
@@ -397,6 +403,15 @@ class PlayerCountDetectorConfig(BaseModel):
     # While a change is unconfirmed, the accepted count stands in only if it
     # was last read within this many seconds; otherwise the side is unknown.
     hold_seconds: float = Field(default=1.0, ge=0)
+
+    @model_validator(mode="after")
+    def _hold_covers_sampling_interval(self) -> "PlayerCountDetectorConfig":
+        if self.sample_fps is not None and self.hold_seconds <= 1.0 / self.sample_fps:
+            raise ValueError(
+                "player_count.hold_seconds must exceed the sampling interval "
+                f"(1 / sample_fps = {1.0 / self.sample_fps:g}s)"
+            )
+        return self
 
     @field_validator("ally_slots", "opponent_slots")
     @classmethod
@@ -505,6 +520,8 @@ class ScoreDetectorConfig(BaseModel):
     right_roi: NormalizedBox = (0.528646, 0.138889, 0.598958, 0.192593)
     left_penalty_roi: NormalizedBox | None = None
     right_penalty_roi: NormalizedBox | None = None
+    # Largest ``+N`` accepted; larger reads are treated as not visible.
+    penalty_max_value: int = Field(default=99, ge=1)
     template_dir: Path = Path("../calibration/templates")
     match_threshold: float = Field(default=0.55, ge=0, le=1)
     min_usable_confidence: float = Field(default=0.50, ge=0, le=1)
@@ -513,6 +530,42 @@ class ScoreDetectorConfig(BaseModel):
     # Fusion visibility hold (provisional). Not a detector rule.
     # Stage 2 unchanged hold-candidate max was 3.5s; start conservative at 2.0.
     score_max_hold_seconds: float = Field(default=2.0, gt=0)
+    # Stage 3.2 fusion plausibility (Splat Zones counters only go down).
+    # A reading above the accepted value is rejected; a drop larger than
+    # ``score_drop_slack + score_max_drop_per_second * gap`` needs
+    # ``score_confirm_readings`` consecutive agreeing readings.
+    score_plausibility_enabled: bool = True
+    score_max_drop_per_second: float = Field(default=2.0, gt=0)
+    score_drop_slack: int = Field(default=2, ge=0)
+    score_confirm_readings: int = Field(default=3, ge=1)
+
+
+class ZoneControlDetectorConfig(BaseModel):
+    """Observe the highlighted Splat Zones scoreboard pod.
+
+    Pod ROIs cover only the pod interior: they exclude the centre capture
+    meter (x 0.477–0.523) and the penalty pills below the pods (y > 0.205).
+    A *lit* pod has a solid team-colour background; a *dim* pod has a dark
+    background with coloured digits.
+    """
+
+    left_pod_roi: NormalizedBox = (0.420, 0.128, 0.466, 0.195)
+    right_pod_roi: NormalizedBox = (0.534, 0.128, 0.581, 0.195)
+    lit_value_min: int = Field(default=140, ge=0, le=255)
+    dark_value_max: int = Field(default=70, ge=0, le=255)
+    lit_min_fraction: float = Field(default=0.80, ge=0, le=1)
+    lit_max_dark_fraction: float = Field(default=0.10, ge=0, le=1)
+    dim_min_dark_fraction: float = Field(default=0.48, ge=0, le=1)
+    dim_max_lit_fraction: float = Field(default=0.45, ge=0, le=1)
+    dim_min_lit_fraction: float = Field(default=0.12, ge=0, le=1)
+    # Canny edge-pixel fraction a pod needs to count as a pod at all; real
+    # pods (sharp digits) measured >= 0.059, blurred HUD-less frames ~0.
+    min_edge_fraction: float = Field(default=0.03, ge=0, le=1)
+    min_usable_confidence: float = Field(default=0.55, ge=0, le=1)
+    # Requiring 2+ readings suppresses real one-cadence-frame neutral steps
+    # and reports them as direct ally↔opponent flips.
+    confirm_readings: int = Field(default=1, ge=1)
+    hold_seconds: float = Field(default=2.0, gt=0)
 
 
 class StateFusionConfig(BaseModel):
@@ -585,6 +638,9 @@ class VisionConfig(BaseModel):
         default_factory=SpecialGaugeDetectorConfig
     )
     score: ScoreDetectorConfig = Field(default_factory=ScoreDetectorConfig)
+    zone_control: ZoneControlDetectorConfig = Field(
+        default_factory=ZoneControlDetectorConfig
+    )
     hud_cadence_fps: float = Field(default=2.0, gt=0)
     state_fusion: StateFusionConfig = Field(default_factory=StateFusionConfig)
     lifecycle: LifecycleFusionConfig = Field(default_factory=LifecycleFusionConfig)
@@ -623,12 +679,37 @@ class ScenarioBuilderConfig(BaseModel):
             "Does not expand the evidence window."
         ),
     )
+    score_pre_death_offset_seconds: float = Field(
+        default=0.5,
+        ge=0,
+        description=(
+            "ScenarioContext.score.pre_death samples at or before death_time "
+            "minus this offset. Same default as "
+            "death_factor_thresholds.roster_pre_death_offset_seconds."
+        ),
+    )
+    score_lookback_seconds: float = Field(
+        default=5.0,
+        ge=0,
+        description=(
+            "ScenarioContext.score.lookback samples this many seconds before "
+            "the pre_death target, so coaching can state which counter changed "
+            "shortly before the death (a counter change, not zone control)."
+        ),
+    )
 
 
 class DeathFactorThresholds(BaseModel):
     """Thresholds that decide when a death importance factor is active."""
 
-    redeath_max_gap_seconds: float = Field(default=10.0, ge=0)
+    redeath_max_gap_seconds: float = Field(
+        default=20.0,
+        ge=0,
+        description=(
+            "Death-to-death gap for death_redeath_le_10s. The respawn cycle "
+            "takes ~10s, so the ID's 10s could never be met."
+        ),
+    )
     final_window_seconds: int = Field(default=30, ge=0)
     first_window_seconds: int = Field(default=30, ge=0)
     roster_pre_death_offset_seconds: float = Field(
@@ -647,6 +728,23 @@ class DeathFactorThresholds(BaseModel):
         description=(
             "Outnumbered / ahead-in-numbers need at least this many more "
             "players alive on one side than the other in the pre-death sample."
+        ),
+    )
+    count_min_diff: int = Field(
+        default=10,
+        ge=1,
+        le=100,
+        description=(
+            "Splat Zones behind / ahead in count need at least this many "
+            "remaining counts between the teams in the pre-death sample."
+        ),
+    )
+    special_ready_min_readings: int = Field(
+        default=2,
+        ge=1,
+        description=(
+            "death_special_ready needs this many consecutive ready gauge "
+            "readings ending at or before the death."
         ),
     )
 
@@ -671,6 +769,27 @@ class CoachConfig(BaseModel):
     openai_compatible_base_url: str = "https://integrate.api.nvidia.com/v1"
     nvidia_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
     max_llm_units: int = Field(default=3, ge=0)
+    # Only candidates scoring above zero may fill the top N; otherwise ties
+    # among zero-score deaths are settled by video time alone.
+    llm_units_require_positive_score: bool = True
+    # Factors that add their weight only when another factor is active, so
+    # they never make a death eligible on their own.
+    death_modifier_factors: list[str] = Field(
+        default_factory=lambda: ["death_final_30s", "death_first_30s"]
+    )
+    death_ranking_excluded_factors: list[str] = Field(
+        default_factory=lambda: [
+            "death_map_overlay_before_false",
+            "death_special_ready",
+            "death_while_behind_in_count",
+            "death_while_ahead_in_count",
+            "death_opponent_counter_ticked",
+        ],
+        description=(
+            "Death importance factors that may still be active as facts but "
+            "never add to importance_score or qualify clock modifiers."
+        ),
+    )
     death_importance_weights: dict[str, float] = Field(
         default_factory=lambda: {
             "death_redeath_le_10s": 3.0,
@@ -704,9 +823,7 @@ class CoachConfig(BaseModel):
     def _weights_not_negative(cls, value: dict[str, float]) -> dict[str, float]:
         negative = sorted(k for k, weight in value.items() if float(weight) < 0)
         if negative:
-            raise ValueError(
-                f"death_importance_weights must not be negative: {negative}"
-            )
+            raise ValueError(f"death_importance_weights must not be negative: {negative}")
         return value
 
 

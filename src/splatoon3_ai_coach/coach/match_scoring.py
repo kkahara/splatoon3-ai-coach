@@ -70,10 +70,16 @@ def score_match(
                 match_duration_seconds=match_duration,
                 weights=coach.death_importance_weights,
                 thresholds=coach.death_factor_thresholds,
+                modifier_factors=coach.death_modifier_factors,
+                ranking_excluded_factors=coach.death_ranking_excluded_factors,
             )
         )
         inputs[scenario_id] = coach_input
-    ranked = rank_candidates([u.to_candidate() for u in scored], max_llm_units=top_n)
+    ranked = rank_candidates(
+        [u.to_candidate() for u in scored],
+        max_llm_units=top_n,
+        require_positive_score=coach.llm_units_require_positive_score,
+    )
     payload = importance_config_payload(coach, max_llm_units=top_n)
     return MatchScoring(
         match_duration_seconds=match_duration,
@@ -101,4 +107,7 @@ def _coach_input(
         player_count_context_lookback_seconds=(
             coach.player_count_context_lookback_seconds
         ),
+        battle_mode_id=bundle.battle_mode_id,
+        include_score_facts=True,
+        include_zone_control_facts=True,
     )

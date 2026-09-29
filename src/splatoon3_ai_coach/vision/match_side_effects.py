@@ -168,7 +168,11 @@ def finalize_ready_gated_map_artifacts(map_ctx: MapInkScanContext) -> None:
         return
     if map_ctx.ready_seen:
         return
-    if map_ctx.map_ink_dropped and map_ctx.calibration is None and not map_ctx.observations:
+    if (
+        map_ctx.map_ink_dropped
+        and map_ctx.calibration is None
+        and not map_ctx.observations
+    ):
         return
     drop_colors_and_map_ink(map_ctx, reason="Ready? never detected")
 
@@ -207,7 +211,8 @@ def maybe_sample_map_ink(
 ) -> None:
     """Emit a MapObservation only after Ready? + colors, while map is open.
 
-    Battle mode is optional: missing mode uses ``configs/stage_maps/<stage>/default.yaml``.
+    Battle mode is optional: missing mode uses
+    ``configs/stage_maps/<stage>/default.yaml``.
     Does not interpolate. Does not create GameEvents. Skipped entirely when Ready?
     was never detected for the match.
     """
@@ -341,7 +346,9 @@ def persist_map_artifacts(map_ctx: MapInkScanContext, output_dir: Path) -> None:
         encoding="utf-8",
     )
     if map_ctx.config is not None and map_ctx.config.vision.map_ink.enabled:
-        write_map_observations(output_dir / MAP_OBSERVATIONS_FILENAME, map_ctx.observations)
+        write_map_observations(
+            output_dir / MAP_OBSERVATIONS_FILENAME, map_ctx.observations
+        )
 
 
 # Backward-compatible private aliases for tests.

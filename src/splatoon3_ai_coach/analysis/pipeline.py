@@ -23,6 +23,10 @@ from splatoon3_ai_coach.analysis.scenarios import (
 )
 from splatoon3_ai_coach.config.models import AppConfig, VisionLanguage
 from splatoon3_ai_coach.media.video_source import Observability, VideoSource
+from splatoon3_ai_coach.media.vision_manifest import (
+    load_vision_manifest,
+    save_vision_manifest,
+)
 from splatoon3_ai_coach.vision.map_ink import MAP_OBSERVATIONS_FILENAME, MapObservation
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
@@ -30,10 +34,6 @@ from splatoon3_ai_coach.vision.models import (
     SpecialGaugeReading,
     VisionFrameResult,
     VisionManifest,
-)
-from splatoon3_ai_coach.media.vision_manifest import (
-    load_vision_manifest,
-    save_vision_manifest,
 )
 from splatoon3_ai_coach.vision.pipeline import refuse_vision_manifest, run_vision
 

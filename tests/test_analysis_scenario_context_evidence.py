@@ -6,6 +6,14 @@ import json
 from pathlib import Path
 
 import pytest
+from vision_manifest_viewer.html import render_html
+from vision_manifest_viewer.model import (
+    ManifestSummary,
+    ManifestView,
+    ObservationView,
+    ScenarioEvidenceView,
+)
+from vision_manifest_viewer.special_ready import derive_special_ready_markers
 
 from splatoon3_ai_coach.analysis.pipeline import (
     extract_special_readings,
@@ -24,7 +32,11 @@ from splatoon3_ai_coach.analysis.scenario_evidence import (
     build_players_evidence,
     build_special_evidence,
 )
-from splatoon3_ai_coach.analysis.scenario_models import Scenario, ScenarioOutcome, ScenarioType
+from splatoon3_ai_coach.analysis.scenario_models import (
+    Scenario,
+    ScenarioOutcome,
+    ScenarioType,
+)
 from splatoon3_ai_coach.analysis.special_ready_markers import (
     ReadySample,
     derive_special_ready_onsets,
@@ -41,14 +53,6 @@ from splatoon3_ai_coach.vision.models import (
     SpecialGaugeReading,
     VisionFrameResult,
 )
-from vision_manifest_viewer.html import render_html
-from vision_manifest_viewer.model import (
-    ManifestSummary,
-    ManifestView,
-    ObservationView,
-    ScenarioEvidenceView,
-)
-from vision_manifest_viewer.special_ready import derive_special_ready_markers
 
 
 def _cfg(**overrides: float) -> ScenarioBuilderConfig:
@@ -146,7 +150,10 @@ def test_death_episode_enrichment() -> None:
     assert ctx.map.ink.nearest_before_anchor is not None
     assert ctx.map.ink.nearest_before_anchor.video_time == 70.0
     assert ctx.players is not None
-    assert [(p.video_time, p.ally_alive_count, p.opponent_alive_count) for p in ctx.players.trajectory] == [
+    assert [
+        (p.video_time, p.ally_alive_count, p.opponent_alive_count)
+        for p in ctx.players.trajectory
+    ] == [
         (65.0, 4, 3),
         (69.5, 4, 4),
     ]
@@ -200,7 +207,11 @@ def test_evidence_outside_window_excluded() -> None:
     scenario = _death_scenario(start=70.5, end=80.0)
     # window = [62.5, 82.0] with default lookback 8 / lookforward 2
     pack = ScenarioEvidencePack(
-        map_observations=[_ink(60.0, 0.5, 0.5), _ink(68.0, 0.6, 0.4), _ink(83.0, 0.4, 0.6)],
+        map_observations=[
+            _ink(60.0, 0.5, 0.5),
+            _ink(68.0, 0.6, 0.4),
+            _ink(83.0, 0.4, 0.6),
+        ],
         state_snapshots=[_snap(60.0, 4, 4), _snap(69.0, 3, 4), _snap(83.0, 2, 2)],
         special_readings=[
             _special(60.0, ready=False),
@@ -260,7 +271,9 @@ def test_roster_compression_sparse_semantics() -> None:
         ]
     )
     compressed = compress_player_count_observations(obs)
-    assert [(o.video_time, o.ally_alive_count, o.opponent_alive_count) for o in compressed] == [
+    assert [
+        (o.video_time, o.ally_alive_count, o.opponent_alive_count) for o in compressed
+    ] == [
         (1.0, 4, 4),
         (4.0, 3, 4),
         (6.0, 4, 4),
@@ -281,7 +294,10 @@ def test_roster_compression_sparse_semantics() -> None:
         max_gap_seconds=1.0,
     )
     assert players is not None
-    assert [(p.video_time, p.ally_alive_count, p.opponent_alive_count) for p in players.trajectory] == [
+    assert [
+        (p.video_time, p.ally_alive_count, p.opponent_alive_count)
+        for p in players.trajectory
+    ] == [
         (1.0, 4, 4),
         (4.0, 3, 4),
         (6.0, 4, 4),
@@ -289,7 +305,7 @@ def test_roster_compression_sparse_semantics() -> None:
 
 
 def test_ready_onset_window_boundary_sees_preceding_false() -> None:
-    """Window from 50.0 with false@49.0 → true@50.2: one real onset, not a boundary invent.
+    """Window from 50.0, false@49.0 → true@50.2: one real onset, not a boundary invent.
 
     Preceding false outside the window still participates in onset derivation.
     Expected marker is the observed transition at 50.2 — not an invented onset
@@ -301,7 +317,9 @@ def test_ready_onset_window_boundary_sees_preceding_false() -> None:
     ]
     shared = derive_special_ready_onsets(
         [
-            ReadySample(video_time=r.video_time, ready=r.ready, observation_id=r.observation_id)
+            ReadySample(
+                video_time=r.video_time, ready=r.ready, observation_id=r.observation_id
+            )
             for r in readings
         ]
     )
@@ -326,7 +344,9 @@ def test_ready_onset_exactly_one_with_continued_true() -> None:
     ]
     shared = derive_special_ready_onsets(
         [
-            ReadySample(video_time=r.video_time, ready=r.ready, observation_id=r.observation_id)
+            ReadySample(
+                video_time=r.video_time, ready=r.ready, observation_id=r.observation_id
+            )
             for r in readings
         ]
     )
@@ -435,7 +455,9 @@ def test_missing_map_observations_and_empty_secondary_evidence(
     # No map_observations.json, no manifest → empty evidence pack
     scenarios = write_scenarios(events, config, tmp_path)
     assert not (tmp_path / "map_observations.json").exists()
-    contexts = json.loads((tmp_path / "scenario_contexts.json").read_text(encoding="utf-8"))
+    contexts = json.loads(
+        (tmp_path / "scenario_contexts.json").read_text(encoding="utf-8")
+    )
     death_ctx = next(c for c in contexts if "death_episode" in c["scenario_id"])
     # Overlay facts unchanged / absent ink; no fabricated players/special
     if death_ctx.get("map") is not None:
@@ -493,7 +515,12 @@ def test_ready_onset_parity_shared_vmv_context() -> None:
         _special(6.0, ready=True, oid="f"),
     ]
     shared = derive_special_ready_onsets(
-        [ReadySample(video_time=r.video_time, ready=r.ready, observation_id=r.observation_id) for r in readings]
+        [
+            ReadySample(
+                video_time=r.video_time, ready=r.ready, observation_id=r.observation_id
+            )
+            for r in readings
+        ]
     )
     vmv = derive_special_ready_markers(
         [
@@ -642,7 +669,6 @@ def test_vmv_scenario_card_smoke() -> None:
         },
         relations={},
     )
-    from vision_manifest_viewer.model import ManifestSummary, ManifestView
 
     view = ManifestView(
         summary=ManifestSummary(

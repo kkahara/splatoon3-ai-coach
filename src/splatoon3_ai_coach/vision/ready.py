@@ -28,7 +28,9 @@ def _to_gray(roi: np.ndarray) -> np.ndarray:
     return clahe.apply(gray)
 
 
-def _load_templates(template_dir: Path | None, language: VisionLanguage | str) -> list[np.ndarray]:
+def _load_templates(
+    template_dir: Path | None, language: VisionLanguage | str
+) -> list[np.ndarray]:
     """Load grayscale Ready? templates from ``template_dir / {language}``."""
     if template_dir is None:
         return []

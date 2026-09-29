@@ -75,6 +75,12 @@ PROHIBITED_CLAIM_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
         r"\bclean duel\b",
         r"\btraded poorly\b",
         r"\byou traded\b",
+        # Team-level zone state may be stated; player attribution may not.
+        r"\b(?:you|your death|the player)\s+(?:caused|made|failed to)\b.*"
+        r"\b(?:capture|control|zone|objective|loss)\b",
+        r"\b(?:pushing|losing|winning|lost|won)\s+(?:the\s+)?objective\b",
+        r"\b(?:count|score|penalty)\s+(?:caused|led\s+to)\b",
+        r"\bdied\s+because\s+(?:\w+\s+){0,3}(?:behind|ahead)\b",
     )
 )
 
@@ -377,12 +383,13 @@ def classify_unsupported_desire(topic: str) -> ClaimSupport:
         "special",
         "map_content",
         "same_fight",
+        "zone_control",
     }
     if key in interpretation:
         return ClaimSupport.REQUIRES_INTERPRETATION
     if key in new_evidence or key in {"fight_quality", "won_fight", "lost_fight"}:
         return ClaimSupport.REQUIRES_NEW_EVIDENCE
-    if key in {"causation", "splat_caused_death"}:
+    if key in {"causation", "splat_caused_death", "zone_holder"}:
         return ClaimSupport.PROHIBITED
     return ClaimSupport.REQUIRES_NEW_EVIDENCE
 
@@ -399,8 +406,15 @@ def evidence_contract_summary() -> dict[str, list[str]]:
             "relations as temporal associations (leads_to, follows, next_engagement)",
             "trade_candidate as configured window flag only",
             "comparisons across episodes when fields exist on both",
-            "ally_alive_count / opponent_alive_count roster state when player_count_samples or player_count_window present",
-            "player_count present_by / duration_since_present_by as sampled presence bounds ('observed by T, Δt before anchor'; not continuous disadvantaged time)",
+            "ally_alive_count / opponent_alive_count roster state when "
+            "player_count_samples or player_count_window present",
+            "player_count present_by / duration_since_present_by as sampled presence "
+            "bounds ('observed by T, Δt before anchor'; not continuous disadvantaged "
+            "time)",
+            "ally/opponent remaining count and penalty at time T "
+            "(Splat Zones only; observed samples from ScenarioContext.score)",
+            "Splat Zones control state and confirmed team-level transitions "
+            "(observed samples from ScenarioContext.zone_control)",
         ],
         "prohibited_as_facts": [
             "won/lost fight, clean duel, outnumbered in the fight, overextended",
@@ -413,13 +427,19 @@ def evidence_contract_summary() -> dict[str, list[str]]:
             "splats were the same fight without richer evidence",
             "inferring alive counts from splat/death/scenario membership",
             "treating a roster-count transition as a named teammate death or trade",
-            "saying the player was continuously disadvantaged for duration_since_present_by seconds",
+            "saying the player was continuously disadvantaged for "
+            "duration_since_present_by seconds",
+            "which player caused a control change, or pushing / losing the "
+            "objective as player attribution",
+            "claiming a control change caused a death or other outcome",
+            "the count or penalty caused the death",
+            "stating a not_shown penalty as zero without the stated evidence limit",
         ],
         "requires_new_evidence": [
             "fight boundaries, damage, weapons, positions",
             "generic enemy_count / fight participants (vs roster alive counts)",
             "loadout/abilities",
-            "objective/score/special state",
+            "objective state other than Splat Zones counts; special state",
             "richer map content / gaze",
         ],
         "requires_interpretation": [

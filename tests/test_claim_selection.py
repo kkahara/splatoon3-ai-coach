@@ -14,8 +14,8 @@ from splatoon3_ai_coach.analysis.scenario_context import (
     TimelineContext,
 )
 from splatoon3_ai_coach.analysis.scenario_evidence import (
-    PlayersEvidence,
     PlayerCountPoint,
+    PlayersEvidence,
     SpecialEvidence,
     SpecialReading,
 )
@@ -30,6 +30,11 @@ from splatoon3_ai_coach.coach.claim_catalog import (
     ClaimId,
     DeathImportanceFactorId,
 )
+from splatoon3_ai_coach.coach.coach_input import (
+    CoachInput,
+    GameClockSample,
+    build_coach_input_for_scenario,
+)
 from splatoon3_ai_coach.coach.coaching_candidates import (
     CoachingCandidate,
     rank_candidates,
@@ -40,7 +45,6 @@ from splatoon3_ai_coach.coach.death_importance import (
     resolve_match_duration_seconds,
     score_death_candidate,
 )
-from splatoon3_ai_coach.coach.coach_input import CoachInput, GameClockSample
 from splatoon3_ai_coach.coach.game_clock import GameClock, GameClockObservation
 from splatoon3_ai_coach.coach.load_analysis import (
     load_coach_analysis_bundle,
@@ -48,7 +52,6 @@ from splatoon3_ai_coach.coach.load_analysis import (
 )
 from splatoon3_ai_coach.coach.vmv import format_vmv_developer, format_vmv_player
 from splatoon3_ai_coach.config import default_config_path, load_config
-from splatoon3_ai_coach.coach.coach_input import build_coach_input_for_scenario
 
 _REPO = Path(__file__).resolve().parents[1]
 _ANALYSIS_SEP10 = _REPO / "analysis" / "2026-09-10 15-58-36"
@@ -86,13 +89,12 @@ def _death_unit(
         )
     special = None
     if special_ready:
+        readings = [
+            SpecialReading(video_time=when, visible=True, ready=True, fill_fraction=1.0)
+            for when in (start - 1.5, start - 0.5)
+        ]
         special = SpecialEvidence(
-            nearest_before_anchor=SpecialReading(
-                video_time=start - 0.5,
-                visible=True,
-                ready=True,
-                fill_fraction=1.0,
-            )
+            observations=readings, nearest_before_anchor=readings[-1]
         )
     samples: list[GameClockSample] = []
     if seconds_remaining is not None:
@@ -178,7 +180,7 @@ def test_weighted_sum_multiple_factors() -> None:
     assert ClaimId.DEATH_WHILE_OUTNUMBERED.value in active
     assert ClaimId.DEATH_SPECIAL_READY.value in active
     assert ClaimId.DEATH_FINAL_30S.value in active
-    expected = 2.5 + 2.0 + 1.0
+    expected = 2.5 + 1.0
     assert unit.importance_score == pytest.approx(expected)
 
 
@@ -213,7 +215,11 @@ def test_first_30s_requires_match_duration() -> None:
 def test_map_false_factor_when_observable_false() -> None:
     unit = score_death_candidate(_death_unit(map_before=False))
     assert ClaimId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value in _active_ids(unit)
-    assert unit.importance_score == pytest.approx(1.5)
+    assert unit.importance_score == pytest.approx(0.0)
+    ranked = score_death_candidate(
+        _death_unit(map_before=False), ranking_excluded_factors=()
+    )
+    assert ranked.importance_score == pytest.approx(1.5)
 
 
 def test_zero_score_still_a_candidate() -> None:
@@ -268,6 +274,44 @@ def test_rank_candidates_type_agnostic_top_n() -> None:
     assert sum(1 for c in ranked if c.selected_for_llm) == 3
 
 
+def test_rank_candidates_positive_selection_skips_zero_scores() -> None:
+    candidates = [
+        CoachingCandidate(
+            candidate_id="death_episode:1.000",
+            candidate_type="death_episode",
+            video_time=1.0,
+            importance_score=5.0,
+            factors=[],
+        ),
+        CoachingCandidate(
+            candidate_id="death_episode:2.000",
+            candidate_type="death_episode",
+            video_time=2.0,
+            importance_score=0.0,
+            factors=[],
+        ),
+        CoachingCandidate(
+            candidate_id="death_episode:3.000",
+            candidate_type="death_episode",
+            video_time=3.0,
+            importance_score=0.0,
+            factors=[],
+        ),
+        CoachingCandidate(
+            candidate_id="death_episode:4.000",
+            candidate_type="death_episode",
+            video_time=4.0,
+            importance_score=2.0,
+            factors=[],
+        ),
+    ]
+    ranked = rank_candidates(candidates, max_llm_units=3, require_positive_score=True)
+    assert [c.candidate_id for c in ranked if c.selected_for_llm] == [
+        "death_episode:1.000",
+        "death_episode:4.000",
+    ]
+
+
 def test_tie_break_earlier_video_time() -> None:
     a = CoachingCandidate(
         candidate_id="death_episode:10.000",
@@ -300,12 +344,8 @@ def test_weight_override_changes_score() -> None:
 def test_resolve_match_duration_from_clock_peak() -> None:
     clock = GameClock(
         observations=(
-            GameClockObservation(
-                video_time=10.0, seconds_remaining=300, confidence=1.0
-            ),
-            GameClockObservation(
-                video_time=100.0, seconds_remaining=200, confidence=1.0
-            ),
+            GameClockObservation(video_time=10.0, seconds_remaining=300, confidence=1.0),
+            GameClockObservation(video_time=100.0, seconds_remaining=200, confidence=1.0),
         )
     )
     assert resolve_match_duration_seconds(clock) == 300
@@ -343,9 +383,7 @@ def test_select_primary_death_only_by_default() -> None:
     ]
     ids = select_primary_scenario_ids(scenarios, limit=10)
     assert ids == ["death_episode:1.000"]
-    filled = select_primary_scenario_ids(
-        scenarios, limit=10, only_preferred=False
-    )
+    filled = select_primary_scenario_ids(scenarios, limit=10, only_preferred=False)
     assert filled[0] == "death_episode:1.000"
     assert "engagement:3.000" in filled
 

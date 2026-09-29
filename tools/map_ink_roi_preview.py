@@ -9,7 +9,8 @@ Examples::
 
     python tools/map_ink_roi_preview.py --stage museum_dalfonsino path/to/frame.jpg
     python tools/map_ink_roi_preview.py --stage wahoo_world --time 42.0 clip.mov
-    python tools/map_ink_roi_preview.py --geometry configs/stage_maps/museum_dalfonsino/default.yaml
+    python tools/map_ink_roi_preview.py \\
+      --geometry configs/stage_maps/museum_dalfonsino/default.yaml
 """
 
 from __future__ import annotations
@@ -79,7 +80,10 @@ def build_parser() -> argparse.ArgumentParser:
         "-o",
         type=Path,
         default=None,
-        help="Output image path (default under analysis/map_ink_validation/debug_map_ink/)",
+        help=(
+            "Output image path "
+            "(default under analysis/map_ink_validation/debug_map_ink/)"
+        ),
     )
     parser.add_argument(
         "--config",

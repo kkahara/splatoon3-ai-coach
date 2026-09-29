@@ -1,8 +1,9 @@
 """Derive coaching-relevant facts from Scenarios and the GameEvent timeline.
 
 Facts and measurements only. No coaching judgments. Scenario grouping stays
-in ``scenarios.py``. Sparse secondary evidence (map ink, roster, special)
-comes from persisted artifacts via ``ScenarioEvidencePack`` — not detectors.
+in ``scenarios.py``. Sparse secondary evidence (map ink, roster, special,
+Splat Zones score) comes from persisted artifacts via ``ScenarioEvidencePack``
+— not detectors.
 LOW_INK intervals come from the event timeline under an explicit overlap
 rule (``low_ink_context``) and never become scenario members.
 
@@ -45,6 +46,11 @@ from splatoon3_ai_coach.analysis.scenario_relations import (
     attach_relations as _attach_relations,
 )
 from splatoon3_ai_coach.analysis.scenarios import event_id
+from splatoon3_ai_coach.analysis.score_context import ScoreEvidence, build_score_evidence
+from splatoon3_ai_coach.analysis.zone_control_context import (
+    ZoneControlEvidence,
+    build_zone_control_evidence,
+)
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
 from splatoon3_ai_coach.media.video_source import Observability
 from splatoon3_ai_coach.vision.models import (
@@ -158,6 +164,8 @@ class ScenarioContext(BaseModel):
     players: PlayersEvidence | None = None
     special: SpecialEvidence | None = None
     low_ink: LowInkEvidence | None = None
+    score: ScoreEvidence | None = None
+    zone_control: ZoneControlEvidence | None = None
     relations: ScenarioRelations = Field(default_factory=ScenarioRelations)
 
 
@@ -187,12 +195,12 @@ def build_scenario_context(
     )
     players = None
     special = None
+    score = None
+    zone_control = None
     snapshots: list[GameStateSnapshot] = []
     if evidence is not None and scenario.scenario_type in _IMPLEMENTED:
         window_start, window_end = scenario_window(scenario, config)
-        death_time = (
-            death_episode.death_time if death_episode is not None else None
-        )
+        death_time = death_episode.death_time if death_episode is not None else None
         anchor = scenario_anchor_time(scenario, death_time=death_time)
         max_gap = float(config.context_max_gap_seconds)
         snapshots = list(evidence.state_snapshots)
@@ -207,14 +215,33 @@ def build_scenario_context(
             map_ctx = MapContext(ink=ink)
         elif map_ctx is not None:
             map_ctx = map_ctx.model_copy(update={"ink": ink})
+        episode_death = (
+            death_time if scenario.scenario_type is ScenarioType.DEATH_EPISODE else None
+        )
         players = build_players_evidence(
             evidence.state_snapshots,
             window_start=window_start,
             window_end=window_end,
             anchor=anchor,
-            death_time=death_time
-            if scenario.scenario_type is ScenarioType.DEATH_EPISODE
-            else None,
+            death_time=episode_death,
+            max_gap_seconds=max_gap,
+        )
+        score = build_score_evidence(
+            snapshots,
+            anchor=anchor,
+            death_time=episode_death,
+            pre_death_offset_seconds=config.score_pre_death_offset_seconds,
+            max_gap_seconds=max_gap,
+            lookback_seconds=config.score_lookback_seconds,
+        )
+        zone_control = build_zone_control_evidence(
+            snapshots,
+            window_start=window_start,
+            window_end=window_end,
+            anchor=anchor,
+            death_time=episode_death,
+            pre_death_offset_seconds=config.score_pre_death_offset_seconds,
+            lookback_seconds=config.score_lookback_seconds,
             max_gap_seconds=max_gap,
         )
         special = build_special_evidence(
@@ -242,6 +269,8 @@ def build_scenario_context(
         players=players,
         special=special,
         low_ink=build_low_ink_evidence(ordered, scenario),
+        score=score,
+        zone_control=zone_control,
         relations=ScenarioRelations(),
     )
 

@@ -12,7 +12,8 @@ Examples::
       --roi R01='[0.44,0.06,0.73,0.28]' \\
       --roi R02='[0.50,0.20,0.80,0.40]'
     python tools/roi_visualize.py frame.jpg --stage inkblot_art_academy
-    python tools/roi_visualize.py frame.jpg --geometry configs/stage_maps/inkblot_art_academy/default.yaml
+    python tools/roi_visualize.py frame.jpg \\
+      --geometry configs/stage_maps/inkblot_art_academy/default.yaml
 """
 
 from __future__ import annotations

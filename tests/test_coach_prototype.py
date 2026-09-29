@@ -126,14 +126,17 @@ def test_annotate_claim_flags_does_not_mutate_assessment() -> None:
 
 
 def test_claim_flags_ignore_explicit_negations() -> None:
-    from splatoon3_ai_coach.coach.evidence_contract import claim_contains_prohibited_language
+    from splatoon3_ai_coach.coach.evidence_contract import (
+        claim_contains_prohibited_language,
+    )
 
     cases_ok = [
         "Cannot infer that the splat caused the death.",
         "The splat did not cause the death.",
         "There is no evidence that the splat caused the death.",
         "This does not establish that the player should have checked the map.",
-        "The absence of a map check does not imply the player should have checked the map.",
+        "The absence of a map check does not imply the player should have checked the "
+        "map.",
         "Cannot conclude that you overextended.",
     ]
     for text in cases_ok:
@@ -146,7 +149,9 @@ def test_claim_flags_ignore_explicit_negations() -> None:
 
 
 def test_claim_flags_count_genuine_assertions() -> None:
-    from splatoon3_ai_coach.coach.evidence_contract import claim_contains_prohibited_language
+    from splatoon3_ai_coach.coach.evidence_contract import (
+        claim_contains_prohibited_language,
+    )
 
     cases_bad = [
         "The splat caused the death.",

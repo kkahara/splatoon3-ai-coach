@@ -36,7 +36,7 @@ vision:
     tesseract_languages:
       en: eng
       ja: jpn
-  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "player_count", "special_gauge", "match_intro", "ready", "low_ink", "score"]
+  enabled_detectors: ["timer", "death", "splat", "respawn", "active_gameplay", "map_overlay", "player_count", "special_gauge", "match_intro", "ready", "low_ink", "score", "zone_control"]
   # Sole visual-analysis sampling rate. Detectors do not schedule themselves.
   hud_cadence_fps: 2.0
   timer:
@@ -192,8 +192,13 @@ vision:
       - [0.664583, 0.013889, 0.738021, 0.109259]
     template_dir: "../calibration/templates/players"
     # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X (lower=better).
-    sqdiff_match_threshold: 0.08
+    # Library scores: X markers peak at 0.00–0.02, live icons start near 0.04
+    # (0.08 counted live icons as X).
+    sqdiff_match_threshold: 0.03
     min_usable_confidence: 0.50
+    # Any slot with mean |Sobel| (96×96 crop) below this ⇒ roster HUD not drawn
+    # (map open, respawn map); the frame gets no roster evidence. 0 disables.
+    min_slot_edge_energy: 20.0
     # Fusion debounce per side: a changed count needs this many consecutive
     # agreeing readings (at hud_cadence_fps 2.0, one reading = 0.5s).
     confirm_readings: 2
@@ -221,16 +226,46 @@ vision:
     ready_prompt_threshold: 0.50
     min_usable_confidence: 0.40
   # Splat Zones remaining counters (screen left/right). Observe-only detector.
-  # Fusion maps left→ally / right→opponent (Stage 2 identity evidence); hold is
-  # fusion-only (score_max_hold_seconds). No GameEvent in Stage 3.1.
+  # Fusion maps left→ally / right→opponent (Stage 2 identity evidence), runs only
+  # when match_intro resolves battle_mode_id == splat_zones, holds briefly
+  # (score_max_hold_seconds) and rejects readings off the counting-down
+  # trajectory (Stage 3.2). No score GameEvent.
   score:
     left_roi: [0.414062, 0.138889, 0.479167, 0.187037]
     right_roi: [0.528646, 0.138889, 0.598958, 0.192593]
+    # White "+N" penalty pill under each pod; read only when "+" precedes digits.
+    left_penalty_roi: [0.424479, 0.196296, 0.481771, 0.240741]
+    right_penalty_roi: [0.513021, 0.196296, 0.572917, 0.240741]
+    penalty_max_value: 99
     template_dir: "../calibration/templates"
     match_threshold: 0.55
     min_usable_confidence: 0.50
     battle_mode_id: splat_zones
     score_max_hold_seconds: 2.0
+    score_plausibility_enabled: true
+    score_max_drop_per_second: 2.0
+    score_drop_slack: 2
+    score_confirm_readings: 3
+  # Splat Zones ownership cue: the highlighted/team-coloured scoreboard pod.
+  # This remains an observe-only reading; mode gating belongs to fusion.
+  # Thresholds and fusion settings are measured in
+  # analysis/zone_control_survey/STAGE_1_VALIDATION.md and STAGE_2_VALIDATION.md;
+  # re-run those studies before changing them.
+  zone_control:
+    # Pod interiors only: excludes the centre capture meter and penalty pills.
+    left_pod_roi: [0.420000, 0.128000, 0.466000, 0.195000]
+    right_pod_roi: [0.534000, 0.128000, 0.581000, 0.195000]
+    lit_value_min: 140
+    dark_value_max: 70
+    lit_min_fraction: 0.80
+    lit_max_dark_fraction: 0.10
+    dim_min_dark_fraction: 0.48
+    dim_max_lit_fraction: 0.45
+    dim_min_lit_fraction: 0.12
+    min_edge_fraction: 0.03
+    min_usable_confidence: 0.55
+    confirm_readings: 1
+    hold_seconds: 2.0
   state_fusion:
     smoothing_window: 5
     max_hold_duration: 2.0
@@ -276,6 +311,19 @@ coach:
   nvidia_model: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
   # Type-agnostic top-N across coaching candidates (death is first domain).
   max_llm_units: 3
+  # Leave top-N slots empty rather than fill them with zero-score deaths.
+  llm_units_require_positive_score: true
+  # Context factors: they add weight only to a death another factor supports.
+  death_modifier_factors: [death_final_30s, death_first_30s]
+  # Facts may still attach to a death; they do not affect importance_score.
+  death_ranking_excluded_factors:
+    - death_map_overlay_before_false
+    - death_special_ready
+    # Splat Zones count factors: observed only until the competition report
+    # (tools/ranking_competition.py --splat-zones) is reviewed. No weight yet.
+    - death_while_behind_in_count
+    - death_while_ahead_in_count
+    - death_opponent_counter_ticked
   # Attention weights, never negative. Provisional until reviewed against
   # the library re-scoring report (tools/importance_report.py).
   death_importance_weights:
@@ -287,7 +335,9 @@ coach:
     death_final_30s: 1.0
     death_first_30s: 0.5
   death_factor_thresholds:
-    redeath_max_gap_seconds: 10.0
+    # Death-to-death gap. Respawn alone takes ~10s (library minimum gap: 12s),
+    # so 20s ≈ splatted again soon after returning. ID keeps "le_10s".
+    redeath_max_gap_seconds: 20.0
     final_window_seconds: 30
     first_window_seconds: 30
     # Roster factors read the trajectory at or before death minus this
@@ -296,6 +346,11 @@ coach:
     # Outnumbered / ahead need at least this many more players alive on one
     # side. A 1-player gap fired on most deaths and stopped discriminating.
     roster_min_gap: 2
+    # Special ready needs this many consecutive ready gauge readings.
+    special_ready_min_readings: 2
+    # Splat Zones behind / ahead in count: |remaining_diff| at the pre-death
+    # sample. Provisional; factors are observed-but-excluded.
+    count_min_diff: 10
   game_clock_max_lookup_gap_seconds: 1.0
   player_count_max_lookup_gap_seconds: 1.0
   player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]

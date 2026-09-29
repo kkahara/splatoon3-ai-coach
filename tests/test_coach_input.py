@@ -15,8 +15,15 @@ from splatoon3_ai_coach.coach.coach_input import (
     build_coach_input_for_scenario,
 )
 from splatoon3_ai_coach.coach.evidence_contract import claim_contains_prohibited_language
-from splatoon3_ai_coach.coach.game_clock import GameClock, GameClockObservation, build_game_clock
-from splatoon3_ai_coach.coach.player_count_clock import PlayerCountClock, build_player_count_clock
+from splatoon3_ai_coach.coach.game_clock import (
+    GameClock,
+    GameClockObservation,
+    build_game_clock,
+)
+from splatoon3_ai_coach.coach.player_count_clock import (
+    PlayerCountClock,
+    build_player_count_clock,
+)
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
 from splatoon3_ai_coach.vision.models import (
@@ -160,7 +167,9 @@ def test_engagement_singleton_gets_not_complete_fight_limit() -> None:
         for item in unit.evidence_limits
         if item.code == "engagement_not_complete_fight"
     )
-    assert "complete fight" in statement.lower() or "splat observation" in statement.lower()
+    assert (
+        "complete fight" in statement.lower() or "splat observation" in statement.lower()
+    )
     assert "won" not in statement.lower()
     assert claim_contains_prohibited_language(statement) is False
 
@@ -177,7 +186,9 @@ def test_leads_to_limit_is_association_never_causation() -> None:
         for item in unit.evidence_limits
         if item.code == "leads_to_association_not_causation"
     )
-    assert "associated" in limit.statement.lower() or "temporal" in limit.statement.lower()
+    assert (
+        "associated" in limit.statement.lower() or "temporal" in limit.statement.lower()
+    )
     assert "caused" not in limit.statement.lower()
     assert claim_contains_prohibited_language(limit.statement) is False
 
@@ -278,7 +289,10 @@ def test_180224_coach_input_freeze_regression() -> None:
         assert unit.primary_scenario.scenario_id == scenario.scenario_id
         for limit in unit.evidence_limits:
             assert claim_contains_prohibited_language(limit.statement) is False
-            assert "caused" not in limit.statement.lower() or "not" in limit.statement.lower()
+            assert (
+                "caused" not in limit.statement.lower()
+                or "not" in limit.statement.lower()
+            )
 
     after = build_scenarios(events, config.scenarios)
     assert Counter(s.scenario_type.value for s in after) == before_types
@@ -319,7 +333,9 @@ def test_player_count_samples_align_with_game_clock_labels() -> None:
 
 
 def test_player_count_missing_when_clock_empty() -> None:
-    unit = _unit([_death(10.0), _respawn(17.0), _active(19.0)], ScenarioType.DEATH_EPISODE)
+    unit = _unit(
+        [_death(10.0), _respawn(17.0), _active(19.0)], ScenarioType.DEATH_EPISODE
+    )
     assert unit.player_count_samples
     assert all(sample.observation is None for sample in unit.player_count_samples)
     assert any(item.code == "player_count_missing" for item in unit.evidence_limits)
@@ -563,7 +579,10 @@ def test_present_by_keeps_disadvantage_across_worsening_avb() -> None:
     assert ctx.numbers_state_at_anchor == "disadvantage"
     assert ctx.state_present_by == pytest.approx(43.0)
     assert ctx.duration_since_present_by == pytest.approx(5.0)
-    traj = [(p.ally_alive_count, p.opponent_alive_count, p.numbers_state) for p in ctx.trajectory]
+    traj = [
+        (p.ally_alive_count, p.opponent_alive_count, p.numbers_state)
+        for p in ctx.trajectory
+    ]
     assert (3, 4, "disadvantage") in traj
     assert (2, 4, "disadvantage") in traj
 
@@ -614,7 +633,8 @@ def test_roster_transition_does_not_emit_game_event() -> None:
     assert unit.player_count_context is not None
     assert unit.player_count_context.trajectory
     traj_states = [
-        (p.ally_alive_count, p.opponent_alive_count) for p in unit.player_count_context.trajectory
+        (p.ally_alive_count, p.opponent_alive_count)
+        for p in unit.player_count_context.trajectory
     ]
     assert (4, 4) in traj_states
     assert (3, 4) in traj_states

@@ -9,14 +9,15 @@ import cv2
 import numpy as np
 import pytest
 
+from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
+from splatoon3_ai_coach.vision.map_ink import MapInkClassifier
+from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
+
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 import map_ink_color_audit as audit  # noqa: E402
-from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
-from splatoon3_ai_coach.vision.map_ink import MapInkClassifier
-from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
 
 
 def _full_frame_geometry() -> StageMapGeometry:
@@ -26,7 +27,9 @@ def _full_frame_geometry() -> StageMapGeometry:
     )
 
 
-def _bgr_from_hsv(h: int, s: int, v: int, shape: tuple[int, int] = (100, 100)) -> np.ndarray:
+def _bgr_from_hsv(
+    h: int, s: int, v: int, shape: tuple[int, int] = (100, 100)
+) -> np.ndarray:
     """Solid BGR image with the given OpenCV HSV triple."""
     hsv = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
     hsv[:, :] = (h, s, v)

@@ -17,6 +17,7 @@ from splatoon3_ai_coach.config.models import (
     SplatDetectorConfig,
     StateFusionConfig,
     TimerDetectorConfig,
+    ZoneControlDetectorConfig,
 )
 from splatoon3_ai_coach.vision.lifecycle import (
     LifecycleFuser,
@@ -25,10 +26,7 @@ from splatoon3_ai_coach.vision.lifecycle import (
 from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     GameStateSnapshot,
-    MatchPhase,
     PlayerCountReading,
-    ScoreReading,
-    ScoreSideReading,
     SourceFrameReference,
     SplatBannerInstance,
     SplatReading,
@@ -37,15 +35,26 @@ from splatoon3_ai_coach.vision.models import (
     VisionFrameResult,
 )
 from splatoon3_ai_coach.vision.player_count import alive_counts_from_reading
+from splatoon3_ai_coach.vision.score_fusion import (
+    ScoreFrameFuser,
+    ScoreFrameFusion,
+    _ScoreSideMemory,
+    fuse_score_sides_at,
+    resolve_battle_mode,
+    retract_contradicted_scores,
+)
+from splatoon3_ai_coach.vision.zone_control_fusion import (
+    ZoneControlFuser,
+)
 
-
-@dataclass
-class _ScoreSideMemory:
-    """Last accepted observation for one score side (ally or opponent)."""
-
-    value: int | None = None
-    last_at: float | None = None
-    evidence_ids: list[str] = field(default_factory=list)
+__all__ = [
+    "_ScoreSideMemory",
+    "debounce_roster_side",
+    "fuse_game_state",
+    "fuse_score_sides_at",
+    "fuse_timer_state",
+    "ZoneControlFuser",
+]
 
 
 @dataclass
@@ -93,6 +102,7 @@ def fuse_game_state(
     player_count_config: PlayerCountDetectorConfig | None = None,
     low_ink_config: LowInkDetectorConfig | None = None,
     score_config: ScoreDetectorConfig | None = None,
+    zone_control_config: ZoneControlDetectorConfig | None = None,
 ) -> list[GameStateSnapshot]:
     """Fuse detector readings into domain snapshots. Does not emit game events."""
     death_cfg = death_config or DeathDetectorConfig()
@@ -102,6 +112,7 @@ def fuse_game_state(
     map_cfg = map_overlay_config or MapOverlayDetectorConfig()
     player_count_cfg = player_count_config or PlayerCountDetectorConfig()
     score_cfg = score_config or ScoreDetectorConfig()
+    zone_cfg = zone_control_config or ZoneControlDetectorConfig()
     lifecycle_cfg = lifecycle_config or LifecycleFusionConfig()
     lifecycle = LifecycleFuser(lifecycle_cfg)
 
@@ -113,8 +124,9 @@ def fuse_game_state(
     last_splatted: bool | None = None
     last_splatted_at: float | None = None
     last_splatted_ids: list[str] = []
-    ally_score_mem = _ScoreSideMemory()
-    opponent_score_mem = _ScoreSideMemory()
+    score_fuser = ScoreFrameFuser(score_cfg, resolve_battle_mode(frame_results))
+    score_fusions: list[ScoreFrameFusion] = []
+    zone_fuser = ZoneControlFuser(zone_cfg, resolve_battle_mode(frame_results))
     ally_roster_mem = _RosterSideMemory()
     opponent_roster_mem = _RosterSideMemory()
 
@@ -160,21 +172,9 @@ def fuse_game_state(
                 frame, player_count_cfg, ally_roster_mem, opponent_roster_mem
             )
         )
-        (
-            ally_remaining,
-            ally_score_quality,
-            opponent_remaining,
-            opponent_score_quality,
-            score_ids,
-            ally_score_mem,
-            opponent_score_mem,
-        ) = _fuse_score_frame(
-            frame,
-            life.match_phase,
-            score_cfg,
-            ally_score_mem,
-            opponent_score_mem,
-        )
+        score = score_fuser.step(frame, life.match_phase)
+        score_fusions.append(score)
+        zone = zone_fuser.step(frame, life.match_phase)
         snapshots.append(
             GameStateSnapshot(
                 timestamp=frame.timestamp,
@@ -197,10 +197,16 @@ def fuse_game_state(
                 ally_alive_count=ally_alive,
                 opponent_alive_count=opponent_alive,
                 player_count_confidence=player_count_conf,
-                ally_remaining=ally_remaining,
-                opponent_remaining=opponent_remaining,
-                ally_score_quality=ally_score_quality,
-                opponent_score_quality=opponent_score_quality,
+                ally_remaining=score.ally_remaining,
+                opponent_remaining=score.opponent_remaining,
+                ally_score_quality=score.ally_score_quality,
+                opponent_score_quality=score.opponent_score_quality,
+                ally_penalty=score.ally_penalty,
+                opponent_penalty=score.opponent_penalty,
+                ally_penalty_quality=score.ally_penalty_quality,
+                opponent_penalty_quality=score.opponent_penalty_quality,
+                zone_control_state=zone.state,
+                zone_control_quality=zone.quality,
                 quality=quality,
                 evidence_ids=_combined_evidence(
                     remaining,
@@ -211,9 +217,10 @@ def fuse_game_state(
                     last_splatted_ids,
                     ally_alive,
                     player_count_ids,
-                    ally_remaining=ally_remaining,
-                    opponent_remaining=opponent_remaining,
-                    score_ids=score_ids,
+                    score_asserted=score.asserts_anything,
+                    score_ids=score.evidence_ids,
+                    zone_state=zone.state,
+                    zone_ids=zone.evidence_ids,
                 ),
                 source_frame=source,
                 last_observed_at=last_timer_at,
@@ -221,128 +228,39 @@ def fuse_game_state(
             )
         )
 
+    if score_fuser.plausibility.enabled:
+        snapshots = _apply_score_retractions(snapshots, score_fusions, score_cfg)
     return snapshots
 
 
-def fuse_score_sides_at(
-    *,
-    timestamp: float,
-    match_phase: MatchPhase,
-    reading: ScoreReading | None,
-    reading_usable: bool,
-    evidence_id: str | None,
-    max_hold_seconds: float,
-    ally_mem: _ScoreSideMemory,
-    opponent_mem: _ScoreSideMemory,
-) -> tuple[
-    int | None,
-    StateQuality,
-    int | None,
-    StateQuality,
-    list[str],
-    _ScoreSideMemory,
-    _ScoreSideMemory,
-]:
-    """Pure per-side score fusion (left→ally, right→opponent).
-
-    Hold last observation only — never invent unobserved values.
-    Outside ``in_match``, both sides clear to unknown.
-    """
-    if match_phase != "in_match":
-        cleared = _ScoreSideMemory()
-        return None, "unknown", None, "unknown", [], cleared, cleared
-
-    left_side: ScoreSideReading | None = None
-    right_side: ScoreSideReading | None = None
-    if reading_usable and reading is not None:
-        left_side = reading.left
-        right_side = reading.right
-
-    ally_val, ally_q, ally_mem = _fuse_one_score_side(
-        timestamp=timestamp,
-        side=left_side,
-        mem=ally_mem,
-        evidence_id=evidence_id,
-        max_hold_seconds=max_hold_seconds,
-    )
-    opp_val, opp_q, opponent_mem = _fuse_one_score_side(
-        timestamp=timestamp,
-        side=right_side,
-        mem=opponent_mem,
-        evidence_id=evidence_id,
-        max_hold_seconds=max_hold_seconds,
-    )
-    ids: list[str] = []
-    if ally_q == "observed" or opp_q == "observed":
-        if evidence_id:
-            ids = [evidence_id]
-    elif ally_q == "held" or opp_q == "held":
-        held_ids: list[str] = []
-        if ally_q == "held":
-            held_ids.extend(ally_mem.evidence_ids)
-        if opp_q == "held":
-            held_ids.extend(opponent_mem.evidence_ids)
-        ids = list(dict.fromkeys(held_ids))
-    return ally_val, ally_q, opp_val, opp_q, ids, ally_mem, opponent_mem
-
-
-def _fuse_one_score_side(
-    *,
-    timestamp: float,
-    side: ScoreSideReading | None,
-    mem: _ScoreSideMemory,
-    evidence_id: str | None,
-    max_hold_seconds: float,
-) -> tuple[int | None, StateQuality, _ScoreSideMemory]:
-    """Observe or hold one counter; never interpolate."""
-    if side is not None and side.visible and side.value is not None:
-        ids = [evidence_id] if evidence_id else []
-        mem = _ScoreSideMemory(value=int(side.value), last_at=timestamp, evidence_ids=ids)
-        return mem.value, "observed", mem
-
-    if (
-        mem.value is not None
-        and mem.last_at is not None
-        and timestamp - mem.last_at <= max_hold_seconds
-    ):
-        return mem.value, "held", mem
-    return None, "unknown", mem
-
-
-def _fuse_score_frame(
-    frame: VisionFrameResult,
-    match_phase: MatchPhase,
-    score_config: ScoreDetectorConfig,
-    ally_mem: _ScoreSideMemory,
-    opponent_mem: _ScoreSideMemory,
-) -> tuple[
-    int | None,
-    StateQuality,
-    int | None,
-    StateQuality,
-    list[str],
-    _ScoreSideMemory,
-    _ScoreSideMemory,
-]:
-    """Map ScoreReading left/right → ally/opponent with per-side hold."""
-    best = _best_score(frame)
-    usable = best is not None and best.confidence >= score_config.min_usable_confidence
-    reading: ScoreReading | None = None
-    evidence_id: str | None = None
-    if usable and best is not None:
-        assert isinstance(best.reading, ScoreReading)
-        reading = best.reading
-        evidence_id = best.id
-    return fuse_score_sides_at(
-        timestamp=frame.timestamp,
-        match_phase=match_phase,
-        reading=reading,
-        reading_usable=usable,
-        evidence_id=evidence_id,
-        max_hold_seconds=score_config.score_max_hold_seconds,
-        ally_mem=ally_mem,
-        opponent_mem=opponent_mem,
-    )
+def _apply_score_retractions(
+    snapshots: list[GameStateSnapshot],
+    fusions: list[ScoreFrameFusion],
+    score_cfg: ScoreDetectorConfig,
+) -> list[GameStateSnapshot]:
+    """Apply the backward score retraction pass to already-fused snapshots."""
+    phases = [snap.match_phase for snap in snapshots]
+    retracted = retract_contradicted_scores(fusions, phases, score_cfg.score_drop_slack)
+    out: list[GameStateSnapshot] = []
+    for snap, before, after in zip(snapshots, fusions, retracted, strict=True):
+        if after == before:
+            out.append(snap)
+            continue
+        ids = snap.evidence_ids
+        if before.asserts_anything and not after.asserts_anything:
+            ids = [i for i in ids if i not in before.evidence_ids]
+        out.append(
+            snap.model_copy(
+                update={
+                    "ally_remaining": after.ally_remaining,
+                    "ally_score_quality": after.ally_score_quality,
+                    "opponent_remaining": after.opponent_remaining,
+                    "opponent_score_quality": after.opponent_score_quality,
+                    "evidence_ids": ids,
+                }
+            )
+        )
+    return out
 
 
 def _fuse_timer_frame(
@@ -451,30 +369,26 @@ def _best_splat(frame: VisionFrameResult) -> DetectorResult | None:
     return max(results, key=lambda item: item.confidence) if results else None
 
 
-def _best_score(frame: VisionFrameResult) -> DetectorResult | None:
-    """Highest-confidence score result on a frame, if any."""
-    results = [
-        detection
-        for detection in frame.detections
-        if detection.detector_name == "score"
-        and isinstance(detection.reading, ScoreReading)
-    ]
-    return max(results, key=lambda item: item.confidence) if results else None
-
-
 def _fuse_player_count_frame(
     frame: VisionFrameResult,
     player_count_config: PlayerCountDetectorConfig,
     ally_mem: _RosterSideMemory,
     opponent_mem: _RosterSideMemory,
 ) -> tuple[int | None, int | None, list[str], float | None]:
-    """Fuse roster alive counts from an X-marker reading, debounced per side."""
+    """Fuse roster alive counts from an X-marker reading, debounced per side.
+
+    A frame with no player_count result at all (detector not scheduled on it)
+    carries no counts and leaves the debounce state untouched; a result below
+    ``min_usable_confidence`` is an unreadable frame and restarts confirmation.
+    """
     best = _best_player_count(frame)
+    if best is None:
+        return None, None, [], None
     ally_read: int | None = None
     opponent_read: int | None = None
     reading_id: str | None = None
     confidence: float | None = None
-    if best is not None and best.confidence >= player_count_config.min_usable_confidence:
+    if best.confidence >= player_count_config.min_usable_confidence:
         reading = best.reading
         assert isinstance(reading, PlayerCountReading)
         ally_read, opponent_read = alive_counts_from_reading(reading)
@@ -549,9 +463,10 @@ def _combined_evidence(
     ally_alive_count: int | None = None,
     player_count_ids: list[str] | None = None,
     *,
-    ally_remaining: int | None = None,
-    opponent_remaining: int | None = None,
+    score_asserted: bool = False,
     score_ids: list[str] | None = None,
+    zone_state: str = "unknown",
+    zone_ids: list[str] | None = None,
 ) -> list[str]:
     """Keep evidence IDs for fields this snapshot actually asserts."""
     ids: list[str] = []
@@ -563,8 +478,10 @@ def _combined_evidence(
         ids.extend(splat_ids)
     if ally_alive_count is not None and player_count_ids:
         ids.extend(player_count_ids)
-    if (ally_remaining is not None or opponent_remaining is not None) and score_ids:
+    if score_asserted and score_ids:
         ids.extend(score_ids)
+    if zone_state != "unknown" and zone_ids:
+        ids.extend(zone_ids)
     seen: set[str] = set()
     unique: list[str] = []
     for item in ids:

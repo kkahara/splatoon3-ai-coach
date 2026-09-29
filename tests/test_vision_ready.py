@@ -151,5 +151,5 @@ def test_ready_config_from_yaml() -> None:
     """Ready ROI comes from YAML, not a code default."""
     cfg = load_config(default_config_path()).vision.ready
     assert cfg is not None
-    assert cfg.roi == pytest.approx((0.390104, 0.450926, 0.541667, 0.567593))
-    assert cfg.match_threshold == pytest.approx(0.70)
+    assert cfg.roi == pytest.approx((0.376042, 0.448148, 0.627083, 0.570370))
+    assert cfg.match_threshold == pytest.approx(0.50)

@@ -20,7 +20,10 @@ import cv2
 import numpy as np
 from loguru import logger
 
-from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig, PlayerCountDetectorConfig
+from splatoon3_ai_coach.config.models import (
+    MapInkAnalyzerConfig,
+    PlayerCountDetectorConfig,
+)
 from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.vision.roi import crop_roi
 
@@ -151,7 +154,9 @@ class TeamColorCalibrator:
         """True after a successful sticky latch."""
         return self._result is not None
 
-    def observe(self, image: np.ndarray, video_time: float) -> TeamColorCalibrationResult | None:
+    def observe(
+        self, image: np.ndarray, video_time: float
+    ) -> TeamColorCalibrationResult | None:
         """Sample one frame; return the result when first latched, else ``None``.
 
         After latch, later calls are no-ops and return ``None``.
@@ -246,7 +251,8 @@ class TeamColorCalibrator:
         arr = np.asarray(hues, dtype=np.float64)
         med = float(np.median(arr))
         return all(
-            circular_hue_distance(float(h), med) <= self.max_within_side_spread for h in hues
+            circular_hue_distance(float(h), med) <= self.max_within_side_spread
+            for h in hues
         )
 
 

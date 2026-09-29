@@ -18,6 +18,7 @@ from splatoon3_ai_coach.coach.player_count_clock import (
     build_player_count_clock,
 )
 from splatoon3_ai_coach.media.vision_manifest import load_vision_manifest
+from splatoon3_ai_coach.vision.score_fusion import resolve_battle_mode
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,7 @@ class CoachAnalysisBundle:
     contexts: list[ScenarioContext]
     game_clock: GameClock
     player_count_clock: PlayerCountClock
+    battle_mode_id: str | None = None
 
 
 def load_coach_analysis_bundle(
@@ -36,7 +38,10 @@ def load_coach_analysis_bundle(
     *,
     min_usable_confidence: float,
 ) -> CoachAnalysisBundle:
-    """Load scenarios, contexts, game clock, and player-count clock."""
+    """Load scenarios, contexts, game clock, player-count clock, battle mode.
+
+    Battle mode uses the same stored-``match_intro`` latch as score fusion.
+    """
     root = analysis_dir.resolve()
     scenarios = _load_scenarios(root / SCENARIOS_JSON_FILENAME)
     contexts = _load_contexts(root / SCENARIO_CONTEXTS_JSON_FILENAME)
@@ -52,6 +57,7 @@ def load_coach_analysis_bundle(
         contexts=contexts,
         game_clock=clock,
         player_count_clock=player_count_clock,
+        battle_mode_id=resolve_battle_mode(list(manifest.frame_results)),
     )
 
 

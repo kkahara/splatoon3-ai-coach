@@ -156,5 +156,7 @@ def _extract_json_object(raw: str) -> dict[str, Any]:
             raise
         payload = json.loads(text[start : end + 1])
     if not isinstance(payload, dict):
-        raise ValueError(f"CoachingAssessment JSON must be an object, got {type(payload)}")
+        raise ValueError(
+            f"CoachingAssessment JSON must be an object, got {type(payload)}"
+        )
     return payload

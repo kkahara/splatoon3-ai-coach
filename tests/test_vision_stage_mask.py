@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from splatoon3_ai_coach.vision.stage_mask import (
     StageMaskConfig,
@@ -72,7 +73,7 @@ def test_resolve_and_roundtrip_yaml(tmp_path: Path) -> None:
 
 
 def test_invalid_vertex_rejected() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError, match="must be in"):
         StageMaskConfig(
             stage_id="x",
             polygon=[(0.0, 0.0), (1.5, 0.0), (0.5, 1.0)],

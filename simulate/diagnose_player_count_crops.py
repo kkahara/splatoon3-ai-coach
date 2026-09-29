@@ -246,7 +246,7 @@ def main() -> None:
         raise RuntimeError(f"No templates found under {TEMPLATES}")
 
     print("Loaded templates (production path: IMREAD_GRAYSCALE, no CLAHE on template):")
-    for name, img, path in templates:
+    for _name, img, path in templates:
         print(f"  {path.name}: {img.shape[1]}x{img.shape[0]} mean={img.mean():.1f}")
     print(f"count={len(templates)}")
     assert not any(name.startswith("x-mark") for name, _, _ in templates)
@@ -271,7 +271,7 @@ def main() -> None:
                 "- cv2.IMREAD_GRAYSCALE (no alpha path; templates are opaque BGR)",
                 "- CLAHE applied only to ROI crop at match time, NOT to templates",
                 "- Matcher: TM_CCOEFF_NORMED; _fit_template shrink-to-fit only",
-                f"- match_threshold unchanged (config): 0.70",
+                "- match_threshold unchanged (config): 0.70",
                 "",
                 f"templates_loaded={len(templates)}",
                 *[
@@ -390,7 +390,6 @@ def main() -> None:
         if abs(t - 171.0) < 1e-6:
             for slot in ("ally-1", "ally-3", "ally-4", "opponent-2"):
                 sc, tn, raw, ms = slot_best[slot]
-                tmpl_img = next(img for n, img, _ in templates if n == tn)
                 # second-best
                 others = sorted(
                     (

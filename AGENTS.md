@@ -47,6 +47,12 @@ evidence required for coaching units:
 - roster trajectory from fused `state_snapshots` (`players`)
 - special gauge readings + presentation-only ready onset markers (`special`)
 - `LOW_INK` intervals overlapping the scenario interval (`low_ink`)
+- Splat Zones remaining counts + penalties from fused `state_snapshots`
+ (`score`: observed samples at the anchor and pre-death; mode-gated; never
+ zone holder / objective control)
+- Splat Zones control state and confirmed team-level transitions from fused
+  `state_snapshots` (`zone_control`: sparse observed/held samples and
+  transitions; mode-gated; never player attribution or causal proof)
 
 Do **not** encode judgments, fight-quality conclusions, “should have used
 special”, interpolated continuous state, or invented causal relationships.
@@ -101,8 +107,11 @@ samples (`map.ink`) are separate from MAP_OVERLAY facts and never set overlay
   `vision_manifest.state_snapshots` (not re-fused in coach).
 - Detector cue: HUD **roster X markers** (dark X on teammate/opponent icons)
   in configured player-slot ROIs (`PlayerCountReading`). Field names may still
-  say `*_dead_slots` — that means “X present on that slot,” **not** local-player
-  `DEATH`. Coaching vocabulary: `ally_alive_count` / `opponent_alive_count` only.
+ say `*_dead_slots` — that means “X present on that slot,” **not** local-player
+ `DEATH`. Coaching vocabulary: `ally_alive_count` / `opponent_alive_count` only.
+- A frame where any slot ROI lacks icon edges (map open, respawn map) is read
+ as `roster_visible=False` with zero confidence: no roster evidence, not
+ “everyone alive.”
 - Fusion debounces each side: a changed count needs
  `vision.player_count.confirm_readings` consecutive agreeing readings; one-frame
  misreads never become the fused count. `s3-coach refuse <analysis_dir>` re-runs

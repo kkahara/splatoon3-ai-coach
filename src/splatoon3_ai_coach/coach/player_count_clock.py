@@ -16,12 +16,16 @@ from splatoon3_ai_coach.analysis.player_count_series import (
     NumbersState,
     PlayerCountObservation,
     PlayerCountSource,
-    format_avb as _format_avb_counts,
     nearest_player_count_observation,
     numbers_differential_from_observation,
     numbers_state_from_observation,
-    observations_between as _observations_between,
     observations_from_snapshots,
+)
+from splatoon3_ai_coach.analysis.player_count_series import (
+    format_avb as _format_avb_counts,
+)
+from splatoon3_ai_coach.analysis.player_count_series import (
+    observations_between as _observations_between,
 )
 from splatoon3_ai_coach.vision.models import GameStateSnapshot
 

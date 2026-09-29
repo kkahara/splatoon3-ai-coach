@@ -305,7 +305,11 @@ def make_compare(
     if loc is not None:
         th, tw = template.shape[:2]
         # account for possible shrink
-        scale = min(1.0, crop_bgr.shape[0] / template.shape[0], crop_bgr.shape[1] / template.shape[1])
+        scale = min(
+            1.0,
+            crop_bgr.shape[0] / template.shape[0],
+            crop_bgr.shape[1] / template.shape[1],
+        )
         tw2 = max(4, int(template.shape[1] * min(scale, 1.0)))
         th2 = max(4, int(template.shape[0] * min(scale, 1.0)))
         x, y = loc
@@ -314,7 +318,9 @@ def make_compare(
         msk = cv2.resize(mask, (tw2, th2), interpolation=cv2.INTER_NEAREST)
         ys, xs = np.where(msk > 0)
         if len(xs):
-            for yy, xx in zip(ys[:: max(1, len(ys)//80)], xs[:: max(1, len(xs)//80)], strict=False):
+            for yy, xx in zip(
+                ys[:: max(1, len(ys) // 80)], xs[:: max(1, len(xs) // 80)], strict=False
+            ):
                 py, px = y + int(yy), x + int(xx)
                 if 0 <= py < overlay.shape[0] and 0 <= px < overlay.shape[1]:
                     overlay[py, px] = (0, 0, 255)
@@ -375,11 +381,13 @@ def main() -> None:
     mask_report_lines = [
         "Mask construction method:",
         "  1) Geometric X diagonal-band prior (thickness=0.11 of frame).",
-        f"  2) Mid-gray intensity gate [{_X_GRAY_LO},{_X_GRAY_HI}] to drop white weapon / black bg.",
+        f"  2) Mid-gray intensity gate [{_X_GRAY_LO},{_X_GRAY_HI}] to drop white weapon "
+        "/ black bg.",
         "  3) Morphological open+close (3x3 ellipse).",
         "  4) Keep largest connected component.",
         "Template pixels outside the mask are ignored by OpenCV matchTemplate(mask=...).",
-        f"OpenCV masked TM_SQDIFF_NORMED probe: ok={probe_ok} self_score={probe_score:.4f}",
+        f"OpenCV masked TM_SQDIFF_NORMED probe: ok={probe_ok} "
+        f"self_score={probe_score:.4f}",
         "",
     ]
     if not probe_ok:
@@ -396,7 +404,9 @@ def main() -> None:
             [
                 cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR),
                 cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR),
-                cv2.cvtColor(np.where(mask > 0, gray, 0).astype(np.uint8), cv2.COLOR_GRAY2BGR),
+                cv2.cvtColor(
+                    np.where(mask > 0, gray, 0).astype(np.uint8), cv2.COLOR_GRAY2BGR
+                ),
             ]
         )
         cv2.imwrite(str(mask_dir / f"{name}_gray_mask_masked.png"), view)
@@ -444,9 +454,7 @@ def main() -> None:
             visual, framing = LABELS[t][name]
 
             best_sq = 1.0
-            best_tmpl = ""
             best_loc: tuple[int, int] | None = None
-            best_note = ""
             best_mask: np.ndarray | None = None
             best_tmpl_img: np.ndarray | None = None
             best_ccoeff = 0.0
@@ -477,9 +485,7 @@ def main() -> None:
                 )
                 if note == "ok" and sq_raw < best_sq:
                     best_sq = sq_raw
-                    best_tmpl = tmpl_name
                     best_loc = loc
-                    best_note = note
                     best_mask = mask
                     best_tmpl_img = tmpl
                 best_ccoeff = max(best_ccoeff, cc)
@@ -615,9 +621,10 @@ def main() -> None:
     report.append("")
     report.append(f"OpenCV masked SQDIFF probe ok={probe_ok} self={probe_score:.4f}")
     report.append(f"Templates: {len(prepared)}")
-    for name, gray, mask, st in prepared:
+    for name, gray, _mask, st in prepared:
         report.append(
-            f"  {name}: {gray.shape[1]}x{gray.shape[0]} mask_frac={st['final_mask_frac']:.3f}"
+            f"  {name}: {gray.shape[1]}x{gray.shape[0]} "
+            f"mask_frac={st['final_mask_frac']:.3f}"
         )
     report.append("")
     report.append("## Masked SQDIFF (raw gray ROI; lower=better)")

@@ -39,7 +39,6 @@ from splatoon3_ai_coach.vision.score import (
     _segment_score_roi,
 )
 from splatoon3_ai_coach.vision.templates import load_templates
-
 from splatoon3_ai_coach.vision.timer import segment_timer_roi
 
 STUDY_DIR = PROJECT_ROOT / "analysis" / "clam_blitz_score_survey"
@@ -256,7 +255,9 @@ def cmd_confirm(args: argparse.Namespace) -> int:
         mode = run.get("battle_mode_id")
         t0, t1 = run.get("match_start"), run.get("match_end")
         if mode != "clam_blitz":
-            logger.error("{}: battle_mode_id={!r} (want clam_blitz)", run.get("run"), mode)
+            logger.error(
+                "{}: battle_mode_id={!r} (want clam_blitz)", run.get("run"), mode
+            )
             ok = False
         if t0 is None or t1 is None or float(t1) <= float(t0):
             logger.error("{}: unusable match interval [{}, {}]", run.get("run"), t0, t1)

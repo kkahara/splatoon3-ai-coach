@@ -359,10 +359,7 @@ def _build_observations(
         player_alive = snap.get("player_alive")
         ally_alive_count = _as_int_or_none(snap.get("ally_alive_count"))
         opponent_alive_count = _as_int_or_none(snap.get("opponent_alive_count"))
-        ally_remaining = _as_int_or_none(snap.get("ally_remaining"))
-        opponent_remaining = _as_int_or_none(snap.get("opponent_remaining"))
-        ally_score_quality = snap.get("ally_score_quality")
-        opponent_score_quality = snap.get("opponent_score_quality")
+        score_fields = _score_fields(snap)
         countdown_present = snap.get("countdown_present")
         active_gameplay = snap.get("active_gameplay")
         match_phase = snap.get("match_phase")
@@ -383,14 +380,7 @@ def _build_observations(
                     player_alive=player_alive,
                     ally_alive_count=ally_alive_count,
                     opponent_alive_count=opponent_alive_count,
-                    ally_remaining=ally_remaining,
-                    opponent_remaining=opponent_remaining,
-                    ally_score_quality=(
-                        str(ally_score_quality) if ally_score_quality else None
-                    ),
-                    opponent_score_quality=(
-                        str(opponent_score_quality) if opponent_score_quality else None
-                    ),
+                    **score_fields,
                     countdown_present=countdown_present,
                     active_gameplay=active_gameplay,
                     match_phase=match_phase,
@@ -427,14 +417,7 @@ def _build_observations(
                     player_alive=player_alive,
                     ally_alive_count=ally_alive_count,
                     opponent_alive_count=opponent_alive_count,
-                    ally_remaining=ally_remaining,
-                    opponent_remaining=opponent_remaining,
-                    ally_score_quality=(
-                        str(ally_score_quality) if ally_score_quality else None
-                    ),
-                    opponent_score_quality=(
-                        str(opponent_score_quality) if opponent_score_quality else None
-                    ),
+                    **score_fields,
                     countdown_present=countdown_present,
                     active_gameplay=active_gameplay,
                     match_phase=match_phase,
@@ -596,6 +579,22 @@ def _load_map_ink_timeline(analysis_dir: Path) -> list[MapInkSampleView]:
     samples.sort(key=lambda sample: sample.video_time)
     return samples
 
+
+
+def _score_fields(snap: dict[str, Any]) -> dict[str, Any]:
+    """Fused SZ remaining + penalty values and per-side qualities."""
+    fields: dict[str, Any] = {}
+    for key in ("ally_remaining", "opponent_remaining", "ally_penalty", "opponent_penalty"):
+        fields[key] = _as_int_or_none(snap.get(key))
+    for key in (
+        "ally_score_quality",
+        "opponent_score_quality",
+        "ally_penalty_quality",
+        "opponent_penalty_quality",
+    ):
+        value = snap.get(key)
+        fields[key] = str(value) if value else None
+    return fields
 
 def _as_int_or_none(value: Any) -> int | None:
     """Parse an optional integer field."""

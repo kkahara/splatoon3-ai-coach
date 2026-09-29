@@ -35,7 +35,15 @@ def _config() -> PlayerCountDetectorConfig:
 
 
 def _blank_frame(height: int = 1080, width: int = 1920) -> np.ndarray:
-    return np.zeros((height, width, 3), dtype=np.uint8)
+    """A frame whose slots have icon-like edges but no X: a visible roster."""
+    frame = np.zeros((height, width, 3), dtype=np.uint8)
+    frame[:, (np.arange(width) // 8) % 2 == 0] = 200
+    return frame
+
+
+def _hudless_frame(height: int = 1080, width: int = 1920) -> np.ndarray:
+    """Flat frame, as where the roster HUD is not drawn."""
+    return np.full((height, width, 3), 90, dtype=np.uint8)
 
 
 def _paste_bgr(
@@ -163,6 +171,39 @@ def test_confidence_is_one_minus_best_sqdiff() -> None:
     assert min(all_scores) == reading.ally_slot_scores[0]
 
 
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_hudless_frame_is_not_roster_evidence() -> None:
+    cfg = _config()
+    reading, confidence = PlayerCountDetector(cfg).detect(_hudless_frame())
+    assert reading is not None
+    assert reading.roster_visible is False
+    assert confidence == 0.0
+    assert confidence < cfg.min_usable_confidence
+    assert reading.ally_dead_slots == () and reading.opponent_dead_slots == ()
+    assert reading.ally_slot_scores == () and reading.opponent_slot_scores == ()
+    assert len(reading.slot_edge_energy) == 8
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_one_blank_slot_hides_the_roster() -> None:
+    cfg = _config()
+    frame = _blank_frame()
+    crop_roi(frame, cfg.opponent_slots[3])[:] = 90
+    reading, confidence = PlayerCountDetector(cfg).detect(frame)
+    assert reading is not None
+    assert reading.roster_visible is False
+    assert confidence == 0.0
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_edge_check_can_be_disabled() -> None:
+    cfg = _config().model_copy(update={"min_slot_edge_energy": 0.0})
+    reading, _ = PlayerCountDetector(cfg).detect(_hudless_frame())
+    assert reading is not None
+    assert reading.roster_visible is True
+    assert len(reading.ally_slot_scores) == 4
+
+
 def test_sqdiff_threshold_comparison_is_less_or_equal() -> None:
     cfg = PlayerCountDetectorConfig(sqdiff_match_threshold=0.08)
     assert 0.08 <= cfg.sqdiff_match_threshold
@@ -173,7 +214,7 @@ def test_sqdiff_threshold_comparison_is_less_or_equal() -> None:
 
 def test_default_config_has_sqdiff_threshold() -> None:
     cfg = PlayerCountDetectorConfig()
-    assert cfg.sqdiff_match_threshold == pytest.approx(0.08)
+    assert cfg.sqdiff_match_threshold == pytest.approx(0.03)
     assert "match_threshold" not in PlayerCountDetectorConfig.model_fields
 
 

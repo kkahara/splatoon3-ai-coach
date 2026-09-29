@@ -33,7 +33,9 @@ _REPO = Path(__file__).resolve().parents[1]
 _MANIFEST_180224 = _REPO / "analysis" / "2026-07-05 18-02-24" / "vision_manifest.json"
 
 
-def _frame(timestamp: float, seconds: float, *, confidence: float = 0.9) -> VisionFrameResult:
+def _frame(
+    timestamp: float, seconds: float, *, confidence: float = 0.9
+) -> VisionFrameResult:
     display = f"{int(seconds) // 60}:{int(seconds) % 60:02d}"
     return VisionFrameResult(
         frame_id=f"f{timestamp}",

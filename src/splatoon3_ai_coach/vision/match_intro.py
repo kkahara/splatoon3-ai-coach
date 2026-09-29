@@ -168,7 +168,8 @@ class MatchIdentityTracker:
             self.identity.stage_id = reading.stage_id
             self.identity.stage_score = reading.stage_template_score
             logger.info(
-                "Match stage latched at {:.1f}s: stage={} (map ink enabled; mode pending)",
+                "Match stage latched at {:.1f}s: stage={} "
+                "(map ink enabled; mode pending)",
                 video_time,
                 self.identity.stage_id,
             )

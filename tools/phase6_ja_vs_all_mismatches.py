@@ -15,11 +15,8 @@ import cv2
 import numpy as np
 from loguru import logger
 
-logger.disable("splatoon3_ai_coach")
-
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.config.models import VisionLanguage
-from splatoon3_ai_coach.vision.death import _load_language_cue_templates
 from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.models import DetectorResult, GameEvent, VisionFrameResult
 from splatoon3_ai_coach.vision.registry import build_detectors
@@ -38,6 +35,8 @@ from splatoon3_ai_coach.vision.splat import (
     _load_classified_templates,
 )
 from splatoon3_ai_coach.vision.state import fuse_game_state
+
+logger.disable("splatoon3_ai_coach")
 
 REPO = Path(__file__).resolve().parents[1]
 OUT = REPO / "analysis" / "phase6_ja_vs_all_mismatches.json"
@@ -410,13 +409,17 @@ def main() -> int:
             match_thr = CFG.vision.respawn.match_threshold
             support_thr = CFG.vision.respawn.support_match_threshold
 
-            def primary(score: float) -> bool:
+            def primary(
+                score: float, match_thr: float = match_thr, ok: bool = structure_ok
+            ) -> bool:
                 return score >= match_thr and (
-                    structure_ok or score >= _STRONG_TEMPLATE_FLOOR
+                    ok or score >= _STRONG_TEMPLATE_FLOOR
                 )
 
-            def support(score: float) -> bool:
-                return structure_ok and score >= support_thr
+            def support(
+                score: float, ok: bool = structure_ok, support_thr: float = support_thr
+            ) -> bool:
+                return ok and score >= support_thr
 
             if (
                 all_det
@@ -433,7 +436,12 @@ def main() -> int:
                     f"best JA {win_ja['name'] if win_ja else None}"
                     f"@{win_ja['score'] if win_ja else 0:.4f} does not"
                 )
-            elif win_all and win_ja and win_all["name"] == win_ja["name"] and all_det != ja_det:
+            elif (
+                win_all
+                and win_ja
+                and win_all["name"] == win_ja["name"]
+                and all_det != ja_det
+            ):
                 category = "C"
                 cause = "same winner template; observe decision path differs"
             elif all_det != ja_det:
@@ -477,7 +485,9 @@ def main() -> int:
             skull_thr = CFG.vision.splat.skull_match_threshold
             text_thr = CFG.vision.splat.text_match_threshold
 
-            def trips(c: dict | None) -> bool:
+            def trips(
+                c: dict | None, skull_thr: float = skull_thr, text_thr: float = text_thr
+            ) -> bool:
                 if c is None:
                     return False
                 if c["kind"] == "icon":
@@ -501,10 +511,16 @@ def main() -> int:
                 )
             elif (not all_det) and ja_det:
                 category = "B"
-                cause = f"JA-only detects; ALL does not (NMS/path). best_ja={best_ja} best_en={best_en}"
+                cause = (
+                    "JA-only detects; ALL does not (NMS/path). "
+                    f"best_ja={best_ja} best_en={best_en}"
+                )
             elif all_det != ja_det and ja_can:
                 category = "B"
-                cause = f"JA can trip in isolation but path differs. best_ja={best_ja} best_en={best_en}"
+                cause = (
+                    "JA can trip in isolation but path differs. "
+                    f"best_ja={best_ja} best_en={best_en}"
+                )
             else:
                 category = "D"
                 cause = f"other best_en={best_en} best_ja={best_ja}"

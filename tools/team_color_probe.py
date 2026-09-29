@@ -16,7 +16,7 @@ _TOOLS = Path(__file__).resolve().parent
 if str(_TOOLS) not in sys.path:
     sys.path.insert(0, str(_TOOLS))
 
-from vision_manifest_viewer.team_colors_probe import main
+from vision_manifest_viewer.team_colors_probe import main  # noqa: E402
 
 if __name__ == "__main__":
     raise SystemExit(main())

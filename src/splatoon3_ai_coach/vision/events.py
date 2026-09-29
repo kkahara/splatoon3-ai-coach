@@ -41,6 +41,7 @@ def infer_events(
     previous_lifecycle: PlayerLifecycle | None = None
     previous_map: bool | None = None
     previous_low_ink: bool | None = None
+    previous_zone_control: str = "unknown"
     last_death_at = float("-inf")
     last_respawn_at = float("-inf")
     last_active_again_at = float("-inf")
@@ -94,6 +95,14 @@ def infer_events(
         if started_low is not None:
             events.append(started_low)
         previous_low_ink = snapshot.low_ink_present
+        zone_event = _zone_control_event(snapshot, previous_zone_control)
+        if zone_event is not None:
+            events.append(zone_event)
+        previous_zone_control = next_zone_control_chain(
+            previous_zone_control,
+            snapshot.zone_control_state,
+            snapshot.zone_control_quality,
+        )
 
     if open_map is not None and snapshots:
         open_map.end_time = snapshots[-1].timestamp
@@ -243,6 +252,61 @@ def _step_low_ink(
     return open_event, None
 
 
+def next_zone_control_chain(
+    established: str,
+    state: str,
+    quality: str,
+) -> str:
+    """Advance the last established observed zone-control state.
+
+    Observed samples establish state; held samples are continuity only and
+    keep the earlier observed state; an exported ``unknown`` breaks the chain
+    so no transition can bridge it.
+    """
+    if quality == "observed" and state != "unknown":
+        return state
+    if quality == "held":
+        return established
+    return "unknown"
+
+
+def zone_control_transition_type(previous: str, current: str) -> GameEventType | None:
+    """Event type for a confirmed observed change, or ``None`` for no event.
+
+    Direct ally↔opponent changes are one ``ZONE_CONTROL_CHANGED``; neutral is
+    never manufactured between them.
+    """
+    if previous == "unknown" or current == "unknown" or current == previous:
+        return None
+    return {
+        ("neutral", "ally_control"): GameEventType.ALLY_GAIN_CONTROL,
+        ("neutral", "opponent_control"): GameEventType.OPPONENT_GAIN_CONTROL,
+        ("ally_control", "neutral"): GameEventType.ALLY_LOSE_CONTROL,
+        ("opponent_control", "neutral"): GameEventType.OPPONENT_LOSE_CONTROL,
+    }.get((previous, current), GameEventType.ZONE_CONTROL_CHANGED)
+
+
+def _zone_control_event(
+    snapshot: GameStateSnapshot,
+    previous: str,
+) -> GameEvent | None:
+    """Emit a team-level event only for confirmed observed state changes."""
+    current = snapshot.zone_control_state
+    if snapshot.zone_control_quality != "observed":
+        return None
+    event_type = zone_control_transition_type(previous, current)
+    if event_type is None:
+        return None
+    return _event(
+        snapshot,
+        event_type,
+        source=GameEventSource.STATE,
+        reason=GameEventReason.ZONE_CONTROL_TRANSITION,
+        from_zone_control=previous,
+        to_zone_control=current,
+    )
+
+
 def _event(
     snapshot: GameStateSnapshot,
     event_type: GameEventType,
@@ -251,6 +315,8 @@ def _event(
     reason: GameEventReason,
     from_lifecycle: PlayerLifecycle | None = None,
     to_lifecycle: PlayerLifecycle | None = None,
+    from_zone_control: str | None = None,
+    to_zone_control: str | None = None,
     splat_fingerprint: str | None = None,
 ) -> GameEvent:
     """Attach provenance from the snapshot that first asserts the edge."""
@@ -262,6 +328,8 @@ def _event(
         reason=reason,
         from_lifecycle=from_lifecycle,
         to_lifecycle=to_lifecycle,
+        from_zone_control=from_zone_control,
+        to_zone_control=to_zone_control,
         splat_fingerprint=splat_fingerprint,
         confidence=1.0 if snapshot.quality != "unknown" else 0.7,
         evidence_ids=list(snapshot.evidence_ids),

@@ -91,7 +91,14 @@ def _draw_in_progress(
     for i, line in enumerate(help_lines):
         y = 28 + i * 22
         cv2.putText(
-            canvas, line, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 3, cv2.LINE_AA
+            canvas,
+            line,
+            (12, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (0, 0, 0),
+            3,
+            cv2.LINE_AA,
         )
         cv2.putText(
             canvas,

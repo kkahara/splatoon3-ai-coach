@@ -9,16 +9,17 @@ from splatoon3_ai_coach.config.models import VisionConfig
 from splatoon3_ai_coach.vision.active_gameplay import ActiveGameplayDetector
 from splatoon3_ai_coach.vision.base import BaseDetector
 from splatoon3_ai_coach.vision.death import DeathDetector
-from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
+from splatoon3_ai_coach.vision.low_ink import LowInkDetector
 from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
+from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
 from splatoon3_ai_coach.vision.player_count import PlayerCountDetector
 from splatoon3_ai_coach.vision.ready import ReadyDetector
-from splatoon3_ai_coach.vision.low_ink import LowInkDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
-from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
 from splatoon3_ai_coach.vision.score import ScoreDetector
+from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
 from splatoon3_ai_coach.vision.timer import TimerDetector
+from splatoon3_ai_coach.vision.zone_control import ZoneControlDetector
 
 
 def build_detectors(config: VisionConfig) -> list[BaseDetector]:
@@ -119,6 +120,13 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             ScoreDetector(
                 config.score,
+                cadence_fps=config.hud_cadence_fps,
+            )
+        )
+    if "zone_control" in config.enabled_detectors:
+        detectors.append(
+            ZoneControlDetector(
+                config.zone_control,
                 cadence_fps=config.hud_cadence_fps,
             )
         )

@@ -177,11 +177,40 @@ def test_alternating_misreads_never_replace_the_count() -> None:
     assert {ally for ally, _ in _fused_counts(readings)} == {4}
 
 
-def test_unusable_frame_restarts_confirmation_and_is_unknown() -> None:
-    counts = _fused_counts(
-        [_reading(0, 0), _reading(1, 0), None, _reading(1, 0), _reading(1, 0)]
+def _fuse(frames: list[VisionFrameResult], config: PlayerCountDetectorConfig):
+    snapshots = fuse_game_state(
+        frames, _timer_cfg(), StateFusionConfig(), player_count_config=config
     )
+    return [(s.ally_alive_count, s.opponent_alive_count) for s in snapshots]
+
+
+def test_unusable_frame_restarts_confirmation_and_is_unknown() -> None:
+    frames = [
+        _frame_with_reading(0.0, _reading(0, 0)),
+        _frame_with_reading(0.5, _reading(1, 0)),
+        _frame_with_reading(1.0, _reading(1, 0), confidence=0.1),
+        _frame_with_reading(1.5, _reading(1, 0)),
+        _frame_with_reading(2.0, _reading(1, 0)),
+    ]
+    counts = _fuse(frames, PlayerCountDetectorConfig())
     assert counts == [(4, 4), (4, 4), (None, None), (None, 4), (3, 4)]
+
+
+def test_unscheduled_frames_carry_no_counts_and_keep_confirmation() -> None:
+    config = PlayerCountDetectorConfig(sample_fps=1.0, hold_seconds=1.5)
+    frames = [
+        _frame_with_reading(0.0, _reading(0, 0)),
+        _frame_with_reading(0.5, None),
+        _frame_with_reading(1.0, _reading(1, 0)),
+        _frame_with_reading(1.5, None),
+        _frame_with_reading(2.0, _reading(1, 0)),
+    ]
+    assert _fuse(frames, config) == [(4, 4), (None, None), (4, 4), (None, None), (3, 4)]
+
+
+def test_hold_must_exceed_the_sampling_interval() -> None:
+    with pytest.raises(ValueError, match="must exceed the sampling interval"):
+        PlayerCountDetectorConfig(sample_fps=1.0, hold_seconds=1.0)
 
 
 def test_accepted_count_is_not_held_across_a_long_gap() -> None:

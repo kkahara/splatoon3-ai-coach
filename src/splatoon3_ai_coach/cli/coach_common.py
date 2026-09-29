@@ -48,7 +48,9 @@ def resolve_coach_inputs_dir(
     inputs: Path | None,
 ) -> Path:
     """Resolve CoachInput directory; require it to exist for LLM stage."""
-    path = inputs.resolve() if inputs is not None else default_coach_inputs_dir(analysis_dir)
+    path = (
+        inputs.resolve() if inputs is not None else default_coach_inputs_dir(analysis_dir)
+    )
     if not path.is_dir():
         raise FileNotFoundError(
             f"Coach inputs directory not found: {path}. "

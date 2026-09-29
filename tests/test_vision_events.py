@@ -9,8 +9,8 @@ from splatoon3_ai_coach.vision.models import (
     GameEventSource,
     GameEventType,
     GameStateSnapshot,
-    SplatBannerInstance,
     SourceFrameReference,
+    SplatBannerInstance,
 )
 
 

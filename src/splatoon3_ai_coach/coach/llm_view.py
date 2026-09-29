@@ -27,6 +27,8 @@ from splatoon3_ai_coach.coach.claim_catalog import (
 from splatoon3_ai_coach.coach.coach_input import CoachInput
 from splatoon3_ai_coach.coach.coaching_candidates import active_factor_ids
 from splatoon3_ai_coach.coach.death_importance import death_game_clock_sample
+from splatoon3_ai_coach.coach.score_facts import ScoreFacts
+from splatoon3_ai_coach.coach.zone_control_facts import ZoneControlFacts
 
 
 class LlmFact(BaseModel):
@@ -73,6 +75,8 @@ class CoachLlmView(BaseModel):
     roster: dict[str, Any] | None = None
     special: dict[str, Any] | None = None
     map: dict[str, Any] | None = None
+    score: dict[str, Any] | None = None
+    zone_control: dict[str, Any] | None = None
     related: list[dict[str, Any]] = Field(default_factory=list)
     evidence_limits: list[dict[str, Any]] = Field(default_factory=list)
     supporting_evidence: list[LlmFact] = Field(default_factory=list)
@@ -90,9 +94,7 @@ def build_coach_llm_view(
     candidate_type = unit.candidate_type
     if candidate_type == CANDIDATE_TYPE_DEATH_EPISODE:
         return build_death_llm_view(coach_input, unit)
-    raise ValueError(
-        f"No CoachLlmView builder for candidate_type={candidate_type!r}"
-    )
+    raise ValueError(f"No CoachLlmView builder for candidate_type={candidate_type!r}")
 
 
 def build_death_llm_view(
@@ -166,6 +168,8 @@ def build_death_llm_view(
         roster=roster_block,
         special=special_block,
         map=map_block,
+        score=_project_score(coach_input.score_facts),
+        zone_control=_project_zone_control(coach_input.zone_control_facts),
         related=related_blocks,
         evidence_limits=limits,
         supporting_evidence=support,
@@ -212,9 +216,7 @@ def _project_clock(coach_input: CoachInput) -> dict[str, Any] | None:
         "label": sample.label,
         "video_time": sample.video_time,
         "gap_seconds": sample.gap_seconds,
-        "seconds_remaining": (
-            obs.seconds_remaining if obs is not None else None
-        ),
+        "seconds_remaining": (obs.seconds_remaining if obs is not None else None),
         "display": obs.display if obs is not None else None,
         "confidence": obs.confidence if obs is not None else None,
         "source_path": "game_clock_samples[label=death]",
@@ -253,9 +255,7 @@ def _project_roster(
             LlmRosterWindowPoint(
                 offset_seconds=point.offset_seconds,
                 video_time=point.video_time,
-                ally_alive_count=(
-                    obs.ally_alive_count if obs is not None else None
-                ),
+                ally_alive_count=(obs.ally_alive_count if obs is not None else None),
                 opponent_alive_count=(
                     obs.opponent_alive_count if obs is not None else None
                 ),
@@ -317,6 +317,56 @@ def _project_special(special: Any) -> dict[str, Any] | None:
             "confidence": nb.confidence,
             "source_path": "primary_context.special.nearest_before_anchor",
         }
+    }
+
+
+def _project_score(facts: ScoreFacts | None) -> dict[str, Any] | None:
+    """Splat Zones count facts; absent outside Splat Zones or with no sample."""
+    if facts is None or not facts.is_splat_zones or facts.video_time is None:
+        return None
+    return {
+        "sample_label": facts.sample_label,
+        "video_time": facts.video_time,
+        "ally_remaining": facts.ally_remaining,
+        "opponent_remaining": facts.opponent_remaining,
+        "remaining_diff": facts.remaining_diff,
+        "ally_penalty": facts.ally_penalty,
+        "ally_penalty_quality": facts.ally_penalty_quality,
+        "opponent_penalty": facts.opponent_penalty,
+        "opponent_penalty_quality": facts.opponent_penalty_quality,
+        "ally_count_before_progress": facts.ally_count_before_progress,
+        "opponent_count_before_progress": facts.opponent_count_before_progress,
+        "ally_work_remaining": facts.ally_work_remaining,
+        "opponent_work_remaining": facts.opponent_work_remaining,
+        "lookback_video_time": facts.lookback_video_time,
+        "ally_counter_decreased_before_death": facts.ally_counter_decreased_before_death,
+        "opponent_counter_decreased_before_death": (
+            facts.opponent_counter_decreased_before_death
+        ),
+        "source_path": facts.source_path,
+    }
+
+
+def _project_zone_control(
+    facts: ZoneControlFacts | None,
+) -> dict[str, Any] | None:
+    """Project observed team-level control facts without causal language."""
+    if facts is None or not facts.is_splat_zones:
+        return None
+    if (
+        facts.control_at_death is None
+        and facts.control_before_death is None
+        and not facts.transition_times
+    ):
+        return None
+    return {
+        "control_at_death": facts.control_at_death,
+        "control_before_death": facts.control_before_death,
+        "control_became_neutral": facts.control_became_neutral,
+        "ally_regained_after_neutral": facts.ally_regained_after_neutral,
+        "opponent_regained_after_neutral": facts.opponent_regained_after_neutral,
+        "transition_times": facts.transition_times,
+        "source_path": facts.source_path,
     }
 
 

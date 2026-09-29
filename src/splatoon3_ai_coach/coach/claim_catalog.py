@@ -27,6 +27,9 @@ class DeathImportanceFactorId(StrEnum):
     DEATH_FINAL_30S = "death_final_30s"
     DEATH_FIRST_30S = "death_first_30s"
     DEATH_MAP_OVERLAY_BEFORE_FALSE = "death_map_overlay_before_false"
+    DEATH_WHILE_BEHIND_IN_COUNT = "death_while_behind_in_count"
+    DEATH_WHILE_AHEAD_IN_COUNT = "death_while_ahead_in_count"
+    DEATH_OPPONENT_COUNTER_TICKED = "death_opponent_counter_ticked"
 
 
 # Backward-compatible alias used by older imports / tests.
@@ -34,15 +37,15 @@ ClaimId = DeathImportanceFactorId
 
 CANDIDATE_TYPE_DEATH_EPISODE = "death_episode"
 
-NO_RECOMMENDATION_MESSAGE = (
-    "No recommendation supported by the available evidence."
-)
+NO_RECOMMENDATION_MESSAGE = "No recommendation supported by the available evidence."
 
 DEFAULT_MAX_LLM_UNITS = 3
 
 # Defaults only; the live values come from ``CoachConfig.death_factor_thresholds``.
-# Consecutive death spacing (video seconds).
-REDEATH_MAX_GAP_SECONDS = 10.0
+# Consecutive death spacing (video seconds, death to death). The respawn cycle
+# alone takes ~10s, so 20s is roughly "splatted again soon after returning".
+# The factor ID keeps its original ``le_10s`` name.
+REDEATH_MAX_GAP_SECONDS = 20.0
 
 # Match clock windows (observed timer remaining).
 FINAL_30S_REMAINING = 30
@@ -53,6 +56,30 @@ ROSTER_PRE_DEATH_OFFSET_SECONDS = 0.5
 
 # Minimum alive-count gap for the outnumbered / ahead-in-numbers factors.
 ROSTER_MIN_GAP = 2
+
+# Consecutive ready special-gauge readings ending at/before the death.
+SPECIAL_READY_MIN_READINGS = 2
+
+# Factors that only add to a death some other factor already supports.
+DEFAULT_DEATH_MODIFIER_FACTORS: tuple[str, ...] = (
+    DeathImportanceFactorId.DEATH_FINAL_30S.value,
+    DeathImportanceFactorId.DEATH_FIRST_30S.value,
+)
+
+# Still detected as facts on a death episode, but do not add to importance_score
+# or help clock modifiers qualify a death. Nominal weights stay in YAML for when
+# the evidence contract is fixed and the factor returns to ranking.
+DEFAULT_DEATH_RANKING_EXCLUDED_FACTORS: tuple[str, ...] = (
+    DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value,
+    DeathImportanceFactorId.DEATH_SPECIAL_READY.value,
+    DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT.value,
+    DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT.value,
+    DeathImportanceFactorId.DEATH_OPPONENT_COUNTER_TICKED.value,
+)
+
+# Splat Zones count factors (observed-but-excluded; no weight chosen until the
+# competition report is reviewed). Minimum |remaining_diff| for behind / ahead.
+COUNT_MIN_DIFF = 10
 
 # Candidate match durations (seconds) when resolving D from observed timers.
 DEFAULT_MATCH_DURATION_CANDIDATES: tuple[int, ...] = (180, 300)
@@ -65,6 +92,9 @@ DEFAULT_DEATH_IMPORTANCE_WEIGHTS: dict[str, float] = {
     DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS.value: 1.5,
     DeathImportanceFactorId.DEATH_FINAL_30S.value: 1.0,
     DeathImportanceFactorId.DEATH_FIRST_30S.value: 0.5,
+    DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT.value: 0.0,
+    DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT.value: 0.0,
+    DeathImportanceFactorId.DEATH_OPPONENT_COUNTER_TICKED.value: 0.0,
 }
 
 
@@ -106,9 +136,7 @@ FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
     ),
     DeathImportanceFactorId.DEATH_SPECIAL_READY: FactorAnnotation(
         factor_id=DeathImportanceFactorId.DEATH_SPECIAL_READY,
-        statement_player=(
-            "Your special gauge was ready immediately before death."
-        ),
+        statement_player=("Your special gauge was ready immediately before death."),
         statement_internal=(
             "special.nearest_before_anchor.ready was true at/before death."
         ),
@@ -117,18 +145,12 @@ FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
     ),
     DeathImportanceFactorId.DEATH_FINAL_30S: FactorAnnotation(
         factor_id=DeathImportanceFactorId.DEATH_FINAL_30S,
-        statement_player=(
-            "Death occurred during the final 30 seconds of the match."
-        ),
-        statement_internal=(
-            "Death-labeled game clock seconds_remaining <= 30."
-        ),
+        statement_player=("Death occurred during the final 30 seconds of the match."),
+        statement_internal=("Death-labeled game clock seconds_remaining <= 30."),
     ),
     DeathImportanceFactorId.DEATH_FIRST_30S: FactorAnnotation(
         factor_id=DeathImportanceFactorId.DEATH_FIRST_30S,
-        statement_player=(
-            "Death occurred during the first 30 seconds of the match."
-        ),
+        statement_player=("Death occurred during the first 30 seconds of the match."),
         statement_internal=(
             "Death-labeled game clock seconds_remaining >= D - 30 "
             "(match duration D known)."
@@ -136,11 +158,41 @@ FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
     ),
     DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE: FactorAnnotation(
         factor_id=DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE,
-        statement_player=(
-            "No map overlay was observed before death."
-        ),
+        statement_player=("No map overlay was observed before death."),
         statement_internal=(
             "map_check_before_death was false while map overlay is observable."
+        ),
+    ),
+    DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT,
+        statement_player=(
+            "Just before you were splatted, your team needed more counts than "
+            "the opponents."
+        ),
+        statement_internal=(
+            "Splat Zones pre-death sample: ally_remaining - opponent_remaining "
+            ">= count_min_diff."
+        ),
+    ),
+    DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT,
+        statement_player=(
+            "Just before you were splatted, your team needed fewer counts than "
+            "the opponents."
+        ),
+        statement_internal=(
+            "Splat Zones pre-death sample: opponent_remaining - ally_remaining "
+            ">= count_min_diff."
+        ),
+    ),
+    DeathImportanceFactorId.DEATH_OPPONENT_COUNTER_TICKED: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_OPPONENT_COUNTER_TICKED,
+        statement_player=(
+            "The opponent counter went down in the few seconds before you were splatted."
+        ),
+        statement_internal=(
+            "Splat Zones: opponent_remaining observed lower at the pre-death "
+            "sample than at the lookback sample. A counter change only."
         ),
     ),
 }

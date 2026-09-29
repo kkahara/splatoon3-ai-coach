@@ -84,7 +84,9 @@ def main() -> None:
             ):
                 try:
                     res = cv2.matchTemplate(gray, tmpl, method, mask=mask)
-                    val = float(res.min() if method == cv2.TM_SQDIFF_NORMED else res.max())
+                    val = float(
+                        res.min() if method == cv2.TM_SQDIFF_NORMED else res.max()
+                    )
                     print(f"  {slot} {name} {method_name}: {val:.4f}")
                 except cv2.error as exc:
                     print(f"  {slot} {name} {method_name}: ERR {exc}")

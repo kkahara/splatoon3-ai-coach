@@ -125,7 +125,9 @@ class MapInkClassifier:
         self._ally_profile = None
         self._opponent_profile = None
 
-    def classify_bgr(self, image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def classify_bgr(
+        self, image: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return boolean masks ``(ally, opponent, other)`` for a BGR crop."""
         if image.size == 0:
             empty = np.zeros((0, 0), dtype=bool)
@@ -220,7 +222,9 @@ def analyze_map_ink(
         _analyze_region_slice(ally_full, opponent_full, other_full, height, width, region)
         for region in geometry.regions
     ]
-    confidence = 0.0 if classified_frac is None else float(min(1.0, max(0.0, classified_frac)))
+    confidence = (
+        0.0 if classified_frac is None else float(min(1.0, max(0.0, classified_frac)))
+    )
     return MapObservation(
         video_time=float(video_time),
         stage_id=geometry.stage_id,
@@ -368,13 +372,16 @@ def write_map_ink_diagnostic(
     canvas = image.copy()
     # Unclassified sample area first (dim), then ink classes on top.
     canvas[other_u] = (
-        canvas[other_u].astype(np.float32) * 0.45 + np.array([40, 40, 40], dtype=np.float32) * 0.55
+        canvas[other_u].astype(np.float32) * 0.45
+        + np.array([40, 40, 40], dtype=np.float32) * 0.55
     ).astype(np.uint8)
     canvas[ally_u] = (
-        canvas[ally_u].astype(np.float32) * 0.35 + np.array([40, 220, 40], dtype=np.float32) * 0.65
+        canvas[ally_u].astype(np.float32) * 0.35
+        + np.array([40, 220, 40], dtype=np.float32) * 0.65
     ).astype(np.uint8)
     canvas[opponent_u] = (
-        canvas[opponent_u].astype(np.float32) * 0.35 + np.array([40, 40, 220], dtype=np.float32) * 0.65
+        canvas[opponent_u].astype(np.float32) * 0.35
+        + np.array([40, 40, 220], dtype=np.float32) * 0.65
     ).astype(np.uint8)
 
     # Sample boundary (thick cyan) — polygon or ROI union.

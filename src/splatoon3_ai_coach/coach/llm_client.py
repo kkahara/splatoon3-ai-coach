@@ -71,11 +71,14 @@ class OllamaProvider(LLMProvider):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            with urllib.request.urlopen(
+                request, timeout=self.timeout_seconds
+            ) as response:
                 raw = response.read().decode("utf-8")
         except urllib.error.URLError as exc:
             raise RuntimeError(
-                f"Ollama request failed for model={self.model!r} at {self.base_url}: {exc}"
+                f"Ollama request failed for model={self.model!r} at {self.base_url}: "
+                f"{exc}"
             ) from exc
         data = json.loads(raw)
         message = data.get("message") or {}
@@ -133,7 +136,9 @@ class OpenAICompatibleProvider(LLMProvider):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            with urllib.request.urlopen(
+                request, timeout=self.timeout_seconds
+            ) as response:
                 raw = response.read().decode("utf-8")
         except urllib.error.HTTPError as exc:
             detail = _safe_http_error_body(exc)

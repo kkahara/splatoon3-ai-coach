@@ -5,17 +5,6 @@ from splatoon3_ai_coach.coach.claim_catalog import (
     DeathImportanceFactorId,
     SupportingEvidenceItem,
 )
-from splatoon3_ai_coach.coach.coaching_candidates import (
-    CoachingCandidate,
-    ImportanceFactorContribution,
-    active_factor_ids,
-    rank_candidates,
-)
-from splatoon3_ai_coach.coach.death_importance import (
-    detect_death_importance_factors,
-    resolve_match_duration_seconds,
-    score_death_candidate,
-)
 from splatoon3_ai_coach.coach.coach import (
     annotate_claim_flags,
     generate_coaching,
@@ -36,11 +25,16 @@ from splatoon3_ai_coach.coach.coach_input import (
     build_coach_input_for_scenario,
     collect_evidence_limits,
 )
-from splatoon3_ai_coach.coach.llm_view import (
-    CoachLlmView,
-    LlmFact,
-    build_coach_llm_view,
-    build_death_llm_view,
+from splatoon3_ai_coach.coach.coaching_candidates import (
+    CoachingCandidate,
+    ImportanceFactorContribution,
+    active_factor_ids,
+    rank_candidates,
+)
+from splatoon3_ai_coach.coach.death_importance import (
+    detect_death_importance_factors,
+    resolve_match_duration_seconds,
+    score_death_candidate,
 )
 from splatoon3_ai_coach.coach.evidence_contract import (
     ClaimSupport,
@@ -69,6 +63,12 @@ from splatoon3_ai_coach.coach.llm_client import (
     OllamaProvider,
     OpenAICompatibleProvider,
     normalize_coach_provider,
+)
+from splatoon3_ai_coach.coach.llm_view import (
+    CoachLlmView,
+    LlmFact,
+    build_coach_llm_view,
+    build_death_llm_view,
 )
 from splatoon3_ai_coach.coach.load_analysis import (
     CoachAnalysisBundle,
