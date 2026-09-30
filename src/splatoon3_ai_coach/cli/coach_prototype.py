@@ -64,10 +64,13 @@ def _prepared_model_label(
     *,
     model_override: str | None,
     nvidia_override: str | None,
+    cursor_override: str | None = None,
 ) -> str:
     """Model label for skip artifacts written before any provider call."""
     if provider_name == "nvidia":
         return nvidia_override or coach_cfg.nvidia_model
+    if provider_name == "cursor":
+        return cursor_override or coach_cfg.cursor_model
     return model_override or coach_cfg.model
 
 
@@ -95,7 +98,7 @@ def coach_prototype(
     provider: str | None = typer.Option(
         None,
         "--provider",
-        help="LLM backend: ollama (default) or nvidia.",
+        help="LLM backend: ollama (default), nvidia, or cursor.",
     ),
     model: str | None = typer.Option(
         None, "--model", help="Primary Ollama model (default from config)."
@@ -105,12 +108,17 @@ def coach_prototype(
         "--nvidia-model",
         help="NVIDIA model id when --provider nvidia (default from config).",
     ),
+    cursor_model: str | None = typer.Option(
+        None,
+        "--cursor-model",
+        help="Cursor model id when --provider cursor (default from config).",
+    ),
     also_baseline: bool = typer.Option(
         False,
         "--also-baseline",
         help=(
             "With --provider ollama, also run baseline_model on the same "
-            "CoachInput bytes. Ignored when provider is nvidia."
+            "CoachInput bytes. Ignored for nvidia and cursor."
         ),
     ),
     baseline_model: str | None = typer.Option(
@@ -165,6 +173,7 @@ def coach_prototype(
             nvidia_model_override=nvidia_model,
             also_baseline=also_baseline,
             baseline_model_override=baseline_model,
+            cursor_model_override=cursor_model,
         )
 
         inputs_dir = resolve_coach_inputs_dir(analysis_dir, inputs)
@@ -196,6 +205,7 @@ def coach_prototype(
             app_config.coach,
             model_override=model,
             nvidia_override=nvidia_model,
+            cursor_override=cursor_model,
         )
         summary_lines = [
             f"# Coach prototype — {analysis_dir}",

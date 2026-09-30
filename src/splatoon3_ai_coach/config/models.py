@@ -753,7 +753,8 @@ class CoachConfig(BaseModel):
     """Settings for the LLM coaching layer (Phase 5).
 
     ``model`` / ``baseline_model`` are Ollama model names only.
-    ``nvidia_model`` is used when ``provider`` is ``nvidia``.
+    ``nvidia_model`` is used when ``provider`` is ``nvidia``; ``cursor_model``
+    when ``provider`` is ``cursor`` (Cursor SDK, optional ``cursor`` extra).
     API keys stay in environment variables (never YAML).
 
     ``max_llm_units`` caps type-agnostic top-N selection across coaching
@@ -768,6 +769,7 @@ class CoachConfig(BaseModel):
     ollama_base_url: str = "http://127.0.0.1:11434"
     openai_compatible_base_url: str = "https://integrate.api.nvidia.com/v1"
     nvidia_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+    cursor_model: str = "gpt-5.6-luna"
     max_llm_units: int = Field(default=3, ge=0)
     # Only candidates scoring above zero may fill the top N; otherwise ties
     # among zero-score deaths are settled by video time alone.

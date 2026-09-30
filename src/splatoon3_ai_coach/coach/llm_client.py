@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
@@ -165,6 +166,62 @@ class OpenAICompatibleProvider(LLMProvider):
         return content
 
 
+class CursorProvider(LLMProvider):
+    """Cursor-hosted models through the Cursor SDK (optional ``cursor`` extra).
+
+    Each call is a one-shot local agent with **no built-in tools**, run in an
+    empty scratch directory, so the model can only answer in text and never
+    sees or edits the repo. The SDK has no separate system-prompt field, so
+    both prompts are sent as one message. Never logs the API key.
+    """
+
+    def __init__(self, model: str, *, api_key: str) -> None:
+        if not api_key.strip():
+            raise ValueError(
+                "CursorProvider requires a non-empty API key "
+                "(set S3_COACH_CURSOR_API_KEY)."
+            )
+        self.model = model
+        self.api_key = api_key
+
+    def complete(self, system_prompt: str, user_prompt: str) -> str:
+        """Run one tool-less Cursor agent turn and return its final text."""
+        try:
+            from cursor_sdk import (
+                Agent,
+                AgentOptions,
+                CursorAgentError,
+                LocalAgentOptions,
+            )
+        except ImportError as exc:
+            raise RuntimeError(
+                "provider=cursor needs the cursor-sdk package: pip install -e '.[cursor]'"
+            ) from exc
+        message = f"{system_prompt}\n\n---\n\n{user_prompt}"
+        with tempfile.TemporaryDirectory(prefix="s3-coach-cursor-") as scratch:
+            options = AgentOptions(
+                api_key=self.api_key,
+                model=self.model,
+                local=LocalAgentOptions(cwd=scratch),
+                tools=[],
+            )
+            try:
+                result = Agent.prompt(message, options)
+            except CursorAgentError as exc:
+                raise RuntimeError(
+                    f"Cursor request failed for model={self.model!r}: "
+                    f"{exc.message} (retryable={exc.is_retryable})"
+                ) from exc
+        if result.status != "finished":
+            raise RuntimeError(
+                f"Cursor run {result.id} ended with status={result.status!r} "
+                f"for model={self.model!r}"
+            )
+        if not result.result.strip():
+            raise RuntimeError(f"Cursor returned empty content for model={self.model!r}")
+        return result.result
+
+
 def _openai_message_content(data: dict[str, Any]) -> str | None:
     """Extract assistant text from an OpenAI-style chat completion payload."""
     choices = data.get("choices")
@@ -194,13 +251,17 @@ def _safe_http_error_body(exc: urllib.error.HTTPError) -> str:
     return f" body={text!r}" if text else ""
 
 
+COACH_PROVIDERS = ("ollama", "nvidia", "cursor")
+
+
 def normalize_coach_provider(name: str | None) -> str:
     """Normalize provider name; default ``ollama`` when unset/blank."""
     if name is None or not str(name).strip():
         return "ollama"
     value = str(name).strip().lower()
-    if value not in {"ollama", "nvidia"}:
+    if value not in COACH_PROVIDERS:
         raise ValueError(
-            f"Unsupported coach provider {name!r}; expected 'ollama' or 'nvidia'"
+            f"Unsupported coach provider {name!r}; "
+            f"expected one of {', '.join(COACH_PROVIDERS)}"
         )
     return value

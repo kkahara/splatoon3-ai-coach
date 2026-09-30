@@ -2,6 +2,8 @@
 
 CAPACITY = "We're currently at capacity. Please try again later."
 RATE_LIMIT = "Too many submissions from this network. Try again later."
+ACCOUNT_RATE_LIMIT = "Your account has reached its hourly upload limit. Try again later."
+SIGNUP_LIMIT = "Too many accounts have been created from this network."
 VERIFY = "Submission could not be verified."
 INTERRUPTED = "The analysis was interrupted. Submit the video again."
 UPLOAD_MISSING = "The upload was not found."

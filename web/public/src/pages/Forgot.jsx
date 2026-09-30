@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { forgotPassword } from "../api.js";
+import { useT } from "../i18n/LocaleContext.jsx";
 
 export function ForgotPage() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -25,13 +27,13 @@ export function ForgotPage() {
   return (
     <main className="sheet">
       <AccountBar account={null} />
-      <h1>Reset password</h1>
+      <h1>{t("forgot.title")}</h1>
       {sent ? (
-        <p>If an account exists for that email, a reset link is on its way.</p>
+        <p>{t("forgot.sent")}</p>
       ) : (
         <form onSubmit={onSubmit}>
           <label>
-            Email address
+            {t("common.email")}
             <input
               type="email"
               value={email}
@@ -41,12 +43,12 @@ export function ForgotPage() {
           </label>
           {error ? <p className="error">{error}</p> : null}
           <button type="submit" disabled={busy}>
-            {busy ? "Sending…" : "Send reset link"}
+            {busy ? t("common.sending") : t("forgot.submit")}
           </button>
         </form>
       )}
       <p className="again">
-        <Link to="/login">Log in</Link>
+        <Link to="/login">{t("common.log_in")}</Link>
       </p>
     </main>
   );

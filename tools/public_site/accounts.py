@@ -23,6 +23,7 @@ from public_site.errors import (
     BAD_PASSWORD,
     BAD_PASSWORD_LONG,
     EMAIL_TAKEN,
+    SIGNUP_LIMIT,
     UNVERIFIED,
     RequestRejected,
 )
@@ -45,6 +46,8 @@ _SCHEMA = (
         created_at timestamptz NOT NULL
     )
     """,
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS signup_ip_hash text",
+    "CREATE INDEX IF NOT EXISTS users_signup_ip ON users (signup_ip_hash)",
     """
     CREATE TABLE IF NOT EXISTS sessions (
         id uuid PRIMARY KEY,
@@ -124,8 +127,22 @@ class AccountStore:
         with self._conn() as conn:
             conn.execute("TRUNCATE feedback, users CASCADE")
 
-    def register(self, *, name: str, email: str, password: str, now: datetime) -> str:
-        """Create or refresh an unverified account and return a verify token."""
+    def register(
+        self,
+        *,
+        name: str,
+        email: str,
+        password: str,
+        now: datetime,
+        ip_hash: str | None = None,
+        max_per_ip: int | None = None,
+    ) -> str:
+        """Create or refresh an unverified account and return a verify token.
+
+        A new account is refused once ``max_per_ip`` accounts (verified or not)
+        were ever created from ``ip_hash``. Refreshing an unverified account
+        does not count again.
+        """
         checked_name = account_name(name)
         checked_email = account_email(email)
         checked_password = account_password(password)
@@ -133,8 +150,10 @@ class AccountStore:
             existing = _user_by_email(conn, checked_email)
             if existing is not None and existing["verified_at"] is not None:
                 raise RequestRejected(400, EMAIL_TAKEN)
+            if existing is None and ip_hash and max_per_ip is not None:
+                _check_signup_limit(conn, ip_hash, max_per_ip)
             user_id = _save_unverified(
-                conn, existing, checked_email, checked_name, checked_password, now
+                conn, existing, checked_email, checked_name, checked_password, now, ip_hash
             )
             return _issue(conn, user_id, "verify", now + timedelta(hours=_VERIFY_HOURS))
 
@@ -351,16 +370,34 @@ def password_matches(password: str, hashed: str) -> bool:
         return False
 
 
-def _save_unverified(conn, existing, email: str, name: str, password: str, now: datetime) -> str:
+def _check_signup_limit(conn, ip_hash: str, max_per_ip: int) -> None:
+    row = conn.execute(
+        "SELECT count(*) AS n FROM users WHERE signup_ip_hash = %s",
+        (ip_hash,),
+    ).fetchone()
+    if row["n"] >= max_per_ip:
+        raise RequestRejected(429, SIGNUP_LIMIT)
+
+
+def _save_unverified(
+    conn,
+    existing,
+    email: str,
+    name: str,
+    password: str,
+    now: datetime,
+    ip_hash: str | None = None,
+) -> str:
     hashed = hash_password(password)
     if existing is None:
         user_id = str(uuid.uuid4())
         conn.execute(
             """
-            INSERT INTO users (id, email, name, password_hash, verified_at, created_at)
-            VALUES (%s, %s, %s, %s, NULL, %s)
+            INSERT INTO users
+                (id, email, name, password_hash, verified_at, created_at, signup_ip_hash)
+            VALUES (%s, %s, %s, %s, NULL, %s, %s)
             """,
-            (user_id, email, name, hashed, now),
+            (user_id, email, name, hashed, now, ip_hash),
         )
         return user_id
     user_id = str(existing["id"])

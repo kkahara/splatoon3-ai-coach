@@ -30,6 +30,7 @@ InputType = Literal["video", "review_code"]
 SourceKind = Literal["upload", "nintendo_review_code"]
 UploadState = Literal["pending", "stored", "rejected"]
 LanguageCode = Literal["en", "ja"]
+DisplayLocale = Literal["en", "ja"]
 
 
 class Submission(BaseModel):
@@ -114,6 +115,7 @@ class CoachingMoment(BaseModel):
     video_time: float = Field(ge=0)
     statements: list[str] = Field(default_factory=list)
     assessment: str | None = None
+    assessment_locale: DisplayLocale = "en"
     frame: bool = False
     heading: str | None = None
     marks: list[LifecycleMark] = Field(default_factory=list)
@@ -140,6 +142,7 @@ class PublicSubmissionResponse(BaseModel):
     display_name: str | None = None
     error: str | None = None
     match_seconds: int | None = None
+    locale: DisplayLocale = "en"
     result: PublicSubmissionResult | None = None
 
 

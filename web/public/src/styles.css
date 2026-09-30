@@ -23,6 +23,28 @@ body {
   margin: 0;
 }
 
+.lang-switch {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem 0;
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  color: #8a8f98;
+}
+
+.lang-switch button.linkish {
+  font: inherit;
+  border: 0;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.lang-switch button.lang-current {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .top {
   display: flex;
   justify-content: space-between;

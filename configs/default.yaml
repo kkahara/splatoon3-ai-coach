@@ -309,6 +309,8 @@ coach:
   ollama_base_url: http://127.0.0.1:11434
   openai_compatible_base_url: https://integrate.api.nvidia.com/v1
   nvidia_model: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+  # provider=cursor (Cursor SDK, pip extra "cursor"; key comes from .env).
+  cursor_model: gpt-5.6-luna
   # Type-agnostic top-N across coaching candidates (death is first domain).
   max_llm_units: 3
   # Leave top-N slots empty rather than fill them with zero-score deaths.

@@ -12,6 +12,7 @@ from loguru import logger
 
 from public_site.accounts import AccountStore
 from public_site.errors import (
+    ACCOUNT_RATE_LIMIT,
     BAD_EMAIL,
     BAD_FILE,
     BAD_NAME,
@@ -28,9 +29,11 @@ from public_site.errors import (
 )
 from public_site.frames import extract_frames, frame_path, missing_frames, ranked_entries
 from public_site.limits import RateLimiter
+from public_site.localize import Translator, localize_result
 from public_site.media_probe import ProbeFacts, ProbeRejected, probe_file
 from public_site.models import (
     CreateSubmissionResponse,
+    DisplayLocale,
     PublicSubmissionResponse,
     Submission,
     VideoInput,
@@ -62,12 +65,14 @@ class SubmissionService:
         *,
         probe: Probe | None = None,
         accounts: AccountStore | None = None,
+        translator: Translator | None = None,
     ) -> None:
         self.settings = settings
         self.store = store
         self.storage = storage
         self.notices = notices
         self.accounts = accounts
+        self.translator = translator
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
             store,
@@ -96,8 +101,7 @@ class SubmissionService:
         if not verifier(turnstile_token):
             raise RequestRejected(400, VERIFY)
         moment = now or datetime.now(UTC)
-        if not self.limiter.allow(hash_ip(ip), moment):
-            raise RequestRejected(429, RATE_LIMIT)
+        self._check_limits(ip, user_id, moment)
         if self.store.unfinished_count() >= self.settings.max_queued:
             raise RequestRejected(429, CAPACITY)
         suffix, mime = _declared_file(filename, content_type, size_bytes, self.settings)
@@ -117,6 +121,23 @@ class SubmissionService:
             retention_days=retention_days,
         )
 
+    def _check_limits(self, ip: str, user_id: str | None, now: datetime) -> None:
+        """Network cap for everyone, plus a per-account or per-network guest cap."""
+        ip_key = hash_ip(ip)
+        if user_id is None:
+            own_key = "guest:" + ip_key
+            own_limit = self.settings.guest_submissions_per_hour
+        else:
+            own_key = "user:" + hash_token(user_id)
+            own_limit = self.settings.account_submissions_per_hour
+        checks = [(ip_key, self.settings.submissions_per_hour), (own_key, own_limit)]
+        full = self.limiter.allow_all(checks, now)
+        if full is None:
+            return
+        if full == own_key and user_id is not None:
+            raise RequestRejected(429, ACCOUNT_RATE_LIMIT)
+        raise RequestRejected(429, RATE_LIMIT)
+
     def confirm(self, token: str) -> PublicSubmissionResponse:
         """Verify the stored object, probe it, and queue only on success."""
         submission = self._require(token)
@@ -128,16 +149,23 @@ class SubmissionService:
         self._require_owned(video)
         return self._probe_and_queue(submission, video, token)
 
-    def view(self, token: str) -> PublicSubmissionResponse:
+    def view(self, token: str, locale: DisplayLocale = "en") -> PublicSubmissionResponse:
         """Project one submission. Unknown tokens are a 404."""
-        return self.project(self._require(token))
+        return self.project(self._require(token), locale)
 
-    def project(self, submission: Submission) -> PublicSubmissionResponse:
-        """Narrow public view. Internal paths and worker fields are omitted."""
+    def project(
+        self, submission: Submission, locale: DisplayLocale = "en"
+    ) -> PublicSubmissionResponse:
+        """Narrow public view in ``locale``. Internal paths and worker fields are omitted.
+
+        The locale only changes presentation: English artifacts are read as-is
+        and nothing is re-analyzed or re-coached.
+        """
         result = None
         if submission.status == "complete" and submission.analysis_dir:
             self._fill_frames(submission)
-            result = load_result(Path(submission.analysis_dir))
+            analysis = Path(submission.analysis_dir)
+            result = localize_result(load_result(analysis), locale, analysis, self.translator)
         error = submission.error if submission.status in {"failed", "expired"} else None
         return PublicSubmissionResponse(
             status=submission.status,
@@ -147,6 +175,7 @@ class SubmissionService:
             display_name=submission.display_name,
             error=error,
             match_seconds=_match_seconds(self.store.get_video(submission.id)),
+            locale=locale,
             result=result,
         )
 

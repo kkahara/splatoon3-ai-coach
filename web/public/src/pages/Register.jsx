@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { registerAccount } from "../api.js";
+import { useT } from "../i18n/LocaleContext.jsx";
 
 export function RegisterPage() {
+  const t = useT();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,17 +29,17 @@ export function RegisterPage() {
   return (
     <main className="sheet">
       <AccountBar account={null} />
-      <h1>Create an account</h1>
+      <h1>{t("register.title")}</h1>
       {sent ? (
-        <p>Check your email to finish registration.</p>
+        <p>{t("register.check_email")}</p>
       ) : (
         <form onSubmit={onSubmit}>
           <label>
-            Name
+            {t("register.name")}
             <input value={name} onChange={(event) => setName(event.target.value)} required />
           </label>
           <label>
-            Email address
+            {t("common.email")}
             <input
               type="email"
               value={email}
@@ -46,7 +48,7 @@ export function RegisterPage() {
             />
           </label>
           <label>
-            Password
+            {t("common.password")}
             <input
               type="password"
               value={password}
@@ -57,12 +59,12 @@ export function RegisterPage() {
           </label>
           {error ? <p className="error">{error}</p> : null}
           <button type="submit" disabled={busy}>
-            {busy ? "Creating…" : "Create account"}
+            {busy ? t("register.creating") : t("register.submit")}
           </button>
         </form>
       )}
       <p className="again">
-        <Link to="/login">Log in</Link>
+        <Link to="/login">{t("common.log_in")}</Link>
       </p>
     </main>
   );

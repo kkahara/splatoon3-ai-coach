@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { verifyAccount } from "../api.js";
+import { useT } from "../i18n/LocaleContext.jsx";
 
 export function VerifyPage() {
   const { token } = useParams();
   const navigate = useNavigate();
+  const t = useT();
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,11 +31,11 @@ export function VerifyPage() {
   return (
     <main className="sheet">
       <AccountBar account={null} />
-      <h1>Confirm your email</h1>
-      {error ? <p className="error">{error}</p> : <p>Confirming your email…</p>}
+      <h1>{t("verify.title")}</h1>
+      {error ? <p className="error">{error}</p> : <p>{t("verify.confirming")}</p>}
       {error ? (
         <p className="again">
-          <Link to="/login">Log in</Link>
+          <Link to="/login">{t("common.log_in")}</Link>
         </p>
       ) : null}
     </main>

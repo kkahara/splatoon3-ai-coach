@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { logoutAccount } from "./api.js";
+import { useT } from "./i18n/LocaleContext.jsx";
 
 export function AccountBar({ account, onChange }) {
   const navigate = useNavigate();
+  const t = useT();
 
   async function logout() {
     await logoutAccount();
@@ -14,17 +16,17 @@ export function AccountBar({ account, onChange }) {
 
   return (
     <header className="top">
-      <p className="brand">Splatoon 3 AI Coach</p>
+      <p className="brand">{t("brand")}</p>
       <nav>
         {account ? (
           <>
-            <Link to="/coaching">Past coaching</Link>
+            <Link to="/coaching">{t("account.past_coaching")}</Link>
             <button type="button" className="linkish" onClick={logout}>
-              Log out
+              {t("account.log_out")}
             </button>
           </>
         ) : (
-          <Link to="/login">Log in</Link>
+          <Link to="/login">{t("common.log_in")}</Link>
         )}
       </nav>
     </header>

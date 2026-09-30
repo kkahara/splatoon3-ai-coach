@@ -7,19 +7,15 @@ import {
   sendFeedback,
   shareOwnedReview,
 } from "../api.js";
+import { useLocale, useT } from "../i18n/LocaleContext.jsx";
 
-const STEPS = [
-  ["received", "Received"],
-  ["checked", "Video checked"],
-  ["queued", "Queued"],
-  ["analyzing", "Analyzing match"],
-  ["coaching", "Building coaching"],
-  ["ready", "Ready"],
-];
+const STEPS = ["received", "checked", "queued", "analyzing", "coaching", "ready"];
 
 export function ReviewPage() {
   const { token, id } = useParams();
   const owned = Boolean(id);
+  const t = useT();
+  const { locale } = useLocale();
   const [view, setView] = useState(null);
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
@@ -33,7 +29,9 @@ export function ReviewPage() {
     let stopped = false;
     async function poll() {
       try {
-        const next = owned ? await loadOwnedSubmission(id) : await loadSubmission(token);
+        const next = owned
+          ? await loadOwnedSubmission(id, locale)
+          : await loadSubmission(token, locale);
         if (!stopped) {
           setView(next);
           setError("");
@@ -46,18 +44,19 @@ export function ReviewPage() {
         return "failed";
       }
     }
-    poll();
-    const timer = setInterval(async () => {
+    let timer = null;
+    async function loop() {
       const status = await poll();
-      if (["complete", "failed", "expired"].includes(status)) {
-        clearInterval(timer);
+      if (!stopped && !["complete", "failed", "expired"].includes(status)) {
+        timer = setTimeout(loop, 3000);
       }
-    }, 3000);
+    }
+    loop();
     return () => {
       stopped = true;
-      clearInterval(timer);
+      clearTimeout(timer);
     };
-  }, [token, id, owned]);
+  }, [token, id, owned, locale]);
 
   function copyLink() {
     const link = window.location.href;
@@ -75,23 +74,23 @@ export function ReviewPage() {
 
   return (
     <main className="sheet">
-      <p className="brand">Splatoon 3 AI Coach</p>
-      <h1>{heading(view)}</h1>
-      <p>Keep this link. You can return to this page at any time.</p>
+      <p className="brand">{t("brand")}</p>
+      <h1>{t(headingKey(view))}</h1>
+      <p>{t("review.keep_link")}</p>
       <div className="link-row">
-        <input readOnly value={window.location.href} aria-label="Private review link" />
+        <input readOnly value={window.location.href} aria-label={t("review.private_link")} />
         <button type="button" onClick={copyLink}>
-          {copied ? "Copied" : "Copy link"}
+          {copied ? t("review.copied") : t("review.copy_link")}
         </button>
       </div>
       {error ? <p className="error">{error}</p> : null}
       {view?.error ? <p className="error">{view.error}</p> : null}
       <ol className="steps">
-        {STEPS.map(([id, label], index) => (
-          <li key={id} className={index < reached ? "done" : spinning && index === reached ? "current" : ""}>
-            {label}
+        {STEPS.map((step, index) => (
+          <li key={step} className={index < reached ? "done" : spinning && index === reached ? "current" : ""}>
+            {t(`review.step.${step}`)}
             {spinning && index === reached ? (
-              <span className="spinner" role="status" aria-label="In progress" />
+              <span className="spinner" role="status" aria-label={t("review.in_progress")} />
             ) : null}
           </li>
         ))}
@@ -100,6 +99,7 @@ export function ReviewPage() {
         <Result
           frameBase={owned ? `/api/me/submissions/${id}` : `/api/submissions/${token}`}
           moments={view.result?.moments || []}
+          locale={locale}
         />
       ) : null}
       {view?.status === "complete" && config?.feedback ? (
@@ -117,20 +117,19 @@ export function ReviewPage() {
       <p className="again">
         {owned ? (
           <>
-            <Link to="/coaching">Past coaching</Link>
+            <Link to="/coaching">{t("account.past_coaching")}</Link>
             {" · "}
           </>
         ) : null}
-        <Link to="/">Submit another video</Link>
+        <Link to="/">{t("review.submit_another")}</Link>
       </p>
     </main>
   );
 }
 
-const SHARE_TITLE = "Splatoon 3 Coaching Review";
-const SHARE_TEXT = "See what happened in this match and get evidence-based coaching feedback.";
-
 function ShareReview({ moments, frameBase, matchSeconds, owned, id }) {
+  const t = useT();
+  const shareTitle = t("share.card_title");
   const panel = useRef(null);
   const [url, setUrl] = useState("");
   const [open, setOpen] = useState(false);
@@ -179,71 +178,71 @@ function ShareReview({ moments, frameBase, matchSeconds, owned, id }) {
   }
 
   function shareMore() {
-    navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url }).catch(() => {});
+    navigator.share({ title: shareTitle, text: t("share.card_text"), url }).catch(() => {});
   }
 
   return (
     <section className="share">
-      <h2>Share your coaching</h2>
-      <p>Want to show someone what your coach found?</p>
+      <h2>{t("share.heading")}</h2>
+      <p>{t("share.prompt")}</p>
       <button type="button" onClick={openPanel}>
-        Share review
+        {t("share.button")}
       </button>
       {error ? <p className="error">{error}</p> : null}
-      <p className="note">Anyone with the link can view this coaching review.</p>
+      <p className="note">{t("share.anyone")}</p>
       <dialog className="share-panel" ref={panel} onClose={() => setOpen(false)}>
-        <h3>Share this coaching review</h3>
-        <p>Share your Splatoon coaching review with friends.</p>
+        <h3>{t("share.panel_title")}</h3>
+        <p>{t("share.panel_text")}</p>
         <button type="button" onClick={copyReview} disabled={!url}>
-          {copied ? "✓ Link copied" : "Copy link"}
+          {copied ? t("share.link_copied") : t("review.copy_link")}
         </button>
         <div className="share-actions">
-          <a href={shareHref("x", url)} target="_blank" rel="noreferrer">
+          <a href={shareHref("x", url, shareTitle)} target="_blank" rel="noreferrer">
             X
           </a>
-          <a href={shareHref("facebook", url)} target="_blank" rel="noreferrer">
+          <a href={shareHref("facebook", url, shareTitle)} target="_blank" rel="noreferrer">
             Facebook
           </a>
           {native ? (
             <button type="button" onClick={shareMore}>
-              More…
+              {t("share.more")}
             </button>
           ) : null}
         </div>
-        <p className="note">Your review link is ready to share.</p>
+        <p className="note">{t("share.ready")}</p>
         <div className="share-preview">
-          <strong>{SHARE_TITLE}</strong>
-          <p>{momentLine(moments.length, matchSeconds)}</p>
-          <p>Evidence-based analysis of this match.</p>
+          <strong>{shareTitle}</strong>
+          <p>{momentLine(moments.length, matchSeconds, t)}</p>
+          <p>{t("share.evidence")}</p>
           {frameIndex >= 0 ? (
             <img alt="" src={`${frameBase}/moments/${frameIndex}/frame`} />
           ) : null}
         </div>
         <button type="button" className="linkish" onClick={() => panel.current?.close()}>
-          Close
+          {t("share.close")}
         </button>
       </dialog>
     </section>
   );
 }
 
-function shareHref(kind, url) {
+function shareHref(kind, url, title) {
   if (!url) {
     return undefined;
   }
   if (kind === "x") {
-    const text = encodeURIComponent(SHARE_TITLE);
+    const text = encodeURIComponent(title);
     return `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`;
   }
   return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
 }
 
-function momentLine(count, matchSeconds) {
-  const label = count === 1 ? "1 coaching moment" : `${count} coaching moments`;
+function momentLine(count, matchSeconds, t) {
+  const label = count === 1 ? t("share.moments_one") : t("share.moments_many", { count });
   if (matchSeconds == null) {
     return label;
   }
-  return `${label} · ${formatMatch(matchSeconds)} match`;
+  return t("share.moments_match", { label, time: formatMatch(matchSeconds) });
 }
 
 function formatMatch(seconds) {
@@ -254,6 +253,7 @@ function formatMatch(seconds) {
 }
 
 function FeedbackForm({ owned, token, id }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [sent, setSent] = useState(false);
@@ -261,13 +261,13 @@ function FeedbackForm({ owned, token, id }) {
   const [busy, setBusy] = useState(false);
 
   if (sent) {
-    return <p>Thanks, we received your feedback.</p>;
+    return <p>{t("feedback.thanks")}</p>;
   }
   if (!open) {
     return (
       <p className="again">
         <button type="button" className="linkish" onClick={() => setOpen(true)}>
-          Feedback
+          {t("feedback.label")}
         </button>
       </p>
     );
@@ -289,7 +289,7 @@ function FeedbackForm({ owned, token, id }) {
   return (
     <form onSubmit={onSubmit}>
       <label>
-        Feedback
+        {t("feedback.label")}
         <textarea
           value={text}
           maxLength={2000}
@@ -300,24 +300,25 @@ function FeedbackForm({ owned, token, id }) {
       </label>
       {error ? <p className="error">{error}</p> : null}
       <button type="submit" disabled={busy}>
-        {busy ? "Sending…" : "Send feedback"}
+        {busy ? t("common.sending") : t("feedback.send")}
       </button>
     </form>
   );
 }
 
-function Result({ frameBase, moments }) {
+function Result({ frameBase, moments, locale }) {
+  const t = useT();
   return (
     <section>
-      <h2>Key moments</h2>
-      {moments.length === 0 ? <p>No coaching moments were produced.</p> : null}
+      <h2>{t("review.key_moments")}</h2>
+      {moments.length === 0 ? <p>{t("review.no_moments")}</p> : null}
       <ul className="moments">
         {moments.map((moment, index) => (
           <li key={`${moment.scenario_type}-${moment.video_time}-${index}`}>
             {moment.heading ? (
-              <Episode moment={moment} frameBase={frameBase} index={index} />
+              <Episode moment={moment} frameBase={frameBase} index={index} locale={locale} />
             ) : (
-              <PlainMoment moment={moment} frameBase={frameBase} index={index} />
+              <PlainMoment moment={moment} frameBase={frameBase} index={index} locale={locale} />
             )}
           </li>
         ))}
@@ -326,7 +327,24 @@ function Result({ frameBase, moments }) {
   );
 }
 
-function Episode({ moment, frameBase, index }) {
+function Assessment({ moment, locale }) {
+  const t = useT();
+  if (!moment.assessment) {
+    return null;
+  }
+  const fellBack = locale !== "en" && moment.assessment_locale === "en";
+  return (
+    <>
+      <p className="assessment" lang={fellBack ? "en" : undefined}>
+        {moment.assessment}
+      </p>
+      {fellBack ? <p className="note">{t("review.english_fallback")}</p> : null}
+    </>
+  );
+}
+
+function Episode({ moment, frameBase, index, locale }) {
+  const t = useT();
   return (
     <>
       <h3>{moment.heading}</h3>
@@ -335,7 +353,7 @@ function Episode({ moment, frameBase, index }) {
       {moment.recovery_context ? <p>{moment.recovery_context}</p> : null}
       {moment.context?.length ? (
         <>
-          <h4>Before death</h4>
+          <h4>{t("review.before_death")}</h4>
           <ul className="context">
             {moment.context.map((line) => (
               <li key={line}>{line}</li>
@@ -343,8 +361,8 @@ function Episode({ moment, frameBase, index }) {
           </ul>
         </>
       ) : null}
-      <h4>Coaching</h4>
-      {moment.assessment ? <p className="assessment">{moment.assessment}</p> : null}
+      <h4>{t("review.coaching")}</h4>
+      <Assessment moment={moment} locale={locale} />
       {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
     </>
   );
@@ -454,19 +472,29 @@ function markAlign(index, count) {
   return "translateX(-50%)";
 }
 
-function PlainMoment({ moment, frameBase, index }) {
+function PlainMoment({ moment, frameBase, index, locale }) {
+  const t = useT();
   return (
     <>
       <h3>
-        {titleCase(moment.scenario_type)} — {formatTime(moment.video_time)}
+        {scenarioTitle(moment.scenario_type, t)} — {formatTime(moment.video_time)}
       </h3>
       {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
       {moment.statements.map((statement) => (
         <p key={statement}>{statement}</p>
       ))}
-      {moment.assessment ? <p className="assessment">{moment.assessment}</p> : null}
+      <Assessment moment={moment} locale={locale} />
     </>
   );
+}
+
+function scenarioTitle(type, t) {
+  if (!type) {
+    return t("review.moment");
+  }
+  const key = `scenario.${type}`;
+  const label = t(key);
+  return label === key ? titleCase(type) : label;
 }
 
 function MomentStill({ frameBase, index }) {
@@ -495,20 +523,20 @@ function copyWithSelection(link) {
   return copiedLink;
 }
 
-function heading(view) {
+function headingKey(view) {
   if (!view) {
-    return "Your review";
+    return "review.heading.default";
   }
   if (view.status === "complete") {
-    return "Your Coaching Review";
+    return "review.heading.complete";
   }
   if (view.status === "failed") {
-    return "Review failed";
+    return "review.heading.failed";
   }
   if (view.status === "expired") {
-    return "Review expired";
+    return "review.heading.expired";
   }
-  return "Your analysis is processing";
+  return "review.heading.processing";
 }
 
 function reachedStep(view) {
@@ -518,7 +546,7 @@ function reachedStep(view) {
   if (view.status === "validating") {
     return 1;
   }
-  const index = STEPS.findIndex(([id]) => id === view.step);
+  const index = STEPS.indexOf(view.step);
   return index < 0 ? 0 : index;
 }
 

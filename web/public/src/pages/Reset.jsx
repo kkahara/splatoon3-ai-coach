@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { resetPassword } from "../api.js";
+import { useT } from "../i18n/LocaleContext.jsx";
 
 export function ResetPage() {
   const { token } = useParams();
   const navigate = useNavigate();
+  const t = useT();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,10 +28,10 @@ export function ResetPage() {
   return (
     <main className="sheet">
       <AccountBar account={null} />
-      <h1>Choose a new password</h1>
+      <h1>{t("reset.title")}</h1>
       <form onSubmit={onSubmit}>
         <label>
-          New password
+          {t("reset.new_password")}
           <input
             type="password"
             value={password}
@@ -40,11 +42,11 @@ export function ResetPage() {
         </label>
         {error ? <p className="error">{error}</p> : null}
         <button type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Save password"}
+          {busy ? t("reset.saving") : t("reset.submit")}
         </button>
       </form>
       <p className="again">
-        <Link to="/login">Log in</Link>
+        <Link to="/login">{t("common.log_in")}</Link>
       </p>
     </main>
   );

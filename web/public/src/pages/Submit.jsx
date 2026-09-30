@@ -2,20 +2,22 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { createSubmission, loadAccount, loadConfig, markUploaded, uploadVideo } from "../api.js";
+import { useT } from "../i18n/LocaleContext.jsx";
 
 function systemLanguage() {
   const tags = navigator.languages?.length ? navigator.languages : [navigator.language || "en"];
   return tags.some((tag) => String(tag).toLowerCase().startsWith("ja")) ? "ja" : "en";
 }
 
-function videoLabel(config) {
+function videoLabel(config, t) {
   const bytes = config?.max_video_bytes || 500 * 1024 * 1024;
   const mb = Math.round(bytes / (1024 * 1024));
-  return `Choose video (${mb}MB max)`;
+  return t("submit.choose_video", { mb });
 }
 
 export function SubmitPage() {
   const navigate = useNavigate();
+  const t = useT();
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
   const [language, setLanguage] = useState(systemLanguage());
@@ -63,16 +65,16 @@ export function SubmitPage() {
     event.preventDefault();
     setError("");
     if (!file) {
-      setError("Choose an MP4 or MOV video.");
+      setError(t("submit.error_file"));
       return;
     }
     if (config && file.size > config.max_video_bytes) {
-      setError("That video is too large.");
+      setError(t("submit.error_size"));
       return;
     }
     const token = config?.dev_mode ? "dev" : turnstileToken;
     if (!token) {
-      setError("Complete the check before submitting.");
+      setError(t("submit.error_check"));
       return;
     }
     setBusy(true);
@@ -99,11 +101,11 @@ export function SubmitPage() {
   return (
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
-      <h1>Get AI Coaching for Your Splatoon 3 Match</h1>
-      <p>Upload your gameplay recording.</p>
+      <h1>{t("submit.title")}</h1>
+      <p>{t("submit.intro")}</p>
       <form onSubmit={onSubmit}>
         <label>
-          {videoLabel(config)}
+          {videoLabel(config, t)}
           <input
             type="file"
             accept=".mp4,.mov,video/mp4,video/quicktime"
@@ -111,19 +113,19 @@ export function SubmitPage() {
           />
         </label>
         <label>
-          System language
+          {t("submit.system_language")}
           <select value={language} onChange={(event) => setLanguage(event.target.value)}>
             <option value="en">English</option>
             <option value="ja">日本語</option>
           </select>
         </label>
         <label>
-          Display name
+          {t("submit.display_name")}
           <input
             value={displayName}
             maxLength={40}
             onChange={(event) => setDisplayName(event.target.value)}
-            placeholder="Optional"
+            placeholder={t("submit.optional")}
           />
         </label>
         {account ? null : (
@@ -133,12 +135,12 @@ export function SubmitPage() {
               checked={notify}
               onChange={(event) => setNotify(event.target.checked)}
             />
-            Email me when my review is ready
+            {t("submit.notify")}
           </label>
         )}
         {!account && notify ? (
           <label>
-            Email address
+            {t("common.email")}
             <input
               type="email"
               value={email}
@@ -150,13 +152,10 @@ export function SubmitPage() {
         {config?.turnstile_site_key ? <div id="turnstile-slot" /> : null}
         {error ? <p className="error">{error}</p> : null}
         <button type="submit" disabled={busy}>
-          {busy ? "Submitting…" : "Submit Match"}
+          {busy ? t("submit.submitting") : t("submit.submit")}
         </button>
       </form>
-      <p className="note">
-        Currently, video recordings are supported. Review Code support may be added in the
-        future.
-      </p>
+      <p className="note">{t("submit.note")}</p>
     </main>
   );
 }

@@ -142,13 +142,21 @@ export async function sendFeedback({ token, id, body }) {
   return read(response, "Feedback was not saved.");
 }
 
-export async function loadOwnedSubmission(id) {
-  const response = await fetch(`/api/me/submissions/${encodeURIComponent(id)}`);
+function localeQuery(locale) {
+  return locale && locale !== "en" ? `?locale=${encodeURIComponent(locale)}` : "";
+}
+
+export async function loadOwnedSubmission(id, locale) {
+  const response = await fetch(
+    `/api/me/submissions/${encodeURIComponent(id)}${localeQuery(locale)}`,
+  );
   return read(response, "This review was not found.");
 }
 
-export async function loadSubmission(token) {
-  const response = await fetch(`/api/submissions/${encodeURIComponent(token)}`);
+export async function loadSubmission(token, locale) {
+  const response = await fetch(
+    `/api/submissions/${encodeURIComponent(token)}${localeQuery(locale)}`,
+  );
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const missing = response.status === 404;

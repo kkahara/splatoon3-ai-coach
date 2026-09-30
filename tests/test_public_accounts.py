@@ -12,7 +12,13 @@ import pytest
 from fastapi.testclient import TestClient
 from public_site.accounts import AccountStore
 from public_site.app import create_app
-from public_site.errors import BAD_LOGIN, BAD_PASSWORD, EMAIL_TAKEN, UNVERIFIED
+from public_site.errors import (
+    BAD_LOGIN,
+    BAD_PASSWORD,
+    EMAIL_TAKEN,
+    SIGNUP_LIMIT,
+    UNVERIFIED,
+)
 from public_site.media_probe import ProbeFacts
 from public_site.settings import PublicSettings
 from public_site.store import parse_utc
@@ -146,6 +152,23 @@ def test_login_waits_for_the_verify_link(tmp_path: Path, accounts: AccountStore)
     )
     assert again.status_code == 400
     assert again.json()["detail"] == EMAIL_TAKEN
+
+
+def test_three_accounts_per_network_ever(tmp_path: Path, accounts: AccountStore) -> None:
+    client = _client(tmp_path, accounts)
+    for index in range(3):
+        _register(client, f"player{index}@example.com")
+    _register(client, "player0@example.com")
+    blocked = client.post(
+        "/api/auth/register",
+        json={"name": "Rin", "email": "player3@example.com", "password": _PASSWORD},
+    )
+    assert blocked.status_code == 429
+    assert blocked.json()["detail"] == SIGNUP_LIMIT
+    with psycopg.connect(accounts.database_url) as conn:
+        hashes = conn.execute("SELECT signup_ip_hash FROM users").fetchall()
+    assert len(hashes) == 3
+    assert all(row[0] and "testclient" not in row[0] for row in hashes)
 
 
 def test_reset_replaces_the_password_and_old_sessions(

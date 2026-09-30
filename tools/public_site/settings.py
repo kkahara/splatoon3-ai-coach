@@ -40,8 +40,11 @@ class PublicSettings:
     max_duration_seconds: float = 1800
     min_dimension: int = 320
     max_dimension: int = 3840
-    submissions_per_hour: int = 2
+    submissions_per_hour: int = 6
+    guest_submissions_per_hour: int = 2
+    account_submissions_per_hour: int = 2
     submission_window_seconds: int = 3600
+    accounts_per_ip: int = 3
     max_queued: int = 20
     max_concurrent: int = 1
     retention_days: int = 30
@@ -87,11 +90,13 @@ class PublicSettings:
         dev_mode = _flag("PUBLIC_DEV_MODE")
         per_hour = os.environ.get("PUBLIC_VIDEO_PER_HOUR")
         window = os.environ.get("PUBLIC_VIDEO_WINDOW_SECONDS")
-        if dev_mode and per_hour is None and window is None:
+        relaxed = dev_mode and per_hour is None and window is None
+        if relaxed:
             submissions, window_seconds = 50, 86400
         else:
-            submissions = int(per_hour or "2")
+            submissions = int(per_hour or "6")
             window_seconds = int(window or "3600")
+        per_user_default = str(submissions) if relaxed else "2"
         return cls(
             root=root.resolve(),
             config_path=default_config_path(),
@@ -102,7 +107,16 @@ class PublicSettings:
             max_video_bytes=int(os.environ.get("PUBLIC_MAX_VIDEO_BYTES", str(500 * _MIB))),
             max_duration_seconds=float(os.environ.get("PUBLIC_MAX_DURATION_SECONDS", "1800")),
             submissions_per_hour=submissions,
+            guest_submissions_per_hour=int(
+                os.environ.get("PUBLIC_GUEST_VIDEO_PER_HOUR", per_user_default)
+            ),
+            account_submissions_per_hour=int(
+                os.environ.get("PUBLIC_ACCOUNT_VIDEO_PER_HOUR", per_user_default)
+            ),
             submission_window_seconds=window_seconds,
+            accounts_per_ip=int(
+                os.environ.get("PUBLIC_ACCOUNTS_PER_IP", "50" if relaxed else "3")
+            ),
             max_queued=int(os.environ.get("PUBLIC_MAX_QUEUED", "20")),
             max_concurrent=int(os.environ.get("PUBLIC_MAX_CONCURRENT", "1")),
             retention_days=int(os.environ.get("PUBLIC_RETENTION_DAYS", "30")),

@@ -577,13 +577,24 @@ def test_dev_mode_allows_fifty_submissions_per_day(monkeypatch, tmp_path: Path) 
     monkeypatch.setenv("PUBLIC_ROOT", str(tmp_path))
     monkeypatch.delenv("PUBLIC_VIDEO_PER_HOUR", raising=False)
     monkeypatch.delenv("PUBLIC_VIDEO_WINDOW_SECONDS", raising=False)
+    for name in (
+        "PUBLIC_GUEST_VIDEO_PER_HOUR",
+        "PUBLIC_ACCOUNT_VIDEO_PER_HOUR",
+        "PUBLIC_ACCOUNTS_PER_IP",
+    ):
+        monkeypatch.delenv(name, raising=False)
     settings = PublicSettings.from_env()
     assert settings.submissions_per_hour == 50
+    assert settings.guest_submissions_per_hour == 50
+    assert settings.account_submissions_per_hour == 50
     assert settings.submission_window_seconds == 86400
     monkeypatch.delenv("PUBLIC_DEV_MODE", raising=False)
     production = PublicSettings.from_env()
-    assert production.submissions_per_hour == 2
+    assert production.submissions_per_hour == 6
+    assert production.guest_submissions_per_hour == 2
+    assert production.account_submissions_per_hour == 2
     assert production.submission_window_seconds == 3600
+    assert production.accounts_per_ip == 3
 
 
 def test_public_site_refuses_to_start_without_turnstile(monkeypatch) -> None:

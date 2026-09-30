@@ -223,6 +223,8 @@ __marimo__/
 # Exception: checked-in vision templates under calibration/templates/.
 analysis/**
 !analysis/.gitkeep
+!analysis/localization/
+!analysis/localization/**
 
 frames/**
 !frames/.gitkeep

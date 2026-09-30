@@ -12,14 +12,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from public_site.accounts import Account, AccountStore, account_email
 from public_site.errors import ACCOUNTS_UNAVAILABLE, LOGIN_REQUIRED, RequestRejected
-from public_site.models import HistoryItem, PublicConfig, Submission
+from public_site.localize import Translator, build_translator
+from public_site.models import DisplayLocale, HistoryItem, PublicConfig, Submission
 from public_site.notices import NoticeSender
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
 from public_site.storage import LocalStorage, R2Storage
 from public_site.store import PublicStore
-from public_site.tokens import hash_token, new_token
+from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
 from public_site.worker import Command, PublicWorker, subprocess_run
 
@@ -97,6 +98,7 @@ def create_app(
     run_command: Command | None = None,
     start_worker: bool = True,
     accounts: AccountStore | None = None,
+    translator: Translator | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
@@ -106,8 +108,16 @@ def create_app(
     if accounts is None and settings.database_url:
         accounts = AccountStore(settings.database_url)
         accounts.ensure_schema()
+    if translator is None:
+        translator = build_translator(settings.config_path, settings.llm_provider)
     service = SubmissionService(
-        settings, store, storage, notices, probe=probe, accounts=accounts
+        settings,
+        store,
+        storage,
+        notices,
+        probe=probe,
+        accounts=accounts,
+        translator=translator,
     )
     if verifier is None:
         verifier = build_verifier(settings)
@@ -200,9 +210,9 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         return view.model_dump()
 
     @app.get("/api/submissions/{token}")
-    def get_submission(token: str) -> dict:
+    def get_submission(token: str, locale: DisplayLocale = "en") -> dict:
         try:
-            view = service.view(token)
+            view = service.view(token, locale)
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return view.model_dump()
@@ -244,12 +254,19 @@ def _register_dev_upload(app: FastAPI, storage) -> None:
 
 def _auth_routes(app, settings, service, accounts, notices) -> None:
     @app.post("/api/auth/register")
-    def post_register(body: RegisterBody) -> dict:
+    def post_register(body: RegisterBody, request: Request) -> dict:
         store = _require_accounts(accounts)
         now = datetime.now(UTC)
         try:
             email = account_email(body.email)
-            token = store.register(name=body.name, email=email, password=body.password, now=now)
+            token = store.register(
+                name=body.name,
+                email=email,
+                password=body.password,
+                now=now,
+                ip_hash=hash_ip(_client_ip(request, settings)),
+                max_per_ip=settings.accounts_per_ip,
+            )
             notices.send_account(email, "verify", f"{settings.public_base_url}/verify/{token}")
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
@@ -324,10 +341,10 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
         return {"review_path": f"/review/{token}"}
 
     @app.get("/api/me/submissions/{submission_id}")
-    def get_owned(submission_id: str, request: Request) -> dict:
+    def get_owned(submission_id: str, request: Request, locale: DisplayLocale = "en") -> dict:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
-        return service.project(submission).model_dump()
+        return service.project(submission, locale).model_dump()
 
     @app.post("/api/me/submissions/{submission_id}/feedback")
     def post_owned_feedback(submission_id: str, body: FeedbackBody, request: Request) -> dict:

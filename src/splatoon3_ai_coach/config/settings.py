@@ -22,5 +22,6 @@ class CoachSettings(BaseSettings):
 
     openai_api_key: str | None = None
     nvidia_api_key: str | None = None
+    cursor_api_key: str | None = None
     llm_provider: str | None = None
     ollama_base_url: str | None = None

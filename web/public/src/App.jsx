@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { LanguageSwitch } from "./LanguageSwitch.jsx";
 import { CoachingPage } from "./pages/Coaching.jsx";
 import { ForgotPage } from "./pages/Forgot.jsx";
 import { LoginPage } from "./pages/Login.jsx";
@@ -9,6 +10,15 @@ import { SubmitPage } from "./pages/Submit.jsx";
 import { VerifyPage } from "./pages/Verify.jsx";
 
 export function App() {
+  return (
+    <>
+      <LanguageSwitch />
+      <AppRoutes />
+    </>
+  );
+}
+
+function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<SubmitPage />} />

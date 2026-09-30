@@ -65,7 +65,10 @@ def llm_label(settings: PlatformSettings) -> dict[str, str | None]:
         provider = normalize_coach_provider(CoachSettings().llm_provider or config.coach.provider)
     except ValueError:
         return {"provider": None, "model": None}
-    model = config.coach.nvidia_model if provider == "nvidia" else config.coach.model
+    model = {
+        "nvidia": config.coach.nvidia_model,
+        "cursor": config.coach.cursor_model,
+    }.get(provider, config.coach.model)
     return {"provider": provider, "model": model}
 
 

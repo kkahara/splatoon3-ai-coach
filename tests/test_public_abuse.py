@@ -16,15 +16,18 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+import pytest
 from fastapi.testclient import TestClient
 from public_site.app import create_app
 from public_site.errors import (
+    ACCOUNT_RATE_LIMIT,
     BAD_SIZE,
     CAPACITY,
     EXPIRED,
     INTERRUPTED,
     RATE_LIMIT,
     VERIFY,
+    RequestRejected,
 )
 from public_site.media_probe import ProbeFacts
 from public_site.s3sign import presign
@@ -119,6 +122,57 @@ def test_rapid_valid_videos_hit_the_hourly_limit(tmp_path: Path) -> None:
     assert "testclient" not in rate
 
 
+def _service_create(client: TestClient, ip: str, user_id: str | None) -> None:
+    client.app.state.service.create(
+        turnstile_token="dev",
+        filename="match.mp4",
+        size_bytes=8,
+        content_type="video/mp4",
+        language="en",
+        email=None,
+        notify=False,
+        display_name=None,
+        ip=ip,
+        verifier=lambda _token: True,
+        user_id=user_id,
+    )
+
+
+def _rejected_detail(client: TestClient, ip: str, user_id: str | None) -> str:
+    with pytest.raises(RequestRejected) as excinfo:
+        _service_create(client, ip, user_id)
+    assert excinfo.value.status_code == 429
+    return excinfo.value.detail
+
+
+def test_accounts_and_guests_share_the_network_cap(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    ip = "203.0.113.7"
+    for _ in range(2):
+        _service_create(client, ip, "account-a")
+    assert _rejected_detail(client, ip, "account-a") == ACCOUNT_RATE_LIMIT
+    for _ in range(2):
+        _service_create(client, ip, "account-b")
+    for _ in range(2):
+        _service_create(client, ip, None)
+    assert _rejected_detail(client, ip, None) == RATE_LIMIT
+    assert _rejected_detail(client, ip, "account-c") == RATE_LIMIT
+    _service_create(client, "198.51.100.9", "account-c")
+    assert len(_submission_files(client)) == 7
+    rate = (client.app.state.settings.root / "rate_limits.json").read_text()
+    assert ip not in rate
+    assert "account-a" not in rate
+
+
+def test_guest_limit_is_two_per_network(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    _upload(client, _create(client))
+    _upload(client, _create(client))
+    blocked = client.post("/api/submissions", json=_body(filename="third.mp4"))
+    assert blocked.status_code == 429
+    assert blocked.json()["detail"] == RATE_LIMIT
+
+
 def test_production_turnstile_rejects_a_bad_token(tmp_path: Path) -> None:
     settings = _settings(
         tmp_path,
@@ -210,7 +264,9 @@ def test_changed_token_does_not_open_another_submission(tmp_path: Path) -> None:
 
 
 def test_twenty_unfinished_submissions_block_the_next_create(tmp_path: Path) -> None:
-    client = _client(tmp_path, submissions_per_hour=30, max_queued=20)
+    client = _client(
+        tmp_path, submissions_per_hour=30, guest_submissions_per_hour=30, max_queued=20
+    )
     for index in range(20):
         _create(client, filename=f"match-{index}.mp4")
     before = _submission_files(client)

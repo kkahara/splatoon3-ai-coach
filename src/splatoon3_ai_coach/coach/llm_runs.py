@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from splatoon3_ai_coach.coach.llm_client import (
     CoachingAssessment,
+    CursorProvider,
     LLMProvider,
     OllamaProvider,
     OpenAICompatibleProvider,
@@ -68,6 +69,7 @@ def build_llm_runs(
     nvidia_model_override: str | None,
     also_baseline: bool,
     baseline_model_override: str | None,
+    cursor_model_override: str | None = None,
 ) -> list[LlmRun]:
     """Build primary (+ optional Ollama baseline) runs. Never logs API keys."""
     ollama_base = settings.ollama_base_url or coach_cfg.ollama_base_url
@@ -83,27 +85,9 @@ def build_llm_runs(
             )
         )
     elif provider_name == "nvidia":
-        api_key = settings.nvidia_api_key
-        if not api_key or not api_key.strip():
-            raise ConfigError(
-                "provider=nvidia requires S3_COACH_NVIDIA_API_KEY. "
-                "Put it in a gitignored .env in the repo root "
-                "(S3_COACH_NVIDIA_API_KEY=...) or export it in the same "
-                "process that runs s3-coach. Do not put the key in YAML. "
-                "Note: exporting in one terminal does not apply to Cursor "
-                "Debug launches."
-            )
-        nim_model = nvidia_model_override or coach_cfg.nvidia_model
-        runs.append(
-            LlmRun(
-                label=nim_model,
-                provider=OpenAICompatibleProvider(
-                    nim_model,
-                    api_key=api_key,
-                    base_url=coach_cfg.openai_compatible_base_url,
-                ),
-            )
-        )
+        runs.append(_nvidia_run(coach_cfg, settings, nvidia_model_override))
+    elif provider_name == "cursor":
+        runs.append(_cursor_run(coach_cfg, settings, cursor_model_override))
     else:  # pragma: no cover — normalize_coach_provider already validates
         raise ConfigError(f"Unsupported provider: {provider_name}")
 
@@ -119,6 +103,43 @@ def build_llm_runs(
             )
         )
     return runs
+
+
+def _require_key(value: str | None, provider: str, env_name: str) -> str:
+    """Return a non-blank API key or raise a ConfigError naming the variable."""
+    if value and value.strip():
+        return value
+    raise ConfigError(
+        f"provider={provider} requires {env_name}. "
+        "Put it in a gitignored .env in the repo root "
+        f"({env_name}=...) or export it in the same "
+        "process that runs s3-coach. Do not put the key in YAML. "
+        "Note: exporting in one terminal does not apply to Cursor "
+        "Debug launches."
+    )
+
+
+def _nvidia_run(
+    coach_cfg: CoachConfig, settings: CoachSettings, model_override: str | None
+) -> LlmRun:
+    """NVIDIA NIM through the OpenAI-compatible chat completions API."""
+    api_key = _require_key(settings.nvidia_api_key, "nvidia", "S3_COACH_NVIDIA_API_KEY")
+    model = model_override or coach_cfg.nvidia_model
+    return LlmRun(
+        label=model,
+        provider=OpenAICompatibleProvider(
+            model, api_key=api_key, base_url=coach_cfg.openai_compatible_base_url
+        ),
+    )
+
+
+def _cursor_run(
+    coach_cfg: CoachConfig, settings: CoachSettings, model_override: str | None
+) -> LlmRun:
+    """Cursor-hosted model through the Cursor SDK."""
+    api_key = _require_key(settings.cursor_api_key, "cursor", "S3_COACH_CURSOR_API_KEY")
+    model = model_override or coach_cfg.cursor_model
+    return LlmRun(label=model, provider=CursorProvider(model, api_key=api_key))
 
 
 # Backward-compatible aliases.

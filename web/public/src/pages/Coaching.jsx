@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { loadAccount, loadHistory } from "../api.js";
+import { useLocale, useT } from "../i18n/LocaleContext.jsx";
 
 export function CoachingPage() {
+  const t = useT();
+  const { locale } = useLocale();
   const [account, setAccount] = useState(null);
   const [items, setItems] = useState(null);
   const [error, setError] = useState("");
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   useEffect(() => {
     let stopped = false;
@@ -17,7 +21,7 @@ export function CoachingPage() {
         }
         setAccount(next);
         if (!next) {
-          setError("Log in to see your coaching.");
+          setNeedsLogin(true);
           setItems([]);
           return;
         }
@@ -37,49 +41,51 @@ export function CoachingPage() {
     };
   }, []);
 
+  const message = needsLogin ? t("coaching.login_needed") : error;
+
   return (
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
-      <h1>Past coaching</h1>
-      {error ? <p className="error">{error}</p> : null}
-      {items === null ? <p>Loading…</p> : null}
-      {items?.length === 0 && !error ? <p>You have no coaching yet.</p> : null}
+      <h1>{t("coaching.title")}</h1>
+      {message ? <p className="error">{message}</p> : null}
+      {items === null ? <p>{t("coaching.loading")}</p> : null}
+      {items?.length === 0 && !message ? <p>{t("coaching.empty")}</p> : null}
       <ul className="history">
         {(items || []).map((item) => (
           <li key={item.id}>
             <Link to={`/coaching/${item.id}`}>
-              <strong>{item.display_name || "Match"}</strong>
+              <strong>{item.display_name || t("coaching.match")}</strong>
               <span className="muted">
-                {formatWhen(item.created_at)} · {label(item.status)}
+                {formatWhen(item.created_at, locale)} · {t(statusKey(item.status))}
               </span>
             </Link>
           </li>
         ))}
       </ul>
       <p className="again">
-        <Link to="/">Submit a video</Link>
+        <Link to="/">{t("coaching.submit_video")}</Link>
       </p>
     </main>
   );
 }
 
-function formatWhen(stamp) {
+function formatWhen(stamp, locale) {
   const date = new Date(stamp);
   if (Number.isNaN(date.getTime())) {
     return stamp;
   }
-  return date.toLocaleString();
+  return locale === "ja" ? date.toLocaleString("ja-JP") : date.toLocaleString();
 }
 
-function label(status) {
+function statusKey(status) {
   if (status === "complete") {
-    return "Ready";
+    return "coaching.status.ready";
   }
   if (status === "failed") {
-    return "Failed";
+    return "coaching.status.failed";
   }
   if (status === "expired") {
-    return "Expired";
+    return "coaching.status.expired";
   }
-  return "In progress";
+  return "coaching.status.in_progress";
 }

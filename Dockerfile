@@ -13,7 +13,7 @@ COPY configs ./configs
 COPY calibration/templates ./calibration/templates
 COPY web/public/dist ./web/public/dist
 
-RUN pip install --no-cache-dir -e ".[web]"
+RUN pip install --no-cache-dir -e ".[web,cursor]"
 
 ENV PUBLIC_HOST=0.0.0.0 \
     PUBLIC_PORT=8770 \
