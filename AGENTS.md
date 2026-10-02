@@ -17,6 +17,7 @@ Dependency direction is one-way:
 | Vision | `vision/` | Cadence frames → detectors → readings → fused state → `GameEvent` |
 | Analysis | `analysis/` | `GameSession`, metrics, scenarios, ScenarioContext |
 | Coach | `coach/` | Evidence-constrained LLM coaching |
+| Review | `review/` | Local Review timeline screenshots → elapsed-clock evidence |
 
 ### Future vision layers
 

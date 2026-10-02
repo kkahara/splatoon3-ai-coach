@@ -9,6 +9,14 @@ paths:
   frame_output: "./frames"
   manifest_output: "./manifests"
 
+review:
+  regulation_seconds: 300
+  static_frame_count: 3
+  video:
+    sample_interval_seconds: 0.5
+    layout_confidence_floor: 0.55
+    clock_confidence_floor: 0.55
+
 extraction:
   analysis_fps: 6
   scene_threshold: 0.72

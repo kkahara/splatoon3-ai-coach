@@ -12,6 +12,7 @@ from splatoon3_ai_coach.cli.inspect import inspect
 from splatoon3_ai_coach.cli.public_monitor import public_monitor
 from splatoon3_ai_coach.cli.public_site import public_site
 from splatoon3_ai_coach.cli.refuse import refuse
+from splatoon3_ai_coach.cli.review import review_app
 from splatoon3_ai_coach.cli.vision_view import vision_view
 from splatoon3_ai_coach.cli.vmv_site import vmv_site
 from splatoon3_ai_coach.logging_config import configure_logging
@@ -39,3 +40,4 @@ app.command("public-monitor")(public_monitor)
 app.command("coach-inputs")(coach_inputs)
 app.command("coach-prototype")(coach_prototype)
 app.command("coach-reannotate-flags")(coach_reannotate_flags)
+app.add_typer(review_app, name="review")

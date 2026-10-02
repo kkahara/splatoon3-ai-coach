@@ -589,6 +589,37 @@ class EventFusionConfig(BaseModel):
     splat_slot_nearby: float = Field(default=0.18, ge=0, le=1)
 
 
+class ReviewTimelineConfig(BaseModel):
+    """Configuration for local Review timeline screenshot ingestion."""
+
+    regulation_seconds: int = Field(default=300, ge=0)
+    graph_roi: NormalizedBox = (0.07, 0.28, 0.91, 0.62)
+    event_lane_roi: NormalizedBox = (0.07, 0.70, 0.91, 0.88)
+    scrub_bar_roi: NormalizedBox = (0.07, 0.89, 0.91, 0.93)
+    cursor_confidence_floor: float = Field(default=0.55, ge=0, le=1)
+    cursor_margin_floor: float = Field(default=0.05, ge=0, le=1)
+    static_frame_count: int = Field(default=3, ge=1, le=3)
+    template_dir: Path | None = None
+    roster_width_fraction: float = Field(default=0.19, gt=0, le=1)
+    roster_height_fraction: float = Field(default=0.16, gt=0, le=1)
+    roster_gap_fraction: float = Field(default=0.015, ge=0, le=1)
+    video: "ReviewTimelineVideoConfig" = Field(
+        default_factory=lambda: ReviewTimelineVideoConfig()
+    )
+
+
+class ReviewTimelineVideoConfig(BaseModel):
+    """Settings for adapting a timeline-focused video into screenshots."""
+
+    sample_interval_seconds: float = Field(default=0.5, gt=0)
+    layout_confidence_floor: float = Field(default=0.55, ge=0, le=1)
+    clock_confidence_floor: float = Field(default=0.55, ge=0, le=1)
+    retain_rejected_diagnostics: bool = True
+    clock_roi_width_fraction: float = Field(default=0.10, gt=0, le=1)
+    clock_roi_top_fraction: float = Field(default=0.95, ge=0, le=1)
+    clock_roi_bottom_fraction: float = Field(default=0.995, gt=0, le=1)
+
+
 class VisionOcrConfig(BaseModel):
     """OCR engine settings keyed by :class:`VisionLanguage`.
 
@@ -836,5 +867,6 @@ class AppConfig(BaseModel):
     paths: PathsConfig
     extraction: ExtractionConfig
     vision: VisionConfig
+    review: ReviewTimelineConfig = Field(default_factory=ReviewTimelineConfig)
     scenarios: ScenarioBuilderConfig = Field(default_factory=ScenarioBuilderConfig)
     coach: CoachConfig = Field(default_factory=CoachConfig)

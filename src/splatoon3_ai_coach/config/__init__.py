@@ -8,6 +8,8 @@ from splatoon3_ai_coach.config.models import (
     ExtractionConfig,
     HudRegions,
     PathsConfig,
+    ReviewTimelineConfig,
+    ReviewTimelineVideoConfig,
     SplatDetectorConfig,
     TimerDetectorConfig,
     VideoConfig,
@@ -21,6 +23,8 @@ from splatoon3_ai_coach.config.settings import CoachSettings
 __all__ = [
     "AppConfig",
     "CoachConfig",
+    "ReviewTimelineConfig",
+    "ReviewTimelineVideoConfig",
     "CoachSettings",
     "DeathDetectorConfig",
     "ExtractionConfig",
