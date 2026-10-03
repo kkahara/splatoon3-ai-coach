@@ -15,6 +15,7 @@ review:
   video:
     sample_interval_seconds: 0.5
     layout_confidence_floor: 0.55
+    structure_confidence_floor: 0.6
     clock_confidence_floor: 0.55
 
 extraction:
@@ -142,7 +143,7 @@ vision:
     match_threshold: 0.50
     min_usable_confidence: 0.50
   # Floating Low ink! / インク不足！ above local player (above kill-feed).
-  # Provisional ROI — refine with tools/roi_calibrate.py on a real frame.
+  # Provisional ROI — refine with tools/calibration/roi_calibrate.py on a real frame.
   low_ink:
     roi: [0.426042, 0.702778, 0.576562, 0.813889]
     template_dir: "../calibration/templates/low_ink"
@@ -330,12 +331,12 @@ coach:
     - death_map_overlay_before_false
     - death_special_ready
     # Splat Zones count factors: observed only until the competition report
-    # (tools/ranking_competition.py --splat-zones) is reviewed. No weight yet.
+    # (tools/reports/ranking_competition.py --splat-zones) is reviewed. No weight yet.
     - death_while_behind_in_count
     - death_while_ahead_in_count
     - death_opponent_counter_ticked
   # Attention weights, never negative. Provisional until reviewed against
-  # the library re-scoring report (tools/importance_report.py).
+  # the library re-scoring report (tools/reports/importance_report.py).
   death_importance_weights:
     death_redeath_le_10s: 3.0
     death_while_outnumbered: 2.5

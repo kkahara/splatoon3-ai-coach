@@ -1,19 +1,13 @@
-"""Unit tests for tools/roi_visualize parse + render (no GUI)."""
+"""Unit tests for tools/calibration/roi_visualize parse + render (no GUI)."""
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import cv2
 import numpy as np
 import pytest
-
-TOOLS = Path(__file__).resolve().parents[1] / "tools"
-if str(TOOLS) not in sys.path:
-    sys.path.insert(0, str(TOOLS))
-
-import roi_visualize as viz  # noqa: E402
+import roi_visualize as viz
 
 
 def test_parse_unnamed_and_named_roi() -> None:

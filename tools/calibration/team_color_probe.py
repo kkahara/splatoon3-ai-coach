@@ -3,7 +3,7 @@
 
 Usage::
 
-    python tools/team_color_probe.py path/to/vision_manifest.json \\
+    python tools/calibration/team_color_probe.py path/to/vision_manifest.json \\
         --config configs/default.yaml
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_TOOLS = Path(__file__).resolve().parent
+_TOOLS = Path(__file__).resolve().parents[1]
 if str(_TOOLS) not in sys.path:
     sys.path.insert(0, str(_TOOLS))
 

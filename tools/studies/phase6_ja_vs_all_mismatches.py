@@ -38,7 +38,7 @@ from splatoon3_ai_coach.vision.state import fuse_game_state
 
 logger.disable("splatoon3_ai_coach")
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 OUT = REPO / "analysis" / "phase6_ja_vs_all_mismatches.json"
 FRAMES = sorted((REPO / "analysis/2026-09-07 09-17-30/debug_snapshots").glob("*.jpg"))
 CFG = load_config(default_config_path())

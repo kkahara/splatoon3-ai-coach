@@ -165,7 +165,7 @@ and `configs/player_count_validate.yaml`).
 ## Diagnostics
 
 ```bash
-.venv/bin/python tools/special_gauge_diagnose.py
+.venv/bin/python tools/diagnostics/special_gauge_diagnose.py
 ```
 
 Writes overlays under `analysis/special_gauge_survey/diagnostics/`.

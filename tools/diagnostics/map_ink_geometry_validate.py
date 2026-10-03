@@ -36,7 +36,7 @@ logger.disable("splatoon3_ai_coach")
 # Explicit knobs (do not bury thresholds in magic literals mid-logic)
 # ---------------------------------------------------------------------------
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 ANALYSIS_ROOT = REPO / "analysis"
 MOVIES_ROOT = Path("/Users/kenjikahara/Movies")
 PAINT_MAP_DIR = REPO / "calibration" / "reference" / "paint_map"
@@ -237,7 +237,7 @@ def _ensure_manual_dirs() -> None:
             "Drop extra gameplay map screenshots here when video yield is thin:\n\n"
             "- `manta_maria/*.png`\n"
             "- `museum_dalfonsino/*.png`\n\n"
-            "Used only by `tools/map_ink_geometry_validate.py` for geometry "
+            "Used only by `tools/diagnostics/map_ink_geometry_validate.py` for geometry "
             "consistency checks. Not a production data source.\n",
             encoding="utf-8",
         )

@@ -5,7 +5,7 @@ Does not invent polygons. Requires ``stage_mask.yaml`` for the stage to compare.
 
 Example::
 
-    python tools/stage_mask_ab_compare.py --stage manta_maria \\
+    python tools/calibration/stage_mask_ab_compare.py --stage manta_maria \\
       analysis/map_ink_validation/stage_mask_calibrate/manta_maria_t0176.8.jpg
 """
 
@@ -27,7 +27,7 @@ from splatoon3_ai_coach.vision.map_ink import (
 from splatoon3_ai_coach.vision.stage_maps import resolve_stage_map_geometry
 from splatoon3_ai_coach.vision.stage_mask import resolve_stage_mask
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = REPO / "analysis" / "map_ink_validation" / "stage_mask_ab"
 
 
@@ -83,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         if stage_mask is None:
             print(
                 f"no stage_mask.yaml for {args.stage!r} under {geometry_dir} — "
-                "calibrate first with tools/stage_mask_calibrate.py",
+                "calibrate first with tools/calibration/stage_mask_calibrate.py",
                 file=sys.stderr,
             )
             return 1

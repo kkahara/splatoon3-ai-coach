@@ -791,7 +791,7 @@ def write_report(
     lines.append("## Reproduce")
     lines.append("")
     lines.append("```bash")
-    lines.append("python tools/score_trajectory_study.py run")
+    lines.append("python tools/studies/score_trajectory_study.py run")
     lines.append("```")
     lines.append("")
 

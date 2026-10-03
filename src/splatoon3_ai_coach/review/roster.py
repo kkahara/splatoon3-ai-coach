@@ -25,7 +25,7 @@ def classify_slot(
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
     edges = float(np.mean(cv2.Canny(gray, 80, 160) > 0))
     saturation = float(np.mean(hsv[..., 1] > 70))
-    x_score = _x_marker_score(gray)
+    x_score = _x_marker_score(gray, hsv[..., 1])
     if x_score >= 0.16:
         state, confidence = SlotState.dead, min(1.0, x_score * 3.5)
     elif edges >= 0.025 and saturation >= 0.04:
@@ -58,16 +58,16 @@ def extract_cursor_slots(
             for index in range(1, 5)
         ]
     height, width = image.shape[:2]
-    slot_w = int(width * config.roster_width_fraction / 4)
-    slot_h = int(height * config.roster_height_fraction)
-    left = cursor_x - int(width * config.roster_width_fraction)
-    gap = int(width * config.roster_gap_fraction)
+    slot_w = width * config.roster_row_width_fraction / 4
+    left = cursor_x - 2 * slot_w
     observations: list[CursorSlotObservation] = []
-    for row, top_fraction in (("top", 0.02), ("bottom", 0.64)):
-        top = int(height * top_fraction)
+    bands = (("top", config.roster_top_band), ("bottom", config.roster_bottom_band))
+    for row, (top_fraction, bottom_fraction) in bands:
+        y1, y2 = int(height * top_fraction), int(height * bottom_fraction)
         for index in range(4):
-            x1 = left + index * (slot_w + gap)
-            roi = image[top : top + slot_h, max(0, x1) : min(width, x1 + slot_w)]
+            x1 = int(round(left + index * slot_w))
+            x2 = int(round(left + (index + 1) * slot_w))
+            roi = image[y1:y2, max(0, x1) : min(width, x2)]
             observations.append(
                 classify_slot(
                     roi,
@@ -80,14 +80,18 @@ def extract_cursor_slots(
     return observations
 
 
-def _x_marker_score(gray: np.ndarray) -> float:
-    """Return the fraction of mid-gray pixels on either diagonal arm."""
+def _x_marker_score(gray: np.ndarray, saturation: np.ndarray) -> float:
+    """Return the fraction of neutral mid-gray pixels on either diagonal arm.
+
+    Saturated team-colored icon pixels share the same gray luminance range, so
+    only low-saturation pixels count as the roster X marker.
+    """
     height, width = gray.shape[:2]
     yy, xx = np.mgrid[0:height, 0:width]
     dx = (xx - (width - 1) / 2) / max(width, 1)
     dy = (yy - (height - 1) / 2) / max(height, 1)
     diagonal = (np.abs(dx - dy) < 0.13) | (np.abs(dx + dy) < 0.13)
-    mid_gray = (gray >= 65) & (gray <= 155)
+    mid_gray = (gray >= 65) & (gray <= 155) & (saturation < 60)
     return float(np.mean(diagonal & mid_gray))
 
 

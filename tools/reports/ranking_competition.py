@@ -7,7 +7,7 @@ decides orderings, and how well the evidence behind each rank-1 pick holds up.
 
 Analyses of the same source video (same ``video_identity``) count once.
 
-    python tools/ranking_competition.py --root analysis/_rescore_v2
+    python tools/reports/ranking_competition.py --root analysis/_rescore_v2
 """
 
 from __future__ import annotations

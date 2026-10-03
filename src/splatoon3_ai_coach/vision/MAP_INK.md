@@ -44,7 +44,7 @@ Do **not** attribute map X markers to the player’s death location in this phas
 - Aggregate pixel counts use the active sample mask (overlaps counted once for
   ROI union). The classifier decides ally / opponent / other among sampled
   pixels.
-- Calibrate polygons with `tools/stage_mask_calibrate.py` (click vertices on a
+- Calibrate polygons with `tools/calibration/stage_mask_calibrate.py` (click vertices on a
   real map-overlay frame; do not invent production coordinates).
 - No baked vertical scale correction yet — validate geometry on real frames.
 
@@ -65,7 +65,7 @@ Do **not** attribute map X markers to the player’s death location in this phas
 
 ## Geometry validation status (Manta / Museum)
 
-Offline multi-frame check: `tools/map_ink_geometry_validate.py`
+Offline multi-frame check: `tools/diagnostics/map_ink_geometry_validate.py`
 → `analysis/map_ink_validation/VALIDATION_REPORT.md`.
 
 | Stage | Status |

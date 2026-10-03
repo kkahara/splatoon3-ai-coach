@@ -257,3 +257,16 @@ Do not gate kill/death events on OCR.
 ## Training assets
 
 YOLO datasets and training scripts live in `training/` at the repo root, **not** inside the installable package.
+
+## Developer tools
+
+Repo-root `tools/` is outside the package; `src/` must not import it (except
+the CLI launchers for `vision_manifest_viewer`, `vmv_site`, `public_site`).
+
+- `tools/calibration/`: ROI, stage-mask, and color calibration helpers
+- `tools/diagnostics/`: validators and diagnostics over analysis artifacts
+- `tools/reports/`: death-importance ranking reports
+- `tools/studies/`: one-off research scripts; unmaintained, never imported by
+  new code. Promote reusable logic into `src/` with tests instead.
+
+See `tools/README.md` for the index and conventions for adding a tool.

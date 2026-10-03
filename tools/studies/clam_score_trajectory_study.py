@@ -984,7 +984,7 @@ def write_report(
     lines.append("## Reproduce")
     lines.append("")
     lines.append("```bash")
-    lines.append("python tools/clam_score_trajectory_study.py run")
+    lines.append("python tools/studies/clam_score_trajectory_study.py run")
     lines.append("```")
     lines.append("")
 

@@ -15,7 +15,7 @@ from splatoon3_ai_coach.vision.special_gauge import (
     write_special_gauge_diagnostic,
 )
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 REP = REPO / "analysis" / "special_gauge_survey" / "representatives"
 OUT = REPO / "analysis" / "special_gauge_survey" / "diagnostics"
 

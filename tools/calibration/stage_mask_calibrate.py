@@ -10,8 +10,9 @@ Requires OpenCV HighGUI::
 
 Examples::
 
-    python tools/stage_mask_calibrate.py --stage mahi_mahi_resort path/to/frame.jpg
-    python tools/stage_mask_calibrate.py --stage mahi_mahi_resort --view \\
+    python tools/calibration/stage_mask_calibrate.py \\
+        --stage mahi_mahi_resort path/to/frame.jpg
+    python tools/calibration/stage_mask_calibrate.py --stage mahi_mahi_resort --view \\
         configs/stage_maps/mahi_mahi_resort/stage_mask.yaml path/to/frame.jpg
 """
 
@@ -37,7 +38,7 @@ from splatoon3_ai_coach.vision.stage_mask import (
     write_stage_mask,
 )
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 
 
 def _require_highgui() -> None:

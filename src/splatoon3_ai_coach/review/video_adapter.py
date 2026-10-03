@@ -133,6 +133,17 @@ def adapt_frames(
                 )
             )
             continue
+        structure = timeline_structure_score(frame.image, timeline_config)
+        if structure < video_config.structure_confidence_floor:
+            results.append(
+                _rejected(
+                    frame,
+                    min(layout_confidence, structure),
+                    cursor,
+                    "no timeline structure",
+                )
+            )
+            continue
         clock = reader(frame.image, cursor.x or 0, video_config)
         if clock is None or clock.confidence < video_config.clock_confidence_floor:
             results.append(
@@ -170,6 +181,31 @@ def _layout_confidence(image: Any, cursor: CursorDetection) -> float:
     graph = gray[int(gray.shape[0] * 0.28) : int(gray.shape[0] * 0.62)]
     darkness = 1.0 - min(1.0, float(graph.mean()) / 180.0)
     return float(max(0.0, min(1.0, 0.75 * cursor.confidence + 0.25 * darkness)))
+
+
+def timeline_structure_score(image: Any, config: ReviewTimelineConfig) -> float:
+    """Score cursor-independent timeline structure in ``[0, 1]``.
+
+    Requires both a full-width neutral scrub bar row and a mostly dark neutral
+    graph panel; a bright vertical edge in gameplay satisfies neither.
+    """
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    scrub = _roi(hsv, config.scrub_bar_roi)
+    bar = (scrub[..., 1] < 55) & (scrub[..., 2] > 100)
+    bar_coverage = float(bar.mean(axis=1).max()) if bar.size else 0.0
+    graph = _roi(hsv, config.graph_roi)
+    neutral = (graph[..., 1] < 60) & (graph[..., 2] < 140)
+    graph_neutral = float(neutral.mean()) if neutral.size else 0.0
+    return min(bar_coverage, min(1.0, graph_neutral / 0.5))
+
+
+def _roi(image: Any, box: tuple[float, float, float, float]) -> Any:
+    """Crop a normalized ``(x1, y1, x2, y2)`` box."""
+    height, width = image.shape[:2]
+    x1, y1, x2, y2 = box
+    return image[
+        int(height * y1) : int(height * y2), int(width * x1) : int(width * x2)
+    ]
 
 
 def _read_clock_from_image(

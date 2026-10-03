@@ -7,9 +7,11 @@ cyan union outline, and HSV ink classes inside the union. Use after editing
 
 Examples::
 
-    python tools/map_ink_roi_preview.py --stage museum_dalfonsino path/to/frame.jpg
-    python tools/map_ink_roi_preview.py --stage wahoo_world --time 42.0 clip.mov
-    python tools/map_ink_roi_preview.py \\
+    python tools/calibration/map_ink_roi_preview.py \\
+      --stage museum_dalfonsino path/to/frame.jpg
+    python tools/calibration/map_ink_roi_preview.py \\
+      --stage wahoo_world --time 42.0 clip.mov
+    python tools/calibration/map_ink_roi_preview.py \\
       --geometry configs/stage_maps/museum_dalfonsino/default.yaml
 """
 
@@ -35,7 +37,7 @@ from splatoon3_ai_coach.vision.stage_maps import (
 )
 from splatoon3_ai_coach.vision.stage_mask import resolve_stage_mask
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 DEFAULT_OUT_DIR = REPO / "analysis" / "map_ink_validation" / "debug_map_ink"
 
 

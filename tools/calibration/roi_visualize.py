@@ -7,12 +7,13 @@ does not run map-ink classification (see ``map_ink_roi_preview.py`` for that).
 
 Examples::
 
-    python tools/roi_visualize.py map.png --roi '[0.44,0.06,0.73,0.28]' --name R01
-    python tools/roi_visualize.py map.png \\
+    python tools/calibration/roi_visualize.py map.png \\
+      --roi '[0.44,0.06,0.73,0.28]' --name R01
+    python tools/calibration/roi_visualize.py map.png \\
       --roi R01='[0.44,0.06,0.73,0.28]' \\
       --roi R02='[0.50,0.20,0.80,0.40]'
-    python tools/roi_visualize.py frame.jpg --stage inkblot_art_academy
-    python tools/roi_visualize.py frame.jpg \\
+    python tools/calibration/roi_visualize.py frame.jpg --stage inkblot_art_academy
+    python tools/calibration/roi_visualize.py frame.jpg \\
       --geometry configs/stage_maps/inkblot_art_academy/default.yaml
 """
 
@@ -39,7 +40,7 @@ from splatoon3_ai_coach.vision.stage_maps import (
     resolve_stage_map_geometry,
 )
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 DEFAULT_OUT_DIR = REPO / "analysis" / "roi_visualize"
 
 # BGR colors cycling for multi-ROI boxes.

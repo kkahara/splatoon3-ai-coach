@@ -1,4 +1,4 @@
-"""Splat Zones count-factor section of tools/ranking_competition.py."""
+"""Splat Zones count-factor section of tools/reports/ranking_competition.py."""
 
 from __future__ import annotations
 

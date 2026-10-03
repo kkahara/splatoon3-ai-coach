@@ -7,7 +7,7 @@ not just the score. Re-deaths are grouped into chains.
 
 Analyses of the same source video (same ``video_identity``) count once.
 
-    python tools/ranking_cases.py --root analysis/_rescore_v2
+    python tools/reports/ranking_cases.py --root analysis/_rescore_v2
 """
 
 from __future__ import annotations

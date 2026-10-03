@@ -1,23 +1,17 @@
-"""Unit tests for tools/map_ink_color_audit (synthetic; no GUI)."""
+"""Unit tests for tools/calibration/map_ink_color_audit (synthetic; no GUI)."""
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import cv2
+import map_ink_color_audit as audit
 import numpy as np
 import pytest
 
 from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
 from splatoon3_ai_coach.vision.map_ink import MapInkClassifier
 from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
-
-TOOLS = Path(__file__).resolve().parents[1] / "tools"
-if str(TOOLS) not in sys.path:
-    sys.path.insert(0, str(TOOLS))
-
-import map_ink_color_audit as audit  # noqa: E402
 
 
 def _full_frame_geometry() -> StageMapGeometry:

@@ -7,12 +7,13 @@ production HSV ranges or wire ``TeamColorCalibration``.
 
 Examples::
 
-    python tools/map_ink_color_audit.py frame.jpg --stage inkblot_art_academy
-    python tools/map_ink_color_audit.py \\
+    python tools/calibration/map_ink_color_audit.py frame.jpg \\
+      --stage inkblot_art_academy
+    python tools/calibration/map_ink_color_audit.py \\
       "analysis/2026-09-09 23-29-20/debug_snapshots/00006360_000106.000.jpg" \\
       --stage inkblot_art_academy --label "106.0s"
-    python tools/map_ink_color_audit.py frame.jpg --stage inkblot_art_academy \\
-      -o /tmp/color_audit.jpg
+    python tools/calibration/map_ink_color_audit.py frame.jpg \\
+      --stage inkblot_art_academy -o /tmp/color_audit.jpg
 """
 
 from __future__ import annotations
@@ -36,7 +37,7 @@ from splatoon3_ai_coach.vision.stage_maps import (
     resolve_stage_map_geometry,
 )
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 H_MAX = 180  # OpenCV hue range
 _CLUSTER_COLORS_BGR: tuple[tuple[int, int, int], ...] = (
     (0, 255, 255),  # yellow

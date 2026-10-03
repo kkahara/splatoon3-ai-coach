@@ -600,9 +600,9 @@ class ReviewTimelineConfig(BaseModel):
     cursor_margin_floor: float = Field(default=0.05, ge=0, le=1)
     static_frame_count: int = Field(default=3, ge=1, le=3)
     template_dir: Path | None = None
-    roster_width_fraction: float = Field(default=0.19, gt=0, le=1)
-    roster_height_fraction: float = Field(default=0.16, gt=0, le=1)
-    roster_gap_fraction: float = Field(default=0.015, ge=0, le=1)
+    roster_top_band: tuple[float, float] = (0.222, 0.282)
+    roster_bottom_band: tuple[float, float] = (0.62, 0.68)
+    roster_row_width_fraction: float = Field(default=0.121, gt=0, le=1)
     video: "ReviewTimelineVideoConfig" = Field(
         default_factory=lambda: ReviewTimelineVideoConfig()
     )
@@ -613,6 +613,7 @@ class ReviewTimelineVideoConfig(BaseModel):
 
     sample_interval_seconds: float = Field(default=0.5, gt=0)
     layout_confidence_floor: float = Field(default=0.55, ge=0, le=1)
+    structure_confidence_floor: float = Field(default=0.6, ge=0, le=1)
     clock_confidence_floor: float = Field(default=0.55, ge=0, le=1)
     retain_rejected_diagnostics: bool = True
     clock_roi_width_fraction: float = Field(default=0.10, gt=0, le=1)

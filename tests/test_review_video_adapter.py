@@ -2,12 +2,27 @@
 
 from pathlib import Path
 
+import cv2
 import numpy as np
+import pytest
 
 from splatoon3_ai_coach.config.models import ReviewTimelineConfig
 from splatoon3_ai_coach.media.video import VideoFrame
 from splatoon3_ai_coach.review.clock import ClockSource, ReviewClock
-from splatoon3_ai_coach.review.video_adapter import adapt_frames
+from splatoon3_ai_coach.review.cursor import detect_cursor
+from splatoon3_ai_coach.review.video_adapter import (
+    _layout_confidence,
+    adapt_frames,
+    timeline_structure_score,
+)
+
+REAL_PLAYER_VIEW = (
+    Path(__file__).resolve().parents[1]
+    / "analysis"
+    / "review_validation"
+    / "fixtures"
+    / "player_view_frame_3960.png"
+)
 
 
 def test_source_time_sampling_uses_visible_clock_not_video_spacing(
@@ -103,8 +118,56 @@ def test_non_timeline_frame_is_rejected(tmp_path: Path) -> None:
     assert samples[0].reason == "no timeline layout"
 
 
+def test_player_view_with_bright_vertical_edge_is_rejected(tmp_path: Path) -> None:
+    image = np.zeros((1080, 1920, 3), dtype=np.uint8)
+    image[:] = (200, 60, 20)
+    image[:, 1100:1920] = (20, 160, 230)
+    image[300:1010, 420:428] = 255
+    config = ReviewTimelineConfig()
+    cursor = detect_cursor(image, config)
+    assert _layout_confidence(image, cursor) >= config.video.layout_confidence_floor
+    samples = adapt_frames(
+        [VideoFrame(timestamp=66.0, frame_index=3960, image=image)],
+        tmp_path,
+        timeline_config=config,
+        clock_reader=lambda _image, _x, _config: _clock(134),
+    )
+    assert samples[0].status == "rejected"
+    assert samples[0].reason == "no timeline structure"
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_timeline_frame_passes_structure_check() -> None:
+    config = ReviewTimelineConfig()
+    assert timeline_structure_score(_frame(0.0, 0).image, config) >= (
+        config.video.structure_confidence_floor
+    )
+
+
+@pytest.mark.skipif(not REAL_PLAYER_VIEW.exists(), reason="real adapter output absent")
+def test_real_player_view_frame_is_rejected(tmp_path: Path) -> None:
+    image = cv2.imread(str(REAL_PLAYER_VIEW))
+    samples = adapt_frames(
+        [VideoFrame(timestamp=66.0, frame_index=3960, image=image)],
+        tmp_path,
+        timeline_config=ReviewTimelineConfig(),
+        clock_reader=lambda _image, _x, _config: _clock(134),
+    )
+    assert samples[0].status == "rejected"
+
+
+def _clock(value: int) -> ReviewClock:
+    return ReviewClock(
+        display=f"{value // 60}:{value % 60:02d}",
+        elapsed_seconds=value,
+        source=ClockSource.image,
+        confidence=1.0,
+    )
+
+
 def _frame(timestamp: float, index: int) -> VideoFrame:
     image = np.zeros((1080, 1920, 3), dtype=np.uint8)
+    image[984:992, 140:1745] = 133
     x = 140 + index * 120
     image[300:665, x : x + 8] = 255
     image[760:948, x : x + 8] = 255
