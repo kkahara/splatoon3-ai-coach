@@ -3,7 +3,10 @@
 
 The reliability window X is an output of reviewed visual truth, not a tuned
 value. ``sheet`` builds the boundary corpus and review material; ``score``
-turns reviewed labels into per-distance outcomes and the empirical window.
+turns reviewed labels into per-distance outcomes and the empirical window;
+``gate`` runs the pre-registered held-out gate (recheck merged over raw
+labels, timing / non-timing failures, lag / lead direction, bias test,
+PASS / FAIL).
 
 Corpus (one case = one special x one slot):
 
@@ -30,7 +33,9 @@ Run from the repo root with ``PYTHONPATH=tools/diagnostics``.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import subprocess
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -60,7 +65,7 @@ BINS_S = [0.0, 0.1, 0.2, 0.3, 0.5, 1.0]
 
 
 def main() -> int:
-    """Dispatch ``sheet`` or ``score``."""
+    """Dispatch ``sheet``, ``recheck``, ``score`` or ``gate``."""
     args = _parse_args()
     return args.func(args)
 
@@ -593,6 +598,397 @@ def _score_md(result: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --- gate -----------------------------------------------------------------
+
+BIAS_MIN_FAILURES = 3
+BIAS_SHARE = (4, 5)
+DIRECTIONS = ("lag", "lead", "none")
+
+
+def cmd_gate(args: argparse.Namespace) -> int:
+    """Pre-registered held-out gate: merge recheck, classify, verdict, persist."""
+    batches = [_read_batch(Path(c), Path(lab)) for c, lab in args.batch]
+    recheck = read_recheck(args.recheck)
+    known = read_known_failures(args.known_failures)
+    result = run_gate(batches, recheck, known)
+    result["provenance"] = _provenance(args)
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "gate.json").write_text(json.dumps(result, indent=2), "utf-8")
+    (args.out / "gate.md").write_text(gate_md(result), "utf-8")
+    print(json.dumps(result["verdict"], indent=2))
+    return 0
+
+
+def _read_batch(
+    cases_path: Path, labels_path: Path
+) -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
+    cases = json.loads(cases_path.read_text("utf-8"))
+    labels = yaml.safe_load(labels_path.read_text("utf-8"))
+    return str(cases_path.parent), cases, labels
+
+
+def read_recheck(path: Path) -> dict[str, dict[str, Any]]:
+    """Reviewed recheck entries by case ID; rejects drafts and malformed rows."""
+    data = yaml.safe_load(path.read_text("utf-8"))
+    if not isinstance(data, dict) or data.get("status") != "reviewed":
+        raise SystemExit(f"{path}: recheck labels are not marked status: reviewed")
+    out: dict[str, dict[str, Any]] = {}
+    for entry in data.get("cases") or []:
+        case_id = entry.get("case_id")
+        if case_id in out:
+            raise SystemExit(f"{path}: duplicate recheck case {case_id}")
+        if entry.get("reviewed_state_at_special") not in STATES:
+            raise SystemExit(f"{path}: {case_id} needs alive / dead / indeterminate")
+        if not str(entry.get("reviewer_note") or "").strip():
+            raise SystemExit(f"{path}: {case_id} needs a basis note")
+        out[case_id] = entry
+    if not out:
+        raise SystemExit(f"{path}: no recheck cases")
+    return out
+
+
+def read_known_failures(path: Path) -> dict[str, str]:
+    """Pre-registered non-timing failures: case ID -> documented cause."""
+    data = yaml.safe_load(path.read_text("utf-8"))
+    out: dict[str, str] = {}
+    for entry in (data or {}).get("known_failures") or []:
+        case_id, cause = entry.get("case_id"), entry.get("cause")
+        if not case_id or not cause:
+            raise SystemExit(f"{path}: known failure needs case_id and cause")
+        if case_id in out:
+            raise SystemExit(f"{path}: duplicate known failure {case_id}")
+        out[case_id] = cause
+    return out
+
+
+def run_gate(
+    batches: list[tuple[str, list[dict[str, Any]], dict[str, Any]]],
+    recheck: dict[str, dict[str, Any]],
+    known: dict[str, str],
+) -> dict[str, Any]:
+    """Merged rows, raw vs final summaries and the verdict (no file access)."""
+    pairs = merge_inputs(batches)
+    for ids, what in ((recheck, "recheck"), (known, "known failure")):
+        unknown = sorted(set(ids) - set(pairs))
+        if unknown:
+            raise SystemExit(f"{what} IDs not in any batch: {', '.join(unknown)}")
+    raw_rows = [gate_row(c, e, None, known) for c, e in pairs.values()]
+    rows = [gate_row(c, e, recheck.get(i), known) for i, (c, e) in pairs.items()]
+    return {
+        "batches": [
+            {"source": src, "cases": len(cases), "labels_status": labels.get("status")}
+            for src, cases, labels in batches
+        ],
+        "rechecked_cases": sorted(recheck),
+        "known_failures": known,
+        "raw": _summary(raw_rows),
+        "final": _summary(rows),
+        "verdict": gate_verdict(rows),
+        "cases": rows,
+    }
+
+
+def merge_inputs(
+    batches: list[tuple[str, list[dict[str, Any]], dict[str, Any]]],
+) -> dict[str, tuple[dict[str, Any], dict[str, Any]]]:
+    """Case ID -> (case, raw reviewed label entry), validated across batches."""
+    pairs: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+    for src, cases, labels in batches:
+        if labels.get("status") != "reviewed":
+            raise SystemExit(f"{src}: labels are not marked status: reviewed")
+        by_id = _unique({c["case_id"]: c for c in cases}, cases, src, "case")
+        entries = labels.get("cases") or []
+        label_by_id = _unique({e["case_id"]: e for e in entries}, entries, src, "label")
+        if set(by_id) != set(label_by_id):
+            diff = sorted(set(by_id) ^ set(label_by_id))
+            raise SystemExit(f"{src}: cases and labels differ: {', '.join(diff)}")
+        for case_id, case in by_id.items():
+            if case_id in pairs:
+                raise SystemExit(f"duplicate case {case_id} across batches")
+            entry = label_by_id[case_id]
+            if entry.get("reviewed_state_at_special") not in STATES:
+                raise SystemExit(f"{src}: {case_id} has no reviewed state")
+            pairs[case_id] = (case, entry)
+    return pairs
+
+
+def _unique(
+    by_id: dict[str, Any], items: list[dict[str, Any]], src: str, what: str
+) -> dict[str, Any]:
+    if len(by_id) != len(items):
+        dupes = [k for k, n in Counter(i["case_id"] for i in items).items() if n > 1]
+        raise SystemExit(f"{src}: duplicate {what} IDs {', '.join(dupes)}")
+    return by_id
+
+
+def gate_row(
+    case: dict[str, Any],
+    raw_entry: dict[str, Any],
+    recheck_entry: dict[str, Any] | None,
+    known: dict[str, str],
+) -> dict[str, Any]:
+    """One merged, scored and classified case; the raw judgment is kept."""
+    raw = raw_entry["reviewed_state_at_special"]
+    recheck = recheck_entry["reviewed_state_at_special"] if recheck_entry else None
+    final = recheck if recheck_entry else raw
+    merged = recheck_entry if recheck_entry else raw_entry
+    row = _score_row(
+        case, {"basis": merged.get("basis"), "reviewed_state_at_special": final}
+    )
+    bracket = case["transition_bracket_s_relative_to_special"]
+    kind = classify_failure(row, known)
+    direction = (
+        transition_direction(case["transition_type"], bracket, final, row["pipeline_x0"])
+        if kind == "timing"
+        else "none"
+    )
+    return row | {
+        "recording": case["recording"],
+        "slot": case["slot"],
+        "corpus": case["corpus"],
+        "transition_bracket_s": bracket,
+        "in_bracket": case["distance_to_transition_s"] == 0,
+        "raw_reviewed": raw,
+        "recheck_reviewed": recheck,
+        "label_source": "recheck" if recheck_entry else "raw",
+        "recheck_note": recheck_entry.get("reviewer_note") if recheck_entry else None,
+        "failure_kind": kind,
+        "known_cause": known.get(case["case_id"]),
+        "direction": direction,
+    }
+
+
+def classify_failure(row: dict[str, Any], known: dict[str, str]) -> str | None:
+    """``timing``, ``non_timing`` (pre-registered only) or ``None``.
+
+    A failure is an X = 0 state that review contradicts or cannot support.
+    """
+    if row["pipeline_x0"] == "unknown" or row["outcome"] not in (
+        "wrong",
+        "indeterminate",
+    ):
+        return None
+    return "non_timing" if row["case_id"] in known else "timing"
+
+
+def transition_direction(
+    transition_type: str, bracket: list[float], reviewed: str, x0_state: str
+) -> str:
+    """``lag``: X = 0 still shows the before-state the label has left (bracket
+    after the special); ``lead``: X = 0 already shows the after-state the label
+    has not reached (bracket before the special); otherwise ``none``."""
+    before, after = transition_type.split("_to_")
+    start, end = bracket
+    if start >= 0 and x0_state == before and reviewed == after:
+        return "lag"
+    if end < 0 and x0_state == after and reviewed == before:
+        return "lead"
+    return "none"
+
+
+def bias_test(directions: list[str]) -> dict[str, Any]:
+    """Systematic bias: >= 3 timing failures and >= 80% in one of lag / lead."""
+    counts = {d: directions.count(d) for d in DIRECTIONS}
+    n = len(directions)
+    dominant = max(("lag", "lead"), key=lambda d: counts[d])
+    num, den = BIAS_SHARE
+    found = n >= BIAS_MIN_FAILURES and den * counts[dominant] >= num * n
+    return {
+        "timing_failures": n,
+        "counts": counts,
+        "min_failures": BIAS_MIN_FAILURES,
+        "min_share": num / den,
+        "dominant_direction": dominant if counts[dominant] else None,
+        "dominant_share": round(counts[dominant] / n, 3) if n else None,
+        "systematic_bias": found,
+        "bias_direction": dominant if found else None,
+    }
+
+
+def gate_verdict(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Pre-registered PASS / FAIL with the bias test and empirical-X check."""
+    timing = [r for r in rows if r["failure_kind"] == "timing"]
+    bias = bias_test([r["direction"] for r in timing])
+    attributable = [r for r in rows if r["failure_kind"] != "non_timing"]
+    determinable = [
+        r
+        for r in attributable
+        if r["pipeline_x0"] != "unknown" and r["reviewed"] in ("alive", "dead")
+    ]
+    cond2 = [r["case_id"] for r in determinable if r["failure_kind"] == "timing"]
+    passed = not timing and not cond2
+    if passed:
+        reason, action = "no_timing_failures", "freeze the validated timing configuration"
+    elif bias["systematic_bias"]:
+        reason = "systematic_bias"
+        action = "no tuning on B / C; derive a correction, validate on new recordings"
+    else:
+        reason = "isolated_timing_failures"
+        action = "implementation unchanged; diagnose the listed cases"
+    return {
+        "verdict": "PASS" if passed else "FAIL",
+        "reason": reason,
+        "action": action,
+        "condition_1_timing_failures": [r["case_id"] for r in timing],
+        "condition_2_determinable_cases": len(determinable),
+        "condition_2_timing_failures": cond2,
+        "condition_2_redundant": True,
+        "empirical_x_timing_attributable": _window(attributable),
+        "bias": bias,
+    }
+
+
+def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    timing = [r for r in rows if r["failure_kind"] == "timing"]
+    return {
+        "labels": dict(Counter(r["reviewed"] for r in rows)),
+        "outcomes": dict(Counter(r["outcome"] for r in rows)),
+        "timing_failures": [r["case_id"] for r in timing],
+        "non_timing_failures": [
+            r["case_id"] for r in rows if r["failure_kind"] == "non_timing"
+        ],
+        "x0_unknown_in_bracket": sum(
+            r["pipeline_x0"] == "unknown" and r["in_bracket"] for r in rows
+        ),
+        "x0_unknown_out_of_bracket": sum(
+            r["pipeline_x0"] == "unknown" and not r["in_bracket"] for r in rows
+        ),
+        "directions": dict(Counter(r["direction"] for r in timing)),
+        "window": _window(rows),
+        "bins": _bins(rows),
+    }
+
+
+def _provenance(args: argparse.Namespace) -> dict[str, Any]:
+    paths = [Path(p) for pair in args.batch for p in pair]
+    paths += [args.recheck, args.known_failures]
+    config = default_config_path()
+    review = yaml.safe_load(config.read_text("utf-8"))["review"]
+    head = _git("rev-parse", "HEAD")
+    prereg = args.preregistration_sha
+    known_rel = args.known_failures.resolve().relative_to(
+        Path(_git("rev-parse", "--show-toplevel"))
+    )
+    if (
+        _git("show", f"{prereg}:{known_rel}")
+        != args.known_failures.read_text("utf-8").strip()
+    ):
+        raise SystemExit("known failures differ from the pre-registered commit")
+    return {
+        "preregistration_git_sha": _git("rev-parse", prereg),
+        "gate_run_git_sha": head,
+        "gate_run_tool_dirty": bool(
+            _git("status", "--porcelain", "--", __file__, str(config))
+        ),
+        "inputs": {str(p): _sha256(p.read_bytes()) for p in paths},
+        "config_path": str(config),
+        "config_sha256": _sha256(config.read_bytes()),
+        "review_config_sha256": _sha256(
+            json.dumps(review, sort_keys=True).encode("utf-8")
+        ),
+    }
+
+
+def _git(*argv: str) -> str:
+    return subprocess.run(
+        ["git", *argv], check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def gate_md(result: dict[str, Any]) -> str:
+    """Human-readable gate report; every case is listed."""
+    v, raw, final = result["verdict"], result["raw"], result["final"]
+    bias, window = v["bias"], v["empirical_x_timing_attributable"]
+    prov = result.get("provenance", {})
+    lines = [
+        "# SPECIAL_USE held-out gate (zero offset, X = 0)",
+        "",
+        f"**Verdict: {v['verdict']}** ({v['reason']}): {v['action']}.",
+        "",
+        f"- Pre-registration commit: `{prov.get('preregistration_git_sha')}`",
+        f"- Gate run commit: `{prov.get('gate_run_git_sha')}` "
+        f"(tool/config dirty: {prov.get('gate_run_tool_dirty')})",
+        f"- Review config sha256: `{prov.get('review_config_sha256')}`",
+        "- Batches: "
+        + ", ".join(f"{b['source']} ({b['cases']})" for b in result["batches"]),
+        f"- Rechecked cases ({len(result['rechecked_cases'])}): "
+        + ", ".join(result["rechecked_cases"]),
+        f"- Known non-timing failures: {result['known_failures']}",
+        "",
+        "| | Raw labels | Final (recheck merged) |",
+        "|---|---|---|",
+    ]
+    for key in (
+        "labels",
+        "outcomes",
+        "timing_failures",
+        "non_timing_failures",
+        "x0_unknown_in_bracket",
+        "x0_unknown_out_of_bracket",
+        "directions",
+    ):
+        lines.append(f"| {key} | {raw[key]} | {final[key]} |")
+    lines.append(
+        f"| empirical X (all cases) | {raw['window']['empirical_x_s']} s "
+        f"| {final['window']['empirical_x_s']} s |"
+    )
+    lines += _verdict_md(v, bias, window)
+    lines += _cases_md(result["cases"])
+    return "\n".join(lines) + "\n"
+
+
+def _verdict_md(
+    v: dict[str, Any], bias: dict[str, Any], window: dict[str, Any]
+) -> list[str]:
+    return [
+        "",
+        "## Gate conditions",
+        "",
+        f"1. Timing failures (merged B + C): {len(v['condition_1_timing_failures'])} "
+        f"{v['condition_1_timing_failures']}.",
+        f"2. Timing failures among {v['condition_2_determinable_cases']} "
+        "timing-attributable cases with a determinable label and an X = 0 state: "
+        f"{len(v['condition_2_timing_failures'])} {v['condition_2_timing_failures']}. "
+        "Redundant: these failures are a subset of condition 1, so condition 1 "
+        "implies condition 2; no separate statistic.",
+        f"   Timing-attributable empirical X: {window['empirical_x_s']} s "
+        f"(wrong up to {window['max_distance_wrong_s']} s, indeterminate up to "
+        f"{window['max_distance_indeterminate_s']} s).",
+        "",
+        f"Bias test: {bias['timing_failures']} timing failures, counts "
+        f"{bias['counts']}; needs >= {bias['min_failures']} and >= "
+        f"{bias['min_share']:.0%} in one direction; dominant "
+        f"{bias['dominant_direction']} ({bias['dominant_share']}); systematic bias: "
+        f"{bias['systematic_bias']}.",
+    ]
+
+
+def _cases_md(rows: list[dict[str, Any]]) -> list[str]:
+    lines = [
+        "",
+        "## All cases",
+        "",
+        "| Case | Recording | Slot | Transition | Bracket (s) | Raw | Recheck | Final "
+        "| Source | X=0 | Outcome | Failure | Direction |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        failure = r["failure_kind"] or ""
+        if r["known_cause"]:
+            failure += f" ({r['known_cause']})"
+        lines.append(
+            f"| {r['case_id']} | {r['recording']} | {r['slot']} | {r['transition_type']} "
+            f"| {r['transition_bracket_s']} | {r['raw_reviewed']} | "
+            f"{r['recheck_reviewed'] or ''} | {r['reviewed']} | {r['label_source']} "
+            f"| {r['pipeline_x0']} | {r['outcome']} | {failure} | {r['direction']} |"
+        )
+    return lines
+
+
 # --- cli ------------------------------------------------------------------
 
 
@@ -631,6 +1027,23 @@ def _parse_args() -> argparse.Namespace:
     score.add_argument("--out", type=Path, required=True)
     score.add_argument("--allow-draft", action="store_true")
     score.set_defaults(func=cmd_score)
+    gate = sub.add_parser("gate", help="Pre-registered held-out gate over batches")
+    gate.add_argument(
+        "--batch",
+        nargs=2,
+        action="append",
+        required=True,
+        metavar=("CASES_JSON", "LABELS_YAML"),
+    )
+    gate.add_argument("--recheck", type=Path, required=True)
+    gate.add_argument("--known-failures", type=Path, required=True)
+    gate.add_argument(
+        "--preregistration-sha",
+        required=True,
+        help="Commit that recorded the gate criteria and known failures",
+    )
+    gate.add_argument("--out", type=Path, required=True)
+    gate.set_defaults(func=cmd_gate)
     return parser.parse_args()
 
 
