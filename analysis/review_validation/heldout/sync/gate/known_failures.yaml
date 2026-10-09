@@ -1,0 +1,6 @@
+status: preregistered
+description: Documented non-timing failures excluded from the SPECIAL_USE timing gate.
+known_failures:
+- case_id: B38
+  cause: disconnected_slot
+  evidence: 06-43-43 bottom_2 disconnected silhouette read alive (heldout/sync/REPORT.md)
