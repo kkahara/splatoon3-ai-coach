@@ -5,8 +5,9 @@ Two paths, kept separate on purpose:
 * Fixed evidence lines (headings, marks, roster/map/special lines, factor
   statements) are structured evidence rendered as text. They are mapped to
   Japanese with deterministic templates; an unknown line stays English.
-* The coaching paragraph (``assessment``) is prose. It is translated by the
-  localization LLM (``coach.translation``), which sees only that English text.
+* The coaching paragraph (``assessment``) and its recommendations are prose.
+  They are translated by the localization LLM (``coach.translation``), which
+  sees only that English text. A blocked assessment has no prose to translate.
 
 ``localized/coaching.ja.json`` is a **derived translation cache**, never an
 analytical source of truth. Nothing in the analysis or coaching pipeline reads
@@ -26,8 +27,9 @@ from pathlib import Path
 
 from loguru import logger
 
-from public_site.models import CoachingMoment, LifecycleMark, PublicSubmissionResult
+from public_site.models import CoachingMoment, PublicSubmissionResult
 from splatoon3_ai_coach.coach.claim_catalog import NO_RECOMMENDATION_MESSAGE
+from splatoon3_ai_coach.coach.claim_rules import translation_introduced_hits
 
 Translator = Callable[[str], str]
 
@@ -43,11 +45,32 @@ _EXACT_JA: dict[str, str] = {
     "Map check": "マップ確認",
     "The player checked the map during recovery.": "復帰待ちの間にマップを確認しています。",
     "Special was ready.": "スペシャルが溜まっていました。",
-    "Special was not observed as ready near the death.": (
-        "デスの直前にスペシャルが溜まっている様子は確認されませんでした。"
+    "Special was not ready just before the death.": (
+        "デスの直前、スペシャルは溜まっていませんでした。"
+    ),
+    "Special readiness just before the death was not confirmed.": (
+        "デスの直前にスペシャルが溜まっていたかは確認できませんでした。"
+    ),
+    "You got a splat shortly before you were splatted.": (
+        "デスの少し前にキルを取っていました。"
+    ),
+    "The special gauge was not visible just before the death.": (
+        "デスの直前はスペシャルゲージが見えていませんでした。"
     ),
     "No map check observed before death": "デス前のマップ確認は見られませんでした。",
+    "Map-check evidence was unavailable around this death.": (
+        "このデス前後のマップ確認は判定できませんでした。"
+    ),
+    "A map check was observed before this death.": (
+        "このデスの前にマップ確認が見られました。"
+    ),
+    "Map-check evidence was unavailable for this video.": (
+        "この動画ではマップ確認の有無を判定できませんでした。"
+    ),
     "No roster information was available.": "人数の情報はありませんでした。",
+    "Roster information around this death was unreliable.": (
+        "このデス前後の人数情報は信頼できませんでした。"
+    ),
     NO_RECOMMENDATION_MESSAGE: "今回の情報から言えるアドバイスはありません。",
     "Your team had fewer players alive than the opponents just before you were splatted.": (
         "デスの直前、味方の生存人数が相手より少ない状態でした。"
@@ -66,14 +89,47 @@ _EXACT_JA: dict[str, str] = {
         "デスの直前、味方の残りカウントは相手より少ない状態でした。"
     ),
     "The opponent counter went down in the few seconds before you were splatted.": (
-        "デスの直前の数秒間に、相手のカウントが進んでいました。"
+        "デスの直前の数秒間に、相手のカウントが減っていました。"
     ),
 }
 
 _PATTERNS_JA: list[tuple[re.Pattern[str], str]] = [
+    (
+        re.compile(r"You got a splat (\d+)s \(game clock\) before you were splatted\."),
+        "デスの{0}秒前（試合時間）にキルを取っていました。",
+    ),
+    (
+        re.compile(
+            r"You got a splat (\d+(?:\.\d+)?)s of video \(playback speed unverified\) "
+            r"before you were splatted\."
+        ),
+        "動画上でデスの{0}秒前にキルを取っていました（再生速度は未確認）。",
+    ),
+    (
+        re.compile(r"You got a splat (\d+(?:\.\d+)?)s before you were splatted\."),
+        "デスの{0}秒前にキルを取っていました。",
+    ),
     (re.compile(r"Death — (\d+:\d{2}) remaining"), "デス — 残り {0}"),
+    (
+        re.compile(r"(\d+(?:\.\d+)?)s out of play \(game clock\)"),
+        "{0}秒間 戦線離脱（試合時間）",
+    ),
+    (
+        re.compile(r"(\d+(?:\.\d+)?)s until respawn \(game clock\)"),
+        "復帰まで{0}秒（試合時間）",
+    ),
     (re.compile(r"(\d+(?:\.\d+)?)s out of play"), "{0}秒間 戦線離脱"),
     (re.compile(r"(\d+(?:\.\d+)?)s until respawn"), "復帰まで{0}秒"),
+    (
+        re.compile(r"Special was ready (\d+(?:\.\d+)?)s before the death\."),
+        "デスの{0}秒前にはスペシャルが溜まっていました。",
+    ),
+    (re.compile(r"(\d+(?:\.\d+)?)s before \(game clock\)"), "{0}秒前（試合時間）"),
+    (re.compile(r"(\d+(?:\.\d+)?)s after \(game clock\)"), "{0}秒後（試合時間）"),
+    (re.compile(r"(\d+(?:\.\d+)?)s of video before"), "動画上{0}秒前"),
+    (re.compile(r"(\d+(?:\.\d+)?)s of video after"), "動画上{0}秒後"),
+    (re.compile(r"(\d+(?:\.\d+)?)s before"), "{0}秒前"),
+    (re.compile(r"(\d+(?:\.\d+)?)s after"), "{0}秒後"),
     (
         re.compile(r"Last observed map check: (\d+(?:\.\d+)?)s before death"),
         "最後のマップ確認: デスの{0}秒前",
@@ -183,20 +239,27 @@ def localize_result(
     """Return ``result`` for display in ``locale``. English input is never modified."""
     if locale != "ja":
         return result
-    assessments = _translate_assessments(result.moments, analysis_dir, translator)
-    moments = [
-        _localize_moment(moment, assessments.get(moment.assessment or ""))
-        for moment in result.moments
-    ]
-    return PublicSubmissionResult(moments=moments)
+    translations = _translate_assessments(result.moments, analysis_dir, translator)
+    moments = [_localize_moment(moment, translations) for moment in result.moments]
+    return result.model_copy(update={"moments": moments})
 
 
-def _localize_moment(moment: CoachingMoment, assessment_ja: str | None) -> CoachingMoment:
+def _localize_moment(
+    moment: CoachingMoment, translations: dict[str, str]
+) -> CoachingMoment:
     marks = [
-        LifecycleMark(**{**mark.model_dump(), "title": localize_line(mark.title, "ja")})
+        mark.model_copy(
+            update={
+                "title": localize_line(mark.title, "ja"),
+                "offset_label": _maybe(mark.offset_label),
+            }
+        )
         for mark in moment.marks
     ]
+    assessment_ja = translations.get(moment.assessment or "")
     translated = assessment_ja is not None
+    recs_ja = [translations.get(item) for item in moment.recommendations]
+    recs_translated = bool(recs_ja) and all(item is not None for item in recs_ja)
     return moment.model_copy(
         update={
             "statements": [localize_line(line, "ja") for line in moment.statements],
@@ -208,6 +271,14 @@ def _localize_moment(moment: CoachingMoment, assessment_ja: str | None) -> Coach
             "context": [localize_line(line, "ja") for line in moment.context],
             "assessment": assessment_ja if translated else moment.assessment,
             "assessment_locale": "ja" if translated or not moment.assessment else "en",
+            "recommendations": (
+                [str(item) for item in recs_ja]
+                if recs_translated
+                else moment.recommendations
+            ),
+            "recommendations_locale": (
+                "ja" if recs_translated or not moment.recommendations else "en"
+            ),
         }
     )
 
@@ -239,22 +310,43 @@ def _translate_locked(
     found: dict[str, str] = {}
     pending: list[str] = []
     cache = _read_cache(analysis_dir)
-    for moment in moments:
-        english = moment.assessment
+    texts = [
+        text
+        for moment in moments
+        for text in [moment.assessment, *moment.recommendations]
+    ]
+    for english in texts:
         if not english or english in found or english in pending:
             continue
         fixed = template_line(english, "ja")
         cached = cache.get(_key(english), {}).get("ja")
+        if cached and not _faithful(english, cached):
+            cached = None
         if fixed is not None or cached:
             found[english] = fixed or cached
         else:
             pending.append(english)
     if pending and translator is not None:
-        fresh = _run_translations(pending, translator)
+        fresh = {
+            english: japanese
+            for english, japanese in _run_translations(pending, translator).items()
+            if _faithful(english, japanese)
+        }
         found.update(fresh)
         if fresh:
             _write_cache(analysis_dir, fresh)
     return found
+
+
+def _faithful(english: str, japanese: str) -> bool:
+    """False when the translation adds a claim family the English never made."""
+    introduced = translation_introduced_hits(english, japanese)
+    if introduced:
+        logger.warning(
+            "translation adds unsupported claims {}; showing English",
+            [hit["match"] for hit in introduced],
+        )
+    return not introduced
 
 
 def _run_translations(texts: list[str], translator: Translator) -> dict[str, str]:

@@ -31,10 +31,11 @@ from splatoon3_ai_coach.analysis.pipeline import (
     SCENARIOS_JSON_FILENAME,
 )
 from splatoon3_ai_coach.analysis.player_count_series import format_avb
-from splatoon3_ai_coach.cli.coach_common import (
-    COACH_INPUTS_DIRNAME,
+from splatoon3_ai_coach.coach.artifacts import (
     COACH_INPUTS_META_FILENAME,
-    COACHING_INDEX_FILENAME,
+    coach_inputs_dir,
+    coach_inputs_staleness,
+    read_coaching_index_or_none,
 )
 from splatoon3_ai_coach.coach.claim_catalog import (
     CoachingUnitResult,
@@ -167,20 +168,21 @@ def snapshot_coverage(analysis: Path) -> SnapshotCoverage:
 
 def read_old_ranking(analysis: Path) -> tuple[str, dict[str, RankedDeath]]:
     """The ranking already on disk, and the config hash it recorded."""
-    inputs = analysis / COACH_INPUTS_DIRNAME
-    index_path = inputs / COACHING_INDEX_FILENAME
-    if not index_path.is_file():
+    inputs = coach_inputs_dir(analysis)
+    index = read_coaching_index_or_none(inputs)
+    if index is None:
         return UNRECORDED, {}
-    rows = json.loads(index_path.read_text(encoding="utf-8"))
+    staleness = coach_inputs_staleness(inputs, analysis)
+    if staleness is not None and staleness.stale:
+        logger.warning("{}: {}", analysis.name, staleness.message())
     deaths = {
-        str(row["candidate_id"]): RankedDeath(
-            candidate_id=str(row["candidate_id"]),
-            score=float(row.get("importance_score") or 0.0),
-            selected=bool(row.get("selected_for_llm")),
-            factors=tuple(row.get("active_factors") or ()),
+        entry.candidate_id: RankedDeath(
+            candidate_id=entry.candidate_id,
+            score=entry.importance_score,
+            selected=entry.selected_for_llm,
+            factors=tuple(entry.active_factors),
         )
-        for row in rows
-        if isinstance(row, dict) and row.get("candidate_id")
+        for entry in index.entries
     }
     meta_path = inputs / COACH_INPUTS_META_FILENAME
     meta = (
@@ -300,7 +302,9 @@ def _score(
     analysis: Path, app_config: AppConfig
 ) -> tuple[CoachAnalysisBundle, MatchScoring]:
     bundle = load_coach_analysis_bundle(
-        analysis, min_usable_confidence=app_config.vision.timer.min_usable_confidence
+        analysis,
+        min_usable_confidence=app_config.vision.timer.min_usable_confidence,
+        playback_config=app_config.coach.playback_clock,
     )
     return bundle, score_match(bundle, app_config, limit=_BUILD_LIMIT)
 

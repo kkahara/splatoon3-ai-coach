@@ -8,9 +8,16 @@ def _read(name: str) -> str:
     return package.joinpath(name).read_text(encoding="utf-8")
 
 
-def load_system_prompt() -> str:
-    """Return the default system prompt for the coaching LLM."""
-    return _read("coach_system.txt")
+def load_system_prompt(*, roster_evidence: bool = False) -> str:
+    """Return the coaching system prompt.
+
+    Roster guidance is appended only when the roster evidence capability
+    (``coach.roster_evidence``) is on.
+    """
+    base = _read("coach_system.txt")
+    if not roster_evidence:
+        return base
+    return f"{base.rstrip()}\n\n{_read('coach_roster.txt')}"
 
 
 def load_translation_prompt(locale: str) -> str:

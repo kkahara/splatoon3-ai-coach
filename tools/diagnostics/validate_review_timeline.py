@@ -21,6 +21,9 @@ from splatoon3_ai_coach.review.validation import (
 def main() -> int:
     """Validate a persisted artifact and write a quality-gate report."""
     args = _parse_args()
+    raw = yaml.safe_load(args.labels.read_text(encoding="utf-8")) or {}
+    if raw.get("review_status") == "draft":
+        raise SystemExit(f"{args.labels}: draft labels are not ground truth")
     labels = load_labels(args.labels)
     artifact_path = args.artifact or Path(labels.source_artifact)
     manifest_path = args.manifest or Path(labels.source_manifest)

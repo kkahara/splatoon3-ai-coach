@@ -3,15 +3,32 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+from pydantic import ValidationError
 
 from public_site.frames import has_frame, ranked_entries
 from public_site.models import CoachingMoment, LifecycleMark, PublicSubmissionResult
 from splatoon3_ai_coach.analysis.player_count_series import format_avb
-from splatoon3_ai_coach.cli.coach_common import COACH_INPUTS_DIRNAME
-from splatoon3_ai_coach.coach.claim_catalog import NO_RECOMMENDATION_MESSAGE
+from splatoon3_ai_coach.coach.artifacts import (
+    CoachingIndexEntry,
+    coach_inputs_dir,
+    coach_inputs_staleness,
+    coach_prototype_dir,
+    primary_assessment,
+    read_document,
+    unit_file_names,
+)
+from splatoon3_ai_coach.coach.claim_validation import ValidationStatus
+from splatoon3_ai_coach.coach.coach import annotate_claim_flags
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
+from splatoon3_ai_coach.coach.playback_clock import (
+    ClockedDuration,
+    PlaybackClockInfo,
+    clock_video_span,
+)
+from splatoon3_ai_coach.config.models import canonical_factor_id
 
 _SKIP = empty_coaching_assessment().assessment
 _REPLACED = frozenset(
@@ -22,6 +39,8 @@ _TITLES = {"splat": "Splat", "map_overlay": "Map check", "death": "Death"}
 _BEFORE = 3
 _AFTER = 2
 _MAP_CLUSTER_GAP = 10.0
+# Video seconds (the timeline's own clock); marks farther away are not context.
+_CONTEXT_WINDOW_SECONDS = 15.0
 
 
 @dataclass(frozen=True)
@@ -39,38 +58,43 @@ class _Projected:
 
 def load_result(analysis_dir: Path) -> PublicSubmissionResult:
     """Ranked moments with active player statements and optional assessment prose."""
-    inputs = analysis_dir / COACH_INPUTS_DIRNAME
-    prototype = analysis_dir / "coach_prototype"
+    inputs = coach_inputs_dir(analysis_dir)
+    prototype = coach_prototype_dir(analysis_dir)
     events = _game_events(analysis_dir)
     moments = [
         _moment(analysis_dir, inputs, prototype, entry, events)
         for entry in ranked_entries(analysis_dir)
     ]
-    return PublicSubmissionResult(moments=moments)
+    staleness = coach_inputs_staleness(inputs, analysis_dir)
+    stale = staleness is not None and staleness.stale
+    return PublicSubmissionResult(
+        moments=moments,
+        stale=stale,
+        stale_reason=staleness.reason.value if stale else None,
+    )
 
 
 def _moment(
     analysis: Path,
     inputs: Path,
     prototype: Path,
-    entry: dict,
+    entry: CoachingIndexEntry,
     events: list[tuple[str, float]],
 ) -> CoachingMoment:
-    coaching_name = str(entry.get("coaching_json") or "")
-    coaching = _read_json(inputs / coaching_name) if coaching_name else {}
+    coaching = read_document(inputs, entry.coaching_json) or {}
     factors = coaching.get("factors") or []
     statements = _statements(factors)
     projected = _projected(entry, inputs, factors, events)
-    assessment = _assessment(prototype, str(entry.get("safe_id") or ""))
-    if projected is not None and assessment is None:
-        assessment = NO_RECOMMENDATION_MESSAGE
-    safe_id = str(entry.get("safe_id") or "")
+    review = _review(prototype, inputs, entry)
     return CoachingMoment(
-        scenario_type=str(entry.get("candidate_type") or ""),
-        video_time=float(entry.get("video_time") or 0),
+        scenario_type=entry.candidate_type,
+        video_time=entry.video_time,
         statements=statements,
-        assessment=assessment,
-        frame=has_frame(analysis, safe_id),
+        assessment=review.assessment,
+        assessment_status=review.status,
+        coaching_state=review.state,
+        recommendations=review.recommendations,
+        frame=has_frame(analysis, entry.safe_id),
         heading=None if projected is None else projected.heading,
         marks=[] if projected is None else projected.marks,
         gaps=[] if projected is None else projected.gaps,
@@ -94,26 +118,28 @@ def _statements(factors: object) -> list[str]:
 
 
 def _projected(
-    entry: dict,
+    entry: CoachingIndexEntry,
     inputs: Path,
     factors: object,
     events: list[tuple[str, float]],
 ) -> _Projected | None:
-    if str(entry.get("candidate_type") or "") != "death_episode":
+    if entry.candidate_type != "death_episode":
         return None
-    name = str(entry.get("coach_input_json") or "")
-    coach_input = _read_json(inputs / name) if name else {}
+    coach_input = read_document(inputs, entry.coach_input_json) or {}
     death = _death(coach_input)
     if death is None:
         return None
     marks, remaining = _context_marks(
-        death, events, coach_input.get("game_clock_samples")
+        death,
+        events,
+        coach_input.get("game_clock_samples"),
+        _playback_info(coach_input),
     )
     return _Projected(
         heading=_heading(remaining),
         marks=marks,
         gaps=[],
-        until_active_again=_recovery(death),
+        until_active_again=_recovery(coach_input),
         recovery_context=_recovery_map_line(coach_input),
         context=_context(coach_input, factors),
         recording_times=[],
@@ -143,7 +169,10 @@ def _game_events(analysis: Path) -> list[tuple[str, float]]:
 
 
 def _context_marks(
-    death: dict, events: list[tuple[str, float]], samples: object
+    death: dict,
+    events: list[tuple[str, float]],
+    samples: object,
+    playback: PlaybackClockInfo | None = None,
 ) -> tuple[list[LifecycleMark], int | None]:
     death_time = _video_time(death.get("death_time"))
     rows = samples if isinstance(samples, list) else []
@@ -160,9 +189,9 @@ def _context_marks(
         after=True,
         recovery_end=_recovery_end(death, death_time),
     )
-    marks = [_event_mark(*item) for item in before]
+    marks = [_event_mark(*item, death_time, playback) for item in before]
     marks.append(_anchor(death_time))
-    marks.extend(_event_mark(*item) for item in after)
+    marks.extend(_event_mark(*item, death_time, playback) for item in after)
     return marks, remaining
 
 
@@ -188,7 +217,9 @@ def _pick(
     pool = [
         (kind, when)
         for kind, when in events
-        if kind in _CONTEXT and _inside(when, death_time, earlier, later, after=after)
+        if kind in _CONTEXT
+        and _inside(when, death_time, earlier, later, after=after)
+        and abs(when - death_time) <= _CONTEXT_WINDOW_SECONDS
         and not _recovery_overlay(kind, when, after, recovery_end)
     ]
     pool = _cluster_maps(pool)
@@ -243,13 +274,54 @@ def _inside(
     return when < death_time and (earlier is None or when > earlier)
 
 
-def _event_mark(kind: str, when: float) -> LifecycleMark:
+def _event_mark(
+    kind: str,
+    when: float,
+    death_time: float,
+    playback: PlaybackClockInfo | None,
+) -> LifecycleMark:
+    offset = clock_video_span(abs(when - death_time), playback)
+    direction = "before" if when < death_time else "after"
     return LifecycleMark(
         label=kind,
         title=_TITLES.get(kind, kind),
         video_time=when,
         clock=_video_clock(when),
+        **_offset_fields(offset, direction),
     )
+
+
+def _offset_fields(offset: ClockedDuration | None, direction: str) -> dict:
+    """Temporal-only offset from the death, on the same clock as durations."""
+    if offset is None:
+        return {}
+    if offset.value is None:
+        return {
+            "offset_seconds": offset.video_seconds,
+            "offset_clock": "video",
+            "offset_label": f"{offset.video_seconds:.1f}s of video {direction}",
+        }
+    if offset.clock == "game":
+        return {
+            "offset_seconds": offset.value,
+            "offset_clock": "game",
+            "offset_label": f"{offset.value:.0f}s {direction} (game clock)",
+        }
+    return {
+        "offset_seconds": offset.value,
+        "offset_clock": "video",
+        "offset_label": f"{offset.value:.1f}s {direction}",
+    }
+
+
+def _playback_info(coach_input: dict) -> PlaybackClockInfo | None:
+    raw = coach_input.get("playback_clock")
+    if not isinstance(raw, dict):
+        return None
+    try:
+        return PlaybackClockInfo.model_validate(raw)
+    except ValidationError:
+        return None
 
 
 def _anchor(death_time: float) -> LifecycleMark:
@@ -298,13 +370,31 @@ def _heading(remaining: int | None) -> str:
     return f"Death — {_clock(remaining)} remaining"
 
 
-def _recovery(death: dict) -> str | None:
-    active = _seconds(death.get("death_to_active_again"))
-    if active is not None:
-        return f"{active:.1f}s out of play"
-    respawn = _seconds(death.get("death_to_respawn"))
-    if respawn is not None:
-        return f"{respawn:.1f}s until respawn"
+def _recovery(coach_input: dict) -> str | None:
+    """Play-time recovery line; omitted when only unverified video seconds exist."""
+    durations = coach_input.get("durations")
+    if not isinstance(durations, dict):
+        return None
+    for key, suffix in (
+        ("death_to_active_again", "out of play"),
+        ("death_to_respawn", "until respawn"),
+    ):
+        text = _clocked_text(durations.get(key), suffix)
+        if text is not None:
+            return text
+    return None
+
+
+def _clocked_text(duration: object, suffix: str) -> str | None:
+    if not isinstance(duration, dict):
+        return None
+    value = _seconds(duration.get("value"))
+    if value is None:
+        return None
+    if duration.get("clock") == "game":
+        return f"{value:.0f}s {suffix} (game clock)"
+    if duration.get("clock") == "video":
+        return f"{value:.1f}s {suffix}"
     return None
 
 
@@ -326,44 +416,89 @@ def _seconds(raw: object) -> float | None:
 
 def _context(coach_input: dict, factors: object) -> list[str]:
     lines: list[str] = []
-    special = _special_line(coach_input)
+    special = _special_line(coach_input, _active_ids(factors))
     mapped = _map_line(coach_input)
     if special:
         lines.append(special)
     if mapped:
         lines.append(mapped)
     lines.extend(_factor_lines(factors))
-    lines.append(_roster_line(coach_input))
+    if coach_input.get("roster_evidence") is not False:
+        lines.append(_roster_line(coach_input))
     return lines
 
 
-def _special_line(coach_input: dict) -> str | None:
+def _active_ids(factors: object) -> set[str]:
+    if not isinstance(factors, list):
+        return set()
+    return {
+        canonical_factor_id(str(f.get("factor_id")))
+        for f in factors
+        if isinstance(f, dict) and f.get("active")
+    }
+
+
+_SPECIAL_LINES = {
+    "ready": "Special was ready.",
+    "unconfirmed": "Special readiness just before the death was not confirmed.",
+    "not_ready": "Special was not ready just before the death.",
+    "not_observed": "The special gauge was not visible just before the death.",
+}
+
+
+def _special_line(coach_input: dict, active: set[str]) -> str | None:
+    """ "Ready" needs the confirmed special-ready factor (consecutive readings);
+    a reading the vision layer marked not coaching-valid is not observed."""
     special = _nest(coach_input, "special")
     reading = special.get("nearest_before_anchor") if special else None
-    if not isinstance(reading, dict) or "ready" not in reading:
+    if not isinstance(reading, dict):
         return None
-    if reading.get("ready") is True:
-        return "Special was ready."
-    if reading.get("ready") is False:
-        return "Special was not observed as ready near the death."
-    return None
+    state = special.get("state_at_anchor") if special else None
+    if reading.get("coaching_valid") is False or reading.get("visible") is not True:
+        state = "not_observed"
+    elif state not in _SPECIAL_LINES:
+        state = "ready" if reading.get("ready") is True else "not_ready"
+    if state == "ready" and "death_special_ready" not in active:
+        state = "unconfirmed"
+    return _SPECIAL_LINES[state]
+
+
+_EPISODE_MAP_REASONS = frozenset(
+    {"episode_pre_death_coverage_gap", "episode_respawn_map_missing"}
+)
 
 
 def _map_line(coach_input: dict) -> str | None:
     nest = _nest(coach_input, "map")
-    if nest is None or "map_check_before_death" not in nest:
+    if nest is None:
         return None
-    flag = nest.get("map_check_before_death")
-    if flag is None:
-        return None
-    if flag is False:
+    status = nest.get("map_check_status")
+    if status is None:
+        if "map_check_before_death" not in nest:
+            return None
+        # Pre-coverage artifacts: only a positive overlay is assertable.
+        observed = nest.get("map_check_before_death") is True
+        status = "observed" if observed else "unknown"
+    if status == "unknown":
+        if nest.get("map_check_unknown_reason") in _EPISODE_MAP_REASONS:
+            return "Map-check evidence was unavailable around this death."
+        return "Map-check evidence was unavailable for this video."
+    if status == "not_observed":
         return "No map check observed before death"
-    if flag is not True:
+    if status != "observed":
         return None
     gap = nest.get("seconds_since_map_check_before_death")
     if isinstance(gap, bool) or not isinstance(gap, (int, float)):
-        return None
+        return "A map check was observed before this death."
+    if not _playback_normal(coach_input):
+        return "A map check was observed before this death."
     return f"Last observed map check: {float(gap):.1f}s before death"
+
+
+def _playback_normal(coach_input: dict) -> bool:
+    """Video seconds equal game seconds only on verified normal playback."""
+    playback = coach_input.get("playback_clock")
+    return isinstance(playback, dict) and playback.get("status") == "normal"
 
 
 def _factor_lines(factors: object) -> list[str]:
@@ -381,6 +516,8 @@ def _factor_lines(factors: object) -> list[str]:
 
 def _roster_line(coach_input: dict) -> str:
     players = _nest(coach_input, "players")
+    if players and _death_in_unreliable_roster(players, _death(coach_input)):
+        return "Roster information around this death was unreliable."
     at_death = players.get("at_death") if players else None
     if not isinstance(at_death, dict):
         return "No roster information was available."
@@ -389,6 +526,19 @@ def _roster_line(coach_input: dict) -> str:
     if _count(ally) is None or _count(opponent) is None:
         return "No roster information was available."
     return f"Roster at death: {format_avb(ally, opponent)}."
+
+
+def _death_in_unreliable_roster(players: dict, death: dict | None) -> bool:
+    when = _seconds((death or {}).get("death_time"))
+    intervals = players.get("unreliable_intervals") or []
+    if when is None or not isinstance(intervals, list):
+        return False
+    for item in intervals:
+        start = _seconds(item.get("start")) if isinstance(item, dict) else None
+        end = _seconds(item.get("end")) if isinstance(item, dict) else None
+        if start is not None and end is not None and start <= when <= end:
+            return True
+    return False
 
 
 def _count(value: object) -> int | None:
@@ -412,26 +562,40 @@ def _video_clock(seconds: float) -> str:
     return f"{minutes}:{secs:02d}.{tenths}"
 
 
-def _assessment(prototype: Path, safe_id: str) -> str | None:
-    if not safe_id or not prototype.is_dir():
-        return None
-    prefix = f"{safe_id}."
-    suffix = ".output.json"
-    names = sorted(
-        path.name
-        for path in prototype.iterdir()
-        if path.name.startswith(prefix) and path.name.endswith(suffix)
+@dataclass(frozen=True)
+class _Review:
+    """Public coaching state for one unit; prose only when it may be shown."""
+
+    state: str
+    assessment: str | None = None
+    status: str | None = None
+    recommendations: list[str] = field(default_factory=list)
+
+
+def _review(prototype: Path, inputs: Path, entry: CoachingIndexEntry) -> _Review:
+    """State, prose and a validator status recomputed now (flags not trusted).
+
+    No model prose (never selected, skipped or failed) is "not reviewed", never
+    "no recommendation supported". A blocking claim violation withholds the
+    prose; the deterministic evidence lines are shown instead.
+    """
+    assessment = primary_assessment(prototype, entry.safe_id)
+    text = "" if assessment is None else assessment.assessment.strip()
+    if assessment is None or not text or text == _SKIP:
+        return _Review(state="not_reviewed")
+    view = read_document(prototype, unit_file_names(entry.safe_id).llm_view)
+    if view is None:
+        view = read_document(inputs, entry.llm_view_json)
+    status = annotate_claim_flags(assessment, view)["validation_status"]
+    if status == ValidationStatus.BLOCKED_UNSUPPORTED_CLAIM.value:
+        return _Review(state="blocked", status=status)
+    recommendations = [r.strip() for r in assessment.recommendations if r.strip()]
+    return _Review(
+        state="recommendation" if recommendations else "no_recommendation",
+        assessment=text,
+        status=status,
+        recommendations=recommendations,
     )
-    prose = [_prose(prototype / name) for name in names]
-    kept = [text for text in prose if text]
-    return kept[-1] if kept else None
-
-
-def _prose(path: Path) -> str | None:
-    text = str(_read_json(path).get("assessment") or "").strip()
-    if not text or text == _SKIP:
-        return None
-    return text
 
 
 def _read_json(path: Path) -> dict:

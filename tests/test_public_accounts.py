@@ -288,6 +288,7 @@ def test_history_is_private_to_the_owner(tmp_path: Path, accounts: AccountStore)
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
+            "language": "en",
         },
     )
     assert created.status_code == 200, created.text
@@ -318,6 +319,7 @@ def _submission(client: TestClient) -> tuple[str, str]:
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
+            "language": "en",
         },
     )
     assert created.status_code == 200, created.text
@@ -384,6 +386,7 @@ def test_expiry_drops_account_history(tmp_path: Path, accounts: AccountStore) ->
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
+            "language": "en",
         },
     )
     assert created.status_code == 200, created.text

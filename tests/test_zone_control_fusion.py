@@ -5,6 +5,7 @@ from __future__ import annotations
 from splatoon3_ai_coach.analysis.zone_control_context import build_zone_control_evidence
 from splatoon3_ai_coach.config.models import EventFusionConfig, ZoneControlDetectorConfig
 from splatoon3_ai_coach.vision.events import infer_events
+from splatoon3_ai_coach.vision.ids import result_detector_name
 from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     GameEvent,
@@ -19,6 +20,10 @@ from splatoon3_ai_coach.vision.zone_control_fusion import ZoneControlFuser
 CONFIG = ZoneControlDetectorConfig(confirm_readings=2, hold_seconds=1.0)
 
 
+def _rid(t: float) -> str:
+    return f"analysis:result:{t}:zone_control:zone_control@test:h"
+
+
 def _frame(t: float, state: str, confidence: float = 0.9) -> VisionFrameResult:
     return VisionFrameResult(
         frame_id=f"frame:{t}",
@@ -26,7 +31,7 @@ def _frame(t: float, state: str, confidence: float = 0.9) -> VisionFrameResult:
         source="cadence",
         detections=[
             DetectorResult(
-                id=f"zone:{t}",
+                id=_rid(t),
                 detector_name="zone_control",
                 detector_version="zone_control@test",
                 confidence=confidence,
@@ -110,7 +115,7 @@ def _fuse(steps: list[Step]) -> list[GameStateSnapshot]:
                 timestamp=t,
                 zone_control_state=fused.state,
                 zone_control_quality=fused.quality,
-                evidence_ids=[f"{item}:zone_control:read" for item in fused.evidence_ids],
+                evidence_ids=list(fused.evidence_ids),
             )
         )
     return out
@@ -145,7 +150,7 @@ def _event_tuples(events: list[GameEvent]) -> list[tuple]:
             e.start_time,
             e.from_zone_control,
             e.to_zone_control,
-            [i for i in e.evidence_ids if ":zone_control:" in i],
+            [i for i in e.evidence_ids if result_detector_name(i) == "zone_control"],
         )
         for e in events
     ]
@@ -159,8 +164,8 @@ def test_event_time_is_confirming_snapshot_with_all_candidate_ids() -> None:
     assert [e.event_type for e in events] == [GameEventType.ALLY_GAIN_CONTROL]
     assert events[0].start_time == 1.5
     assert _event_tuples(events)[0][3] == [
-        "zone:1.0:zone_control:read",
-        "zone:1.5:zone_control:read",
+        _rid(1.0),
+        _rid(1.5),
     ]
     assert _context_transitions(snapshots) == _event_tuples(events)
 

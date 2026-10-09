@@ -1,16 +1,26 @@
 """Read saved coaching documents for one scenario.
 
 The site does not rebuild CoachInput or CoachLlmView. ``coach_inputs_meta.json``
-is never returned: it contains the server analysis path.
+is never returned: it contains the server analysis path. File layout and
+model-output selection come from ``coach.artifacts``.
 """
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from splatoon3_ai_coach.cli.coach_common import safe_filename
+from splatoon3_ai_coach.coach.artifacts import (
+    CoachingIndexEntry,
+    coach_inputs_dir,
+    coach_inputs_staleness,
+    coach_prototype_dir,
+    read_coaching_index_or_none,
+    read_document,
+    safe_filename,
+    unit_assessments,
+    unit_file_names,
+)
 from splatoon3_ai_coach.coach.llm_client import normalize_coach_provider
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
 from splatoon3_ai_coach.config import load_config
@@ -23,36 +33,53 @@ from vmv_site.settings import PlatformSettings
 def coach_layers(settings: PlatformSettings, run_id: str, scenario_id: str) -> dict[str, Any]:
     """Saved CoachInput, CoachLlmView, unit, prototype assessments, and the prompt."""
     folder = run_dir(settings, run_id)
-    row = _index_row(folder, scenario_id)
-    safe_id = str(row.get("safe_id")) if row and row.get("safe_id") else safe_filename(scenario_id)
-    inputs = folder / "coach_inputs"
+    inputs = coach_inputs_dir(folder)
+    entry = _index_entry(inputs, scenario_id)
+    safe_id = entry.safe_id if entry else safe_filename(scenario_id)
+    names = unit_file_names(safe_id)
+    view = read_document(
+        inputs, (entry.llm_view_json if entry else None) or names.llm_view
+    )
+    roster_evidence = isinstance(view, dict) and view.get("roster_evidence") is True
     return {
         "scenario_id": scenario_id,
-        "coach_input": _named_json(inputs, _row_name(row, "coach_input_json", f"{safe_id}.coach_input.json")),
-        "llm_view": _named_json(inputs, _row_name(row, "llm_view_json", f"{safe_id}.llm_view.json")),
-        "coaching_unit": _named_json(inputs, _row_name(row, "coaching_json", f"{safe_id}.coaching.json")),
-        "system_prompt": load_system_prompt(),
+        "coach_input": read_document(
+            inputs, entry.coach_input_json if entry else names.coach_input
+        ),
+        "llm_view": view,
+        "coaching_unit": read_document(
+            inputs, entry.coaching_json if entry else names.coaching
+        ),
+        "system_prompt": load_system_prompt(roster_evidence=roster_evidence),
         "prototype_assessments": prototype_assessments(folder, safe_id),
         "llm": llm_label(settings),
+        "staleness": staleness_payload(inputs, folder),
+    }
+
+
+def staleness_payload(inputs: Path, folder: Path) -> dict[str, str | None] | None:
+    """``{status, reason, message}`` for saved coach inputs; None without an index."""
+    staleness = coach_inputs_staleness(inputs, folder)
+    if staleness is None:
+        return None
+    return {
+        "status": staleness.status,
+        "reason": staleness.reason.value if staleness.reason else None,
+        "message": staleness.message() or None,
     }
 
 
 def prototype_assessments(folder: Path, safe_id: str) -> list[dict[str, Any]]:
-    """Official CoachingAssessment files written by coach-prototype, if any."""
-    root = folder / "coach_prototype"
-    if not root.is_dir():
-        return []
-    found: list[dict[str, Any]] = []
-    prefix = f"{safe_id}."
-    for path in sorted(root.glob(f"{safe_id}.*.output.json")):
-        name = path.name
-        if not name.startswith(prefix) or not name.endswith(".output.json"):
-            continue
-        model = name[len(prefix) : -len(".output.json")]
-        payload = _read_json(path)
-        if isinstance(payload, dict):
-            found.append({"model": model, "assessment": payload})
-    return found
+    """CoachingAssessment files written by coach-prototype, primary first."""
+    found = unit_assessments(coach_prototype_dir(folder), safe_id)
+    return [
+        {
+            "model": item.model,
+            "primary": item.primary,
+            "assessment": item.assessment.model_dump(mode="json"),
+        }
+        for item in found
+    ]
 
 
 def llm_label(settings: PlatformSettings) -> dict[str, str | None]:
@@ -72,33 +99,6 @@ def llm_label(settings: PlatformSettings) -> dict[str, str | None]:
     return {"provider": provider, "model": model}
 
 
-def _index_row(folder: Path, scenario_id: str) -> dict[str, Any] | None:
-    path = folder / "coach_inputs" / "coaching_index.json"
-    raw = _read_json(path)
-    if not isinstance(raw, list):
-        return None
-    for item in raw:
-        if isinstance(item, dict) and item.get("scenario_id") == scenario_id:
-            return item
-    return None
-
-
-def _row_name(row: dict[str, Any] | None, key: str, fallback: str) -> str:
-    if row and isinstance(row.get(key), str):
-        return str(row[key])
-    return fallback
-
-
-def _named_json(folder: Path, name: str) -> Any | None:
-    if not name or name != Path(name).name or name in {".", ".."}:
-        return None
-    return _read_json(folder / name)
-
-
-def _read_json(path: Path) -> Any | None:
-    if not path.is_file():
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
+def _index_entry(inputs: Path, scenario_id: str) -> CoachingIndexEntry | None:
+    index = read_coaching_index_or_none(inputs)
+    return index.by_scenario_id(scenario_id) if index else None

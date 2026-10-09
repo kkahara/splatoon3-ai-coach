@@ -9,6 +9,7 @@ from pathlib import Path
 from subprocess import Popen
 from typing import Any
 
+from splatoon3_ai_coach.coach.artifacts import coaching_index_path
 from vmv_site.experiments import execute_experiment
 from vmv_site.models import JobError, JobRecord
 from vmv_site.settings import PlatformSettings
@@ -252,7 +253,7 @@ class JobRunner:
 
     def _start_prototype_llm(self, job: JobRecord) -> None:
         folder = self.store.settings.analysis_root / (job.run_id or "")
-        index = folder / "coach_inputs" / "coaching_index.json"
+        index = coaching_index_path(folder)
         if not job.run_id or not index.is_file():
             self._fail(job, "run coach-inputs first", phase="queued")
             return

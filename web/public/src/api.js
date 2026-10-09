@@ -164,3 +164,70 @@ export async function loadSubmission(token, locale) {
   }
   return payload;
 }
+
+const ADMIN_QUERY_LIMIT = 100;
+
+function boundedAdminQuery({ q = "", cursor = "", limit = 25, ...filters } = {}) {
+  const query = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value != null && String(value).trim()) {
+      query.set(key, String(value).trim().slice(0, 100));
+    }
+  });
+  const search = String(q).trim().slice(0, 200);
+  const pageCursor = String(cursor).trim().slice(0, 1000);
+  if (search) {
+    query.set("q", search);
+  }
+  if (pageCursor) {
+    query.set("cursor", pageCursor);
+  }
+  const requested = Number.parseInt(limit, 10);
+  query.set("limit", String(Math.min(ADMIN_QUERY_LIMIT, Math.max(1, requested || 25))));
+  return query.toString();
+}
+
+export async function loadAdminPipeline(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/pipeline?${query}`);
+  return read(response, "Pipeline metrics are unavailable.");
+}
+
+export async function loadAdminFailures(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/failures?${query}`);
+  return read(response, "Failures are unavailable.");
+}
+
+export async function loadAdminFailureSummary(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/failures/summary?${query}`);
+  return read(response, "Failure summary is unavailable.");
+}
+
+export async function loadAdminOverview() {
+  const response = await fetch("/api/admin/overview");
+  return read(response, "Admin overview is unavailable.");
+}
+
+export async function loadAdminRequests(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/requests?${query}`);
+  return read(response, "Requests are unavailable.");
+}
+
+export async function loadAdminRequest(id) {
+  const response = await fetch(`/api/admin/requests/${encodeURIComponent(id)}`);
+  return read(response, "This request was not found.");
+}
+
+export async function loadAdminUsers(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/users?${query}`);
+  return read(response, "Users are unavailable.");
+}
+
+export async function loadAdminUser(id) {
+  const response = await fetch(`/api/admin/users/${encodeURIComponent(id)}`);
+  return read(response, "This user was not found.");
+}

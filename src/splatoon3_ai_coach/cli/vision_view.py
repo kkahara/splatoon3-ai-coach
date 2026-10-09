@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import typer
 
-# Allow importing the repo-root tools package in editable checkouts.
-_TOOLS_ROOT = Path(__file__).resolve().parents[3] / "tools"
-if _TOOLS_ROOT.is_dir() and str(_TOOLS_ROOT) not in sys.path:
-    sys.path.insert(0, str(_TOOLS_ROOT))
-
-from vision_manifest_viewer.cli import main as viewer_main  # noqa: E402
+from splatoon3_ai_coach.cli.repo_tools import require_repo_tools
 
 
 def vision_view(
@@ -52,6 +46,9 @@ def vision_view(
     ),
 ) -> None:
     """Open a read-only Vision Manifest Viewer for Phase 2 diagnostics."""
+    require_repo_tools("vision-view")
+    from vision_manifest_viewer.cli import main as viewer_main
+
     argv = [str(manifest)]
     if out is not None:
         argv.extend(["--out", str(out)])

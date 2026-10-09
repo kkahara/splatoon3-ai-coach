@@ -12,13 +12,14 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from splatoon3_ai_coach.vision.ids import result_detector_name
 from splatoon3_ai_coach.vision.models import (
     GameStateSnapshot,
     PenaltyQuality,
     ScoreQuality,
 )
 
-SCORE_EVIDENCE_TAG = ":score:"
+SCORE_DETECTOR = "score"
 
 
 class ScoreSample(BaseModel):
@@ -117,5 +118,7 @@ def _sample(snap: GameStateSnapshot) -> ScoreSample:
         ally_penalty_quality=snap.ally_penalty_quality,
         opponent_penalty=_observed(snap.opponent_penalty, snap.opponent_penalty_quality),
         opponent_penalty_quality=snap.opponent_penalty_quality,
-        evidence_ids=[i for i in snap.evidence_ids if SCORE_EVIDENCE_TAG in i],
+        evidence_ids=[
+            i for i in snap.evidence_ids if result_detector_name(i) == SCORE_DETECTOR
+        ],
     )

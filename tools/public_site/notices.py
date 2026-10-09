@@ -16,8 +16,14 @@ from public_site.settings import PublicSettings
 SUBJECTS = {
     "received": "We received your Splatoon 3 match",
     "ready": "Your Splatoon 3 coaching review is ready",
+    "no_moments": "Your Splatoon 3 review is complete: no coaching moments",
     "failed": "Your Splatoon 3 coaching review could not be completed",
 }
+NO_DEATHS_EXPLANATION = (
+    "No deaths were detected in this recording. If the recording contains "
+    "deaths, check that the game display language matches the language "
+    "selected when you uploaded it."
+)
 ACCOUNT_SUBJECTS = {
     "verify": "Confirm your Splatoon 3 coaching account",
     "reset": "Reset your Splatoon 3 coaching password",
@@ -111,6 +117,8 @@ def _body(kind: str, review_url: str) -> str:
         lead = "We received your match."
     elif kind == "ready":
         lead = "Your Splatoon 3 coaching review is ready."
+    elif kind == "no_moments":
+        lead = f"Your Splatoon 3 review is complete.\n\n{NO_DEATHS_EXPLANATION}"
     else:
         lead = "Your Splatoon 3 coaching review could not be completed."
     return f"{lead}\n\nView your review\n{review_url}\n"

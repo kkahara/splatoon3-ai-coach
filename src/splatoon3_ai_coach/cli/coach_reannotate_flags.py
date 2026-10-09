@@ -2,33 +2,23 @@
 
 from __future__ import annotations
 
-import json
 from collections import Counter
 from pathlib import Path
 
 import typer
 from rich.console import Console
 
+from splatoon3_ai_coach.coach.artifacts import (
+    ArtifactError,
+    load_assessment,
+    prototype_outputs,
+    read_document,
+    read_prototype_index,
+    write_json,
+)
 from splatoon3_ai_coach.coach.coach import annotate_claim_flags
-from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
 
 console = Console()
-
-_KNOWN_MODEL_TAGS = (
-    "gpt-oss_20b",
-    "llama3.1_8b",
-)
-
-
-def _model_from_output_name(filename: str) -> str:
-    """Extract sanitized model tag from ``{stem}.{model}.output.json``."""
-    base = filename.removesuffix(".output.json")
-    for tag in sorted(_KNOWN_MODEL_TAGS, key=len, reverse=True):
-        suffix = f".{tag}"
-        if base.endswith(suffix):
-            return tag
-    # Fallback: last dotted segment (best-effort).
-    return base.rsplit(".", 1)[-1]
 
 
 def coach_reannotate_flags(
@@ -41,9 +31,13 @@ def coach_reannotate_flags(
     ),
 ) -> None:
     """Rewrite ``*.flags.json`` from existing assessments. Never touches outputs."""
-    outputs = sorted(prototype_dir.glob("*.output.json"))
+    try:
+        outputs = prototype_outputs(prototype_dir)
+    except ArtifactError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
     if not outputs:
-        console.print(f"[yellow]No *.output.json in {prototype_dir}[/yellow]")
+        console.print(f"[yellow]No model outputs recorded in {prototype_dir}[/yellow]")
         raise typer.Exit(code=1)
 
     by_model_outputs: Counter[str] = Counter()
@@ -51,30 +45,23 @@ def coach_reannotate_flags(
     rewritten = 0
     errors = 0
 
-    for out_path in outputs:
-        model = _model_from_output_name(out_path.name)
-        flags_path = out_path.with_name(
-            out_path.name.replace(".output.json", ".flags.json")
-        )
+    views = _views_by_output(prototype_dir)
+    for output in outputs:
         try:
-            assessment = CoachingAssessment.model_validate_json(
-                out_path.read_text(encoding="utf-8")
-            )
-            flags = annotate_claim_flags(assessment)
-            flags_path.write_text(
-                json.dumps(flags, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
+            assessment = load_assessment(prototype_dir / output.output_json)
+            flags = annotate_claim_flags(assessment, views.get(output.output_json))
+            write_json(prototype_dir / output.flags_json, flags)
             rewritten += 1
-            by_model_outputs[model] += 1
-            by_model_violations[model] += int(flags.get("hit_count", 0))
+            by_model_outputs[output.model] += 1
+            by_model_violations[output.model] += int(flags.get("hit_count", 0))
             console.print(
-                f"[green]OK[/green] {out_path.name} → {flags_path.name} "
-                f"(hit_count={flags.get('hit_count', 0)})"
+                f"[green]OK[/green] {output.output_json} → {output.flags_json} "
+                f"(hit_count={flags.get('hit_count', 0)}, "
+                f"status={flags.get('validation_status')})"
             )
         except Exception as exc:  # noqa: BLE001 — report and continue
             errors += 1
-            console.print(f"[red]FAIL[/red] {out_path.name}: {exc}")
+            console.print(f"[red]FAIL[/red] {output.output_json}: {exc}")
 
     console.print("")
     console.print(f"{'model':<24} {'outputs':>8} {'violations':>10}")
@@ -89,3 +76,16 @@ def coach_reannotate_flags(
     )
     if errors:
         raise typer.Exit(code=1)
+
+
+def _views_by_output(prototype_dir: Path) -> dict[str, dict]:
+    """The unit's saved ``llm_view.json`` for each output file name."""
+    index = read_prototype_index(prototype_dir)
+    views: dict[str, dict] = {}
+    for entry in index.entries if index is not None else []:
+        view = read_document(prototype_dir, entry.llm_view_json)
+        if view is None:
+            continue
+        for output in entry.outputs:
+            views[output.output_json] = view
+    return views

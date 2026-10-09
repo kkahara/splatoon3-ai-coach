@@ -84,8 +84,8 @@ PROHIBITED_CLAIM_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
     )
 )
 
-# Lightweight cues that the prohibited phrase is being rejected, not asserted.
-_NEGATION_OR_LIMIT_CUES: tuple[re.Pattern[str], ...] = tuple(
+# Epistemic cues reject the whole proposition that follows, across commas.
+_EPISTEMIC_CUES: tuple[re.Pattern[str], ...] = tuple(
     re.compile(pattern, re.IGNORECASE)
     for pattern in (
         r"\bcannot\s+infer\b",
@@ -93,6 +93,7 @@ _NEGATION_OR_LIMIT_CUES: tuple[re.Pattern[str], ...] = tuple(
         r"\bcannot\s+determine\b",
         r"\bcannot\s+say\b",
         r"\bcannot\s+claim\b",
+        r"\b(?:cannot|can\s+not|can'?t)\s+(?:show|establish|prove|tell|know)\b",
         r"\bcan\s+not\s+(?:infer|conclude|determine|say|claim)\b",
         r"\bnot\s+evidence\s+of\b",
         r"\bno\s+evidence\b",
@@ -101,20 +102,34 @@ _NEGATION_OR_LIMIT_CUES: tuple[re.Pattern[str], ...] = tuple(
         r"\bdoes\s+not\s+establish\b",
         r"\bdoes\s+not\s+prove\b",
         r"\bdo\s+not\s+(?:imply|establish|prove)\b",
-        r"\bdid\s+not\b",
         r"\bnot\s+proven\b",
         r"\bnot\s+necessarily\b",
         r"\bnot\s+enough\s+evidence\b",
         r"\binsufficient\s+evidence\b",
-        r"\babsence\s+of\b",
         r"\bwithout\s+(?:enough\s+)?evidence\b",
         r"\bunable\s+to\s+(?:infer|conclude|determine|claim)\b",
         r"\bno\s+way\s+to\s+(?:infer|conclude|determine)\b",
     )
 )
 
+# Plain negations only reach the clause they sit in: in "You did not wait,
+# so you overextended" the second clause is still asserted.
+_CLAUSE_CUES: tuple[re.Pattern[str], ...] = tuple(
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in (r"\bdid\s+not\b", r"\babsence\s+of\b")
+)
+
+_CLAUSE_BOUNDARY = re.compile(
+    r"(?i)[,;:\u2014\u2013]|\b(?:so|but|which|because|while|whereas|yet|then)\b"
+)
+
+# A period between digits ("3.5s") is a decimal point, not a sentence end.
+_SENTENCE_END = re.compile(r"(?<!\d)[.!?]+|[.!?]+(?!\d)|\n+")
+
+# A negation opening the clause ("Not checking the map caused…") negates the
+# subject, not the claim, so a word must precede it.
 _LOCAL_NEGATION = re.compile(
-    r"(?i)\b(?:not|never|no)\s+(?:\w+\s+){0,3}$"
+    r"(?i)\w\W+(?:not|never|no)\s+(?:\w+\s+){0,3}$"
 )
 
 _UNCERTAIN_CUES = re.compile(
@@ -198,15 +213,18 @@ def classify_prohibited_hit(
     _ = match_end
     sent_start, sent_end = _sentence_bounds(text, match_start)
     sentence = text[sent_start:sent_end]
-    prefix = text[sent_start:match_start]
+    clause_start = sent_start + _clause_offset(text[sent_start:match_start])
+    prefix = text[clause_start:match_start]
     prefix_l = prefix.lower()
     sentence_l = sentence.lower()
 
-    for cue in _NEGATION_OR_LIMIT_CUES:
+    for cue in _EPISTEMIC_CUES:
         for cue_match in cue.finditer(sentence):
-            abs_start = sent_start + cue_match.start()
-            if abs_start < match_start:
+            if sent_start + cue_match.start() < match_start:
                 return ClaimHitClassification.NEGATED
+    for cue in _CLAUSE_CUES:
+        if cue.search(prefix):
+            return ClaimHitClassification.NEGATED
 
     if _LOCAL_NEGATION.search(prefix_l):
         return ClaimHitClassification.NEGATED
@@ -224,20 +242,35 @@ def classify_prohibited_hit(
     return ClaimHitClassification.ASSERTION
 
 
+def _clause_offset(prefix: str) -> int:
+    """Offset in ``prefix`` where the clause containing its end begins."""
+    boundaries = list(_CLAUSE_BOUNDARY.finditer(prefix))
+    return boundaries[-1].end() if boundaries else 0
+
+
+def split_sentences(text: str) -> list[tuple[int, str]]:
+    """Sentences with start offsets; decimals such as ``3.5s`` do not split."""
+    out: list[tuple[int, str]] = []
+    start = 0
+    for match in _SENTENCE_END.finditer(text):
+        chunk = text[start : match.end()]
+        if chunk.strip():
+            out.append((start, chunk))
+        start = match.end()
+    if text[start:].strip():
+        out.append((start, text[start:]))
+    return out
+
+
 def _sentence_bounds(text: str, index: int) -> tuple[int, int]:
     """Return ``[start, end)`` for the sentence containing ``index``."""
     if not text:
         return 0, 0
     index = max(0, min(index, len(text) - 1))
-    start = index
-    while start > 0 and text[start - 1] not in ".!?\n":
-        start -= 1
-    end = index
-    while end < len(text) and text[end] not in ".!?\n":
-        end += 1
-    if end < len(text) and text[end] in ".!?":
-        end += 1
-    return start, end
+    for start, chunk in split_sentences(text):
+        if start <= index < start + len(chunk):
+            return start, start + len(chunk)
+    return 0, len(text)
 
 
 def describe_leads_to_association(*, use_window_phrasing: bool = False) -> str:
@@ -262,27 +295,32 @@ def engagement_proves_complete_fight(combat: CombatContext | None) -> bool:
 
 
 def death_lifecycle_statements(ctx: ScenarioContext) -> list[str]:
-    """Permitted factual statements from a death-episode context."""
+    """Permitted factual statements from a death-episode context (video clock)."""
     death = ctx.death_episode
     if death is None:
         return []
     lines: list[str] = []
     if death.death_to_active_again is not None:
         lines.append(
-            f"This death lasted {death.death_to_active_again:.1f} seconds "
+            f"This death lasted {death.death_to_active_again:.1f} video seconds "
             "until active again."
         )
     if death.death_to_respawn is not None:
         lines.append(
-            f"Respawn occurred {death.death_to_respawn:.1f} seconds after death."
+            f"Respawn occurred {death.death_to_respawn:.1f} video seconds after death."
         )
     if death.respawn_to_active_again is not None:
         lines.append(
-            f"It took {death.respawn_to_active_again:.1f} seconds from respawn "
+            f"It took {death.respawn_to_active_again:.1f} video seconds from respawn "
             "to active control."
         )
     if death.complete:
         lines.append("The death episode recovered (respawn and active_again observed).")
+    elif death.death_to_match_end is not None and not death.has_respawn:
+        lines.append(
+            f"The match ended {death.death_to_match_end:.1f} video seconds after this "
+            "death, before a respawn was observed."
+        )
     elif death.has_respawn or death.has_active_again:
         lines.append("The death episode is incomplete (missing lifecycle edges).")
     else:

@@ -45,7 +45,7 @@ OVERLAP_FACTORS = (
     "death_final_30s",
     OUTNUMBERED,
     "death_while_ahead_in_numbers",
-    "death_redeath_le_10s",
+    "death_quick_redeath",
 )
 NONE = "(no factor)"
 EMPTY = "(slot left empty)"
@@ -54,7 +54,7 @@ EMPTY = "(slot left empty)"
 EVIDENCE_KIND = {
     "death_while_outnumbered": "debounced roster readings (>= 2 agreeing frames)",
     "death_while_ahead_in_numbers": "debounced roster readings (>= 2 agreeing frames)",
-    "death_redeath_le_10s": "two DEATH events (video clock)",
+    "death_quick_redeath": "two DEATH events (video clock)",
     "death_special_ready": "consecutive detector readings classified as ready",
     "death_final_30s": "game-clock OCR at the death",
     "death_first_30s": "game-clock OCR at the death",

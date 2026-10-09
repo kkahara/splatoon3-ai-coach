@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from coach_artifact_helpers import map_ctx, video_durations
 from pydantic import ValidationError
 
 from splatoon3_ai_coach.analysis.scenario_context import (
@@ -37,10 +38,14 @@ from splatoon3_ai_coach.coach.claim_catalog import (
     DeathImportanceFactorId,
 )
 from splatoon3_ai_coach.coach.coach_input import CoachInput, GameClockSample
-from splatoon3_ai_coach.coach.coaching_candidates import rank_candidates
+from splatoon3_ai_coach.coach.coaching_candidates import (
+    ImportanceFactorContribution,
+    rank_candidates,
+)
 from splatoon3_ai_coach.coach.death_importance import (
     detect_death_importance_factors,
     pre_death_roster,
+    same_life_last_ready,
     score_death_candidate,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClockObservation
@@ -48,6 +53,7 @@ from splatoon3_ai_coach.coach.importance_config import (
     importance_config_hash,
     importance_config_payload,
 )
+from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
 from splatoon3_ai_coach.coach.llm_view import build_coach_llm_view
 from splatoon3_ai_coach.coach.score_facts import derive_score_facts
 from splatoon3_ai_coach.config.models import CoachConfig, DeathFactorThresholds
@@ -103,7 +109,10 @@ def _unit(
         relations=ScenarioRelations(),
     )
     return CoachInput(
-        primary_scenario=scenario, primary_context=context, game_clock_samples=samples
+        primary_scenario=scenario,
+        primary_context=context,
+        game_clock_samples=samples,
+        durations=video_durations(time_since_previous_death=prev_death_gap),
     )
 
 
@@ -182,7 +191,7 @@ def test_threshold_overrides_change_results() -> None:
     assert _active(coach_input, match_duration_seconds=300) == set()
     loose = DeathFactorThresholds(redeath_max_gap_seconds=25.0, final_window_seconds=45)
     assert _active(coach_input, match_duration_seconds=300, thresholds=loose) == {
-        _Factor.DEATH_REDEATH_LE_10S.value,
+        _Factor.DEATH_QUICK_REDEATH.value,
         _Factor.DEATH_FINAL_30S.value,
     }
     early = _unit(seconds_remaining=250)
@@ -194,13 +203,13 @@ def test_threshold_overrides_change_results() -> None:
 
 
 def test_redeath_default_covers_the_respawn_cycle() -> None:
-    assert _active(_unit(prev_death_gap=12.0)) == {_Factor.DEATH_REDEATH_LE_10S.value}
+    assert _active(_unit(prev_death_gap=12.0)) == {_Factor.DEATH_QUICK_REDEATH.value}
     assert _active(_unit(prev_death_gap=20.5)) == set()
 
 
 def _with_no_map_check(coach_input: CoachInput) -> CoachInput:
     context = coach_input.primary_context.model_copy(
-        update={"map": MapContext(map_check_before_death=False)}
+        update={"map": map_ctx(False)}
     )
     return coach_input.model_copy(update={"primary_context": context})
 
@@ -214,14 +223,32 @@ def test_no_map_check_is_not_counted_in_the_first_window() -> None:
     }
 
 
+def test_map_factor_requires_not_observed_status() -> None:
+    def with_map(nest: MapContext) -> CoachInput:
+        unit = _unit(seconds_remaining=200)
+        context = unit.primary_context.model_copy(update={"map": nest})
+        return unit.model_copy(update={"primary_context": context})
+
+    factor = _Factor.DEATH_MAP_OVERLAY_BEFORE_FALSE.value
+    assert factor not in _active(with_map(map_ctx(None)), match_duration_seconds=300)
+    # Pre-coverage artifacts carried a bare False without coverage proof.
+    legacy = MapContext(map_check_before_death=False)
+    assert factor not in _active(with_map(legacy), match_duration_seconds=300)
+
+
 def test_ranking_excluded_factors_stay_active_but_do_not_score() -> None:
     map_only = score_death_candidate(_with_no_map_check(_unit(seconds_remaining=200)))
     map_factor = next(
         f for f in map_only.factors if f.factor_id == "death_map_overlay_before_false"
     )
+    # Coverage-gated map absence ranks since the claim audit (P1).
     assert map_factor.active is True
-    assert map_factor.contribution == 0.0
-    assert map_only.importance_score == 0.0
+    assert map_factor.contribution == pytest.approx(1.5)
+    excluded = score_death_candidate(
+        _with_no_map_check(_unit(seconds_remaining=200)),
+        ranking_excluded_factors=("death_map_overlay_before_false",),
+    )
+    assert excluded.importance_score == 0.0
 
     special_only = score_death_candidate(_with_special(_unit(), [True, True]))
     special = next(
@@ -232,10 +259,9 @@ def test_ranking_excluded_factors_stay_active_but_do_not_score() -> None:
     assert special_only.importance_score == 0.0
 
     restored = score_death_candidate(
-        _with_no_map_check(_unit(seconds_remaining=200)),
-        ranking_excluded_factors=(),
+        _with_special(_unit(), [True, True]), ranking_excluded_factors=()
     )
-    assert restored.importance_score == pytest.approx(1.5)
+    assert restored.importance_score == pytest.approx(2.0)
 
 
 def test_zero_score_candidates_are_not_selected_when_required() -> None:
@@ -265,16 +291,49 @@ def test_positive_score_rule_is_part_of_the_config_hash() -> None:
     ) != importance_config_hash(importance_config_payload(loose, max_llm_units=3))
 
 
-def test_clock_windows_only_add_to_a_supported_death() -> None:
+def test_final_30s_ranks_on_its_own() -> None:
+    """Claim audit P1: with roster off, the final 30 seconds must select units."""
     alone = score_death_candidate(_unit(seconds_remaining=20))
     final = next(f for f in alone.factors if f.factor_id == "death_final_30s")
     assert final.active is True
-    assert final.contribution == 0.0
-    assert alone.importance_score == 0.0
-    supported = score_death_candidate(_unit([_point(97.0, 2, 4)], seconds_remaining=20))
-    assert supported.importance_score == pytest.approx(2.5 + 1.0)
-    standalone = score_death_candidate(_unit(seconds_remaining=20), modifier_factors=())
-    assert standalone.importance_score == pytest.approx(1.0)
+    assert alone.importance_score == pytest.approx(1.0)
+    as_modifier = score_death_candidate(
+        _unit(seconds_remaining=20), modifier_factors=("death_final_30s",)
+    )
+    assert as_modifier.importance_score == 0.0
+
+
+def test_first_30s_only_adds_to_a_supported_death() -> None:
+    alone = score_death_candidate(
+        _unit(seconds_remaining=290), match_duration_seconds=300
+    )
+    first = next(f for f in alone.factors if f.factor_id == "death_first_30s")
+    assert first.active is True
+    assert first.contribution == 0.0
+    supported = score_death_candidate(
+        _unit(prev_death_gap=12.0, seconds_remaining=290), match_duration_seconds=300
+    )
+    assert supported.importance_score == pytest.approx(3.0 + 0.5)
+
+
+def test_own_splat_shortly_before_death_ranks() -> None:
+    def unit(gap: float | None) -> CoachInput:
+        base = _unit()
+        death = base.primary_context.death_episode.model_copy(
+            update={"time_since_previous_splat": gap}
+        )
+        context = base.primary_context.model_copy(update={"death_episode": death})
+        return base.model_copy(update={"primary_context": context})
+
+    own = _Factor.DEATH_OWN_SPLAT_BEFORE.value
+    assert own in _active(unit(1.0))
+    assert own not in _active(unit(8.0))
+    assert own not in _active(unit(None))
+    scored = score_death_candidate(unit(1.0))
+    assert scored.importance_score == pytest.approx(2.0)
+    statement = next(f for f in scored.factors if f.factor_id == own).statement_player
+    assert statement.startswith("You got a splat 1.0s")
+    assert "trade" not in statement
 
 
 def _with_special(coach_input: CoachInput, ready: list[bool]) -> CoachInput:
@@ -294,6 +353,38 @@ def test_special_ready_needs_consecutive_readings() -> None:
     assert ready not in _active(_with_special(_unit(), [True, True, False]))
     single = DeathFactorThresholds(special_ready_min_readings=1)
     assert ready in _active(_with_special(_unit(), [False, True]), thresholds=single)
+
+
+def test_special_ready_run_stays_within_the_current_life() -> None:
+    ready = _Factor.DEATH_SPECIAL_READY.value
+    # Previous death 1.5s before this one: only the last reading is this life.
+    unit = _with_special(_unit(prev_death_gap=1.5), [True, True, True, True])
+    assert ready not in _active(unit)
+    assert ready in _active(_with_special(_unit(), [True, True, True, True]))
+
+
+def test_last_ready_from_an_earlier_life_is_not_reported() -> None:
+    readings = [
+        SpecialReading(video_time=_DEATH - 4.0, visible=True, ready=True),
+        SpecialReading(video_time=_DEATH - 1.0, visible=True, ready=False),
+    ]
+    special = SpecialEvidence(
+        observations=readings,
+        nearest_before_anchor=readings[-1],
+        last_ready_before_anchor=readings[0],
+        last_visible_before_anchor=readings[-1],
+    )
+
+    def unit(gap: float | None) -> CoachInput:
+        base = _unit(prev_death_gap=gap)
+        context = base.primary_context.model_copy(update={"special": special})
+        return base.model_copy(update={"primary_context": context})
+
+    assert same_life_last_ready(unit(None)) == readings[0]
+    assert same_life_last_ready(unit(10.0)) == readings[0]
+    assert same_life_last_ready(unit(2.0)) is None
+    view = build_coach_llm_view(unit(2.0), score_death_candidate(unit(2.0)))
+    assert "last_ready" not in (view.special or {})
 
 
 def _with_count(
@@ -388,6 +479,26 @@ def test_llm_view_carries_the_pre_death_sample() -> None:
 def test_negative_weight_fails_config_validation() -> None:
     with pytest.raises(ValidationError, match="must not be negative"):
         CoachConfig(death_importance_weights={"death_while_outnumbered": -1.0})
+
+
+def test_legacy_redeath_id_is_read_under_its_current_name() -> None:
+    old = "death_redeath_le_10s"
+    config = CoachConfig(
+        death_importance_weights={old: 4.0},
+        death_modifier_factors=[old],
+        death_ranking_excluded_factors=[old],
+    )
+    current = DeathImportanceFactorId.DEATH_QUICK_REDEATH.value
+    assert config.death_importance_weights == {current: 4.0}
+    assert config.death_modifier_factors == [current]
+    assert config.death_ranking_excluded_factors == [current]
+    factor = ImportanceFactorContribution(
+        factor_id=old, weight=3.0, contribution=3.0, active=True
+    )
+    assert factor.factor_id == current
+    output = CoachingAssessment(selected_claim_ids=[old], claims=[old])
+    assert output.selected_claim_ids == [current]
+    assert output.claims[0].claim_id == current
 
 
 def test_threshold_defaults_match_catalog_constants() -> None:

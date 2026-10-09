@@ -73,11 +73,13 @@ def build_manifest(
     *,
     language: str,
     video: VideoRunMetadata | None = None,
+    git_sha: str | None = None,
 ) -> VisionManifest:
     """Assemble the persisted vision manifest."""
     analysis = AnalysisIdentity(
         analysis_id=analysis_id,
         package_version=package_version(),
+        git_sha=git_sha,
         detector_versions=detector_versions,
         extraction_manifest_sha256=CADENCE_EXTRACTION_SHA256,
         vision_config_sha256=vision_sha,

@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from splatoon3_ai_coach.analysis.match_bounds import match_end_time
 from splatoon3_ai_coach.analysis.scenario_models import (
     Scenario,
     ScenarioOutcome,
@@ -51,7 +52,8 @@ def build_scenarios(
     Does not rewrite events. Detector debounce is unused.
     """
     ordered = _sorted_events(events)
-    death_episodes = _build_death_episodes(ordered, config)
+    match_end = match_end_time(ordered)
+    death_episodes = _build_death_episodes(ordered, config, match_end)
     claimed_maps = {
         eid
         for scenario in death_episodes
@@ -63,6 +65,11 @@ def build_scenarios(
         *_build_map_checks(ordered, claimed_maps),
         *_build_engagements(ordered, config),
     ]
+    if match_end is not None:
+        scenarios = [
+            item.model_copy(update={"end_time": min(item.end_time, match_end)})
+            for item in scenarios
+        ]
     scenarios.sort(
         key=lambda item: (item.start_time, item.scenario_type.value, item.scenario_id)
     )
@@ -94,6 +101,7 @@ def _sorted_events(events: Iterable[GameEvent]) -> list[GameEvent]:
 def _build_death_episodes(
     events: list[GameEvent],
     config: ScenarioBuilderConfig,
+    match_end: float | None = None,
 ) -> list[Scenario]:
     """One ``DEATH_EPISODE`` per ``DEATH`` lifecycle."""
     deaths = _of_type(events, GameEventType.DEATH)
@@ -102,7 +110,9 @@ def _build_death_episodes(
         next_death = (
             deaths[index + 1].start_time if index + 1 < len(deaths) else float("inf")
         )
-        scenarios.append(_one_death_episode(death, events, next_death, config))
+        scenarios.append(
+            _one_death_episode(death, events, next_death, config, match_end)
+        )
     return scenarios
 
 
@@ -111,6 +121,7 @@ def _one_death_episode(
     events: list[GameEvent],
     next_death: float,
     config: ScenarioBuilderConfig,
+    match_end: float | None = None,
 ) -> Scenario:
     """Close one death lifecycle; missing RESPAWN / ACTIVE_AGAIN is allowed."""
     respawn = _first_between(
@@ -126,7 +137,7 @@ def _one_death_episode(
         members.append(active)
 
     map_deadline = _death_map_deadline(
-        death.start_time, active, next_death, config.post_death_max_seconds
+        death.start_time, active, next_death, config.post_death_max_seconds, match_end
     )
     for event in events:
         if event.event_type is not GameEventType.MAP_OVERLAY:
@@ -137,8 +148,8 @@ def _one_death_episode(
             members.append(event)
 
     members = _unique_members(members)
-    end_time = _death_episode_end(
-        death, members, active, next_death, config.post_death_max_seconds
+    end_time, end_reason = _death_episode_end(
+        death, members, active, next_death, config.post_death_max_seconds, match_end
     )
 
     reason = respawn.reason.value if respawn is not None and respawn.reason else None
@@ -181,6 +192,8 @@ def _one_death_episode(
             "death_to_active_again": death_to_active,
             "respawn_to_active_again": respawn_to_active,
             "map_check_count": _count_type(members, GameEventType.MAP_OVERLAY),
+            "end_reason": end_reason,
+            "match_end_time": match_end if end_reason == "match_end" else None,
         },
     )
 
@@ -190,13 +203,15 @@ def _death_map_deadline(
     active: GameEvent | None,
     next_death: float,
     max_seconds: float,
+    match_end: float | None = None,
 ) -> float:
     """Latest map start time still considered part of the death lifecycle."""
     if active is not None:
         return active.start_time
-    if next_death < float("inf"):
-        return next_death
-    return death_at + max_seconds
+    deadline = next_death if next_death < float("inf") else death_at + max_seconds
+    if match_end is not None:
+        deadline = min(deadline, match_end)
+    return deadline
 
 
 def _map_in_death_lifecycle(
@@ -220,20 +235,27 @@ def _death_episode_end(
     active: GameEvent | None,
     next_death: float,
     max_seconds: float,
-) -> float:
-    """Scenario end: ACTIVE_AGAIN (plus map tails) or incomplete fallback."""
+    match_end: float | None = None,
+) -> tuple[float, str]:
+    """Scenario end and why: ACTIVE_AGAIN (plus map tails) or incomplete fallback.
+
+    An incomplete episode ends at the earliest of its last member, the
+    maximum duration, the next DEATH and MATCH_END. A match end while the
+    player is still dead is a terminal end, never a respawn.
+    """
     if active is not None:
-        return max(active.start_time, max(_event_end(item) for item in members))
-    if len(members) == 1:
-        end_time = death.start_time + max_seconds
-    else:
-        end_time = min(
-            max(_event_end(item) for item in members),
-            death.start_time + max_seconds,
+        return max(active.start_time, max(_event_end(item) for item in members)), (
+            "active_again"
         )
+    candidates = [(death.start_time + max_seconds, "max_duration")]
+    if len(members) > 1:
+        candidates.append((max(_event_end(item) for item in members), "last_member"))
     if next_death < float("inf"):
-        end_time = min(end_time, next_death)
-    return end_time
+        candidates.append((next_death, "next_death"))
+    if match_end is not None:
+        candidates.append((match_end, "match_end"))
+    end_time, reason = min(candidates, key=lambda item: item[0])
+    return end_time, reason
 
 
 def _build_map_checks(

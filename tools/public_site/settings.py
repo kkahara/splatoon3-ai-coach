@@ -67,6 +67,7 @@ class PublicSettings:
     smtp_from: str = ""
     worker_id: str = ""
     llm_provider: str = ""
+    admin_slow_seconds: int = 600
 
     @property
     def r2_ready(self) -> bool:
@@ -138,4 +139,5 @@ class PublicSettings:
             smtp_from=os.environ.get("PUBLIC_SMTP_FROM", ""),
             worker_id=os.environ.get("PUBLIC_WORKER_ID") or uuid.uuid4().hex,
             llm_provider=os.environ.get("PUBLIC_LLM_PROVIDER", "").strip(),
+            admin_slow_seconds=int(os.environ.get("PUBLIC_ADMIN_SLOW_SECONDS", "600")),
         )

@@ -56,7 +56,7 @@ export function CoachingPage() {
             <Link to={`/coaching/${item.id}`}>
               <strong>{item.display_name || t("coaching.match")}</strong>
               <span className="muted">
-                {formatWhen(item.created_at, locale)} · {t(statusKey(item.status))}
+                {formatWhen(item.created_at, locale)} · {t(statusKey(item.status, item.outcome))}
               </span>
             </Link>
           </li>
@@ -77,9 +77,9 @@ function formatWhen(stamp, locale) {
   return locale === "ja" ? date.toLocaleString("ja-JP") : date.toLocaleString();
 }
 
-function statusKey(status) {
+function statusKey(status, outcome) {
   if (status === "complete") {
-    return "coaching.status.ready";
+    return outcome === "no_deaths" ? "coaching.status.no_moments" : "coaching.status.ready";
   }
   if (status === "failed") {
     return "coaching.status.failed";

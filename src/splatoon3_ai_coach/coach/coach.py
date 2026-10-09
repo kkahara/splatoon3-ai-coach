@@ -9,6 +9,7 @@ from typing import Any
 from loguru import logger
 
 from splatoon3_ai_coach.analysis.session import GameSession
+from splatoon3_ai_coach.coach.claim_validation import validate_assessment
 from splatoon3_ai_coach.coach.coach_input import CoachInput
 from splatoon3_ai_coach.coach.evidence_contract import (
     PROHIBITED_CLAIM_PATTERNS,
@@ -71,7 +72,11 @@ def generate_coaching_assessment(
     When ``user_prompt`` is omitted and ``llm_view`` is set, serialize the view.
     Otherwise fall back to full CoachInput serialization (legacy/debug).
     """
-    system = system_prompt if system_prompt is not None else load_system_prompt()
+    system = (
+        system_prompt
+        if system_prompt is not None
+        else load_system_prompt(roster_evidence=coach_input.roster_evidence)
+    )
     if user_prompt is not None:
         user = user_prompt
     elif llm_view is not None:
@@ -93,11 +98,16 @@ def parse_coaching_assessment(raw: str) -> CoachingAssessment:
     return CoachingAssessment.model_validate(payload)
 
 
-def annotate_claim_flags(assessment: CoachingAssessment) -> dict[str, Any]:
+def annotate_claim_flags(
+    assessment: CoachingAssessment,
+    view: CoachLlmView | dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Experiment-only annotation. Never modifies ``assessment``.
 
     Returns a separate flags document for human review. ``hit_count`` counts
-    only hits classified as prohibited assertions.
+    only hits classified as prohibited assertions. ``validation_status`` also
+    reflects causal map claims, unsupported map recommendations and
+    ``evidence_used`` entries that do not resolve against ``view``.
     """
     fields = {
         "assessment": assessment.assessment,
@@ -105,6 +115,7 @@ def annotate_claim_flags(assessment: CoachingAssessment) -> dict[str, Any]:
         "limitations": list(assessment.limitations),
         "recommendations": list(assessment.recommendations),
         "selected_claim_ids": list(assessment.selected_claim_ids),
+        "claims": [claim.sentence for claim in assessment.claims],
     }
     hits: list[dict[str, object]] = []
     for field, value in fields.items():
@@ -120,10 +131,17 @@ def annotate_claim_flags(assessment: CoachingAssessment) -> dict[str, Any]:
                         "counts_as_violation": item["counts_as_violation"],
                     }
                 )
+    hit_count = sum(1 for item in hits if item["counts_as_violation"])
+    view_json = view.model_dump(mode="json") if isinstance(view, CoachLlmView) else view
     return {
         "prohibited_pattern_hits": hits,
-        "hit_count": sum(1 for item in hits if item["counts_as_violation"]),
+        "hit_count": hit_count,
         "patterns_checked": [pattern.pattern for pattern in PROHIBITED_CLAIM_PATTERNS],
+        **validate_assessment(
+            assessment.model_dump(mode="json"),
+            view_json,
+            prohibited_hit_count=hit_count,
+        ),
     }
 
 

@@ -8,13 +8,14 @@ from splatoon3_ai_coach.vision.events import (
     next_zone_control_chain,
     zone_control_transition_type,
 )
+from splatoon3_ai_coach.vision.ids import result_detector_name
 from splatoon3_ai_coach.vision.models import (
     GameStateSnapshot,
     ZoneControlQuality,
     ZoneControlState,
 )
 
-ZONE_CONTROL_EVIDENCE_TAG = ":zone_control:"
+ZONE_CONTROL_DETECTOR = "zone_control"
 
 
 class ZoneControlSample(BaseModel):
@@ -118,7 +119,9 @@ def _sample(snapshot: GameStateSnapshot) -> ZoneControlSample:
 def _zone_ids(snapshot: GameStateSnapshot) -> list[str]:
     """Zone-control detector evidence IDs carried by a snapshot."""
     return [
-        item for item in snapshot.evidence_ids if ZONE_CONTROL_EVIDENCE_TAG in item
+        item
+        for item in snapshot.evidence_ids
+        if result_detector_name(item) == ZONE_CONTROL_DETECTOR
     ]
 
 

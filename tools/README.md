@@ -28,6 +28,24 @@ need you to have run `s3-coach analyze` on your own recordings first.
 The three web packages stay at the top level because the CLI imports them by
 putting `tools/` on `sys.path`.
 
+### Public-site telemetry
+
+`public_site/telemetry.py` records best-effort production operations in
+PostgreSQL; `public_site/admin.py` exposes bounded, server-authorized reads. It
+may summarize existing analysis and coaching artifacts, but no coaching or
+evidence path may read telemetry.
+
+Telemetry distinguishes a submission from an execution run, uses database wall
+time for lifecycle timestamps and monotonic time for durations, and accepts
+only allowlisted JSON models. It stores no identity inside events or summaries.
+`job_runs.created_at` is when the submission POST has persisted its records and
+opened attempt 1; this is before the browser performs its upload PUT. The admin
+UI therefore labels `created_at → finished_at` as **Job elapsed**, not generic
+processing time.
+When a submission expires, every run loses its `user_id`; operational timings
+and provenance remain. `users.last_seen_at` is the last authenticated API
+request observed at five-minute resolution, not the last browser page view.
+
 ### calibration/
 
 | Script | Purpose |
@@ -40,14 +58,31 @@ putting `tools/` on `sys.path`.
 | `map_ink_roi_preview.py` | Preview stage-map ROI coverage on a frame |
 | `map_ink_color_audit.py` | Offline map ink color audit |
 | `team_color_probe.py` | Print the team color probe for a `vision_manifest.json` |
+| `review_special_icon_harvest.py` | Crop Review event-lane icon candidates with source and player-slot metadata |
+| `review_special_sheet.py` | Contact sheets, cluster diagnostics and draft labels for Review event-lane specials/deaths (permissive: all representations, scales, cursor overlap flagged) |
+| `review_special_fixture.py` | Freeze reviewed calibration recordings (selected frames, axis, labels, accepted/known-miss split) into `tests/fixtures/review/lane_corpus/` |
+| `review_gate_label_sheet.py` | Pre-filled GO-gate label drafts (with `frame_index`) and review sheets (clock, cursor tick, roster rows) for a current Review import |
+| `review_timeline_experiment.py` | One-factor Review timeline experiments (scale, cursor, anchor, overtime-in-axis) per recording: axis fit, deaths vs roster-lamp bounds, special shift, event gate, GO gate |
+| `review_special_gate_labels.py` | Convert reviewed event-lane labels (confirmed only) into quality-gate labels for `diagnostics/validate_review_timeline.py` |
+| `review_special_report.py` | Calibration report over confirmed labels: picks representation, scales, cursor width, anchor and thresholds on tuning recordings; confirms on held-out recordings (slot-aware metrics) |
+| `review_sync_boundary_sheet.py` | Roster-transition boundary cases at Review specials: `sheet` builds the corpus (X-flip cases + respawn supplement), review sheets and draft labels (alive / dead / indeterminate at the special); `score` turns reviewed labels into per-distance outcomes and the empirical reliability window. Run with `PYTHONPATH=tools/diagnostics` |
+| `review_lane_variant.py` | One-factor event-lane variant (`--set key=json`): re-imports baseline and variant per recording, diffs every marker/special across the whole recording, reports special/death/GO gates; artifacts feed `diagnostics/review_extraction_audit.py --artifact-root` |
+| `review_extraction_sheet.py` | Detector-independent event-lane label sheets (all 8 rows, no detector output drawn) for windows chosen from roster-lamp transitions (isolated, unmarked, named), plus an empty label template |
 
 ### diagnostics/
 
 | Script | Purpose |
 |--------|---------|
 | `validate_review_timeline.py` | Deterministic GO/NO-GO quality gate for a Review timeline artifact |
+| `review_extraction_audit.py` | Death-marker recall, false positives, duplicates, wrong-row and lamp/slot agreement against reviewed extraction labels (refuses drafts unless `--allow-draft`) |
+| `review_extraction_misses.py` | Read-only stage trace (cursor / floor / NMS / std / neighbour-row echo / scored) of every reviewed confirmed death glyph through the frozen lane detector on the production static frames |
+| `review_roster_timing.py` | Interval-censored roster-lamp alive->dead timing against death glyphs (per recording / team / slot) plus dead->alive death-state durations |
+| `review_special_glow_timing.py` | Interval-censored special-use timing: roster special-ready glow end against special glyph centres. Run with `PYTHONPATH=tools/diagnostics` |
+| `review_special_roster_sync.py` | All eight roster lamps at each Review special with a required reporting window (`unknown` / `near_roster_transition`), an X sweep checked against event-lane order, and stratified manual-review sheets. Run with `PYTHONPATH=tools/diagnostics` |
 | `map_ink_geometry_validate.py` | Multi-frame map ink geometry validation (needs local paint-map references) |
 | `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
+| `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
+| `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
 
 ### reports/
 
@@ -60,6 +95,7 @@ scripts, so keep these together.
 | `ranking_competition.py` | Competition among death candidates in the importance ranking |
 | `ranking_cases.py` | Per-death case analysis of the importance factors |
 | `ranking_episodes.py` | Deaths versus coaching episodes as the selection unit |
+| `coaching_units.py` | Research comparison of coaching units (deaths, episodes, episode-by-factor; engagement and non-death feasibility); writes `coaching_units.md`, a blind rating sheet with a separate key, and the deferred Experiment D inputs (never calls a model). Sections live in `coaching_units_sections.py` |
 
 ### studies/
 

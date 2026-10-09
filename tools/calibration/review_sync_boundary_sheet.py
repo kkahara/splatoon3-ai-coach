@@ -1,0 +1,638 @@
+#!/usr/bin/env python3
+"""Roster-transition boundary cases at Review specials: sheets, labels, scoring.
+
+The reliability window X is an output of reviewed visual truth, not a tuned
+value. ``sheet`` builds the boundary corpus and review material; ``score``
+turns reviewed labels into per-distance outcomes and the empirical window.
+
+Corpus (one case = one special x one slot):
+
+- ``flip``: slot state known at X = 0 but ``unknown`` at ``--flip-window``
+  (default 0.5 s) in ``review_special_roster_sync.py``.
+- ``respawn_supplement``: every other dead->alive lamp bracket whose nearer
+  edge lies within ``--respawn-within`` s of a special (including brackets
+  that contain the special). The event lane has no respawn glyph, so these
+  can only be judged from the roster frames.
+
+Each sheet shows the event lane around the special (cyan tick = special glyph
+centre, red tick = this slot's death glyph, guide lines = this slot's lane
+row) and the slot's roster icon in every frame spanning the transition and the
+special, ordered match-forward, with a divider at the special glyph centre.
+The pipeline's lamp reading is deliberately not shown.
+
+The reviewer answers one question per case: at the special glyph centre, is
+the slot demonstrably ``alive``, demonstrably ``dead``, or ``indeterminate``?
+``basis`` records how: ``lane_death_order`` / ``roster_frames`` / ``both``.
+
+Run from the repo root with ``PYTHONPATH=tools/diagnostics``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from collections import Counter
+from pathlib import Path
+from typing import Any
+
+import cv2
+import numpy as np
+import yaml
+from review_roster_timing import SCREEN_WIDTH, lamp_states
+from review_special_roster_sync import SLOTS, recording_rows
+
+from splatoon3_ai_coach.config import load_config
+from splatoon3_ai_coach.config.models import ReviewTimelineConfig
+from splatoon3_ai_coach.config.paths import default_config_path
+from splatoon3_ai_coach.review.lane_glyphs import ROW_SLOTS
+from splatoon3_ai_coach.review.models import ReviewTimelineDataset, ReviewTimelineSample
+
+LANE_HALF_PX = 90
+LANE_SCALE = 2.0
+ICON_SCALE = 2.5
+AT_PX = 0.5
+COMPACT_JPEG_QUALITY = 80
+STATIC_MIN_PX = 160
+DEATH_NEAR_S = 3.0
+STATES = ("alive", "dead", "indeterminate")
+BASES = ("lane_death_order", "roster_frames", "both")
+BINS_S = [0.0, 0.1, 0.2, 0.3, 0.5, 1.0]
+
+
+def main() -> int:
+    """Dispatch ``sheet`` or ``score``."""
+    args = _parse_args()
+    return args.func(args)
+
+
+# --- corpus ---------------------------------------------------------------
+
+
+def build_cases(
+    datasets: dict[str, ReviewTimelineDataset],
+    flip_window: float,
+    respawn_within: float,
+    id_prefix: str = "B",
+) -> list[dict[str, Any]]:
+    """Flip cases plus the respawn supplement, in recording / x order."""
+    cases: list[dict[str, Any]] = []
+    for rid, ds in datasets.items():
+        axis = ds.axis_calibration
+        if axis is None:
+            continue
+        spp = abs(axis.slope) / SCREEN_WIDTH
+        lamps = lamp_states(ds)
+        deaths = _death_glyphs(ds)
+        at0 = recording_rows(ds, rid, 0.0)
+        atx = recording_rows(ds, rid, flip_window)
+        for r0, rx in zip(at0, atx, strict=True):
+            for slot in SLOTS:
+                case = _case(
+                    rid, r0, rx, slot, lamps.get(slot, []), deaths, spp, respawn_within
+                )
+                if case is not None:
+                    cases.append(case)
+    for number, case in enumerate(cases, start=1):
+        case["case_id"] = f"{id_prefix}{number:02d}"
+    return cases
+
+
+def _case(
+    rid: str,
+    r0: dict[str, Any],
+    rx: dict[str, Any],
+    slot: str,
+    seq: list[tuple[float, str]],
+    deaths: list[tuple[str, float]],
+    spp: float,
+    respawn_within: float,
+) -> dict[str, Any] | None:
+    g = r0["glyph_x"]
+    state0 = r0["slots"][slot]["state"]
+    flip = state0 != "unknown" and rx["slots"][slot]["state"] == "unknown"
+    bracket = _nearest_transition(seq, g)
+    if bracket is None:
+        return None
+    a, b, before, after = bracket
+    distance_s = (0.0 if a < g <= b else min(abs(g - a), abs(g - b))) * spp
+    respawn = (before, after) == ("dead", "alive") and distance_s <= respawn_within
+    if not flip and not respawn:
+        return None
+    death = [x for s, x in deaths if s == slot and abs(x - g) * spp <= DEATH_NEAR_S]
+    return {
+        "recording": rid,
+        "special": f"{r0['special_id']}@{g:.0f}",
+        "special_slot": r0["slot"],
+        "special_clock": r0["elapsed"],
+        "glyph_x": g,
+        "slot": slot,
+        "corpus": "flip" if flip else "respawn_supplement",
+        "transition_type": f"{before}_to_{after}",
+        "transition_bracket_px": [a, b],
+        "transition_bracket_s_relative_to_special": [
+            round((a - g) * spp, 2),
+            round((b - g) * spp, 2),
+        ],
+        "distance_to_transition_s": round(distance_s, 2),
+        "lane_death_glyph_dt_s": round((death[0] - g) * spp, 2) if death else None,
+        "lane_death_glyph_x": death[0] if death else None,
+        "pipeline_state_x0": state0,
+        "seconds_per_px": spp,
+    }
+
+
+def _nearest_transition(
+    seq: list[tuple[float, str]], g: float
+) -> tuple[float, float, str, str] | None:
+    known = [(x, s) for x, s in seq if s != "unknown"]
+    pairs = [
+        (p[0], q[0], p[1], q[1])
+        for p, q in zip(known, known[1:], strict=False)
+        if p[1] != q[1]
+    ]
+
+    def gap(t: tuple[float, float, str, str]) -> float:
+        return 0.0 if t[0] < g <= t[1] else min(abs(g - t[0]), abs(g - t[1]))
+
+    return min(pairs, key=gap, default=None)
+
+
+def _death_glyphs(ds: ReviewTimelineDataset) -> list[tuple[str, float]]:
+    return [
+        (m.player_slot_id, m.x_norm * SCREEN_WIDTH)
+        for m in ds.match_history_events
+        if m.kind == "death" and m.player_slot_id in ROW_SLOTS
+    ]
+
+
+# --- sheet ----------------------------------------------------------------
+
+
+def cmd_sheet(args: argparse.Namespace) -> int:
+    """Write ``cases.json``, ``draft_labels.yaml`` and one image per case.
+
+    ``--compact`` writes BEFORE / AT / AFTER JPEGs to ``sheets_compact/``.
+    """
+    config = load_config(default_config_path()).review
+    datasets = _load(args.imports)
+    cases = build_cases(datasets, args.flip_window, args.respawn_within, args.id_prefix)
+    out: Path = args.out
+    folder = out / ("sheets_compact" if args.compact else "sheets")
+    folder.mkdir(parents=True, exist_ok=True)
+    for case in cases:
+        ds = datasets[case["recording"]]
+        if args.compact:
+            image = render_compact(ds, case, config)
+            path = folder / f"{case['case_id']}.jpg"
+            cv2.imwrite(
+                str(path), image, [cv2.IMWRITE_JPEG_QUALITY, COMPACT_JPEG_QUALITY]
+            )
+        else:
+            cv2.imwrite(
+                str(folder / f"{case['case_id']}.png"), render_case(ds, case, config)
+            )
+    (out / "cases.json").write_text(json.dumps(cases, indent=2), "utf-8")
+    (out / "draft_labels.yaml").write_text(_draft_yaml(cases, args), "utf-8")
+    counts = Counter((c["corpus"], c["transition_type"]) for c in cases)
+    print(json.dumps({f"{k[0]}/{k[1]}": v for k, v in counts.items()}, indent=2))
+    return 0
+
+
+def _draft_yaml(cases: list[dict[str, Any]], args: argparse.Namespace) -> str:
+    entries = [
+        {
+            "case_id": c["case_id"],
+            "recording": c["recording"],
+            "special": c["special"],
+            "special_clock": c["special_clock"],
+            "slot": c["slot"],
+            "corpus": c["corpus"],
+            "transition_type": c["transition_type"],
+            "transition_bracket_s_relative_to_special": c[
+                "transition_bracket_s_relative_to_special"
+            ],
+            "lane_death_glyph_dt_s": c["lane_death_glyph_dt_s"],
+            "reviewed_state_at_special": None,
+            "basis": None,
+            "reviewer_note": "",
+        }
+        for c in cases
+    ]
+    header = {
+        "status": "draft",
+        "question": "At the special glyph centre, is this slot demonstrably alive, "
+        "demonstrably dead, or indeterminate?",
+        "allowed_states": list(STATES),
+        "allowed_basis": list(BASES),
+        "flip_window_s": args.flip_window,
+        "respawn_within_s": args.respawn_within,
+    }
+    return yaml.safe_dump(header | {"cases": entries}, sort_keys=False, width=100)
+
+
+def render_case(
+    ds: ReviewTimelineDataset, case: dict[str, Any], config: ReviewTimelineConfig
+) -> np.ndarray:
+    """Header, lane strip with ticks, and the slot icon across the boundary."""
+    g = case["glyph_x"]
+    frames = _frames(ds)
+    tiles = [_lane_strip(ds, frames, case, config)]
+    a, b = case["transition_bracket_px"]
+    lo, hi = min(a, g), max(b, g)
+    xs = sorted(frames)
+    before = [x for x in xs if x < lo][-1:]
+    after = [x for x in xs if x > hi][:1]
+    span = before + [x for x in xs if lo <= x <= hi] + after
+    divided = False
+    for x in span:
+        if not divided and x > g:
+            tiles.append(_divider("---- special glyph centre ----", tiles[0].shape[1]))
+            divided = True
+        tiles.append(_icon_tile(frames[x], x, case, config))
+    if not divided:
+        tiles.append(_divider("---- special glyph centre ----", tiles[0].shape[1]))
+    width = max(t.shape[1] for t in tiles)
+    tiles = [_pad(t, width) for t in tiles]
+    title = (
+        f"{case['case_id']}  {case['recording']}\n"
+        f"{case['special']} by {case['special_slot']}, clock {case['special_clock']}\n"
+        f"SLOT UNDER REVIEW: {case['slot']}"
+    )
+    return np.vstack([_bar(title, width), *tiles])
+
+
+def _frames(ds: ReviewTimelineDataset) -> dict[float, ReviewTimelineSample]:
+    frames: dict[float, ReviewTimelineSample] = {}
+    for s in ds.samples:
+        if s.cursor.x is not None and s.clock_status != "implausible":
+            frames.setdefault(float(s.cursor.x), s)
+    return frames
+
+
+def _lane_strip(
+    ds: ReviewTimelineDataset,
+    frames: dict[float, ReviewTimelineSample],
+    case: dict[str, Any],
+    config: ReviewTimelineConfig,
+) -> np.ndarray:
+    g = case["glyph_x"]
+    far = [x for x in frames if abs(x - g) >= STATIC_MIN_PX]
+    source = frames[min(far, key=lambda x: abs(abs(x - g) - 300))] if far else None
+    if source is None:
+        return _bar("no cursor-free frame for the lane", 400)
+    image = cv2.imread(source.image_path)
+    h, _ = image.shape[:2]
+    _, y1n, _, y2n = config.event_lane_roi
+    y1, y2 = int(h * y1n), int(h * y2n)
+    x1 = int(max(0, g - LANE_HALF_PX))
+    lane = image[y1:y2, x1 : int(g + LANE_HALF_PX)].copy()
+    row = ROW_SLOTS.index(case["slot"])
+    center = config.event_lane_row_centers[row] * (y2 - y1)
+    half = 2.5 * config.event_lane_row_half_height * (y2 - y1)
+    for y in (int(center - half), int(center + half)):
+        cv2.line(lane, (0, y), (lane.shape[1], y), (200, 200, 200), 1)
+    _tick(lane, g - x1, (255, 255, 0))
+    if case["lane_death_glyph_x"] is not None:
+        _tick(lane, case["lane_death_glyph_x"] - x1, (0, 0, 255))
+    lane = cv2.resize(
+        lane, None, fx=LANE_SCALE, fy=LANE_SCALE, interpolation=cv2.INTER_NEAREST
+    )
+    label = (
+        "lane: cyan tick = special centre\n"
+        "red tick = this slot's death glyph\n"
+        "grey lines = this slot's lane row"
+    )
+    return np.vstack([_bar(label, lane.shape[1]), lane])
+
+
+def _tick(lane: np.ndarray, x: float, color: tuple[int, int, int]) -> None:
+    xi = int(round(x))
+    cv2.line(lane, (xi, 0), (xi, 6), color, 1)
+    cv2.line(lane, (xi, lane.shape[0] - 7), (xi, lane.shape[0] - 1), color, 1)
+
+
+def _icon_tile(
+    sample: ReviewTimelineSample,
+    x: float,
+    case: dict[str, Any],
+    config: ReviewTimelineConfig,
+) -> np.ndarray:
+    image = cv2.imread(sample.image_path)
+    row_crop, (sx1, sx2) = _team_row(image, x, case["slot"], config)
+    icon = cv2.resize(
+        row_crop[:, sx1:sx2],
+        None,
+        fx=ICON_SCALE,
+        fy=ICON_SCALE,
+        interpolation=cv2.INTER_NEAREST,
+    )
+    context = row_crop.copy()
+    cv2.rectangle(context, (sx1, 0), (sx2 - 1, context.shape[0] - 1), (0, 255, 255), 1)
+    height = max(icon.shape[0], context.shape[0])
+    body = np.hstack(
+        [
+            _pad_h(icon, height),
+            np.zeros((height, 8, 3), np.uint8),
+            _pad_h(context, height),
+        ]
+    )
+    dt = (x - case["glyph_x"]) * case["seconds_per_px"]
+    dx = x - case["glyph_x"]
+    side = "AT" if abs(dx) <= AT_PX else "BEFORE" if dx < 0 else "AFTER"
+    label = f"{side} special: " + (
+        f"dx {x - case['glyph_x']:+.1f} px ({dt:+.2f} s) clock {sample.elapsed_seconds}"
+    )
+    return np.vstack([_bar(label, body.shape[1]), body])
+
+
+def _team_row(
+    image: np.ndarray, cursor_x: float, slot: str, config: ReviewTimelineConfig
+) -> tuple[np.ndarray, tuple[int, int]]:
+    height, width = image.shape[:2]
+    slot_w = width * config.roster_row_width_fraction / 4
+    center = float(np.clip(cursor_x, 2 * slot_w, width - 2 * slot_w))
+    team, index = slot.split("_")
+    band = config.roster_top_band if team == "top" else config.roster_bottom_band
+    left = int(round(center - 2 * slot_w))
+    row = image[
+        int(height * band[0]) : int(height * band[1]),
+        left : int(round(center + 2 * slot_w)),
+    ]
+    sx1 = int(round((int(index) - 1) * slot_w))
+    return row, (sx1, int(round(sx1 + slot_w)))
+
+
+def _bar(text: str, width: int) -> np.ndarray:
+    lines = text.split("\n")
+    bar = np.zeros((20 * len(lines) + 4, max(width, 10), 3), np.uint8)
+    for i, line in enumerate(lines):
+        cv2.putText(
+            bar,
+            line,
+            (4, 16 + 20 * i),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.42,
+            (255, 255, 255),
+            1,
+        )
+    return bar
+
+
+def _divider(text: str, width: int) -> np.ndarray:
+    bar = np.full((22, max(width, 10), 3), (0, 90, 140), np.uint8)
+    cv2.putText(bar, text, (4, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+    return bar
+
+
+def _pad(tile: np.ndarray, width: int) -> np.ndarray:
+    return cv2.copyMakeBorder(tile, 0, 4, 0, width - tile.shape[1], cv2.BORDER_CONSTANT)
+
+
+def _pad_h(tile: np.ndarray, height: int) -> np.ndarray:
+    return cv2.copyMakeBorder(tile, 0, height - tile.shape[0], 0, 0, cv2.BORDER_CONSTANT)
+
+
+# --- recheck --------------------------------------------------------------
+
+
+def cmd_recheck(args: argparse.Namespace) -> int:
+    """Focused sheets for reviewed cases that conflict with the frames."""
+    config = load_config(default_config_path()).review
+    datasets = _load(args.imports)
+    cases = {c["case_id"]: c for c in json.loads(args.cases.read_text("utf-8"))}
+    labels = yaml.safe_load(args.labels.read_text("utf-8"))
+    rows = [_score_row(cases[e["case_id"]], e) for e in labels["cases"]]
+    ids = [
+        r["case_id"]
+        for r in rows
+        if r["pipeline_x0"] != "unknown" and r["outcome"] in ("wrong", "indeterminate")
+    ]
+    out: Path = args.out
+    (out / "sheets").mkdir(parents=True, exist_ok=True)
+    for case_id in ids:
+        case = cases[case_id]
+        image = render_recheck(datasets[case["recording"]], case, config)
+        cv2.imwrite(str(out / "sheets" / f"{case_id}.png"), image)
+    entries = [
+        {"case_id": i, "reviewed_state_at_special": None, "reviewer_note": ""}
+        for i in ids
+    ]
+    header = {
+        "status": "draft",
+        "question": "Earlier frame and later frame bracket the special. At the "
+        "special, is this slot demonstrably alive, demonstrably dead, or "
+        "indeterminate?",
+        "replaces": str(args.labels),
+    }
+    text = yaml.safe_dump(header | {"cases": entries}, sort_keys=False, width=100)
+    (out / "recheck_labels.yaml").write_text(text, "utf-8")
+    print(f"{len(ids)} cases: {', '.join(ids)}")
+    return 0
+
+
+def render_compact(
+    ds: ReviewTimelineDataset, case: dict[str, Any], config: ReviewTimelineConfig
+) -> np.ndarray:
+    """Nearest BEFORE / AT / AFTER frames of the target slot, nothing else.
+
+    AT is a frame within ``AT_PX`` of the special glyph centre (glyph
+    localisation); it is shown whenever one exists.
+    """
+    g = case["glyph_x"]
+    frames = _frames(ds)
+    at = [x for x in frames if abs(x - g) <= AT_PX]
+    at_x = min(at, key=lambda x: abs(x - g)) if at else None
+    before = max((x for x in frames if x < g and x != at_x), default=None)
+    after = min((x for x in frames if x > g and x != at_x), default=None)
+    tiles = []
+    for name, x in (("BEFORE", before), ("AT", at_x), ("AFTER", after)):
+        if x is None:
+            if name != "AT":
+                tiles.append(_bar(f"{name} the special: no frame", 300))
+            continue
+        tiles.append(_icon_tile(frames[x], x, case, config))
+    width = max(t.shape[1] for t in tiles)
+    title = f"{case['case_id']}  slot {case['slot']} (yellow box)\ntime runs downward"
+    return np.vstack([_bar(title, width), *(_pad(t, width) for t in tiles)])
+
+
+def render_recheck(
+    ds: ReviewTimelineDataset, case: dict[str, Any], config: ReviewTimelineConfig
+) -> np.ndarray:
+    """The slot in the last frame before and the first frame after the special."""
+    g = case["glyph_x"]
+    frames = _frames(ds)
+    earlier = max((x for x in frames if x <= g), default=None)
+    later = min((x for x in frames if x > g), default=None)
+    tiles = []
+    for name, x in (
+        ("EARLIER (before the special)", earlier),
+        ("LATER (after the special)", later),
+    ):
+        if x is None:
+            tiles.append(_bar(f"{name}: no frame", 400))
+            continue
+        tile = _icon_tile(frames[x], x, case, config)
+        tiles.append(np.vstack([_divider(name, tile.shape[1]), tile]))
+    width = max(t.shape[1] for t in tiles)
+    title = (
+        f"{case['case_id']} re-check  {case['recording']}\n"
+        f"special {case['special']} by {case['special_slot']}\n"
+        f"SLOT UNDER REVIEW: {case['slot']} (yellow box)\n"
+        "time runs downward: EARLIER frame, special, LATER frame"
+    )
+    special = _divider("---- special glyph centre ----", width)
+    body = [_pad(tiles[0], width), special, _pad(tiles[1], width)]
+    return np.vstack([_bar(title, width), *body])
+
+
+# --- score ----------------------------------------------------------------
+
+
+def cmd_score(args: argparse.Namespace) -> int:
+    """Compare reviewed truth with the X = 0 reading by distance to transition."""
+    labels = yaml.safe_load(args.labels.read_text("utf-8"))
+    if labels.get("status") != "reviewed" and not args.allow_draft:
+        raise SystemExit("labels are not marked status: reviewed (use --allow-draft)")
+    cases = {c["case_id"]: c for c in json.loads(args.cases.read_text("utf-8"))}
+    rows = [_score_row(cases[e["case_id"]], e) for e in labels["cases"]]
+    result = {"bins": _bins(rows), "window": _window(rows), "cases": rows}
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "boundary_score.json").write_text(json.dumps(result, indent=2), "utf-8")
+    (args.out / "boundary_score.md").write_text(_score_md(result), "utf-8")
+    print(json.dumps({"bins": result["bins"], "window": result["window"]}, indent=2))
+    return 0
+
+
+def _score_row(case: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    reviewed = entry.get("reviewed_state_at_special")
+    if reviewed is not None and reviewed not in STATES:
+        raise SystemExit(f"{entry['case_id']}: invalid state {reviewed!r}")
+    pipeline = case["pipeline_state_x0"]
+    if reviewed is None:
+        outcome = "unreviewed"
+    elif reviewed == "indeterminate":
+        outcome = "indeterminate"
+    elif pipeline == "unknown":
+        outcome = "pipeline_unknown"
+    else:
+        outcome = "correct" if pipeline == reviewed else "wrong"
+    return {
+        "case_id": case["case_id"],
+        "transition_type": case["transition_type"],
+        "distance_s": case["distance_to_transition_s"],
+        "reviewed": reviewed,
+        "basis": entry.get("basis"),
+        "pipeline_x0": pipeline,
+        "outcome": outcome,
+    }
+
+
+def _bins(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out = []
+    edges = [*BINS_S, float("inf")]
+    for lo, hi in zip(edges, edges[1:], strict=False):
+        inside = [r for r in rows if lo <= r["distance_s"] < hi]
+        for kind in ("alive_to_dead", "dead_to_alive"):
+            subset = [r for r in inside if r["transition_type"] == kind]
+            if subset:
+                out.append(
+                    {"distance_s": [lo, hi], "transition_type": kind}
+                    | dict(Counter(r["outcome"] for r in subset))
+                )
+    return out
+
+
+def _window(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Largest distance at which Review fails to support the X = 0 state."""
+    reviewed = [r for r in rows if r["outcome"] != "unreviewed"]
+    bad = [r for r in reviewed if r["outcome"] in ("wrong", "indeterminate")]
+    return {
+        "reviewed": len(reviewed),
+        "max_distance_wrong_s": max(
+            (r["distance_s"] for r in bad if r["outcome"] == "wrong"), default=None
+        ),
+        "max_distance_indeterminate_s": max(
+            (r["distance_s"] for r in bad if r["outcome"] == "indeterminate"),
+            default=None,
+        ),
+        "min_distance_reviewed_s": min((r["distance_s"] for r in reviewed), default=None),
+        "empirical_x_s": max((r["distance_s"] for r in bad), default=0.0),
+    }
+
+
+def _score_md(result: dict[str, Any]) -> str:
+    w = result["window"]
+    lines = [
+        "# Boundary-case scoring (reviewed truth vs X = 0 lamp reading)",
+        "",
+        f"Reviewed cases: {w['reviewed']}. Empirical X (largest distance with a "
+        f"wrong or indeterminate case): {w['empirical_x_s']} s. Wrong up to "
+        f"{w['max_distance_wrong_s']} s; indeterminate up to "
+        f"{w['max_distance_indeterminate_s']} s; closest reviewed case "
+        f"{w['min_distance_reviewed_s']} s.",
+        "",
+        "| Distance to transition (s) | Transition | Outcomes |",
+        "|---|---|---|",
+    ]
+    for b in result["bins"]:
+        outcomes = {
+            k: v for k, v in b.items() if k not in ("distance_s", "transition_type")
+        }
+        lines.append(f"| {b['distance_s']} | {b['transition_type']} | {outcomes} |")
+    lines += [
+        "",
+        "| Case | Transition | Distance (s) | Reviewed | Basis | X=0 | Outcome |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    lines += [
+        f"| {r['case_id']} | {r['transition_type']} | {r['distance_s']} "
+        f"| {r['reviewed']} | {r['basis']} | {r['pipeline_x0']} | {r['outcome']} |"
+        for r in result["cases"]
+    ]
+    return "\n".join(lines) + "\n"
+
+
+# --- cli ------------------------------------------------------------------
+
+
+def _load(imports: list[Path]) -> dict[str, ReviewTimelineDataset]:
+    out = {}
+    for import_dir in imports:
+        ds = ReviewTimelineDataset.model_validate_json(
+            (import_dir / "review_timeline.json").read_text("utf-8")
+        )
+        out[ds.source_recording_id or import_dir.name] = ds
+    return out
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    sub = parser.add_subparsers(required=True)
+    sheet = sub.add_parser("sheet", help="Build the corpus, sheets and draft labels")
+    sheet.add_argument("imports", type=Path, nargs="+")
+    sheet.add_argument("--out", type=Path, required=True)
+    sheet.add_argument("--flip-window", type=float, default=0.5)
+    sheet.add_argument("--respawn-within", type=float, default=1.0)
+    sheet.add_argument("--id-prefix", default="B", help="Case-id prefix per batch")
+    sheet.add_argument(
+        "--compact", action="store_true", help="BEFORE / AT / AFTER slot-only JPEG sheets"
+    )
+    sheet.set_defaults(func=cmd_sheet)
+    recheck = sub.add_parser("recheck", help="Focused sheets for conflicting labels")
+    recheck.add_argument("imports", type=Path, nargs="+")
+    recheck.add_argument("--cases", type=Path, required=True)
+    recheck.add_argument("--labels", type=Path, required=True)
+    recheck.add_argument("--out", type=Path, required=True)
+    recheck.set_defaults(func=cmd_recheck)
+    score = sub.add_parser("score", help="Score reviewed labels")
+    score.add_argument("--cases", type=Path, required=True)
+    score.add_argument("--labels", type=Path, required=True)
+    score.add_argument("--out", type=Path, required=True)
+    score.add_argument("--allow-draft", action="store_true")
+    score.set_defaults(func=cmd_score)
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -110,4 +110,6 @@ def _coach_input(
         battle_mode_id=bundle.battle_mode_id,
         include_score_facts=True,
         include_zone_control_facts=True,
+        playback_clock=bundle.playback_clock,
+        roster_evidence=coach.roster_evidence,
     )

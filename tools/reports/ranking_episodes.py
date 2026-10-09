@@ -37,7 +37,7 @@ from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.config.models import AppConfig
 
 SHORT = {
-    "death_redeath_le_10s": "re-death",
+    "death_quick_redeath": "re-death",
     "death_while_outnumbered": "outnumbered",
     "death_while_ahead_in_numbers": "ahead",
     "death_final_30s": "final30",
@@ -239,6 +239,10 @@ def build(matches: list[Match], config: AppConfig) -> str:
         "(`coach/llm_view.py`, `coach/vmv.py`, `tools/public_site/results.py`) to "
         "present multiple death episodes as one unit. Do not implement until that "
         "presentation design is decided separately.",
+        "",
+        "> **Superseded by `coaching_units.md`** (`tools/reports/coaching_units.py`), "
+        "which re-measures these policies under current scoring and recommends "
+        "retaining the individual death as the unit.",
         "",
     ]
     return "\n".join(

@@ -44,6 +44,7 @@ class GameEventType(StrEnum):
     BOMB_DETECTED = "bomb_detected"
     ZONE_DETECTED = "zone_detected"
     TOWER_DETECTED = "tower_detected"
+    MATCH_END = "match_end"
 
 
 class GameEventSource(StrEnum):
@@ -66,6 +67,10 @@ class GameEventReason(StrEnum):
     MAP_OVERLAY_PRESENT = "map_overlay_present"
     LOW_INK_PRESENT = "low_ink_present"
     ZONE_CONTROL_TRANSITION = "zone_control_transition"
+    # MATCH_END: first trustworthy game clock 0:00 with no clock afterwards.
+    CLOCK_ZERO = "clock_zero"
+    # MATCH_END: timer HUD gone for good (overtime / knockout); not a clock read.
+    HUD_LOSS = "hud_loss"
 
 
 PlayerLifecycle = Literal[
@@ -453,6 +458,8 @@ class GameEvent(BaseModel):
     from_zone_control: ZoneControlState | None = None
     to_zone_control: ZoneControlState | None = None
     splat_fingerprint: str | None = None
+    # MATCH_END only: secondary visual confirmation (no detector yet).
+    confirmation: Literal["finish_screen"] | None = None
     confidence: float = Field(ge=0, le=1)
     evidence_ids: list[str] = Field(default_factory=list)
     source_frames: list[SourceFrameReference] = Field(default_factory=list)
@@ -464,6 +471,8 @@ class AnalysisIdentity(BaseModel):
     analysis_id: str
     pipeline_version: str = PIPELINE_VERSION
     package_version: str
+    # Run provenance only. Never part of analysis or evidence IDs.
+    git_sha: str | None = None
     detector_versions: dict[str, str] = Field(default_factory=dict)
     # Empty for cadence-only analysis (no extraction manifest).
     extraction_manifest_sha256: str = ""

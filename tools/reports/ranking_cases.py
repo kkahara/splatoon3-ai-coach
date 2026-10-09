@@ -28,7 +28,7 @@ from splatoon3_ai_coach.coach.death_importance import pre_death_roster
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.config.models import AppConfig
 
-REDEATH = "death_redeath_le_10s"
+REDEATH = "death_quick_redeath"
 OUTNUMBERED = "death_while_outnumbered"
 AHEAD = "death_while_ahead_in_numbers"
 MAP_FALSE = "death_map_overlay_before_false"

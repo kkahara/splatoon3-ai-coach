@@ -1,12 +1,34 @@
 :root {
-  color: #e8e6e3;
-  background: #14161a;
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --s3-void: #050609;
+  --s3-deep: #090b12;
+  --s3-surface: #111520;
+  --s3-surface-raised: #181d2a;
+  --s3-border: #343b50;
+  --s3-text: #f5f7fb;
+  --s3-muted: #aab2c5;
+  --s3-yellow: #d7ff00;
+  --s3-purple: #9254ff;
+  --s3-cyan: #20e7ff;
+  --s3-pink: #ff4fa3;
+  --s3-success: #6ff7a4;
+  --s3-font-rounded: "Arial Rounded MT Bold", "Avenir Next Rounded",
+    "Hiragino Maru Gothic ProN", "Trebuchet MS", sans-serif;
+  --s3-font-body: "Avenir Next", "Hiragino Kaku Gothic ProN", "Trebuchet MS",
+    sans-serif;
+  color: var(--s3-text);
+  background: var(--s3-void);
+  font-family: var(--s3-font-body);
   line-height: 1.45;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% -10%, rgb(146 84 255 / 16%), transparent 28rem),
+    radial-gradient(circle at 92% 4%, rgb(32 231 255 / 10%), transparent 24rem),
+    linear-gradient(180deg, var(--s3-deep), var(--s3-void) 32rem);
 }
 
 .sheet {
@@ -92,6 +114,9 @@ h1 {
   font-size: 2rem;
   line-height: 1.15;
   margin: 0.2rem 0 0.8rem;
+  font-family: var(--s3-font-rounded);
+  font-weight: 900;
+  letter-spacing: -0.035em;
 }
 
 form,
@@ -150,6 +175,26 @@ button:disabled {
 
 .error {
   color: #f0a8a8;
+}
+
+.notice.stale {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d9a441;
+  border-radius: 4px;
+  color: #f2c879;
+}
+
+.note.blocked {
+  font-style: italic;
+}
+
+.badge.unverified {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #d9a441;
+  border-radius: 4px;
+  color: #f2c879;
+  font-size: 0.9em;
 }
 
 .steps {
@@ -393,6 +438,194 @@ details summary {
   color: #b7b3ac;
 }
 
+.admin-sheet {
+  max-width: 68rem;
+}
+
+.admin-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid #3a3f48;
+}
+
+.admin-nav a {
+  color: #b7b3ac;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.admin-nav a.active {
+  color: #14161a;
+  background: #c6a15b;
+}
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.admin-card {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  background: #1d2026;
+}
+
+.admin-card dt,
+.admin-details dt {
+  color: #b7b3ac;
+  font-size: 0.85rem;
+}
+
+.admin-card dd {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
+}
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  grid-template-columns: none;
+  margin: 1rem 0;
+}
+
+.admin-filters label:first-child {
+  flex: 1 1 16rem;
+}
+
+.admin-filters button {
+  padding-block: 0.58rem;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid #3a3f48;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table a,
+.admin-sheet section > p a {
+  color: #c6a15b;
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid #555b66;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.admin-status.status-completed {
+  border-color: #6f9f76;
+  color: #a9d5ae;
+}
+
+.admin-status.status-failed,
+.admin-status.status-interrupted {
+  border-color: #a76464;
+  color: #f0a8a8;
+}
+
+.admin-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.admin-pagination button {
+  background: transparent;
+  color: #c6a15b;
+  border: 1px solid #3a3f48;
+}
+
+.admin-details {
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.admin-details div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 1rem;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid #3a3f48;
+}
+
+.admin-details div:last-child {
+  border-bottom: 0;
+}
+
+.admin-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-raw {
+  margin-top: 1rem;
+}
+
+.admin-run {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #3a3f48;
+}
+
+.admin-volume {
+  height: 8rem;
+  display: flex;
+  align-items: end;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+}
+
+.admin-volume span {
+  flex: 1;
+  min-width: 0.2rem;
+  background: #c6a15b;
+  border-radius: 2px 2px 0 0;
+}
+
+.admin-chart {
+  width: 100%;
+  height: 9rem;
+  margin-bottom: 1rem;
+}
+
+.admin-insufficient {
+  opacity: 0.72;
+}
+
 .recording,
 .context {
   margin: 0.35rem 0 0.6rem;
@@ -407,6 +640,138 @@ h4 {
 h2,
 h3 {
   margin-bottom: 0.3rem;
+  font-family: var(--s3-font-rounded);
+  letter-spacing: -0.02em;
+}
+
+/* Splatoon 3 ink palette */
+.brand,
+.steps li.done {
+  color: var(--s3-yellow);
+}
+
+.brand,
+button,
+.admin-nav,
+.admin-status {
+  font-family: var(--s3-font-rounded);
+  font-weight: 800;
+  letter-spacing: 0.015em;
+}
+
+.hero-catchphrase {
+  display: block;
+  width: min(100%, 27rem);
+  height: auto;
+  margin: -0.25rem auto 0.75rem;
+  filter: drop-shadow(0 0.4rem 1rem rgb(146 84 255 / 22%));
+}
+
+.top a,
+button.linkish,
+.admin-table a,
+.admin-sheet section > p a,
+.admin-pagination button,
+details summary {
+  color: var(--s3-cyan);
+}
+
+.muted,
+.note,
+.assessment,
+.until,
+.episode-gap-inline,
+.admin-card dt,
+.admin-details dt,
+.admin-nav a,
+.lang-switch {
+  color: var(--s3-muted);
+}
+
+input,
+select,
+textarea,
+.admin-card {
+  background: var(--s3-surface-raised);
+  border-color: var(--s3-border);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--s3-cyan);
+  outline-offset: 2px;
+}
+
+button,
+.admin-nav a.active {
+  background: var(--s3-yellow);
+  color: var(--s3-void);
+}
+
+.history a,
+.admin-card,
+.admin-table-wrap,
+.admin-details,
+.admin-volume,
+.admin-pagination button,
+dialog.share-panel {
+  border-color: var(--s3-border);
+}
+
+.admin-table th,
+.admin-table td,
+.admin-details div,
+.admin-nav,
+.admin-run,
+.share {
+  border-color: var(--s3-border);
+}
+
+.episode-gap,
+dialog.share-panel {
+  background: var(--s3-deep);
+}
+
+.error,
+.admin-status.status-failed,
+.admin-status.status-interrupted {
+  color: var(--s3-pink);
+  border-color: var(--s3-pink);
+}
+
+.notice.stale,
+.badge.unverified {
+  color: var(--s3-yellow);
+  border-color: var(--s3-yellow);
+}
+
+.admin-status.status-completed {
+  color: var(--s3-success);
+  border-color: var(--s3-success);
+}
+
+.spinner {
+  border-color: var(--s3-border);
+  border-top-color: var(--s3-yellow);
+}
+
+.admin-volume span {
+  background: var(--s3-yellow);
+}
+
+.admin-volume span:nth-child(4n + 2) {
+  background: var(--s3-purple);
+}
+
+.admin-volume span:nth-child(4n + 3) {
+  background: var(--s3-cyan);
+}
+
+.admin-volume span:nth-child(4n + 4) {
+  background: var(--s3-pink);
 }
 
 @media (max-width: 640px) {
@@ -416,5 +781,10 @@ h3 {
 
   .top {
     align-items: flex-start;
+  }
+
+  .admin-details div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
   }
 }

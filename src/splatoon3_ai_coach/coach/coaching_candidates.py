@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from splatoon3_ai_coach.config.models import canonical_factor_id
 
 
 class ImportanceFactorContribution(BaseModel):
@@ -23,6 +25,12 @@ class ImportanceFactorContribution(BaseModel):
     statement_internal: str | None = None
     interpretation: str | None = None
     recommendation: str | None = None
+
+    @field_validator("factor_id")
+    @classmethod
+    def _current_id(cls, value: str) -> str:
+        """Persisted units may carry a renamed factor ID."""
+        return canonical_factor_id(value)
 
 
 class CoachingCandidate(BaseModel):

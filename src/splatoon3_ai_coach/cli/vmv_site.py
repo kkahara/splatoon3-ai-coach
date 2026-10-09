@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-import sys
 import webbrowser
-from pathlib import Path
 
 import typer
 from loguru import logger
 
-_TOOLS = Path(__file__).resolve().parents[3] / "tools"
-if _TOOLS.is_dir() and str(_TOOLS) not in sys.path:
-    sys.path.insert(0, str(_TOOLS))
+from splatoon3_ai_coach.cli.repo_tools import require_repo_tools
 
 
 def vmv_site(
@@ -26,6 +22,7 @@ def vmv_site(
             "vmv-site requires the web extra: pip install -e '.[web]'"
         ) from exc
 
+    require_repo_tools("vmv-site")
     from vmv_site.app import create_app
     from vmv_site.settings import PlatformSettings
 

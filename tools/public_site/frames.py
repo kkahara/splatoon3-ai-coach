@@ -6,7 +6,6 @@ They are not detector input, scenario evidence, or LLM context.
 
 from __future__ import annotations
 
-import json
 import re
 import subprocess
 from collections.abc import Callable
@@ -14,9 +13,10 @@ from pathlib import Path
 
 from loguru import logger
 
-from splatoon3_ai_coach.cli.coach_common import (
-    COACH_INPUTS_DIRNAME,
-    COACHING_INDEX_FILENAME,
+from splatoon3_ai_coach.coach.artifacts import (
+    CoachingIndexEntry,
+    coach_inputs_dir,
+    read_coaching_index_or_none,
 )
 
 _SAFE_ID = re.compile(r"^[\w.\-]+$")
@@ -45,34 +45,22 @@ def has_frame(analysis: Path, safe_id: str) -> bool:
 def missing_frames(analysis: Path) -> bool:
     """True when a public moment has no JPEG yet."""
     for entry in ranked_entries(analysis):
-        path = frame_path(analysis, str(entry.get("safe_id") or ""))
+        path = frame_path(analysis, entry.safe_id)
         if path is not None and not path.is_file():
             return True
     return False
 
 
-def ranked_entries(analysis: Path) -> list[dict]:
+def ranked_entries(analysis: Path) -> list[CoachingIndexEntry]:
     """Coaching moments in video-time order, matching the public review."""
-    path = analysis / COACH_INPUTS_DIRNAME / COACHING_INDEX_FILENAME
-    if not path.is_file():
+    index = read_coaching_index_or_none(coach_inputs_dir(analysis))
+    if index is None:
         return []
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, list):
-        return []
-    rows = [item for item in payload if isinstance(item, dict)]
-    return sorted(rows, key=_chrono)
+    return sorted(index.entries, key=_chrono)
 
 
-def _chrono(item: dict) -> tuple[float, int]:
-    try:
-        when = float(item.get("video_time") or 0)
-    except (TypeError, ValueError):
-        when = 0.0
-    try:
-        rank = int(item.get("rank"))
-    except (TypeError, ValueError):
-        rank = 10**9
-    return (when, rank)
+def _chrono(entry: CoachingIndexEntry) -> tuple[float, int]:
+    return (entry.video_time, 10**9 if entry.rank is None else entry.rank)
 
 
 def ffmpeg_argv(video: Path, dest: Path, at: float) -> list[str]:
@@ -110,19 +98,19 @@ def extract_frames(
 def _extract_one(
     analysis: Path,
     video: Path,
-    entry: dict,
+    entry: CoachingIndexEntry,
     *,
     submission_id: str,
     run: Runner | None,
 ) -> None:
-    safe_id = str(entry.get("safe_id") or "")
+    safe_id = entry.safe_id
     dest = frame_path(analysis, safe_id)
     if dest is None or dest.is_file() or not video.is_file():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     partial = dest.with_name(f"{dest.stem}.part.jpg")
     try:
-        code = _invoke(ffmpeg_argv(video, partial, frame_seek(_video_time(entry))), run)
+        code = _invoke(ffmpeg_argv(video, partial, frame_seek(entry.video_time)), run)
     except (OSError, subprocess.TimeoutExpired):
         _drop(partial)
         _warn(submission_id, safe_id)
@@ -132,13 +120,6 @@ def _extract_one(
         _warn(submission_id, safe_id)
         return
     partial.replace(dest)
-
-
-def _video_time(entry: dict) -> float:
-    try:
-        return float(entry.get("video_time") or 0)
-    except (TypeError, ValueError):
-        return 0.0
 
 
 def _invoke(argv: list[str], run: Runner | None) -> int:

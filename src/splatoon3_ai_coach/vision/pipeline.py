@@ -25,6 +25,7 @@ from splatoon3_ai_coach.vision.cadence_scan import (
 )
 from splatoon3_ai_coach.vision.events import infer_events
 from splatoon3_ai_coach.vision.ids import compute_analysis_id
+from splatoon3_ai_coach.vision.match_end import detect_match_end, match_end_event
 from splatoon3_ai_coach.vision.match_side_effects import (
     MapInkScanContext,
     # Re-export underscore aliases used by tests.
@@ -44,7 +45,7 @@ from splatoon3_ai_coach.vision.models import (
     VisionFrameResult,
     VisionManifest,
 )
-from splatoon3_ai_coach.vision.provenance import detector_version
+from splatoon3_ai_coach.vision.provenance import detector_version, git_short_sha
 from splatoon3_ai_coach.vision.registry import build_detectors
 from splatoon3_ai_coach.vision.review_icon import ReviewIconTracker
 from splatoon3_ai_coach.vision.state import fuse_game_state
@@ -92,6 +93,7 @@ def run_vision(
     detector_versions = {
         detector.name: detector_version(detector.name) for detector in detectors
     }
+    git_sha = git_short_sha()
     debug_dir = output_dir / "debug_snapshots" if debug_persist_cadence_frames else None
     map_ctx = build_map_ink_context(config, output_dir, debug_persist_cadence_frames)
     declared = video_source if video_source is not None else config.video.source
@@ -153,6 +155,7 @@ def run_vision(
         timing,
         language=config.vision.language.value,
         video=run_video,
+        git_sha=git_sha,
     )
     save_vision_manifest(manifest, output_dir)
     log_completion(manifest, timing)
@@ -194,4 +197,24 @@ def _interpret_observations(
         config.vision.score,
         config.vision.zone_control,
     )
-    return snapshots, infer_events(snapshots, config.vision.events)
+    decision = detect_match_end(
+        frame_results,
+        config.vision.timer,
+        config.vision.lifecycle,
+        config.vision.match_end,
+    )
+    if decision is None:
+        return snapshots, infer_events(snapshots, config.vision.events)
+    logger.info(
+        "Match end at {:.1f}s ({})", decision.time, decision.reason.value
+    )
+    snapshots = [
+        item.model_copy(update={"match_phase": "post_match"})
+        if item.timestamp >= decision.time
+        else item
+        for item in snapshots
+    ]
+    events = infer_events(
+        snapshots, config.vision.events, match_end=match_end_event(decision)
+    )
+    return snapshots, events

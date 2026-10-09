@@ -11,9 +11,45 @@ paths:
 
 review:
   regulation_seconds: 300
+  max_overtime_seconds: 300
+  max_countdown_seconds: 10
   static_frame_count: 3
+  axis_min_points: 3
+  axis_max_mean_error_seconds: 2.0
+  axis_max_error_seconds: 5.0
+  axis_min_inlier_fraction: 0.6
+  lane_subrow_count: 8
+  special_template_dir: "../calibration/templates/review/specials"
+  # Event lane: per-row template matching (review/lane_glyphs.py).
+  # Representation and special gate are frozen from held-out results in
+  # analysis/review_validation/specials/calibration_report (DECISION.md).
+  # The 0.15 margin had no measurable effect on that corpus; it is kept as
+  # the conservative paired setting, not as a proven requirement.
+  event_lane_row_centers: [0.144, 0.247, 0.351, 0.454, 0.552, 0.660, 0.758, 0.856]
+  event_lane_row_half_height: 0.025
+  event_glyph_representation: grayscale
+  special_template_scales: [1.0]
+  special_discovery_floor: 0.45
+  event_glyph_min_std: 0.04
+  special_match_floor: 0.5
+  special_match_margin: 0.15
+  death_match_floor: 0.6
+  death_match_margin: 0.05
+  event_echo_keep_accepted_deaths: true
+  cursor_exclusion_half_width: 0.004
+  event_timestamp_anchor: center
+  special_deduplication_tolerance: 0.006
+  band_hue_tolerance: 18.0
+  band_neutral_saturation_max: 45
+  band_neutral_value_min: 20
+  band_neutral_value_max: 125
+  band_score_floor: 0.08
+  band_score_margin: 0.03
+  team_color_min_margin: 12.0
   video:
-    sample_interval_seconds: 0.5
+    # 0 decodes every video frame. Reduction happens after the clock is read.
+    sample_interval_seconds: 0
+    frames_per_second_bucket: 1
     layout_confidence_floor: 0.55
     structure_confidence_floor: 0.6
     clock_confidence_floor: 0.55
@@ -301,6 +337,14 @@ vision:
     splat_absent_min_observations: 2
     splat_fingerprint_max_distance: 10
     splat_slot_nearby: 0.18
+  # MATCH_END: first trustworthy 0:00 (clock_zero). Overtime shows an OVERTIME
+  # banner instead of 0:00 while play continues, so the timer-loss fallback
+  # (hud_loss, lifecycle.match_context_hold_seconds) stays off by default.
+  match_end:
+    enabled: true
+    zero_max_previous_seconds: 5.0
+    zero_tail_seconds: 2.0
+    hud_loss_fallback: false
 
 scenarios:
   post_death_follow_seconds: 8.0
@@ -310,6 +354,20 @@ scenarios:
   context_lookback_seconds: 8.0
   context_lookforward_seconds: 2.0
   context_max_gap_seconds: 1.0
+  # A missing MAP_OVERLAY before a death is a negative only when the live
+  # respawn screen showed the map in enough completed respawns and the
+  # episode itself was observable (rule respawn_map_coverage).
+  map_coverage:
+    min_completed_respawns: 1
+    min_respawn_overlay_fraction: 0.5
+    min_pre_death_frame_fraction: 0.8
+    max_pre_death_gap_seconds: 2.0
+    require_own_respawn_overlay: true
+  # Alive counts may only rise this many video seconds after a roster X
+  # appeared; faster rises mark the counts around them unreliable.
+  roster_plausibility:
+    min_respawn_seconds: 3.0
+    window_seconds: null
 
 coach:
   provider: ollama
@@ -322,13 +380,19 @@ coach:
   cursor_model: gpt-5.6-luna
   # Type-agnostic top-N across coaching candidates (death is first domain).
   max_llm_units: 3
+  # Roster (alive-count) evidence has not passed the reliability bar, so it is
+  # off for coaching as one capability boundary: no roster ranking factors,
+  # view block, public lines, prompt guidance or claims. Turning it on is a
+  # deliberate product decision after reliability is demonstrated.
+  roster_evidence: false
   # Leave top-N slots empty rather than fill them with zero-score deaths.
   llm_units_require_positive_score: true
   # Context factors: they add weight only to a death another factor supports.
-  death_modifier_factors: [death_final_30s, death_first_30s]
+  # The final 30 seconds ranks on its own so coachable facts still select units
+  # while roster evidence is off.
+  death_modifier_factors: [death_first_30s]
   # Facts may still attach to a death; they do not affect importance_score.
   death_ranking_excluded_factors:
-    - death_map_overlay_before_false
     - death_special_ready
     # Splat Zones count factors: observed only until the competition report
     # (tools/reports/ranking_competition.py --splat-zones) is reviewed. No weight yet.
@@ -338,8 +402,9 @@ coach:
   # Attention weights, never negative. Provisional until reviewed against
   # the library re-scoring report (tools/reports/importance_report.py).
   death_importance_weights:
-    death_redeath_le_10s: 3.0
+    death_quick_redeath: 3.0
     death_while_outnumbered: 2.5
+    death_own_splat_before: 2.0
     death_special_ready: 2.0
     death_map_overlay_before_false: 1.5
     death_while_ahead_in_numbers: 1.5
@@ -357,12 +422,19 @@ coach:
     # Outnumbered / ahead need at least this many more players alive on one
     # side. A 1-player gap fired on most deaths and stopped discriminating.
     roster_min_gap: 2
+    # The player's own splat within this many video seconds before the death
+    # (association only; never called a trade).
+    own_splat_max_gap_seconds: 5.0
     # Special ready needs this many consecutive ready gauge readings.
     special_ready_min_readings: 2
     # Splat Zones behind / ahead in count: |remaining_diff| at the pre-death
     # sample. Provisional; factors are observed-but-excluded.
     count_min_diff: 10
   game_clock_max_lookup_gap_seconds: 1.0
+  # Requested sampling settings. Each run records what was actually sent:
+  # Ollama takes both, NVIDIA's seed is unverified, Cursor takes neither.
+  llm_temperature: 0.0
+  llm_seed: 0
   player_count_max_lookup_gap_seconds: 1.0
   player_count_window_offsets_seconds: [-5.0, -2.0, 0.0, 3.0, 6.0]
   player_count_context_lookback_seconds: 8.0

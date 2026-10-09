@@ -24,6 +24,8 @@ def test_default_config_is_valid() -> None:
     assert config.scenarios.engagement_include_following_death_seconds == pytest.approx(
         2.0
     )
+    assert config.review.special_template_dir is not None
+    assert config.review.special_template_dir.is_absolute()
 
 
 def test_missing_config_raises() -> None:

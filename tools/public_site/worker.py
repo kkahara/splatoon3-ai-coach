@@ -12,19 +12,27 @@ import threading
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
+from time import perf_counter
 
 from loguru import logger
 
 from public_site.errors import ANALYSIS_FAILED, COACHING_FAILED, INTERRUPTED
 from public_site.frames import extract_frames
-from public_site.models import Submission
+from public_site.models import CoachingOutcome, Submission
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.store import PublicStore, utc_now
+from public_site.telemetry import CoachingOutcome as TelemetryOutcome
+from public_site.telemetry import (
+    Diagnostic,
+    Stage,
+    best_effort,
+    classify_error,
+)
+from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
+from splatoon3_ai_coach.coach.artifacts import coaching_index_path
 
 Command = Callable[[list[str]], int]
-_COACH_INPUTS = "coach_inputs"
-_INDEX = "coaching_index.json"
 
 
 def cli_launch() -> list[str]:
@@ -97,11 +105,13 @@ class PublicWorker:
         self.settings = settings
         self.store = store
         self.service = service
+        self.telemetry = service.telemetry
         self.worker_id = settings.worker_id
         self._run = run_command
         self._wake = threading.Event()
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
+        self._stage_seconds: dict[str, dict[str, float]] = {}
         self.recover()
         if start_thread:
             self._thread = threading.Thread(target=self._loop, name="public-submissions", daemon=True)
@@ -120,6 +130,13 @@ class PublicWorker:
         """Fail in-flight work. Queued submissions stay queued."""
         failed = self.store.fail_in_flight(INTERRUPTED, utc_now())
         for submission in failed:
+            self._capture_terminal(submission)
+            if self.telemetry is not None:
+                best_effort(
+                    "interrupted",
+                    self.telemetry.interrupted,
+                    submission.id,
+                )
             self.service.note_terminal(submission, "failed")
         return failed
 
@@ -146,11 +163,19 @@ class PublicWorker:
         submission.processing_started_at = utc_now()
         submission.updated_at = submission.processing_started_at
         self.store.save_submission(submission)
+        self._stage_seconds[submission.id] = {}
+        if self.telemetry is not None:
+            best_effort("started", self.telemetry.started, submission.id)
 
     def _execute(self, submission: Submission) -> None:
         video = self.store.get_video(submission.id)
         if video is None or not video.object_key:
-            self._fail(submission, ANALYSIS_FAILED)
+            self._fail(
+                submission,
+                ANALYSIS_FAILED,
+                stage=Stage.ANALYZE,
+                diagnostic=Diagnostic.SOURCE_MISSING,
+            )
             return
         analysis = self.settings.root / "analysis" / submission.id
         analysis.mkdir(parents=True, exist_ok=True)
@@ -160,7 +185,12 @@ class PublicWorker:
         try:
             path, temporary = self.service.storage.local_file(video.object_key, dest)
         except FileNotFoundError:
-            self._fail(submission, ANALYSIS_FAILED)
+            self._fail(
+                submission,
+                ANALYSIS_FAILED,
+                stage=Stage.ANALYZE,
+                diagnostic=Diagnostic.SOURCE_MISSING,
+            )
             return
         try:
             self._stages(submission, analysis, path)
@@ -169,58 +199,195 @@ class PublicWorker:
                 path.unlink()
 
     def _stages(self, submission: Submission, analysis: Path, video: Path) -> None:
-        if not self._stage(submission, "analyzing", analyze_argv(
+        if self._stage(submission, Stage.ANALYZE, analyze_argv(
             self.settings, video, analysis, submission.language
         )):
-            self._fail(submission, ANALYSIS_FAILED)
+            self._fail(submission, ANALYSIS_FAILED, stage=Stage.ANALYZE)
             return
+        self._capture_trace(submission, analysis)
         submission.step = "coaching"
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
         inputs = coach_argv(self.settings, analysis, "coach-inputs")
-        if not self._stage(submission, "coaching", inputs):
-            self._fail(submission, COACHING_FAILED)
+        code = self._stage(submission, Stage.COACH_INPUTS, inputs)
+        if code == NO_COACHING_UNITS_EXIT_CODE:
+            self._capture_trace(submission, analysis)
+            self._complete(submission, "no_deaths")
             return
+        if code:
+            self._fail(submission, COACHING_FAILED, stage=Stage.COACH_INPUTS)
+            return
+        self._capture_trace(submission, analysis)
         prototype = coach_argv(
             self.settings,
             analysis,
             "coach-prototype",
             prototype_extra(self.settings),
         )
-        index = analysis / _COACH_INPUTS / _INDEX
-        if not self._stage(submission, "coaching", prototype) and not index.is_file():
-            self._fail(submission, COACHING_FAILED)
+        index = coaching_index_path(analysis)
+        if (
+            self._stage(submission, Stage.COACH_PROTOTYPE, prototype)
+            and not index.is_file()
+        ):
+            self._fail(submission, COACHING_FAILED, stage=Stage.COACH_PROTOTYPE)
             return
         if not index.is_file():
-            self._fail(submission, COACHING_FAILED)
+            self._fail(
+                submission,
+                COACHING_FAILED,
+                stage=Stage.COACH_PROTOTYPE,
+                diagnostic=Diagnostic.MISSING_ARTIFACT,
+            )
             return
+        self._capture_trace(submission, analysis)
         self._frames(submission, analysis, video)
+        self._capture_trace(submission, analysis)
+        self._complete(submission, "coached")
+
+    def _complete(self, submission: Submission, outcome: CoachingOutcome) -> None:
+        """Finish successfully. ``no_deaths`` is a valid empty result, not a failure."""
         submission.status = "complete"
         submission.step = "ready"
         submission.error = None
+        submission.outcome = outcome
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
-        self.service.note_terminal(submission, "ready")
+        if self.telemetry is not None:
+            best_effort(
+                "completed",
+                self.telemetry.completed,
+                submission.id,
+                outcome=TelemetryOutcome(outcome),
+            )
+        notice = "no_moments" if outcome == "no_deaths" else "ready"
+        self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
+        self._stage_seconds.pop(submission.id, None)
 
     def _frames(self, submission: Submission, analysis: Path, video: Path) -> None:
         """Copy stills while the source file is still on disk. Failure stays non-fatal."""
+        started = perf_counter()
+        if self.telemetry is not None:
+            best_effort(
+                "frames_started",
+                self.telemetry.stage_started,
+                submission.id,
+                Stage.FRAMES,
+            )
+        exit_code = 0
         try:
             extract_frames(analysis, video, submission_id=submission.id)
         except Exception:
+            exit_code = 1
             logger.exception("moment frame extract failed for submission {}", submission.id)
+        finally:
+            seconds = perf_counter() - started
+            self._stage_seconds.setdefault(submission.id, {})[Stage.FRAMES.value] = seconds
+            if self.telemetry is not None:
+                best_effort(
+                    "frames_finished",
+                    self.telemetry.stage_finished,
+                    submission.id,
+                    Stage.FRAMES,
+                    exit_code=exit_code,
+                    seconds=seconds,
+                )
 
-    def _stage(self, submission: Submission, name: str, argv: list[str]) -> bool:
+    def _stage(self, submission: Submission, stage: Stage, argv: list[str]) -> int:
+        """Run one CLI stage and return its exit code (0 on success)."""
+        started = perf_counter()
+        if self.telemetry is not None:
+            best_effort(
+                "stage_started",
+                self.telemetry.stage_started,
+                submission.id,
+                stage,
+            )
         code = self._run(argv)
-        logger.info("submission {} stage {} exit {}", submission.id, name, code)
-        return code == 0
+        seconds = perf_counter() - started
+        self._stage_seconds.setdefault(submission.id, {})[stage.value] = seconds
+        if self.telemetry is not None:
+            best_effort(
+                "stage_finished",
+                self.telemetry.stage_finished,
+                submission.id,
+                stage,
+                exit_code=code,
+                seconds=seconds,
+            )
+        logger.info("submission {} stage {} exit {}", submission.id, stage.value, code)
+        return code
 
-    def _fail(self, submission: Submission, detail: str) -> None:
+    def _fail(
+        self,
+        submission: Submission,
+        detail: str,
+        *,
+        stage: Stage | None,
+        diagnostic: Diagnostic | None = None,
+    ) -> None:
         submission.status = "failed"
         submission.error = detail
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
+        self._capture_terminal(submission)
+        if self.telemetry is not None:
+            code, default_diagnostic = classify_error(detail)
+            best_effort(
+                "failed",
+                self.telemetry.failed,
+                submission.id,
+                stage=stage,
+                error_code=code,
+                diagnostic=diagnostic or default_diagnostic,
+            )
         self.service.note_terminal(submission, "failed")
+        self._stage_seconds.pop(submission.id, None)
+
+    def _capture_trace(self, submission: Submission, analysis: Path) -> None:
+        """Read safe artifact summaries without making coaching depend on telemetry."""
+        if self.telemetry is None:
+            return
+        best_effort(
+            "artifact_trace",
+            self._write_trace,
+            submission.id,
+            analysis,
+        )
+
+    def _capture_terminal(self, submission: Submission) -> None:
+        """Save the best trace that already exists before a terminal status."""
+        analysis = self._analysis_dir(submission)
+        if analysis is not None:
+            self._capture_trace(submission, analysis)
+
+    def _analysis_dir(self, submission: Submission) -> Path | None:
+        if submission.analysis_dir:
+            path = Path(submission.analysis_dir)
+            return path if path.is_dir() else None
+        candidate = self.settings.root / "analysis" / submission.id
+        return candidate if candidate.is_dir() else None
+
+    def _write_trace(self, submission_id: str, analysis: Path) -> None:
+        from public_site.job_trace import (
+            TopLevelTiming,
+            read_job_trace,
+            read_llm_calls,
+            scalar_provenance,
+        )
+        from splatoon3_ai_coach.coach.artifacts import coach_prototype_dir
+
+        top_level = TopLevelTiming(**self._stage_seconds.get(submission_id, {}))
+        trace = read_job_trace(analysis, top_level=top_level)
+        calls = read_llm_calls(coach_prototype_dir(analysis) / "llm_metrics.jsonl")
+        self.telemetry.update_artifacts(
+            submission_id,
+            stage_seconds=trace.timing,
+            llm=trace.llm_metrics,
+            provenance=trace.operational_provenance(),
+            scalar=scalar_provenance(trace),
+            llm_calls=calls,
+        )
 
     def _loop(self) -> None:
         while not self._stop.is_set():

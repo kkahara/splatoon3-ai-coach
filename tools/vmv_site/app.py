@@ -16,6 +16,7 @@ from vision_manifest_viewer.special_review import (
     resolve_review_queue_path,
 )
 
+from splatoon3_ai_coach.coach.artifacts import ArtifactError
 from vmv_site.catalog import (
     RunBusy,
     list_runs,
@@ -221,7 +222,14 @@ def create_app(
         _require_run(store, run_id)
         if not scenario_id:
             raise HTTPException(status_code=422, detail="scenario_id is required")
-        return coach_layers(settings, run_id, scenario_id)
+        try:
+            return coach_layers(settings, run_id, scenario_id)
+        except ArtifactError as exc:
+            raise HTTPException(
+                status_code=409,
+                detail="coach artifacts are invalid or ambiguous; re-run coach-inputs "
+                "and coach-prototype",
+            ) from exc
 
     @app.get("/api/runs/{run_id}/coach-experiments")
     def get_experiments(run_id: str, scenario_id: str) -> list[dict]:

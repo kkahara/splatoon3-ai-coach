@@ -31,6 +31,18 @@ SourceKind = Literal["upload", "nintendo_review_code"]
 UploadState = Literal["pending", "stored", "rejected"]
 LanguageCode = Literal["en", "ja"]
 DisplayLocale = Literal["en", "ja"]
+# Result classification of a ``complete`` submission; never a failure state.
+# ``no_deaths`` means none were detected, not that the match had none.
+CoachingOutcome = Literal["coached", "no_deaths"]
+AssessmentStatus = Literal[
+    "validated",
+    "contains_unverified_wording",
+    "blocked_unsupported_claim",
+    "not_validated",
+]
+# Sent with recommendation / sent, none supported / sent but blocked by the
+# claim validator / never sent to the LLM. Staleness is result-level.
+CoachingState = Literal["recommendation", "no_recommendation", "blocked", "not_reviewed"]
 
 
 class Submission(BaseModel):
@@ -54,6 +66,7 @@ class Submission(BaseModel):
     worker_id: str | None = None
     processing_started_at: str | None = None
     error: str | None = None
+    outcome: CoachingOutcome | None = None
     notices_sent: list[str] = Field(default_factory=list)
 
 
@@ -106,6 +119,11 @@ class LifecycleMark(BaseModel):
     seconds_remaining: int | None = None
     clock: str | None = None
     anchor: bool = False
+    offset_seconds: float | None = Field(
+        default=None, description="Distance from the death; None on the anchor."
+    )
+    offset_clock: Literal["video", "game"] | None = None
+    offset_label: str | None = None
 
 
 class CoachingMoment(BaseModel):
@@ -116,6 +134,11 @@ class CoachingMoment(BaseModel):
     statements: list[str] = Field(default_factory=list)
     assessment: str | None = None
     assessment_locale: DisplayLocale = "en"
+    # Recomputed at load from the assessment + its llm_view; None without prose.
+    assessment_status: AssessmentStatus | None = None
+    coaching_state: CoachingState | None = None
+    recommendations: list[str] = Field(default_factory=list)
+    recommendations_locale: DisplayLocale = "en"
     frame: bool = False
     heading: str | None = None
     marks: list[LifecycleMark] = Field(default_factory=list)
@@ -130,6 +153,11 @@ class PublicSubmissionResult(BaseModel):
     """Coaching material for a finished submission."""
 
     moments: list[CoachingMoment] = Field(default_factory=list)
+    stale: bool = Field(
+        default=False,
+        description="Coaching artifacts predate the current evidence or analysis.",
+    )
+    stale_reason: str | None = None
 
 
 class PublicSubmissionResponse(BaseModel):
@@ -141,6 +169,7 @@ class PublicSubmissionResponse(BaseModel):
     expires_at: str
     display_name: str | None = None
     error: str | None = None
+    outcome: CoachingOutcome | None = None
     match_seconds: int | None = None
     locale: DisplayLocale = "en"
     result: PublicSubmissionResult | None = None
@@ -155,6 +184,7 @@ class HistoryItem(BaseModel):
     status: PublicStatus
     step: PublicStep
     display_name: str | None = None
+    outcome: CoachingOutcome | None = None
 
 
 class PublicConfig(BaseModel):

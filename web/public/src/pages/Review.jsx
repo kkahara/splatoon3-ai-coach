@@ -95,17 +95,19 @@ export function ReviewPage() {
           </li>
         ))}
       </ol>
-      {view?.status === "complete" ? (
+      {noDeaths(view) ? <p className="note">{t("review.no_deaths")}</p> : null}
+      {view?.status === "complete" && !noDeaths(view) ? (
         <Result
           frameBase={owned ? `/api/me/submissions/${id}` : `/api/submissions/${token}`}
           moments={view.result?.moments || []}
+          stale={Boolean(view.result?.stale)}
           locale={locale}
         />
       ) : null}
       {view?.status === "complete" && config?.feedback ? (
         <FeedbackForm owned={owned} token={token} id={id} />
       ) : null}
-      {view?.status === "complete" ? (
+      {view?.status === "complete" && !noDeaths(view) ? (
         <ShareReview
           moments={view.result?.moments || []}
           frameBase={owned ? `/api/me/submissions/${id}` : `/api/submissions/${token}`}
@@ -306,11 +308,12 @@ function FeedbackForm({ owned, token, id }) {
   );
 }
 
-function Result({ frameBase, moments, locale }) {
+function Result({ frameBase, moments, stale, locale }) {
   const t = useT();
   return (
     <section>
       <h2>{t("review.key_moments")}</h2>
+      {stale ? <p className="notice stale">{t("review.stale_evidence")}</p> : null}
       {moments.length === 0 ? <p>{t("review.no_moments")}</p> : null}
       <ul className="moments">
         {moments.map((moment, index) => (
@@ -329,16 +332,48 @@ function Result({ frameBase, moments, locale }) {
 
 function Assessment({ moment, locale }) {
   const t = useT();
+  const state = moment.coaching_state;
+  if (state === "not_reviewed") {
+    return <p className="note">{t("review.not_reviewed")}</p>;
+  }
+  if (state === "blocked") {
+    return (
+      <p className="note blocked" role="note">
+        {t("review.blocked")}
+      </p>
+    );
+  }
   if (!moment.assessment) {
     return null;
   }
   const fellBack = locale !== "en" && moment.assessment_locale === "en";
+  const recsFellBack = locale !== "en" && moment.recommendations_locale === "en";
+  const unverified = moment.assessment_status === "contains_unverified_wording";
+  const recommendations = moment.recommendations || [];
   return (
     <>
+      {unverified ? (
+        <p className="badge unverified" role="note">
+          {t("review.unverified_wording")}
+        </p>
+      ) : null}
       <p className="assessment" lang={fellBack ? "en" : undefined}>
         {moment.assessment}
       </p>
-      {fellBack ? <p className="note">{t("review.english_fallback")}</p> : null}
+      {recommendations.length ? (
+        <>
+          <h5>{t("review.recommendations")}</h5>
+          <ul className="recommendations" lang={recsFellBack ? "en" : undefined}>
+            {recommendations.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {state === "no_recommendation" ? (
+        <p className="note">{t("review.no_recommendation")}</p>
+      ) : null}
+      {fellBack || recsFellBack ? <p className="note">{t("review.english_fallback")}</p> : null}
     </>
   );
 }
@@ -430,6 +465,7 @@ function EpisodeMark({ mark, spread, lane, left, align, gap, gapLeft }) {
         >
           <span className="episode-name">{mark.title}</span>
           {mark.clock ? <span className="episode-clock">{mark.clock}</span> : null}
+          {mark.offset_label ? <span className="episode-clock">{mark.offset_label}</span> : null}
         </span>
       </div>
       {gap ? (
@@ -523,12 +559,16 @@ function copyWithSelection(link) {
   return copiedLink;
 }
 
+function noDeaths(view) {
+  return view?.status === "complete" && view.outcome === "no_deaths";
+}
+
 function headingKey(view) {
   if (!view) {
     return "review.heading.default";
   }
   if (view.status === "complete") {
-    return "review.heading.complete";
+    return noDeaths(view) ? "review.heading.no_moments" : "review.heading.complete";
   }
   if (view.status === "failed") {
     return "review.heading.failed";

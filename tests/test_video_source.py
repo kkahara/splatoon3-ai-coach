@@ -202,6 +202,8 @@ def test_review_icon_tracker_matches_template() -> None:
         map_overlay_observability=Observability.OBSERVABLE,
     )
     assert ctx.map is not None
-    assert ctx.map.map_check_before_death is False
+    # No completed respawn → match coverage unproven → absence stays unknown.
+    assert ctx.map.map_check_before_death is None
+    assert ctx.map.map_check_status == "unknown"
     statements = map_observation_statements(ctx)
-    assert any("No map overlay was observed" in line for line in statements)
+    assert not any("No map overlay was observed" in line for line in statements)

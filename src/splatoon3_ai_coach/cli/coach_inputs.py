@@ -7,11 +7,13 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from splatoon3_ai_coach.cli.coach_common import (
+from splatoon3_ai_coach.cli.coach_common import default_coach_inputs_dir
+from splatoon3_ai_coach.coach.artifacts import (
     COACH_INPUTS_META_FILENAME,
-    COACHING_INDEX_FILENAME,
-    default_coach_inputs_dir,
+    CoachingIndexEntry,
     safe_filename,
+    unit_file_names,
+    write_coaching_index,
     write_json,
 )
 from splatoon3_ai_coach.coach.coaching_candidates import active_factor_ids
@@ -25,6 +27,9 @@ from splatoon3_ai_coach.coach.vmv import format_vmv_developer, format_vmv_player
 from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.paths import resolve_config_path
 from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
+
+NO_COACHING_UNITS_EXIT_CODE = 3
+"""Exit code when the analysis has no DEATH_EPISODE to coach (not an error)."""
 
 console = Console()
 
@@ -66,11 +71,12 @@ def coach_inputs(
         bundle = load_coach_analysis_bundle(
             analysis_dir,
             min_usable_confidence=app_config.vision.timer.min_usable_confidence,
+            playback_config=app_config.coach.playback_clock,
         )
         primary_ids = select_primary_scenario_ids(bundle.scenarios, limit=limit)
         if not primary_ids:
-            console.print("[yellow]No scenarios to coach.[/yellow]")
-            raise typer.Exit(code=1)
+            console.print("[yellow]No deaths detected; no scenarios to coach.[/yellow]")
+            raise typer.Exit(code=NO_COACHING_UNITS_EXIT_CODE)
 
         scoring = score_match(
             bundle, app_config, limit=limit, max_llm_units=max_llm_units
@@ -94,25 +100,27 @@ def coach_inputs(
             "| rank | candidate | type | score | selected | active factors |",
             "| ---: | --- | --- | ---: | --- | --- |",
         ]
-        index_payload: list[dict[str, object]] = []
+        index_entries: list[CoachingIndexEntry] = []
 
         for unit in units_by_rank:
             scenario_id = unit.candidate_id
             coach_input = coach_inputs_by_id[scenario_id]
             active = active_factor_ids(unit.to_candidate())
             safe_id = safe_filename(scenario_id)
-            input_name = f"{safe_id}.coach_input.json"
-            coaching_name = f"{safe_id}.coaching.json"
-            llm_view_name = f"{safe_id}.llm_view.json"
-            player_name = f"{safe_id}.vmv.player.txt"
-            dev_name = f"{safe_id}.vmv.dev.txt"
+            names = unit_file_names(safe_id)
 
-            llm_view = build_coach_llm_view(coach_input, unit)
-            write_json(out_dir / input_name, coach_input.model_dump(mode="json"))
-            write_json(out_dir / coaching_name, unit.model_dump(mode="json"))
-            write_json(out_dir / llm_view_name, llm_view.model_dump(mode="json"))
-            (out_dir / player_name).write_text(format_vmv_player(unit), encoding="utf-8")
-            (out_dir / dev_name).write_text(format_vmv_developer(unit), encoding="utf-8")
+            llm_view = build_coach_llm_view(
+                coach_input, unit, app_config.coach.death_factor_thresholds
+            )
+            write_json(out_dir / names.coach_input, coach_input.model_dump(mode="json"))
+            write_json(out_dir / names.coaching, unit.model_dump(mode="json"))
+            write_json(out_dir / names.llm_view, llm_view.model_dump(mode="json"))
+            (out_dir / names.vmv_player).write_text(
+                format_vmv_player(unit), encoding="utf-8"
+            )
+            (out_dir / names.vmv_dev).write_text(
+                format_vmv_developer(unit), encoding="utf-8"
+            )
 
             selected_mark = "Y" if unit.selected_for_llm else "N"
             factors_txt = ", ".join(active) if active else "—"
@@ -121,24 +129,24 @@ def coach_inputs(
                 f"{unit.importance_score:.1f} | {selected_mark} | {factors_txt} |"
             )
 
-            index_payload.append(
-                {
-                    "scenario_id": scenario_id,
-                    "candidate_id": unit.candidate_id,
-                    "candidate_type": unit.candidate_type,
-                    "safe_id": safe_id,
-                    "video_time": unit.video_time,
-                    "importance_score": unit.importance_score,
-                    "rank": unit.rank,
-                    "selected_for_llm": unit.selected_for_llm,
-                    "importance_config_hash": config_hash,
-                    "active_factors": active,
-                    "coach_input_json": input_name,
-                    "coaching_json": coaching_name,
-                    "llm_view_json": llm_view_name,
-                    "vmv_player": player_name,
-                    "vmv_dev": dev_name,
-                }
+            index_entries.append(
+                CoachingIndexEntry(
+                    scenario_id=scenario_id,
+                    candidate_id=unit.candidate_id,
+                    candidate_type=unit.candidate_type,
+                    safe_id=safe_id,
+                    video_time=unit.video_time,
+                    importance_score=unit.importance_score,
+                    rank=unit.rank,
+                    selected_for_llm=unit.selected_for_llm,
+                    importance_config_hash=config_hash,
+                    active_factors=active,
+                    coach_input_json=names.coach_input,
+                    coaching_json=names.coaching,
+                    llm_view_json=names.llm_view,
+                    vmv_player=names.vmv_player,
+                    vmv_dev=names.vmv_dev,
+                )
             )
             console.print(
                 f"[cyan]inputs[/cyan] rank={unit.rank} {scenario_id} "
@@ -161,15 +169,16 @@ def coach_inputs(
             ]
         )
 
-        # Index in rank order for prototype consumption.
-        write_json(out_dir / COACHING_INDEX_FILENAME, index_payload)
+        index_path = write_coaching_index(
+            out_dir, index_entries, analysis_id=bundle.analysis_id
+        )
         write_json(
             out_dir / COACH_INPUTS_META_FILENAME,
             {
                 "analysis_dir": str(analysis_dir.resolve()),
                 "match_duration_seconds": match_duration,
                 "max_llm_units": top_n,
-                "unit_count": len(index_payload),
+                "unit_count": len(index_entries),
                 "selected_for_llm_count": sum(
                     1 for u in units if u.selected_for_llm
                 ),
@@ -179,7 +188,7 @@ def coach_inputs(
         )
         eval_path = out_dir / "claim_eval.md"
         eval_path.write_text("\n".join(eval_lines) + "\n", encoding="utf-8")
-        console.print(f"[bold]Wrote[/bold] {out_dir / COACHING_INDEX_FILENAME}")
+        console.print(f"[bold]Wrote[/bold] {index_path}")
         console.print(f"[bold]Wrote[/bold] {eval_path}")
         console.print(
             f"[bold]Next:[/bold] s3-coach coach-prototype {analysis_dir} "

@@ -66,3 +66,11 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
                     path = Path(template_dir)
                     if not path.is_absolute():
                         section[field] = str((config_dir / path).resolve())
+
+    review = raw.get("review")
+    if isinstance(review, dict):
+        template_dir = review.get("special_template_dir")
+        if template_dir is not None:
+            path = Path(template_dir)
+            if not path.is_absolute():
+                review["special_template_dir"] = str((config_dir / path).resolve())

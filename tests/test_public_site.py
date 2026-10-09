@@ -9,12 +9,15 @@ from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
+from coach_artifact_helpers import index_entry, video_durations, write_prototype_unit
 from fastapi.testclient import TestClient
 from loguru import logger
 from public_site.app import create_app
 from public_site.errors import (
     ANALYSIS_FAILED,
     CAPACITY,
+    COACHING_FAILED,
     EXPIRED,
     INTERRUPTED,
     PROBE_CONTAINER,
@@ -38,7 +41,7 @@ from public_site.worker import PublicWorker
 from typer.testing import CliRunner
 
 from splatoon3_ai_coach.cli.app import app as cli_app
-from splatoon3_ai_coach.coach.claim_catalog import NO_RECOMMENDATION_MESSAGE
+from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
 from splatoon3_ai_coach.config.paths import default_config_path
 
@@ -70,6 +73,7 @@ def _client(tmp_path: Path, **kwargs) -> TestClient:
     probe = kwargs.pop("probe", _probe_ok)
     run_command = kwargs.pop("run_command", lambda _argv: 0)
     storage = kwargs.pop("storage", None)
+    telemetry = kwargs.pop("telemetry", None)
     settings = _settings(tmp_path, **kwargs)
     store = PublicStore(settings.root)
     app = create_app(
@@ -80,6 +84,7 @@ def _client(tmp_path: Path, **kwargs) -> TestClient:
         probe=probe,
         run_command=run_command,
         start_worker=False,
+        telemetry=telemetry,
     )
     client = TestClient(app)
     client.app = app
@@ -116,12 +121,49 @@ def test_turnstile_failure_writes_nothing(tmp_path: Path) -> None:
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
+            "language": "en",
         },
     )
     assert response.status_code == 400
     root = client.app.state.settings.root
     assert list((root / "submissions").glob("*.json")) == []
     assert not (root / "rate_limits.json").is_file()
+
+
+def test_missing_game_language_is_rejected(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    response = client.post(
+        "/api/submissions",
+        json={
+            "turnstile_token": "ok",
+            "filename": "match.mp4",
+            "size_bytes": 8,
+            "content_type": "video/mp4",
+        },
+    )
+    assert response.status_code == 422
+    root = client.app.state.settings.root
+    assert list((root / "submissions").glob("*.json")) == []
+
+
+@pytest.mark.parametrize(
+    ("game_language", "site_locale"),
+    [("en", "ja"), ("ja", "en")],
+)
+def test_site_locale_never_selects_the_vision_language(
+    tmp_path: Path, game_language: str, site_locale: str
+) -> None:
+    calls: list[list[str]] = []
+    client = _client(
+        tmp_path, run_command=lambda argv: calls.append(argv) or 0
+    )
+    created = _create(client, language=game_language)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.get(f"/api/submissions/{token}?locale={site_locale}").status_code == 200
+    client.app.state.worker.pump()
+    analyze = next(argv for argv in calls if "analyze" in argv)
+    assert analyze[analyze.index("--language") + 1] == game_language
 
 
 def test_token_is_hashed_and_absent_from_json(tmp_path: Path) -> None:
@@ -162,6 +204,7 @@ def test_rate_limit_and_queue_cap(tmp_path: Path) -> None:
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
+            "language": "en",
         },
     )
     assert limited.status_code == 429
@@ -178,6 +221,7 @@ def test_rate_limit_and_queue_cap(tmp_path: Path) -> None:
             "filename": "other.mov",
             "size_bytes": 4,
             "content_type": "video/quicktime",
+            "language": "ja",
         },
     )
     assert again.status_code == 429
@@ -491,6 +535,55 @@ def test_failed_analysis_keeps_the_source_video(tmp_path: Path) -> None:
     assert client.app.state.service.storage.head(video.object_key) is not None
 
 
+def test_no_deaths_completes_with_an_empty_outcome(tmp_path: Path) -> None:
+    calls: list[list[str]] = []
+
+    def no_units(argv: list[str]) -> int:
+        calls.append(argv)
+        return NO_COACHING_UNITS_EXIT_CODE if "coach-inputs" in argv else 0
+
+    client = _client(tmp_path, dev_mode=False, run_command=no_units)
+    created = _create(client, notify=True, email="player@example.com")
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "complete"
+    assert stored.outcome == "no_deaths"
+    assert stored.error is None
+    assert "no_moments" in stored.notices_sent
+    assert not any("coach-prototype" in argv for argv in calls)
+    view = client.get(f"/api/submissions/{token}").json()
+    assert view["status"] == "complete"
+    assert view["outcome"] == "no_deaths"
+    assert view["error"] is None
+    assert view["result"] is None
+
+
+def test_coached_submission_records_coached_outcome(tmp_path: Path) -> None:
+    client = _client(tmp_path, run_command=_finish_coaching)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "complete"
+    assert stored.outcome == "coached"
+
+
+def test_coach_inputs_crash_stays_coaching_failed(tmp_path: Path) -> None:
+    def crash(argv: list[str]) -> int:
+        return 1 if "coach-inputs" in argv else 0
+
+    client = _client(tmp_path, dev_mode=False, run_command=crash)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.error == COACHING_FAILED
+
+
 def test_failed_video_delete_keeps_the_review(tmp_path: Path) -> None:
     settings = _settings(tmp_path, dev_mode=False)
     storage = _StickyStorage(settings.root)
@@ -545,6 +638,81 @@ def _finish_coaching(argv: list[str]) -> int:
     if "coach-inputs" in argv:
         _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
     return 0
+
+
+class _TelemetryRecorder:
+    def __init__(self) -> None:
+        self.events: list[str] = []
+
+    def _record(self, name: str) -> bool:
+        self.events.append(name)
+        return True
+
+    def open_initial_run(self, *_args, **_kwargs) -> str:
+        self._record("submitted")
+        return "run"
+
+    def upload_confirmed(self, *_args, **_kwargs) -> bool:
+        return self._record("upload_confirmed")
+
+    def validation_started(self, *_args, **_kwargs) -> bool:
+        return self._record("validation_started")
+
+    def queued(self, *_args, **_kwargs) -> bool:
+        return self._record("queued")
+
+    def started(self, *_args, **_kwargs) -> bool:
+        return self._record("started")
+
+    def stage_started(self, _submission_id, stage) -> bool:
+        return self._record(f"{stage.value}:started")
+
+    def stage_finished(self, _submission_id, stage, **_kwargs) -> bool:
+        return self._record(f"{stage.value}:finished")
+
+    def update_artifacts(self, *_args, **_kwargs) -> bool:
+        return True
+
+    def completed(self, *_args, **_kwargs) -> bool:
+        return self._record("completed")
+
+    def failed(self, *_args, **_kwargs) -> bool:
+        return self._record("failed")
+
+    def interrupted(self, *_args, **_kwargs) -> bool:
+        return self._record("interrupted")
+
+    def unlink_user(self, *_args, **_kwargs) -> bool:
+        return self._record("expired")
+
+
+def test_worker_top_level_telemetry_is_serial_and_frames_finish_first(
+    tmp_path: Path,
+) -> None:
+    telemetry = _TelemetryRecorder()
+    client = _client(
+        tmp_path,
+        run_command=_finish_coaching,
+        telemetry=telemetry,
+    )
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.app.state.worker.pump() is True
+
+    worker_events = telemetry.events[telemetry.events.index("started") :]
+    assert worker_events == [
+        "started",
+        "analyze:started",
+        "analyze:finished",
+        "coach_inputs:started",
+        "coach_inputs:finished",
+        "coach_prototype:started",
+        "coach_prototype:finished",
+        "frames:started",
+        "frames:finished",
+        "completed",
+    ]
 
 
 def test_prototype_llm_can_select_a_provider(tmp_path: Path) -> None:
@@ -637,15 +805,7 @@ def _write_coaching(analysis: Path) -> None:
     inputs.mkdir(parents=True, exist_ok=True)
     (inputs / "coaching_index.json").write_text(
         json.dumps(
-            [
-                {
-                    "candidate_type": "death_episode",
-                    "safe_id": "death_episode_72.5",
-                    "video_time": 72.5,
-                    "rank": 1,
-                    "coaching_json": "death_episode_72.5.coaching.json",
-                }
-            ]
+            [index_entry("death_episode_72.5", video_time=72.5, rank=1)]
         ),
         encoding="utf-8",
     )
@@ -663,17 +823,14 @@ def _write_coaching(analysis: Path) -> None:
 
 
 def _write_assessment(analysis: Path) -> None:
-    prototype = analysis / "coach_prototype"
-    prototype.mkdir(parents=True, exist_ok=True)
-    (prototype / "death_episode_72.5.model.output.json").write_text(
-        json.dumps(
-            {"assessment": "The player did not check the map overlay before death."}
-        ),
-        encoding="utf-8",
-    )
-    (prototype / "death_episode_72.5.skip.output.json").write_text(
-        json.dumps({"assessment": empty_coaching_assessment().assessment}),
-        encoding="utf-8",
+    write_prototype_unit(
+        analysis / "coach_prototype",
+        "death_episode_72.5",
+        {
+            "model": "The player did not check the map overlay before death.",
+            "zz-baseline": empty_coaching_assessment().assessment,
+        },
+        primary_model="model",
     )
 
 
@@ -836,13 +993,7 @@ def _write_index(analysis: Path, entries: list[dict]) -> None:
 
 
 def _moment_entry(safe_id: str, video_time: float, rank: int) -> dict:
-    return {
-        "candidate_type": "death_episode",
-        "safe_id": safe_id,
-        "video_time": video_time,
-        "rank": rank,
-        "coaching_json": f"{safe_id}.coaching.json",
-    }
+    return index_entry(safe_id, video_time=video_time, rank=rank)
 
 
 def _sample_video(path: Path) -> bytes:
@@ -993,7 +1144,6 @@ def test_death_episode_review_projects_existing_lifecycle(tmp_path: Path) -> Non
     assert "1:40" not in early["heading"]
     assert "3:26" not in early["heading"]
     assert [mark["title"] for mark in early["marks"]] == [
-        "Splat",
         "Map check",
         "Splat",
         "Death",
@@ -1001,15 +1151,21 @@ def test_death_episode_review_projects_existing_lifecycle(tmp_path: Path) -> Non
         "Splat",
     ]
     assert [mark["clock"] for mark in early["marks"]] == [
-        "2:50.0",
         "3:11.5",
         "3:20.0",
         "3:26.5",
         "3:28.0",
         "3:39.0",
     ]
+    assert "2:50.0" not in [mark["clock"] for mark in early["marks"]]
+    assert [mark["offset_label"] for mark in early["marks"]] == [
+        "15.0s before",
+        "6.5s before",
+        None,
+        "1.5s after",
+        "12.5s after",
+    ]
     assert [mark["anchor"] for mark in early["marks"]] == [
-        False,
         False,
         False,
         True,
@@ -1051,7 +1207,8 @@ def test_death_episode_review_projects_existing_lifecycle(tmp_path: Path) -> Non
     assert "Last observed map check" not in " ".join(mid["context"])
     assert not any(line.startswith("Special") for line in mid["context"])
     assert "No roster information was available." in mid["context"]
-    assert mid["assessment"] == NO_RECOMMENDATION_MESSAGE
+    assert mid["assessment"] is None
+    assert mid["coaching_state"] == "not_reviewed"
     assert mid["recording_times"] == []
 
     assert late["heading"] == "Death"
@@ -1062,7 +1219,8 @@ def test_death_episode_review_projects_existing_lifecycle(tmp_path: Path) -> Non
     assert late["until_active_again"] == "0.0s until respawn"
     assert late["recovery_context"] is None
     assert late["gaps"] == []
-    assert not any("map check" in line.lower() for line in late["context"])
+    assert "Map-check evidence was unavailable for this video." in late["context"]
+    assert not any("No map check" in line for line in late["context"])
     assert late["assessment"] == "A note."
 
 
@@ -1121,22 +1279,20 @@ def test_timeline_clusters_nearby_map_checks(tmp_path: Path) -> None:
     first, second = [item.model_dump() for item in load_result(analysis).moments]
 
     assert [(mark["title"], mark["clock"]) for mark in first["marks"]] == [
-        ("Map check", "2:10.0"),
-        ("Map check", "2:32.5"),
-        ("Splat", "2:33.0"),
+        ("Map check", "2:39.5"),
         ("Death", "2:50.0"),
     ]
     assert first["recovery_context"] is None
 
     assert [(mark["title"], mark["clock"]) for mark in second["marks"]] == [
-        ("Map check", "4:30.0"),
+        ("Map check", "4:46.0"),
         ("Map check", "4:58.0"),
         ("Death", "5:00.0"),
         ("Map check", "5:07.0"),
         ("Splat", "5:12.0"),
     ]
     clocks = [mark["clock"] for mark in second["marks"]]
-    for hidden in ("4:38.0", "4:46.0", "5:01.0", "5:03.0", "5:09.0"):
+    for hidden in ("4:30.0", "4:38.0", "5:01.0", "5:03.0", "5:09.0"):
         assert hidden not in clocks
     assert second["recovery_context"] == "The player checked the map during recovery."
 
@@ -1146,15 +1302,60 @@ def test_timeline_clusters_nearby_map_checks(tmp_path: Path) -> None:
     ] == raw
 
 
-def _indexed(safe_id: str, candidate_type: str, video_time: float, rank: int) -> dict:
-    return {
-        "candidate_type": candidate_type,
-        "safe_id": safe_id,
-        "video_time": video_time,
-        "rank": rank,
-        "coaching_json": f"{safe_id}.coaching.json",
-        "coach_input_json": f"{safe_id}.coach_input.json",
+def test_public_context_marks_time_bounded(tmp_path: Path) -> None:
+    """Context marks stay within 15 video seconds; offsets use the duration clock."""
+    analysis = tmp_path / "analysis"
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir(parents=True)
+    entries = [_indexed("replay", "death_episode", 100.0, 1)]
+    (inputs / "coaching_index.json").write_text(json.dumps(entries), encoding="utf-8")
+    _write_episode(inputs, "replay", death={"death_time": 100.0}, factors=[])
+    path = inputs / "replay.coach_input.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["playback_clock"] = {
+        "status": "rate_mismatch",
+        "game_seconds_per_video_second": 1.5,
+        "video_seconds_per_game_second": 1 / 1.5,
+        "rate_spread": 0.0,
+        "reason": "test",
     }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    _write_events(
+        analysis,
+        [
+            ("splat", 70.0),
+            ("map_overlay", 84.9),
+            ("splat", 85.0),
+            ("splat", 92.0),
+            ("death", 100.0),
+            ("splat", 115.0),
+            ("splat", 115.1),
+        ],
+    )
+
+    (moment,) = [item.model_dump() for item in load_result(analysis).moments]
+    marks = moment["marks"]
+    times = [mark["video_time"] for mark in marks]
+    assert times == [85.0, 92.0, 100.0, 115.0]
+    for mark in marks:
+        assert abs(mark["video_time"] - 100.0) <= 15.0
+    context = [mark for mark in marks if not mark["anchor"]]
+    assert [mark["offset_clock"] for mark in context] == ["game"] * 3
+    assert [mark["offset_seconds"] for mark in context] == [22.5, 12.0, 22.5]
+    assert [mark["offset_label"] for mark in context] == [
+        "22s before (game clock)",
+        "12s before (game clock)",
+        "22s after (game clock)",
+    ]
+    for mark in context:
+        assert "led to" not in mark["offset_label"]
+        assert "because" not in mark["offset_label"]
+
+
+def _indexed(safe_id: str, candidate_type: str, video_time: float, rank: int) -> dict:
+    return index_entry(
+        safe_id, candidate_type=candidate_type, video_time=video_time, rank=rank
+    )
 
 
 def _clocked_death() -> dict:
@@ -1187,7 +1388,13 @@ def _write_episode(
     primary: dict = {"death_episode": episode}
     map_fields = {}
     if "map_check_before_death" in death:
-        map_fields["map_check_before_death"] = death["map_check_before_death"]
+        flag = death["map_check_before_death"]
+        map_fields["map_check_before_death"] = flag
+        map_fields["map_check_status"] = {
+            True: "observed",
+            False: "not_observed",
+            None: "unknown",
+        }[flag]
         map_fields["seconds_since_map_check_before_death"] = death.get(
             "seconds_since_map_check"
         )
@@ -1196,7 +1403,9 @@ def _write_episode(
     if map_fields:
         primary["map"] = map_fields
     if special_ready is not None:
-        primary["special"] = {"nearest_before_anchor": {"ready": special_ready}}
+        primary["special"] = {
+            "nearest_before_anchor": {"visible": True, "ready": special_ready}
+        }
     if roster is not None:
         primary["players"] = {
             "at_death": {"ally_alive_count": roster[0], "opponent_alive_count": roster[1]}
@@ -1210,6 +1419,16 @@ def _write_episode(
             _sample("respawn", 76),
             _sample("active_again", 75),
         ],
+        "playback_clock": {
+            "status": "normal",
+            "game_seconds_per_video_second": 1.0,
+            "video_seconds_per_game_second": 1.0,
+            "reason": "test",
+        },
+        "durations": video_durations(
+            death_to_respawn=death.get("death_to_respawn"),
+            death_to_active_again=death.get("death_to_active_again"),
+        ).model_dump(mode="json"),
     }
     (inputs / f"{safe_id}.coach_input.json").write_text(
         json.dumps(payload), encoding="utf-8"
@@ -1251,3 +1470,38 @@ def _write_named_assessment(analysis: Path, safe_id: str, assessment: str) -> No
         encoding="utf-8",
     )
 
+
+
+def test_special_line_keeps_not_observed_distinct_from_not_ready() -> None:
+    from public_site.results import _special_line
+
+    def line(special: dict, active: frozenset[str] = frozenset()) -> str | None:
+        return _special_line({"primary_context": {"special": special}}, set(active))
+
+    ready = {"nearest_before_anchor": {"visible": True, "ready": True}}
+    not_ready = {"nearest_before_anchor": {"visible": True, "ready": False}}
+    hidden = {"nearest_before_anchor": {"visible": False, "ready": False}}
+    assert line(ready, frozenset({"death_special_ready"})) == "Special was ready."
+    assert line(not_ready) == "Special was not ready just before the death."
+    assert line(hidden) == "The special gauge was not visible just before the death."
+    assert line({**hidden, "state_at_anchor": "not_observed"}) == line(hidden)
+    assert line({}) is None
+
+
+def test_special_line_requires_confirmed_ready_and_valid_reading() -> None:
+    from public_site.results import _special_line
+
+    ready = {"nearest_before_anchor": {"visible": True, "ready": True}}
+    single = _special_line({"primary_context": {"special": ready}}, set())
+    assert single == "Special readiness just before the death was not confirmed."
+    invalid = {
+        "state_at_anchor": "ready",
+        "nearest_before_anchor": {
+            "visible": True, "ready": True, "coaching_valid": False,
+        },
+    }
+    confirmed = {"death_special_ready"}
+    assert (
+        _special_line({"primary_context": {"special": invalid}}, confirmed)
+        == "The special gauge was not visible just before the death."
+    )

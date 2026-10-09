@@ -35,6 +35,7 @@ _HASHER = PasswordHasher()
 _VERIFY_HOURS = 24
 _RESET_HOURS = 1
 _SESSION_DAYS = 30
+_SCHEMA_LOCK = 8_273_341_903
 _SCHEMA = (
     """
     CREATE TABLE IF NOT EXISTS users (
@@ -47,6 +48,12 @@ _SCHEMA = (
     )
     """,
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS signup_ip_hash text",
+    """
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'user'
+        CHECK (role IN ('user', 'admin'))
+    """,
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at timestamptz",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at timestamptz",
     "CREATE INDEX IF NOT EXISTS users_signup_ip ON users (signup_ip_hash)",
     """
     CREATE TABLE IF NOT EXISTS sessions (
@@ -99,6 +106,7 @@ class Account:
     email: str
     name: str
     verified: bool
+    role: str = "user"
 
 
 @dataclass(frozen=True)
@@ -119,6 +127,7 @@ class AccountStore:
     def ensure_schema(self) -> None:
         """Create tables when they are missing."""
         with self._conn() as conn:
+            conn.execute("SELECT pg_advisory_xact_lock(%s)", (_SCHEMA_LOCK,))
             for statement in _SCHEMA:
                 conn.execute(statement)
 
@@ -164,10 +173,10 @@ class AccountStore:
             user_id = str(row["user_id"])
             conn.execute(
                 """
-                UPDATE users SET verified_at = %s
+                UPDATE users SET verified_at = %s, last_login_at = %s, last_seen_at = %s
                 WHERE id = %s AND verified_at IS NULL
                 """,
-                (now, user_id),
+                (now, now, now, user_id),
             )
             user = _require_user(conn, user_id)
             return _account(user), _open_session(conn, user_id, now)
@@ -181,6 +190,12 @@ class AccountStore:
             if row["verified_at"] is None:
                 raise RequestRejected(403, UNVERIFIED)
             user_id = str(row["id"])
+            conn.execute(
+                "UPDATE users SET last_login_at = %s, last_seen_at = %s WHERE id = %s",
+                (now, now, user_id),
+            )
+            row["last_login_at"] = now
+            row["last_seen_at"] = now
             return _account(row), _open_session(conn, user_id, now)
 
     def request_reset(self, email: str, now: datetime) -> str | None:
@@ -226,16 +241,37 @@ class AccountStore:
         with self._conn() as conn:
             row = conn.execute(
                 """
-                SELECT users.id, users.email, users.name, users.verified_at
+                SELECT users.id, users.email, users.name, users.verified_at,
+                       users.role, users.last_seen_at
                 FROM sessions
                 JOIN users ON users.id = sessions.user_id
                 WHERE sessions.token_hash = %s AND sessions.expires_at > %s
                 """,
                 (hash_token(token), now),
             ).fetchone()
-        if row is None:
-            return None
+            if row is None:
+                return None
+            seen = row["last_seen_at"]
+            if seen is None or seen <= now - timedelta(minutes=5):
+                conn.execute(
+                    "UPDATE users SET last_seen_at = %s WHERE id = %s",
+                    (now, row["id"]),
+                )
         return _account(row)
+
+    def set_role(self, email: str, role: str) -> tuple[str, str, str]:
+        """Set an account role and return user id, prior role, and new role."""
+        if role not in {"user", "admin"}:
+            raise ValueError("role must be user or admin")
+        with self._conn() as conn:
+            row = _user_by_email(conn, account_email(email))
+            if row is None:
+                raise ValueError("account not found")
+            if row["verified_at"] is None:
+                raise ValueError("account is not verified")
+            before = str(row.get("role") or "user")
+            conn.execute("UPDATE users SET role = %s WHERE id = %s", (role, row["id"]))
+        return str(row["id"]), before, role
 
     def logout(self, token: str) -> None:
         """Drop one session. An unknown token is ignored."""
@@ -471,6 +507,7 @@ def _account(row: dict) -> Account:
         email=row["email"],
         name=row["name"],
         verified=row["verified_at"] is not None,
+        role=str(row.get("role") or "user"),
     )
 
 

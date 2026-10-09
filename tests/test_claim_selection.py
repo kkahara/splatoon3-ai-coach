@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from coach_artifact_helpers import map_ctx, video_durations
 
 from splatoon3_ai_coach.analysis.scenario_context import (
     DeathEpisodeContext,
-    MapContext,
     ScenarioContext,
     ScenarioRelations,
     TimelineContext,
@@ -117,7 +117,7 @@ def _death_unit(
             duration=8.0,
             time_since_previous_death=prev_death_gap,
         ),
-        map=MapContext(map_check_before_death=map_before),
+        map=map_ctx(map_before),
         death_episode=DeathEpisodeContext(
             death_time=start,
             complete=True,
@@ -131,6 +131,7 @@ def _death_unit(
         primary_scenario=scenario,
         primary_context=context,
         game_clock_samples=samples,
+        durations=video_durations(time_since_previous_death=prev_death_gap),
     )
 
 
@@ -190,10 +191,10 @@ def test_redeath_and_clock_factors() -> None:
         match_duration_seconds=300,
     )
     active = _active_ids(unit)
-    assert ClaimId.DEATH_REDEATH_LE_10S.value in active
+    assert ClaimId.DEATH_QUICK_REDEATH.value in active
     assert ClaimId.DEATH_FINAL_30S.value in active
     redeath = next(
-        f for f in unit.factors if f.factor_id == ClaimId.DEATH_REDEATH_LE_10S.value
+        f for f in unit.factors if f.factor_id == ClaimId.DEATH_QUICK_REDEATH.value
     )
     assert "8.0 seconds" in (redeath.statement_player or "")
     assert unit.importance_score == pytest.approx(3.0 + 1.0)
@@ -213,13 +214,15 @@ def test_first_30s_requires_match_duration() -> None:
 
 
 def test_map_false_factor_when_observable_false() -> None:
+    """A coverage-gated not_observed map check ranks on its own (claim audit P1)."""
     unit = score_death_candidate(_death_unit(map_before=False))
     assert ClaimId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value in _active_ids(unit)
-    assert unit.importance_score == pytest.approx(0.0)
-    ranked = score_death_candidate(
-        _death_unit(map_before=False), ranking_excluded_factors=()
+    assert unit.importance_score == pytest.approx(1.5)
+    excluded = score_death_candidate(
+        _death_unit(map_before=False),
+        ranking_excluded_factors=(ClaimId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value,),
     )
-    assert ranked.importance_score == pytest.approx(1.5)
+    assert excluded.importance_score == pytest.approx(0.0)
 
 
 def test_zero_score_still_a_candidate() -> None:

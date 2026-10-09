@@ -28,6 +28,13 @@ from splatoon3_ai_coach.analysis.low_ink_context import (
     LowInkEvidence,
     build_low_ink_evidence,
 )
+from splatoon3_ai_coach.analysis.map_coverage import (
+    EpisodeMapObservability,
+    MapCheckStatus,
+    MapOverlayCoverage,
+    MapUnknownReason,
+    match_map_coverage,
+)
 from splatoon3_ai_coach.analysis.map_overlay_context import map_context as _map_context
 from splatoon3_ai_coach.analysis.player_count_series import NumbersState
 from splatoon3_ai_coach.analysis.scenario_evidence import (
@@ -73,7 +80,10 @@ class MapContext(BaseModel):
     """MAP_OVERLAY relationships. Counts are facts, not usage quality.
 
     ``ink`` is sparse map-observation evidence and never sets overlay
-    ``map_check_*`` fields.
+    ``map_check_*`` fields. ``map_check_status`` is the authoritative
+    observed / not_observed / unknown reading of ``map_check_before_death``
+    under rule ``respawn_map_coverage``; ``map_check_before_death`` is
+    ``False`` only when the status is ``not_observed``.
     """
 
     map_check_count: int = 0
@@ -86,6 +96,10 @@ class MapContext(BaseModel):
     last_map_before_death_event_id: str | None = None
     map_event_ids_during_episode: list[str] | None = None
     in_death_episode: bool | None = None
+    map_check_status: MapCheckStatus | None = None
+    map_check_unknown_reason: MapUnknownReason | None = None
+    map_coverage: MapOverlayCoverage | None = None
+    episode_map_observability: EpisodeMapObservability | None = None
     ink: MapInkEvidence | None = None
 
 
@@ -125,6 +139,12 @@ class DeathEpisodeContext(BaseModel):
     has_active_again: bool = False
     complete: bool = False
     respawn_reason: str | None = None
+    # How the episode interval closed (``active_again`` / ``next_death`` /
+    # ``last_member`` / ``max_duration`` / ``match_end``). ``match_end`` is a
+    # terminal end while still dead — never a respawn.
+    end_reason: str | None = None
+    match_end_time: float | None = None
+    death_to_match_end: float | None = None
     # Level 2 convenience facts (death episodes only).
     is_first_death: bool | None = None
     time_since_previous_splat: float | None = None
@@ -185,13 +205,26 @@ def build_scenario_context(
     evidence: ScenarioEvidencePack | None = None,
     *,
     map_overlay_observability: Observability = Observability.OBSERVABLE,
+    map_coverage: MapOverlayCoverage | None = None,
 ) -> ScenarioContext:
     """Measure facts for one scenario (relations filled by the batch builder)."""
     ordered = _ordered(events)
     timeline = _timeline(ordered, scenario)
     death_episode = _death_episode_context(ordered, scenario)
+    if map_coverage is None:
+        map_coverage = match_map_coverage(
+            ordered,
+            source_observability=map_overlay_observability,
+            config=config.map_coverage,
+        )
     map_ctx = _map_context(
-        ordered, scenario, map_overlay_observability=map_overlay_observability
+        ordered,
+        scenario,
+        map_overlay_observability=map_overlay_observability,
+        match_coverage=map_coverage,
+        samples=evidence.map_overlay_samples if evidence is not None else None,
+        cadence_times=evidence.cadence_times if evidence is not None else None,
+        coverage_config=config.map_coverage,
     )
     players = None
     special = None
@@ -225,6 +258,8 @@ def build_scenario_context(
             anchor=anchor,
             death_time=episode_death,
             max_gap_seconds=max_gap,
+            min_respawn_seconds=config.roster_plausibility.min_respawn_seconds,
+            plausibility_window_seconds=config.roster_plausibility.window_seconds,
         )
         score = build_score_evidence(
             snapshots,
@@ -250,6 +285,8 @@ def build_scenario_context(
             window_end=window_end,
             anchor=anchor,
             max_gap_seconds=max_gap,
+            snapshots=snapshots,
+            ring_fill_threshold=evidence.special_ring_fill_threshold,
         )
     if death_episode is not None:
         death_episode = _enrich_death_episode_level2(
@@ -284,6 +321,11 @@ def build_scenario_contexts(
     map_overlay_observability: Observability = Observability.OBSERVABLE,
 ) -> list[ScenarioContext]:
     """Build contexts then attach semantic engagement↔death-episode relations."""
+    coverage = match_map_coverage(
+        events,
+        source_observability=map_overlay_observability,
+        config=config.map_coverage,
+    )
     contexts = [
         build_scenario_context(
             events,
@@ -291,6 +333,7 @@ def build_scenario_contexts(
             config,
             evidence=evidence,
             map_overlay_observability=map_overlay_observability,
+            map_coverage=coverage,
         )
         for scenario in scenarios
     ]

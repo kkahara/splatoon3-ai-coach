@@ -52,7 +52,16 @@ def death_episode_context(events: list[GameEvent], scenario: Scenario):
         else (active.start_time if active is not None else None)
     )
     awaiting_start = death.start_time
+    end_reason = scenario.context.get("end_reason")
+    match_end = (
+        scenario.context.get("match_end_time") if end_reason == "match_end" else None
+    )
     return DeathEpisodeContext(
+        end_reason=end_reason,
+        match_end_time=match_end,
+        death_to_match_end=(
+            float(match_end) - death.start_time if match_end is not None else None
+        ),
         death_time=death.start_time,
         respawn_time=respawn.start_time if respawn is not None else None,
         active_again_time=active.start_time if active is not None else None,
@@ -154,7 +163,7 @@ def roster_facts_at_death(
     lookback_seconds: float,
 ) -> tuple[NumbersState | None, bool | None, float | None]:
     """Numbers state + roster-change facts from players evidence only."""
-    if players is None:
+    if players is None or players.unreliable_at(death_time):
         return None, None, None
     numbers = None
     if players.at_death is not None:

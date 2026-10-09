@@ -131,8 +131,31 @@ def build_transitions(
                     ),
                 )
             )
+        elif et == "match_end":
+            transitions.append(_match_end_transition(event, ts, observations))
     transitions.sort(key=lambda t: t.timestamp)
     return transitions
+
+
+def _match_end_transition(
+    event: dict[str, Any], ts: float, observations: list[ObservationView]
+) -> TransitionExplanation:
+    """MATCH_END marker: the analysis domain ends here (no later gameplay events)."""
+    reason = str(event.get("reason") or "unknown")
+    return TransitionExplanation(
+        id=f"event:match_end:{ts}",
+        timestamp=ts,
+        event_type="match_end",
+        title="MATCH END",
+        checks=[EvidenceCheck(ok=True, label=f"reason: {reason}")],
+        meaning=(
+            "Game clock reached 0:00 and stayed gone."
+            if reason == "clock_zero"
+            else "Timer HUD gone for good (opt-in hud_loss fallback)."
+        )
+        + " No gameplay events or coaching evidence after this point.",
+        observation_id=_nearest(observations, ts, detector="timer", positive_only=False),
+    )
 
 
 def build_lifecycle_marks(

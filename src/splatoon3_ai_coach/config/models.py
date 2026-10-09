@@ -2,6 +2,7 @@
 
 from enum import StrEnum
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -499,6 +500,27 @@ class LifecycleFusionConfig(BaseModel):
     opening_clock_seconds: tuple[int, ...] = (180, 300)
 
 
+class MatchEndConfig(BaseModel):
+    """Offline MATCH_END decision from raw timer readings.
+
+    ``clock_zero``: the first usable 0:00 reading, accepted only when the
+    previous usable reading was at most ``zero_max_previous_seconds`` and no
+    usable timer reading follows more than ``zero_tail_seconds`` later (a
+    clock still showing means overtime or a misread). Otherwise, only when
+    ``hud_loss_fallback`` is on, ``hud_loss``: the last usable timer reading
+    followed by more than ``lifecycle.match_context_hold_seconds`` without one.
+
+    ``hud_loss_fallback`` is off by default: in overtime the OVERTIME banner
+    replaces the digits (1 → no reading, never 0:00) while gameplay continues
+    for tens of seconds, so timer loss alone would cut real overtime play.
+    """
+
+    enabled: bool = True
+    zero_max_previous_seconds: float = Field(default=5.0, ge=0)
+    zero_tail_seconds: float = Field(default=2.0, ge=0)
+    hud_loss_fallback: bool = False
+
+
 class TimerDetectorConfig(BaseModel):
     """Settings for calibrated timer template matching."""
 
@@ -593,6 +615,13 @@ class ReviewTimelineConfig(BaseModel):
     """Configuration for local Review timeline screenshot ingestion."""
 
     regulation_seconds: int = Field(default=300, ge=0)
+    # Largest plausible "+M:SS" overtime and "-M:SS" pre-GO labels; larger
+    # magnitudes are reader errors and never become per-second evidence.
+    max_overtime_seconds: int = Field(default=300, ge=0)
+    max_countdown_seconds: int = Field(default=10, ge=0)
+    # Experimental factor: also fit the match-history axis on "+M:SS" overtime
+    # labels. Off is the frozen baseline.
+    axis_include_overtime: bool = False
     graph_roi: NormalizedBox = (0.07, 0.28, 0.91, 0.62)
     event_lane_roi: NormalizedBox = (0.07, 0.70, 0.91, 0.88)
     scrub_bar_roi: NormalizedBox = (0.07, 0.89, 0.91, 0.93)
@@ -603,15 +632,71 @@ class ReviewTimelineConfig(BaseModel):
     roster_top_band: tuple[float, float] = (0.222, 0.282)
     roster_bottom_band: tuple[float, float] = (0.62, 0.68)
     roster_row_width_fraction: float = Field(default=0.121, gt=0, le=1)
+    # roster_refine_*: offset search that only gates roster visibility;
+    # slots always stay on the cursor-centered grid.
+    roster_refine_slot_radius: float = Field(default=1.0, ge=0, le=1)
+    roster_refine_steps: int = Field(default=9, ge=3, le=21)
+    roster_refine_min_edge_energy: float = Field(default=0.02, ge=0, le=1)
+    roster_refine_min_margin: float = Field(default=0.001, ge=0, le=1)
+    axis_min_points: int = Field(default=3, ge=2)
+    axis_max_mean_error_seconds: float = Field(default=2.0, ge=0)
+    axis_max_error_seconds: float = Field(default=5.0, ge=0)
+    # Fraction of clocked samples that must survive misread trimming.
+    axis_min_inlier_fraction: float = Field(default=0.6, ge=0, le=1)
+    lane_subrow_count: int = Field(default=8, ge=8, le=8)
+    special_template_dir: Path | None = Path("../calibration/templates/review/specials")
+    # Icon-row centers, normalized within event_lane_roi height, ordered
+    # top_1..top_4 then bottom_4..bottom_1.
+    event_lane_row_centers: tuple[
+        float, float, float, float, float, float, float, float
+    ] = (0.144, 0.247, 0.351, 0.454, 0.552, 0.660, 0.758, 0.856)
+    # Largest vertical offset of an icon center from its row center,
+    # normalized within event_lane_roi height.
+    event_lane_row_half_height: float = Field(default=0.025, ge=0, le=0.1)
+    event_glyph_representation: Literal["whiteness", "grayscale", "hsv_value"] = (
+        "grayscale"
+    )
+    # Multipliers on the 1080p template size (templates are 1080p captures).
+    special_template_scales: tuple[float, ...] = (1.0,)
+    special_discovery_floor: float = Field(default=0.45, ge=0, le=1)
+    # Grayscale std a candidate window needs; flat lane scores are arbitrary.
+    event_glyph_min_std: float = Field(default=0.04, ge=0, le=1)
+    special_match_floor: float = Field(default=0.5, ge=0, le=1)
+    special_match_margin: float = Field(default=0.15, ge=0, le=1)
+    death_match_floor: float = Field(default=0.6, ge=0, le=1)
+    death_match_margin: float = Field(default=0.05, ge=0, le=1)
+    # Neighbour-row echo suppression never removes a candidate that passes the
+    # death acceptance rule on its own (stacked same-x deaths are real glyphs).
+    event_echo_keep_accepted_deaths: bool = True
+    # Half width of the cursor exclusion band, normalized to frame width.
+    cursor_exclusion_half_width: float = Field(default=0.004, ge=0, le=0.05)
+    event_timestamp_anchor: Literal["center", "left", "right"] = "center"
+    special_deduplication_tolerance: float = Field(default=0.006, ge=0, le=1)
+    band_hue_tolerance: float = Field(default=18.0, ge=0, le=90)
+    band_color_saturation_min: int = Field(default=70, ge=0, le=255)
+    band_color_value_min: int = Field(default=40, ge=0, le=255)
+    band_neutral_saturation_max: int = Field(default=45, ge=0, le=255)
+    band_neutral_value_min: int = Field(default=20, ge=0, le=255)
+    band_neutral_value_max: int = Field(default=125, ge=0, le=255)
+    band_score_floor: float = Field(default=0.08, ge=0, le=1)
+    band_score_margin: float = Field(default=0.03, ge=0, le=1)
+    band_cursor_mask_fraction: float = Field(default=0.012, ge=0, le=0.1)
+    band_unknown_bridge_columns: int = Field(default=3, ge=0)
+    team_color_min_margin: float = Field(default=12.0, ge=0, le=90)
     video: "ReviewTimelineVideoConfig" = Field(
         default_factory=lambda: ReviewTimelineVideoConfig()
     )
 
 
 class ReviewTimelineVideoConfig(BaseModel):
-    """Settings for adapting a timeline-focused video into screenshots."""
+    """Settings for adapting a timeline-focused video into screenshots.
 
-    sample_interval_seconds: float = Field(default=0.5, gt=0)
+    ``sample_interval_seconds`` of 0 processes every decoded frame. Bucketing
+    by game-clock second happens after the clock is read.
+    """
+
+    sample_interval_seconds: float = Field(default=0, ge=0)
+    frames_per_second_bucket: int = Field(default=1, ge=1)
     layout_confidence_floor: float = Field(default=0.55, ge=0, le=1)
     structure_confidence_floor: float = Field(default=0.6, ge=0, le=1)
     clock_confidence_floor: float = Field(default=0.55, ge=0, le=1)
@@ -677,6 +762,7 @@ class VisionConfig(BaseModel):
     state_fusion: StateFusionConfig = Field(default_factory=StateFusionConfig)
     lifecycle: LifecycleFusionConfig = Field(default_factory=LifecycleFusionConfig)
     events: EventFusionConfig = Field(default_factory=EventFusionConfig)
+    match_end: MatchEndConfig = Field(default_factory=MatchEndConfig)
 
     def tesseract_lang(self) -> str:
         """Return the OCR language pack for the active vision language."""
@@ -686,8 +772,60 @@ class VisionConfig(BaseModel):
         return self.ocr.tesseract_languages.get(VisionLanguage.EN.value, "eng")
 
 
+class MapCoverageConfig(BaseModel):
+    """When a missing MAP_OVERLAY before a death may be read as a negative.
+
+    Rule ``respawn_map_coverage``: the live respawn screen shows the map, so a
+    working detector sees overlays during completed respawns. Match coverage
+    plus per-episode observability must both hold.
+    """
+
+    min_completed_respawns: int = Field(default=1, ge=1)
+    min_respawn_overlay_fraction: float = Field(default=0.5, ge=0, le=1)
+    min_pre_death_frame_fraction: float = Field(
+        default=0.8,
+        ge=0,
+        le=1,
+        description=(
+            "Share of cadence frames between the previous active-again (or the "
+            "first frame) and the death carrying a usable map_overlay reading."
+        ),
+    )
+    max_pre_death_gap_seconds: float = Field(
+        default=2.0,
+        gt=0,
+        description="Largest allowed gap between usable pre-death map readings.",
+    )
+    require_own_respawn_overlay: bool = True
+
+
+class RosterPlausibilityConfig(BaseModel):
+    """Semantic validity of fused roster counts (independent of confidence)."""
+
+    min_respawn_seconds: float = Field(
+        default=3.0,
+        gt=0,
+        description=(
+            "Video seconds a roster X must persist before an alive count may "
+            "rise again. Conservative so it holds under fast playback."
+        ),
+    )
+    window_seconds: float | None = Field(
+        default=None,
+        description=(
+            "Half-width of the unreliable interval around an implausible rise; "
+            "defaults to min_respawn_seconds."
+        ),
+    )
+
+
 class ScenarioBuilderConfig(BaseModel):
     """Windows for grouping GameEvents into scenarios. Not detector debounce."""
+
+    map_coverage: MapCoverageConfig = Field(default_factory=MapCoverageConfig)
+    roster_plausibility: RosterPlausibilityConfig = Field(
+        default_factory=RosterPlausibilityConfig
+    )
 
     post_death_follow_seconds: float = Field(default=8.0, ge=0)
     post_death_max_seconds: float = Field(default=30.0, gt=0)
@@ -738,7 +876,7 @@ class DeathFactorThresholds(BaseModel):
         default=20.0,
         ge=0,
         description=(
-            "Death-to-death gap for death_redeath_le_10s. The respawn cycle "
+            "Death-to-death gap for death_quick_redeath. The respawn cycle "
             "takes ~10s, so the ID's 10s could never be met."
         ),
     )
@@ -771,6 +909,14 @@ class DeathFactorThresholds(BaseModel):
             "remaining counts between the teams in the pre-death sample."
         ),
     )
+    own_splat_max_gap_seconds: float = Field(
+        default=5.0,
+        ge=0,
+        description=(
+            "death_own_splat_before: the player's own splat (local kill banner) "
+            "at most this many video seconds before the death. Association only."
+        ),
+    )
     special_ready_min_readings: int = Field(
         default=2,
         ge=1,
@@ -779,6 +925,43 @@ class DeathFactorThresholds(BaseModel):
             "readings ending at or before the death."
         ),
     )
+
+
+class PlaybackClockConfig(BaseModel):
+    """Video-time vs game-clock rate classification (coach layer only)."""
+
+    tolerance: float = Field(
+        default=0.10,
+        ge=0,
+        description="|game_seconds_per_video_second - 1| above this is a mismatch.",
+    )
+    min_observations: int = Field(default=10, ge=2)
+    min_span_video_seconds: float = Field(default=15.0, gt=0)
+    min_pair_span_seconds: float = Field(
+        default=8.0,
+        gt=0,
+        description="Observation pairs closer than this are not used for slopes.",
+    )
+    frozen_run_seconds: float = Field(
+        default=2.5,
+        gt=0,
+        description=(
+            "A timer value held longer than this (opening 5:00, overtime 0:00, "
+            "pauses) is a frozen run and excluded from rate estimation."
+        ),
+    )
+
+
+# Renamed death-importance factor IDs (old -> current). Old configs, persisted
+# coaching units and saved model outputs may still carry the old IDs.
+LEGACY_DEATH_FACTOR_IDS: dict[str, str] = {
+    "death_redeath_le_10s": "death_quick_redeath",
+}
+
+
+def canonical_factor_id(factor_id: str) -> str:
+    """Current ID for a possibly renamed death-importance factor."""
+    return LEGACY_DEATH_FACTOR_IDS.get(factor_id, factor_id)
 
 
 class CoachConfig(BaseModel):
@@ -803,17 +986,23 @@ class CoachConfig(BaseModel):
     nvidia_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
     cursor_model: str = "gpt-5.6-luna"
     max_llm_units: int = Field(default=3, ge=0)
+    roster_evidence: bool = Field(
+        default=False,
+        description=(
+            "Capability boundary for roster (ally/opponent alive) evidence in "
+            "coaching. False: no roster factors, view block, public lines, "
+            "prompt guidance or claims, and roster assertions are rejected. "
+            "Enable only after roster reliability has been demonstrated."
+        ),
+    )
     # Only candidates scoring above zero may fill the top N; otherwise ties
     # among zero-score deaths are settled by video time alone.
     llm_units_require_positive_score: bool = True
     # Factors that add their weight only when another factor is active, so
     # they never make a death eligible on their own.
-    death_modifier_factors: list[str] = Field(
-        default_factory=lambda: ["death_final_30s", "death_first_30s"]
-    )
+    death_modifier_factors: list[str] = Field(default_factory=lambda: ["death_first_30s"])
     death_ranking_excluded_factors: list[str] = Field(
         default_factory=lambda: [
-            "death_map_overlay_before_false",
             "death_special_ready",
             "death_while_behind_in_count",
             "death_while_ahead_in_count",
@@ -826,8 +1015,9 @@ class CoachConfig(BaseModel):
     )
     death_importance_weights: dict[str, float] = Field(
         default_factory=lambda: {
-            "death_redeath_le_10s": 3.0,
+            "death_quick_redeath": 3.0,
             "death_while_outnumbered": 2.5,
+            "death_own_splat_before": 2.0,
             "death_special_ready": 2.0,
             "death_map_overlay_before_false": 1.5,
             "death_while_ahead_in_numbers": 1.5,
@@ -839,6 +1029,16 @@ class CoachConfig(BaseModel):
         default_factory=DeathFactorThresholds
     )
     game_clock_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
+    playback_clock: PlaybackClockConfig = Field(default_factory=PlaybackClockConfig)
+    llm_temperature: float | None = Field(
+        default=0.0,
+        ge=0,
+        description="Requested sampling temperature; recorded with support status.",
+    )
+    llm_seed: int | None = Field(
+        default=0,
+        description="Requested seed; only sent to providers that accept one.",
+    )
     player_count_max_lookup_gap_seconds: float = Field(default=1.0, ge=0)
     player_count_window_offsets_seconds: list[float] = Field(
         default_factory=lambda: [-5.0, -2.0, 0.0, 3.0, 6.0]
@@ -852,9 +1052,15 @@ class CoachConfig(BaseModel):
         ),
     )
 
+    @field_validator("death_modifier_factors", "death_ranking_excluded_factors")
+    @classmethod
+    def _canonical_factor_list(cls, value: list[str]) -> list[str]:
+        return [canonical_factor_id(item) for item in value]
+
     @field_validator("death_importance_weights")
     @classmethod
     def _weights_not_negative(cls, value: dict[str, float]) -> dict[str, float]:
+        value = {canonical_factor_id(k): weight for k, weight in value.items()}
         negative = sorted(k for k, weight in value.items() if float(weight) < 0)
         if negative:
             raise ValueError(f"death_importance_weights must not be negative: {negative}")

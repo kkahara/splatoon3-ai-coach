@@ -10,12 +10,20 @@ from typer.testing import CliRunner
 
 from splatoon3_ai_coach.cli import app
 from splatoon3_ai_coach.cli.coach_common import (
-    COACH_INPUTS_META_FILENAME,
-    COACHING_INDEX_FILENAME,
     default_coach_inputs_dir,
     resolve_coach_inputs_dir,
+)
+from splatoon3_ai_coach.coach.artifacts import (
+    COACH_EVIDENCE_VERSION,
+    COACH_INPUTS_META_FILENAME,
+    COACHING_INDEX_FILENAME,
+    COACHING_INDEX_SCHEMA_VERSION,
+    PROTOTYPE_INDEX_SCHEMA_VERSION,
+    primary_assessment,
+    read_prototype_index,
     write_json,
 )
+from splatoon3_ai_coach.coach.llm_client import LLMProvider, sha256_text
 
 runner = CliRunner()
 
@@ -105,7 +113,7 @@ def test_coach_prototype_claims_only_loads_saved_inputs(tmp_path: Path) -> None:
     write_json(inputs / f"{safe_id}.llm_view.json", llm_view)
     write_json(
         inputs / COACHING_INDEX_FILENAME,
-        [
+        _current_index([
             {
                 "scenario_id": scenario_id,
                 "candidate_id": scenario_id,
@@ -122,7 +130,7 @@ def test_coach_prototype_claims_only_loads_saved_inputs(tmp_path: Path) -> None:
                 "vmv_player": f"{safe_id}.vmv.player.txt",
                 "vmv_dev": f"{safe_id}.vmv.dev.txt",
             }
-        ],
+        ]),
     )
     write_json(
         inputs / COACH_INPUTS_META_FILENAME,
@@ -229,8 +237,43 @@ def test_call_llm_invokes_selected_units_only(tmp_path: Path, monkeypatch) -> No
     assert "not selected for LLM verbalization" in skipped["assessment"]
     assert not (out / f"{unselected}.user_prompt.txt").exists()
 
+    index = read_prototype_index(out)
+    assert index is not None
+    assert index.schema_version == PROTOTYPE_INDEX_SCHEMA_VERSION
+    assert index.primary_model == "fake-model"
+    chosen = index.by_safe_id(selected)
+    assert chosen.primary_output_json == f"{selected}.fake-model.output.json"
+    assert chosen.user_prompt_txt == f"{selected}.user_prompt.txt"
+    assert [o.skipped_llm for o in chosen.outputs] == [False]
+    assert index.by_safe_id(unselected).outputs[0].skipped_llm is True
+    assert index.by_safe_id(unselected).outputs[0].provenance is None
+    assert primary_assessment(out, selected).assessment == "called"
 
-class _RecordingProvider:
+    provenance = chosen.outputs[0].provenance
+    assert provenance is not None
+    assert provenance.determinism == "best_effort"
+    assert provenance.input_hashes == {
+        "system_prompt_sha256": sha256_text(system_prompt),
+        "user_prompt_sha256": sha256_text(user_prompt),
+    }
+    view_bytes = (out / f"{selected}.llm_view.json").read_bytes()
+    import hashlib
+
+    assert provenance.llm_view_sha256 == hashlib.sha256(view_bytes).hexdigest()
+    assert provenance.executed_at
+
+
+def _current_index(entries: list[dict]) -> dict:
+    """Coaching index as coach-inputs writes it today (versioned, analysis-bound)."""
+    return {
+        "schema_version": COACHING_INDEX_SCHEMA_VERSION,
+        "evidence_version": COACH_EVIDENCE_VERSION,
+        "analysis_id": "test-analysis",
+        "entries": entries,
+    }
+
+
+class _RecordingProvider(LLMProvider):
     """Stand-in LlmRun whose complete() records the exact prompt bytes."""
 
     label = "fake-model"
@@ -262,7 +305,9 @@ def _two_unit_inputs(tmp_path: Path) -> tuple[Path, Path, str, str]:
     unselected = _write_saved_unit(inputs, "death_episode:40.000", rank=4, selected=False)
     write_json(
         inputs / COACHING_INDEX_FILENAME,
-        [_index_entry(selected, 1, True), _index_entry(unselected, 4, False)],
+        _current_index(
+            [_index_entry(selected, 1, True), _index_entry(unselected, 4, False)]
+        ),
     )
     write_json(
         inputs / COACH_INPUTS_META_FILENAME,

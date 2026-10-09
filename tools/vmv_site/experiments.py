@@ -80,7 +80,7 @@ def execute_experiment(
     if not isinstance(view_payload, dict):
         raise FileNotFoundError("run coach-inputs first")
     view = CoachLlmView.model_validate(view_payload)
-    system_prompt = load_system_prompt()
+    system_prompt = load_system_prompt(roster_evidence=view.roster_evidence)
     user_prompt = serialize_llm_view_user_prompt(view)
     raw = complete(system_prompt, user_prompt)
     result, parse_error = _parse(raw)

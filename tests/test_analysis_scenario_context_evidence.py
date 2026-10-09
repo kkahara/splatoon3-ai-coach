@@ -139,7 +139,7 @@ def test_death_episode_enrichment() -> None:
         ],
         special_readings=[
             _special(63.0, ready=False, fill=0.5),
-            _special(64.0, ready=True, fill=0.7),
+            _special(64.0, ready=True, fill=0.9),
             _special(69.0, ready=True, fill=0.81),
             _special(70.0, ready=True, fill=0.8),
         ],
@@ -461,7 +461,8 @@ def test_missing_map_observations_and_empty_secondary_evidence(
     death_ctx = next(c for c in contexts if "death_episode" in c["scenario_id"])
     # Overlay facts unchanged / absent ink; no fabricated players/special
     if death_ctx.get("map") is not None:
-        assert death_ctx["map"].get("map_check_before_death") is False
+        assert death_ctx["map"].get("map_check_before_death") is None
+        assert death_ctx["map"].get("map_check_status") == "unknown"
         assert death_ctx["map"].get("ink") is None
     assert death_ctx.get("players") is None
     assert death_ctx.get("special") is None
@@ -554,7 +555,8 @@ def test_ink_does_not_affect_overlay_map_check() -> None:
     pack = ScenarioEvidencePack(map_observations=[_ink(68.0, 0.6, 0.4)])
     ctx = build_scenario_context(events, scenario, _cfg(), evidence=pack)
     assert ctx.map is not None
-    assert ctx.map.map_check_before_death is False
+    assert ctx.map.map_check_before_death is None
+    assert ctx.map.map_check_status == "unknown"
     assert ctx.map.map_checks_during_scenario == 0
     assert ctx.map.ink is not None
     assert len(ctx.map.ink.observations) == 1

@@ -17,7 +17,7 @@ def _snapshot(
         timestamp=t,
         zone_control_state=state,
         zone_control_quality=quality,
-        evidence_ids=[f"analysis:result:{t}:zone_control:read"],
+        evidence_ids=[f"analysis:result:{t}:zone_control:zone_control@test:h"],
     )
 
 
@@ -42,7 +42,9 @@ def test_sparse_samples_and_transitions_preserve_provenance() -> None:
     assert len(evidence.transitions) == 2
     assert evidence.transitions[0].to_state == "neutral"
     assert evidence.transitions[1].to_state == "opponent_control"
-    assert evidence.at_anchor.evidence_ids == ["analysis:result:10.0:zone_control:read"]
+    assert evidence.at_anchor.evidence_ids == [
+        "analysis:result:10.0:zone_control:zone_control@test:h"
+    ]
 
 
 def test_held_keeps_prior_state_for_a_later_confirmed_transition() -> None:
@@ -67,7 +69,7 @@ def test_held_keeps_prior_state_for_a_later_confirmed_transition() -> None:
         ("ally_control", "opponent_control", 2.0)
     ]
     assert evidence.transitions[0].evidence_ids == [
-        "analysis:result:2.0:zone_control:read"
+        "analysis:result:2.0:zone_control:zone_control@test:h"
     ]
 
 

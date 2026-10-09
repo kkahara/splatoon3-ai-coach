@@ -20,6 +20,7 @@ from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
 from public_site.storage import LocalStorage, R2Storage
 from public_site.store import PublicStore
+from public_site.telemetry import TelemetryStore
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
 from public_site.worker import Command, PublicWorker, subprocess_run
@@ -37,7 +38,8 @@ class CreateBody(BaseModel):
     filename: str = Field(min_length=1, max_length=200)
     size_bytes: int = Field(ge=1)
     content_type: str
-    language: Literal["en", "ja"] = "en"
+    # Game display language (selects HUD templates); never defaulted from site locale.
+    language: Literal["en", "ja"]
     email: str | None = None
     notify: bool = False
     display_name: str | None = None
@@ -99,6 +101,7 @@ def create_app(
     start_worker: bool = True,
     accounts: AccountStore | None = None,
     translator: Translator | None = None,
+    telemetry: TelemetryStore | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
@@ -108,6 +111,9 @@ def create_app(
     if accounts is None and settings.database_url:
         accounts = AccountStore(settings.database_url)
         accounts.ensure_schema()
+    if telemetry is None and settings.database_url:
+        telemetry = TelemetryStore(settings.database_url)
+        telemetry.ensure_schema()
     if translator is None:
         translator = build_translator(settings.config_path, settings.llm_provider)
     service = SubmissionService(
@@ -118,6 +124,7 @@ def create_app(
         probe=probe,
         accounts=accounts,
         translator=translator,
+        telemetry=telemetry,
     )
     if verifier is None:
         verifier = build_verifier(settings)
@@ -134,7 +141,18 @@ def create_app(
     app.state.service = service
     app.state.worker = worker
     app.state.accounts = accounts
+    app.state.telemetry = telemetry
     _routes(app, settings, service, storage, verifier, worker, accounts, notices)
+    from public_site.admin import register_admin_routes
+
+    register_admin_routes(
+        app,
+        settings=settings,
+        accounts=accounts,
+        telemetry=telemetry,
+        store=store,
+        require_admin=_required_admin,
+    )
     _mount_ui(app, settings, service)
     return app
 
@@ -325,7 +343,7 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
     @app.get("/api/me")
     def get_me(request: Request) -> dict:
         user = _required_user(request, accounts)
-        return {"name": user.name, "email": user.email}
+        return {"name": user.name, "email": user.email, "role": user.role}
 
     @app.get("/api/me/submissions")
     def get_mine(request: Request) -> list[dict]:
@@ -390,6 +408,14 @@ def _required_user(request: Request, accounts: AccountStore | None) -> Account:
     return user
 
 
+def _required_admin(request: Request, accounts: AccountStore | None) -> Account:
+    """Require an authenticated administrator on the server."""
+    user = _required_user(request, accounts)
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="not authorized")
+    return user
+
+
 def _current_user(request: Request, accounts: AccountStore | None) -> Account | None:
     if accounts is None:
         return None
@@ -439,6 +465,7 @@ def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> 
                 status=submission.status,
                 step=submission.step,
                 display_name=submission.display_name,
+                outcome=submission.outcome,
             ).model_dump()
         )
     return items

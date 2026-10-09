@@ -80,6 +80,41 @@ Ownership rules:
 - `LOW_INK` is owned by **no** scenario. It reaches `ScenarioContext.low_ink`
   only when its interval overlaps the scenario interval (closed intervals,
   no proximity window) — see `analysis/low_ink_context.py`.
+- `MATCH_END` is owned by **no** scenario. It bounds every scenario interval
+  (documented exception to the interval freeze; grouping and `event_ids` are
+  unchanged). See **Match end** below.
+
+### Match end (`MATCH_END`)
+
+- Deterministic `GameEvent` decided offline in `vision/match_end.py` from raw
+  usable `TimerReading`s (look-ahead over the whole scan), wired in
+  `vision/pipeline.py` for analyze and `s3-coach refuse`.
+- **The game clock reaching 0:00 is authoritative** (`reason=clock_zero`):
+  the first usable 0:00 whose previous reading was ≤
+  `vision.match_end.zero_max_previous_seconds`, with no usable timer reading
+  more than `zero_tail_seconds` later.
+- Ranked **overtime** replaces the digits with an OVERTIME banner (clock reads
+  1 → no reading, never 0:00) while play continues for tens of seconds; a
+  **knockout** ends with time left. Neither has a trustworthy 0:00, so by
+  default there is **no** MATCH_END (domain = whole video). The opt-in
+  `vision.match_end.hud_loss_fallback` (`reason=hud_loss`: last timer reading
+  before the timer is gone longer than `lifecycle.match_context_hold_seconds`)
+  cuts real overtime play on stored matches — keep it off until a FINISH
+  detector can confirm. Never present `hud_loss` as a clock reading.
+- The yellow FINISH screen is only visual confirmation
+  (`GameEvent.confirmation="finish_screen"`); there is no detector yet, so the
+  field stays `None`.
+- The 0:00 frame is the boundary, not gameplay. Snapshots at or after
+  MATCH_END are `match_phase="post_match"`; no other event starts there; open
+  `MAP_OVERLAY` / `LOW_INK` intervals close at it.
+- A `DEATH_EPISODE` still open at MATCH_END ends there with
+  `end_reason="match_end"` (outcome stays `incomplete`). Never invent a
+  respawn.
+- **Invariant: no coaching evidence may originate after `MATCH_END`.**
+  ScenarioContext evidence (`load_scenario_evidence_pack`) and CoachInput
+  clocks (`coach/load_analysis.py`) drop samples at or after it via
+  `analysis/match_bounds.py`. Without a MATCH_END the domain is the whole
+  video.
 
 Relations (`leads_to_death_episode_id`, `preceded_by_engagement_id`, …) and
 `trade_candidate` are **temporal associations / window flags**, never causal
@@ -270,3 +305,22 @@ the CLI launchers for `vision_manifest_viewer`, `vmv_site`, `public_site`).
   new code. Promote reusable logic into `src/` with tests instead.
 
 See `tools/README.md` for the index and conventions for adding a tool.
+
+## Production telemetry
+
+Public-site operational telemetry is a separate domain under
+`tools/public_site/`. Its dependency direction is one-way:
+
+`coaching artifacts` → `telemetry readers` → `admin API/UI`
+
+Coaching and evidence code must never import or consume telemetry. A submission
+is the user's request; a job run is one execution. The first release creates one
+run per submission, while the schema supports later attempts.
+
+Telemetry JSON is built only from allowlisted Pydantic models. Never store an
+email, display name, IP or IP hash, uploaded filename, path or object key,
+prompt/coaching text, command line, stderr, or exception text. Expiry clears the
+user link from every run while retaining operational measurements. PostgreSQL
+time records when lifecycle events happened; `perf_counter()` measures stage
+duration. `last_seen_at` means throttled authenticated API activity, not a page
+view.

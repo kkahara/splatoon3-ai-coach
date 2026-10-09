@@ -101,9 +101,9 @@ def test_death_lifecycle_timing_statements_are_permitted() -> None:
     scenarios, contexts = _contexts(events)
     death = next(c for c in contexts if c.scenario_id.startswith("death_episode:"))
     lines = death_lifecycle_statements(death)
-    assert any("9.0 seconds until active" in line for line in lines)
-    assert any("7.5 seconds after death" in line for line in lines)
-    assert any("1.5 seconds from respawn" in line for line in lines)
+    assert any("9.0 video seconds until active" in line for line in lines)
+    assert any("7.5 video seconds after death" in line for line in lines)
+    assert any("1.5 video seconds from respawn" in line for line in lines)
     joined = " ".join(lines)
     assert not claim_contains_prohibited_language(joined)
 
@@ -273,8 +273,15 @@ def test_zone_control_requires_evidence_but_player_attribution_is_prohibited() -
     assert classify_unsupported_desire("zone_holder") is ClaimSupport.PROHIBITED
 
 
+def test_roster_guidance_only_with_roster_capability() -> None:
+    base = load_system_prompt().lower()
+    assert "death_while_outnumbered" not in base
+    assert "player_count_context" not in base
+    assert "never state alive counts" in base
+
+
 def test_system_prompt_keeps_roster_counts_from_becoming_verdicts() -> None:
-    prompt = load_system_prompt().lower()
+    prompt = load_system_prompt(roster_evidence=True).lower()
     assert "death_while_outnumbered" in prompt
     assert "death_while_ahead_in_numbers" in prompt
     assert "should have pushed" in prompt
@@ -358,3 +365,20 @@ def test_180224_fixture_membership_and_contract_regression() -> None:
     if scenarios_json.is_file():
         dumped = json.loads(scenarios_json.read_text(encoding="utf-8"))
         assert len(dumped) == len(scenarios)
+
+
+def test_system_prompt_is_built_around_claim_basis() -> None:
+    prompt = load_system_prompt()
+    assert "may not create a new factual, causal, judgmental, or counterfactual" in prompt
+    assert "claim_basis" in prompt
+    assert "undetermined" in prompt
+    assert "evidence blindness" in prompt
+    assert '"claims"' in prompt
+
+
+def test_evidence_contract_doc_states_the_north_star() -> None:
+    from importlib.resources import files
+
+    doc = files("splatoon3_ai_coach.coach").joinpath("EVIDENCE_CONTRACT.md").read_text()
+    assert "may not create a new factual, causal, judgmental, or counterfactual" in doc
+    assert "Not reviewed by the coach." in doc

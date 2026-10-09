@@ -6,11 +6,11 @@ import json
 from pathlib import Path
 
 import pytest
+from coach_artifact_helpers import map_ctx
 
 from splatoon3_ai_coach.analysis.scenario_context import (
     CombatContext,
     DeathEpisodeContext,
-    MapContext,
     ScenarioContext,
     ScenarioRelations,
     TimelineContext,
@@ -99,9 +99,9 @@ def _death_input(
     context = ScenarioContext(
         scenario_id=scenario.scenario_id,
         timeline=TimelineContext(duration=8.0, time_since_previous_death=8.0),
-        map=MapContext(
-            map_check_before_death=map_before,
-            seconds_since_map_check_before_death=(12.0 if map_before is False else 20.0),
+        map=map_ctx(
+            map_before,
+            seconds_since_map_check_before_death=(None if map_before is False else 20.0),
             map_check_count=1,
         ),
         death_episode=DeathEpisodeContext(
@@ -221,7 +221,8 @@ def test_death_view_drops_special_observations_and_related_series() -> None:
     assert view.clock is not None
     assert view.clock["seconds_remaining"] == 200
     assert view.map is not None
-    assert view.map["map_check_before_death"] is False
+    assert view.map["map_check_before_death"]["status"] == "not_observed"
+    assert view.map["map_check_before_death"]["coverage"]["match"] == "sufficient"
 
 
 def test_no_invention_at_death_and_special_match_source() -> None:
@@ -243,12 +244,13 @@ def test_no_invention_at_death_and_special_match_source() -> None:
     assert nb["fill_fraction"] == src_nb.fill_fraction
     assert view.map is not None
     assert (
-        view.map["map_check_before_death"]
-        == coach_input.primary_context.map.map_check_before_death
+        view.map["map_check_before_death"]["status"]
+        == coach_input.primary_context.map.map_check_status.value
     )
     assert view.death is not None
     assert (
-        view.death["death_time"] == coach_input.primary_context.death_episode.death_time
+        view.death["death_time_video"]
+        == coach_input.primary_context.death_episode.death_time
     )
 
 
@@ -384,10 +386,14 @@ def _assert_no_leakage(payload: object) -> None:
         # Nested ScenarioContext-shaped bundles.
         for nested_key in ("players", "special", "death_episode", "timeline", "map"):
             if nested_key in keys and nested_key == "special":
-                # Only nearest_before_anchor subset allowed under special.
+                # Single readings and the anchor state only; no raw series.
                 special = payload["special"]
                 assert isinstance(special, dict)
-                assert set(special.keys()) <= {"nearest_before_anchor"}
+                assert set(special.keys()) <= {
+                    "state_at_anchor",
+                    "nearest_before_anchor",
+                    "last_visible_before_anchor",
+                }
             elif nested_key in keys and nested_key in {"players", "death_episode"}:
                 raise AssertionError(f"nested ScenarioContext field leaked: {nested_key}")
         for value in payload.values():
@@ -423,3 +429,26 @@ def test_llm_view_forbids_raw_series_and_nested_context_leakage() -> None:
     assert "charged_score" not in dumped
     assert "press_score" not in dumped
     assert "ready_prompt_score" not in dumped
+
+
+def test_factor_thresholds_come_from_config() -> None:
+    from splatoon3_ai_coach.config.models import DeathFactorThresholds
+
+    coach_input = _death_input()
+    unit = score_death_candidate(coach_input, match_duration_seconds=300)
+    default = build_death_llm_view(coach_input, unit)
+    entries = default.importance["factor_thresholds"]
+    redeath = entries["death_quick_redeath"]
+    assert redeath["threshold_seconds"] == 20.0
+    assert redeath["observed_gap_seconds"] is None
+    assert entries["death_while_outnumbered"]["min_gap"] == 2
+    assert entries["death_special_ready"]["min_readings"] == 2
+    assert entries["death_final_30s"] == {"window_seconds": 30}
+    assert "death_map_overlay_before_false" not in entries
+
+    custom = DeathFactorThresholds(redeath_max_gap_seconds=12.5, roster_min_gap=3)
+    view = build_death_llm_view(coach_input, unit, custom)
+    entries = view.importance["factor_thresholds"]
+    assert entries["death_quick_redeath"]["threshold_seconds"] == 12.5
+    assert entries["death_while_ahead_in_numbers"]["min_gap"] == 3
+    assert "weights" not in json.dumps(view.importance)

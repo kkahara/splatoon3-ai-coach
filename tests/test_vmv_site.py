@@ -547,7 +547,13 @@ def _coaching_fixture(folder: Path, scenario_id: str = "death_episode:1.000") ->
             [
                 {
                     "scenario_id": scenario_id,
+                    "candidate_id": scenario_id,
+                    "candidate_type": "death_episode",
                     "safe_id": safe_id,
+                    "video_time": 1.0,
+                    "importance_score": 2.5,
+                    "rank": 7,
+                    "selected_for_llm": False,
                     "llm_view_json": f"{safe_id}.llm_view.json",
                     "coach_input_json": f"{safe_id}.coach_input.json",
                     "coaching_json": f"{safe_id}.coaching.json",

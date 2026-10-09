@@ -1,12 +1,17 @@
 """Cursor-centered roster slot geometry and classification."""
 
+from pathlib import Path
+
 import cv2
 import numpy as np
+import pytest
 
 from splatoon3_ai_coach.config.models import ReviewTimelineConfig
+from splatoon3_ai_coach.review.cursor import detect_cursor
 from splatoon3_ai_coach.review.roster import extract_cursor_slots
 
 WIDTH, HEIGHT = 1920, 1080
+FIXTURES = Path(__file__).parent / "fixtures" / "review"
 
 
 def test_cursor_centered_rows_classify_alive_and_dead() -> None:
@@ -43,6 +48,15 @@ def test_right_edge_cursor_keeps_four_centered_slots() -> None:
     assert [states[f"top_{index}"] for index in range(2, 5)] == ["alive"] * 3
 
 
+def test_left_edge_cursor_shifts_complete_row_onto_screen() -> None:
+    config = ReviewTimelineConfig()
+    image = _timeline_with_roster(140, config, dead={"top_4", "bottom_2"})
+    states = _states(image, 140, config)
+    assert states["top_4"] == "dead"
+    assert states["bottom_2"] == "dead"
+    assert states["top_1"] == "alive"
+
+
 def test_saturated_icon_pixels_are_not_an_x_marker() -> None:
     config = ReviewTimelineConfig()
     image = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
@@ -51,6 +65,59 @@ def test_saturated_icon_pixels_are_not_an_x_marker() -> None:
         cv2.line(image, (x1, y1), (x2, y2), (0, 0, 0), 2)
     states = _states(image, 1000, config)
     assert "dead" not in states.values()
+
+
+@pytest.mark.parametrize(
+    ("name", "cursor_x", "dead"),
+    (
+        ("timeline_21-49-20_left.jpg", 139, set()),
+        ("timeline_21-49-20_middle.jpg", 712, {"bottom_4"}),
+        (
+            "timeline_21-49-20.jpg",
+            1740,
+            {"top_1", "top_2", "top_4", "bottom_2"},
+        ),
+        ("timeline_21-56-52_left.jpg", 179, set()),
+        ("timeline_21-56-52.jpg", 831, {"bottom_1"}),
+        (
+            "timeline_21-56-52_right.jpg",
+            1740,
+            {"bottom_1", "bottom_3"},
+        ),
+    ),
+)
+def test_real_recording_cursor_geometry(name: str, cursor_x: int, dead: set[str]) -> None:
+    config = ReviewTimelineConfig()
+    image = cv2.imread(str(FIXTURES / name))
+    assert image is not None
+    cursor = detect_cursor(image, config)
+    assert cursor.x == cursor_x
+    states = _states(image, cursor_x, config)
+    assert {slot for slot, state in states.items() if state == "dead"} == dead
+    assert "unknown" not in states.values()
+
+
+@pytest.mark.parametrize(
+    ("name", "cursor_x", "expected"),
+    (
+        ("21-23-30_x1480_shift+14.jpg", 1480, "aaad adaa"),
+        ("21-23-30_x1668_shift-14.jpg", 1668, "adaa aaad"),
+        ("21-41-07_x1228_shift+58.jpg", 1228, "udaa daaa"),
+    ),
+)
+def test_slots_stay_on_cursor_grid_when_edge_search_prefers_an_offset(
+    name: str, cursor_x: int, expected: str
+) -> None:
+    """Hand-checked frames where a near-tie offset used to misalign the top row."""
+    config = ReviewTimelineConfig()
+    image = cv2.imread(str(FIXTURES / "roster_grid" / name))
+    assert image is not None
+    assert detect_cursor(image, config).x == cursor_x
+    states = _states(image, cursor_x, config)
+    letters = {"alive": "a", "dead": "d", "unknown": "u"}
+    top = "".join(letters[states[f"top_{index}"]] for index in range(1, 5))
+    bottom = "".join(letters[states[f"bottom_{index}"]] for index in range(1, 5))
+    assert f"{top} {bottom}" == expected
 
 
 def _states(image: np.ndarray, cursor_x: int, config: ReviewTimelineConfig) -> dict:
@@ -64,7 +131,8 @@ def _states(image: np.ndarray, cursor_x: int, config: ReviewTimelineConfig) -> d
 
 def _slot_boxes(cursor_x: int, config: ReviewTimelineConfig) -> list:
     slot_w = WIDTH * config.roster_row_width_fraction / 4
-    left = cursor_x - 2 * slot_w
+    center = min(max(cursor_x, 2 * slot_w), WIDTH - 2 * slot_w)
+    left = center - 2 * slot_w
     boxes = []
     for row, (top, bottom) in (
         ("top", config.roster_top_band),

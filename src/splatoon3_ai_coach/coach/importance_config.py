@@ -12,7 +12,7 @@ from typing import Any
 
 from splatoon3_ai_coach.config.models import CoachConfig
 
-IMPORTANCE_CONFIG_SCHEMA = 1
+IMPORTANCE_CONFIG_SCHEMA = 2
 
 
 def importance_config_payload(
@@ -31,6 +31,7 @@ def importance_config_payload(
         },
         "death_factor_thresholds": coach.death_factor_thresholds.model_dump(mode="json"),
         "max_llm_units": int(max_llm_units),
+        "roster_evidence": bool(coach.roster_evidence),
         "llm_units_require_positive_score": bool(coach.llm_units_require_positive_score),
         "death_modifier_factors": sorted(coach.death_modifier_factors),
         "death_ranking_excluded_factors": sorted(coach.death_ranking_excluded_factors),

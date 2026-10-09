@@ -1465,6 +1465,10 @@ function scenarioMapRows(nest) {
   const rows = [["Checks during scenario", fmtCount(nest.map_check_count ?? nest.map_checks_during_scenario)]];
   pushIfPresent(rows, "Before start", nest.map_checks_before_start, fmtCount);
   pushIfPresent(rows, "Any map overlay before death", nest.map_check_before_death, fmtYesNo);
+  if (nest.map_check_status)
+    rows.push(["Map check status", String(nest.map_check_status) + (nest.map_check_unknown_reason ? " (" + nest.map_check_unknown_reason + ")" : "")]);
+  if (nest.map_coverage)
+    rows.push(["Respawn map coverage", nest.map_coverage.status + " (" + nest.map_coverage.respawns_with_overlay + "/" + nest.map_coverage.completed_respawns + ")"]);
   pushIfPresent(rows, "During death episode", nest.map_checks_during_death_episode, fmtCount);
   pushIfPresent(rows, "Checked while dead", nest.map_checked_while_dead, fmtYesNo);
   pushIfPresent(rows, "After active again", nest.map_checks_after_active_again, fmtCount);
@@ -1567,10 +1571,10 @@ function scenarioRecoveryRows(nest) {
   const toActive = nest.death_to_active_again ?? nest.time_to_active_again;
   const respawnToActive = nest.respawn_to_active_again;
   return [
-    ["Death → respawn", fmtSeconds(toRespawn)],
-    ["Death → active again", fmtSeconds(toActive)],
-    ["Respawn → active again", fmtSeconds(respawnToActive)],
-    ["Awaiting duration", fmtSeconds(nest.awaiting_duration)],
+    ["Death → respawn (video s)", fmtSeconds(toRespawn)],
+    ["Death → active again (video s)", fmtSeconds(toActive)],
+    ["Respawn → active again (video s)", fmtSeconds(respawnToActive)],
+    ["Awaiting duration (video s)", fmtSeconds(nest.awaiting_duration)],
     ["Complete", nest.complete == null ? "—" : (nest.complete ? "Yes" : "No")],
     ["Respawn reason", nest.respawn_reason == null ? "—" : String(nest.respawn_reason)],
   ];
@@ -1626,7 +1630,8 @@ function humanizeId(value) {
 function renderHeader() {
   const s=DATA.summary;
   const wanted = ["death","respawn","active_again","splat"];
-  const events = wanted.map(k => `${k} ${(s.event_counts||{})[k]||0}`).join(" · ");
+  let events = wanted.map(k => `${k} ${(s.event_counts||{})[k]||0}`).join(" · ");
+  if ((s.event_counts||{}).match_end) events += " · match end";
   const id = DATA.match_identity;
   const mode = humanizeId(id?.battle_mode_id);
   const stage = humanizeId(id?.stage_id);

@@ -22,7 +22,7 @@ class DeathImportanceFactorId(StrEnum):
 
     DEATH_WHILE_OUTNUMBERED = "death_while_outnumbered"
     DEATH_WHILE_AHEAD_IN_NUMBERS = "death_while_ahead_in_numbers"
-    DEATH_REDEATH_LE_10S = "death_redeath_le_10s"
+    DEATH_QUICK_REDEATH = "death_quick_redeath"
     DEATH_SPECIAL_READY = "death_special_ready"
     DEATH_FINAL_30S = "death_final_30s"
     DEATH_FIRST_30S = "death_first_30s"
@@ -30,6 +30,7 @@ class DeathImportanceFactorId(StrEnum):
     DEATH_WHILE_BEHIND_IN_COUNT = "death_while_behind_in_count"
     DEATH_WHILE_AHEAD_IN_COUNT = "death_while_ahead_in_count"
     DEATH_OPPONENT_COUNTER_TICKED = "death_opponent_counter_ticked"
+    DEATH_OWN_SPLAT_BEFORE = "death_own_splat_before"
 
 
 # Backward-compatible alias used by older imports / tests.
@@ -44,7 +45,7 @@ DEFAULT_MAX_LLM_UNITS = 3
 # Defaults only; the live values come from ``CoachConfig.death_factor_thresholds``.
 # Consecutive death spacing (video seconds, death to death). The respawn cycle
 # alone takes ~10s, so 20s is roughly "splatted again soon after returning".
-# The factor ID keeps its original ``le_10s`` name.
+# Formerly ``death_redeath_le_10s``; see ``LEGACY_DEATH_FACTOR_IDS``.
 REDEATH_MAX_GAP_SECONDS = 20.0
 
 # Match clock windows (observed timer remaining).
@@ -60,9 +61,19 @@ ROSTER_MIN_GAP = 2
 # Consecutive ready special-gauge readings ending at/before the death.
 SPECIAL_READY_MIN_READINGS = 2
 
+# The player's own splat (local kill banner) at most this many video seconds
+# before the death. A temporal association only, never a trade.
+OWN_SPLAT_MAX_GAP_SECONDS = 5.0
+
+# Factors whose catalog recommendation may support map-usage advice.
+MAP_FACTOR_IDS: frozenset[str] = frozenset(
+    {DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value}
+)
+
 # Factors that only add to a death some other factor already supports.
+# The final 30 seconds ranks on its own: with roster evidence off, coachable
+# A facts must still be able to select a unit.
 DEFAULT_DEATH_MODIFIER_FACTORS: tuple[str, ...] = (
-    DeathImportanceFactorId.DEATH_FINAL_30S.value,
     DeathImportanceFactorId.DEATH_FIRST_30S.value,
 )
 
@@ -70,7 +81,6 @@ DEFAULT_DEATH_MODIFIER_FACTORS: tuple[str, ...] = (
 # or help clock modifiers qualify a death. Nominal weights stay in YAML for when
 # the evidence contract is fixed and the factor returns to ranking.
 DEFAULT_DEATH_RANKING_EXCLUDED_FACTORS: tuple[str, ...] = (
-    DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value,
     DeathImportanceFactorId.DEATH_SPECIAL_READY.value,
     DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT.value,
     DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_COUNT.value,
@@ -85,8 +95,9 @@ COUNT_MIN_DIFF = 10
 DEFAULT_MATCH_DURATION_CANDIDATES: tuple[int, ...] = (180, 300)
 
 DEFAULT_DEATH_IMPORTANCE_WEIGHTS: dict[str, float] = {
-    DeathImportanceFactorId.DEATH_REDEATH_LE_10S.value: 3.0,
+    DeathImportanceFactorId.DEATH_QUICK_REDEATH.value: 3.0,
     DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED.value: 2.5,
+    DeathImportanceFactorId.DEATH_OWN_SPLAT_BEFORE.value: 2.0,
     DeathImportanceFactorId.DEATH_SPECIAL_READY.value: 2.0,
     DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE.value: 1.5,
     DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS.value: 1.5,
@@ -131,14 +142,14 @@ FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
             "opponent_alive_count >= roster_min_gap."
         ),
     ),
-    DeathImportanceFactorId.DEATH_REDEATH_LE_10S: FactorAnnotation(
-        factor_id=DeathImportanceFactorId.DEATH_REDEATH_LE_10S,
+    DeathImportanceFactorId.DEATH_QUICK_REDEATH: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_QUICK_REDEATH,
     ),
     DeathImportanceFactorId.DEATH_SPECIAL_READY: FactorAnnotation(
         factor_id=DeathImportanceFactorId.DEATH_SPECIAL_READY,
         statement_player=("Your special gauge was ready immediately before death."),
         statement_internal=(
-            "special.nearest_before_anchor.ready was true at/before death."
+            "special.state_at_anchor was ready (visible gauge) at/before death."
         ),
         interpretation=None,
         recommendation=None,
@@ -160,7 +171,9 @@ FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
         factor_id=DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE,
         statement_player=("No map overlay was observed before death."),
         statement_internal=(
-            "map_check_before_death was false while map overlay is observable."
+            "map_check_status was not_observed under rule respawn_map_coverage "
+            "(source observable, match respawn coverage and episode coverage "
+            "all sufficient)."
         ),
     ),
     DeathImportanceFactorId.DEATH_WHILE_BEHIND_IN_COUNT: FactorAnnotation(
@@ -193,6 +206,14 @@ FACTOR_ANNOTATIONS: dict[DeathImportanceFactorId, FactorAnnotation] = {
         statement_internal=(
             "Splat Zones: opponent_remaining observed lower at the pre-death "
             "sample than at the lookback sample. A counter change only."
+        ),
+    ),
+    DeathImportanceFactorId.DEATH_OWN_SPLAT_BEFORE: FactorAnnotation(
+        factor_id=DeathImportanceFactorId.DEATH_OWN_SPLAT_BEFORE,
+        statement_player="You got a splat shortly before you were splatted.",
+        statement_internal=(
+            "death_episode.time_since_previous_splat <= own_splat_max_gap_seconds "
+            "(local kill banner). Temporal association, never a trade."
         ),
     ),
 }

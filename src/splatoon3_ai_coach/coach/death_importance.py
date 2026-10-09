@@ -8,7 +8,14 @@ from __future__ import annotations
 
 from collections.abc import Collection, Mapping, Sequence
 
+from splatoon3_ai_coach.analysis.map_coverage import MapCheckStatus
 from splatoon3_ai_coach.analysis.player_count_series import format_avb
+from splatoon3_ai_coach.analysis.scenario_evidence import (
+    SpecialEvidence,
+    SpecialGaugeState,
+    SpecialReading,
+    special_gauge_state,
+)
 from splatoon3_ai_coach.analysis.scenario_models import ScenarioType
 from splatoon3_ai_coach.coach.claim_catalog import (
     CANDIDATE_TYPE_DEATH_EPISODE,
@@ -28,6 +35,11 @@ from splatoon3_ai_coach.coach.coaching_candidates import (
     ImportanceFactorContribution,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClock
+from splatoon3_ai_coach.coach.playback_clock import (
+    ClockedDuration,
+    PlaybackClockInfo,
+    clock_video_span,
+)
 from splatoon3_ai_coach.coach.score_facts import ScoreFacts
 from splatoon3_ai_coach.config.models import DeathFactorThresholds
 
@@ -59,6 +71,51 @@ def death_game_clock_sample(coach_input: CoachInput) -> GameClockSample | None:
     return None
 
 
+def previous_death_gap(coach_input: CoachInput) -> ClockedDuration | None:
+    """Clocked gap since the previous death (``value`` None when unverified)."""
+    durations = coach_input.durations
+    return durations.time_since_previous_death if durations is not None else None
+
+
+def own_splat_gap(coach_input: CoachInput) -> float | None:
+    """Video seconds from the player's last splat to this death, when observed."""
+    death = coach_input.primary_context.death_episode
+    gap = death.time_since_previous_splat if death is not None else None
+    return None if gap is None else float(gap)
+
+
+def current_life_start(coach_input: CoachInput) -> float | None:
+    """Video time of the previous death (start of this life), when known.
+
+    Gauge readings at or before it belong to an earlier life: special charge
+    is not carried across a death, so they never describe this death.
+    """
+    timeline = coach_input.primary_context.timeline
+    gap = timeline.time_since_previous_death if timeline is not None else None
+    if gap is None:
+        return None
+    return float(coach_input.primary_scenario.start_time) - float(gap)
+
+
+def same_life_last_ready(coach_input: CoachInput) -> SpecialReading | None:
+    """``special.last_ready_before_anchor`` only when it is from this life."""
+    special = coach_input.primary_context.special
+    ready = special.last_ready_before_anchor if special is not None else None
+    start = current_life_start(coach_input)
+    if ready is None or (start is not None and float(ready.video_time) <= start):
+        return None
+    return ready
+
+
+def format_clocked(duration: ClockedDuration) -> str:
+    """Human text that never presents unverified video seconds as play time."""
+    if duration.value is None:
+        return f"{duration.video_seconds:.1f}s of video (playback speed unverified)"
+    if duration.clock == "game":
+        return f"{duration.value:.0f}s (game clock)"
+    return f"{duration.value:.1f}s"
+
+
 def pre_death_roster(
     coach_input: CoachInput,
     *,
@@ -84,6 +141,8 @@ def pre_death_roster(
     if chosen is None:
         return None
     index, point = chosen
+    if not point.reliable or ctx.players.unreliable_at(death.death_time):
+        return None
     return RosterSample(
         video_time=float(point.video_time),
         ally_alive_count=int(point.ally_alive_count),
@@ -116,25 +175,68 @@ def detect_death_importance_factors(
     flags.update(_count_flags(coach_input.score_facts, limits.count_min_diff))
 
     ctx = coach_input.primary_context
-    timeline = ctx.timeline
+    gap = previous_death_gap(coach_input)
     if (
-        timeline is not None
-        and timeline.time_since_previous_death is not None
-        and float(timeline.time_since_previous_death) <= limits.redeath_max_gap_seconds
+        gap is not None
+        and gap.value is not None
+        and float(gap.value) <= limits.redeath_max_gap_seconds
     ):
-        flags[DeathImportanceFactorId.DEATH_REDEATH_LE_10S] = True
+        flags[DeathImportanceFactorId.DEATH_QUICK_REDEATH] = True
 
     if _special_ready_run(coach_input) >= limits.special_ready_min_readings:
         flags[DeathImportanceFactorId.DEATH_SPECIAL_READY] = True
 
+    splat_gap = own_splat_gap(coach_input)
+    if splat_gap is not None and splat_gap <= limits.own_splat_max_gap_seconds:
+        flags[DeathImportanceFactorId.DEATH_OWN_SPLAT_BEFORE] = True
+
     map_ctx = ctx.map
     if (
         map_ctx is not None
-        and map_ctx.map_check_before_death is False
+        and map_ctx.map_check_status == MapCheckStatus.NOT_OBSERVED
         and not flags[DeathImportanceFactorId.DEATH_FIRST_30S]
     ):
         flags[DeathImportanceFactorId.DEATH_MAP_OVERLAY_BEFORE_FALSE] = True
     return flags
+
+
+def factor_threshold_entries(
+    coach_input: CoachInput,
+    thresholds: DeathFactorThresholds | None = None,
+) -> dict[str, dict]:
+    """Configured thresholds each death factor reads, active or not.
+
+    Only values a factor's rule actually uses; factor IDs keep historical
+    names (e.g. ``_le_10s``), so the number comes from here, not the ID.
+    """
+    limits = thresholds or DeathFactorThresholds()
+    gap = previous_death_gap(coach_input)
+    roster = {
+        "min_gap": limits.roster_min_gap,
+        "pre_death_offset_seconds": limits.roster_pre_death_offset_seconds,
+    }
+    count = {"min_diff": limits.count_min_diff}
+    ids = DeathImportanceFactorId
+    return {
+        ids.DEATH_QUICK_REDEATH.value: {
+            "threshold_seconds": limits.redeath_max_gap_seconds,
+            "observed_gap_seconds": gap.value if gap is not None else None,
+            "clock": gap.clock if gap is not None else None,
+        },
+        ids.DEATH_FIRST_30S.value: {"window_seconds": limits.first_window_seconds},
+        ids.DEATH_FINAL_30S.value: {"window_seconds": limits.final_window_seconds},
+        ids.DEATH_WHILE_OUTNUMBERED.value: dict(roster),
+        ids.DEATH_WHILE_AHEAD_IN_NUMBERS.value: dict(roster),
+        ids.DEATH_WHILE_BEHIND_IN_COUNT.value: dict(count),
+        ids.DEATH_WHILE_AHEAD_IN_COUNT.value: dict(count),
+        ids.DEATH_SPECIAL_READY.value: {
+            "min_readings": limits.special_ready_min_readings
+        },
+        ids.DEATH_OWN_SPLAT_BEFORE.value: {
+            "max_gap_seconds": limits.own_splat_max_gap_seconds,
+            "observed_gap_seconds": own_splat_gap(coach_input),
+        },
+    }
 
 
 def _special_ready_run(coach_input: CoachInput) -> int:
@@ -148,13 +250,20 @@ def _special_ready_run(coach_input: CoachInput) -> int:
     if special is None or special.nearest_before_anchor is None:
         return 0
     nearest = special.nearest_before_anchor
-    if nearest.ready is not True:
+    if special_gauge_state(nearest) is not SpecialGaugeState.READY:
+        return 0
+    start = current_life_start(coach_input)
+    if start is not None and float(nearest.video_time) <= start:
         return 0
     run = 0
     for reading in sorted(special.observations, key=lambda r: -float(r.video_time)):
         if float(reading.video_time) > float(nearest.video_time):
             continue
-        if not reading.ready:
+        if start is not None and float(reading.video_time) <= start:
+            break
+        if reading.coaching_valid is False:
+            continue
+        if special_gauge_state(reading) is not SpecialGaugeState.READY:
             break
         run += 1
     return max(run, 1)
@@ -316,7 +425,7 @@ def _threshold_statements(
     limits: DeathFactorThresholds,
 ) -> tuple[str, str] | None:
     """Copy that quotes the configured threshold rather than a fixed number."""
-    if factor_id is DeathImportanceFactorId.DEATH_REDEATH_LE_10S:
+    if factor_id is DeathImportanceFactorId.DEATH_QUICK_REDEATH:
         return _redeath_statements(coach_input, limits.redeath_max_gap_seconds)
     if factor_id is DeathImportanceFactorId.DEATH_FINAL_30S:
         seconds = limits.final_window_seconds
@@ -331,6 +440,8 @@ def _threshold_statements(
             f"Death-labeled game clock seconds_remaining >= D - {seconds} "
             "(match duration D known).",
         )
+    if factor_id is DeathImportanceFactorId.DEATH_OWN_SPLAT_BEFORE:
+        return _own_splat_statements(coach_input, limits.own_splat_max_gap_seconds)
     if factor_id in (
         DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED,
         DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS,
@@ -454,14 +565,12 @@ def build_supporting_evidence(
         )
 
     if ctx.special is not None and ctx.special.nearest_before_anchor is not None:
-        nb = ctx.special.nearest_before_anchor
-        ready = "ready" if nb.ready else "not ready"
-        fill = f", fill={nb.fill_fraction:.2f}" if nb.fill_fraction is not None else ""
         items.append(
-            SupportingEvidenceItem(
-                label="Special",
-                value=f"{ready}{fill}",
-                path="primary_context.special.nearest_before_anchor",
+            _special_item(
+                ctx.special,
+                last_ready=same_life_last_ready(coach_input),
+                death_time=float(death_time),
+                playback=coach_input.playback_clock,
             )
         )
 
@@ -476,42 +585,107 @@ def build_supporting_evidence(
             )
         )
 
-    if ctx.timeline is not None and ctx.timeline.time_since_previous_death is not None:
+    gap = previous_death_gap(coach_input)
+    if gap is not None:
         items.append(
             SupportingEvidenceItem(
                 label="Since previous death",
-                value=f"{float(ctx.timeline.time_since_previous_death):.1f}s",
-                path="primary_context.timeline.time_since_previous_death",
+                value=format_clocked(gap),
+                path="durations.time_since_previous_death",
             )
         )
 
-    if ctx.map is not None and ctx.map.map_check_before_death is not None:
+    if ctx.map is not None and ctx.map.map_check_status is not None:
         gap = ctx.map.seconds_since_map_check_before_death
-        gap_txt = f" (gap={gap:.1f}s)" if gap is not None else ""
+        gap_txt = ""
+        if gap is not None:
+            span = clock_video_span(gap, coach_input.playback_clock)
+            gap_txt = f" ({format_clocked(span)} earlier)"
+        reason = ctx.map.map_check_unknown_reason
+        reason_txt = f" ({reason.value})" if reason is not None else ""
         items.append(
             SupportingEvidenceItem(
                 label="Map overlay before death",
-                value=f"{ctx.map.map_check_before_death}{gap_txt}",
-                path="primary_context.map.map_check_before_death",
+                value=f"{ctx.map.map_check_status.value}{gap_txt}{reason_txt}",
+                path="primary_context.map.map_check_status",
             )
         )
 
     return items
 
 
+_SPECIAL_STATE_TEXT = {
+    SpecialGaugeState.READY: "ready",
+    SpecialGaugeState.NOT_READY: "not ready",
+    SpecialGaugeState.NOT_OBSERVED: "not observed",
+}
+
+
+def _special_item(
+    special: SpecialEvidence,
+    *,
+    last_ready: SpecialReading | None,
+    death_time: float,
+    playback: PlaybackClockInfo | None,
+) -> SupportingEvidenceItem:
+    """Gauge state at the death; names the last ready / last visible reading.
+
+    A last-ready reading is a gauge observation, never a usage event, and is
+    named only when it is from the same life as the death.
+    """
+    nearest = special.nearest_before_anchor
+    state = special_gauge_state(nearest)
+    value = _SPECIAL_STATE_TEXT[state]
+    path = "primary_context.special.nearest_before_anchor"
+
+    def before(reading: SpecialReading) -> str:
+        gap = clock_video_span(death_time - float(reading.video_time), playback)
+        return f"{format_clocked(gap)} before"
+
+    if state is not SpecialGaugeState.NOT_OBSERVED and nearest is not None:
+        if nearest.fill_fraction is not None:
+            value += f", fill={nearest.fill_fraction:.2f}"
+        if state is not SpecialGaugeState.READY and last_ready is not None:
+            value += f" (last ready {before(last_ready)})"
+        return SupportingEvidenceItem(label="Special", value=value, path=path)
+    last = special.last_visible_before_anchor
+    if last is not None:
+        value += (
+            f" (last observed {before(last)}: "
+            f"{_SPECIAL_STATE_TEXT[special_gauge_state(last)]})"
+        )
+    return SupportingEvidenceItem(label="Special", value=value, path=path)
+
+
+def _own_splat_statements(
+    coach_input: CoachInput, max_gap_seconds: float
+) -> tuple[str, str] | None:
+    gap = own_splat_gap(coach_input)
+    clocked = clock_video_span(gap, coach_input.playback_clock)
+    if gap is None or clocked is None:
+        return None
+    span = format_clocked(clocked)
+    return (
+        f"You got a splat {span} before you were splatted.",
+        f"death_episode.time_since_previous_splat={gap:.1f} <= {max_gap_seconds:g} "
+        "(association only, never a trade).",
+    )
+
+
 def _redeath_statements(
     coach_input: CoachInput, max_gap_seconds: float
 ) -> tuple[str, str]:
-    timeline = coach_input.primary_context.timeline
-    if timeline is None or timeline.time_since_previous_death is None:
+    gap = previous_death_gap(coach_input)
+    if gap is None or gap.value is None:
         return (
             f"Two consecutive deaths occurred within {max_gap_seconds:g} seconds.",
-            f"timeline.time_since_previous_death <= {max_gap_seconds}",
+            f"durations.time_since_previous_death <= {max_gap_seconds}",
         )
-    gap = float(timeline.time_since_previous_death)
+    clock = "game-clock " if gap.clock == "game" else ""
     return (
-        f"Two consecutive deaths occurred {gap:.1f} seconds apart.",
-        f"timeline.time_since_previous_death={gap:.1f} (<= {max_gap_seconds})",
+        f"Two consecutive deaths occurred {gap.value:.1f} {clock}seconds apart.",
+        f"durations.time_since_previous_death={gap.value:.1f} "
+        f"(clock={gap.clock}; <= {max_gap_seconds})",
     )
 
 

@@ -1,0 +1,392 @@
+"""Deterministic validation of model coaching output against its LLM view.
+
+Annotation only: nothing here rewrites model text. Claim-family rules
+(``claim_rules``: causation, roster, teammate/opponent, special usage,
+judgment) are *blocking*: any counting hit gives ``blocked_unsupported_claim``
+and the public page withholds the prose. These rules sit beside them, with the
+prohibited-phrase patterns in ``evidence_contract``:
+
+* causal map claims — a map-absence term and a causal form in one sentence
+  (hedged wording still counts; negations and limitations are recorded but
+  exempt);
+* unsupported map recommendations — map-usage advice in ``recommendations``
+  or prescriptive ``assessment`` sentences, unless an active map factor has a
+  catalog recommendation;
+* evidence paths — every ``evidence_used`` entry must resolve against the
+  serialized view, either natively or through a block's ``source_path`` label;
+  a cited ``path = value`` must equal the view value (R7);
+* claim integrity — R5, R7, R8 and R9 in ``claim_integrity``.
+"""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Mapping
+from enum import StrEnum
+from typing import Any
+
+from splatoon3_ai_coach.coach.claim_catalog import (
+    FACTOR_ANNOTATIONS,
+    MAP_FACTOR_IDS,
+    DeathImportanceFactorId,
+    FactorAnnotation,
+)
+from splatoon3_ai_coach.coach.claim_integrity import (
+    claim_integrity_hits,
+    grounded_templates,
+)
+from splatoon3_ai_coach.coach.claim_rules import blocking_hits, claim_rule_hits
+from splatoon3_ai_coach.coach.evidence_contract import (
+    ClaimHitClassification,
+    classify_prohibited_hit,
+    split_sentences,
+)
+
+
+class ValidationStatus(StrEnum):
+    """Public-facing validator outcome for one assessment."""
+
+    VALIDATED = "validated"
+    CONTAINS_UNVERIFIED_WORDING = "contains_unverified_wording"
+    BLOCKED_UNSUPPORTED_CLAIM = "blocked_unsupported_claim"
+    NOT_VALIDATED = "not_validated"
+
+
+class ReferenceKind(StrEnum):
+    """How an ``evidence_used`` entry maps onto the LLM view."""
+
+    VIEW_NATIVE = "view_native"
+    SOURCE_PATH_REF = "source_path_ref"
+    UNRESOLVED = "unresolved"
+
+
+_MAP_ABSENCE = re.compile(
+    r"(?i)\b(?:"
+    r"lack(?:ing)?\s+(?:of\s+)?(?:a\s+|any\s+)?map(?:\s+(?:awareness|checks?|usage))?"
+    r"|absence\s+of\s+(?:a\s+|any\s+)?map(?:\s+(?:awareness|checks?))?"
+    r"|no\s+(?:prior\s+|recent\s+)?map\s+(?:checks?|awareness)"
+    r"|without\s+(?:a\s+|any\s+)?(?:prior\s+|recent\s+)?map\s+checks?"
+    r"|without\s+checking\s+(?:the\s+|your\s+)?map"
+    r"|(?:didn'?t|did\s+not|not|never)\s+check(?:ing|ed)?\s+(?:the\s+|your\s+)?map"
+    r"|(?:poor|limited|missing)\s+map\s+(?:awareness|checks?)"
+    r")"
+)
+_CAUSAL = re.compile(
+    r"(?i)\b(?:contribut\w*|led\s+to|lead(?:s|ing)?\s+to|caus\w*|because"
+    r"|due\s+to|result\w*\s+(?:in|from))\b"
+)
+_MAP_ADVICE = re.compile(
+    r"(?i)\b(?:"
+    r"review(?:ing)?\s+(?:your\s+)?map\s+usage"
+    r"|should\s+have\s+checked\s+(?:the\s+|your\s+)?map"
+    r"|check(?:ing)?\s+(?:the\s+|your\s+)?map"
+    r"|use\s+(?:the\s+|your\s+)?map\s+more"
+    r"|watch(?:ing)?\s+(?:the\s+|your\s+)?map"
+    r"|(?:improve|work\s+on)\s+(?:your\s+)?map\s+awareness"
+    r")\b"
+)
+_PRESCRIPTIVE = re.compile(
+    r"(?i)\b(?:should|try\s+to|make\s+sure|remember\s+to|need\s+to|must|consider)\b"
+)
+_IMPERATIVE_START = re.compile(
+    r"(?i)^\s*(?:check|review|use|watch|look|keep|glance|open|practice|focus|"
+    r"remember|try|avoid)\b"
+)
+_PATH = re.compile(r"[A-Za-z_]\w*(?:\[[^\]]+\])?(?:\.[A-Za-z_]\w*(?:\[[^\]]+\])?)+")
+_SEGMENT = re.compile(r"^([A-Za-z_]\w*)(?:\[([^\]]+)\])?$")
+_EXEMPT = (ClaimHitClassification.NEGATED, ClaimHitClassification.LIMITATION)
+
+
+def _sentences(text: str) -> list[tuple[int, str]]:
+    """Sentences with start offsets (shared, decimal-safe splitter)."""
+    return split_sentences(text)
+
+
+def _classify(
+    sentence: str, start: int, end: int, *, masks: list[re.Match[str]], field: str
+) -> ClaimHitClassification:
+    """Reuse contract negation cues, ignoring cues inside the matched terms.
+
+    Absence terms such as "absence of map" or "did not check the map" contain
+    the contract's own negation cues; masking them keeps the claim itself from
+    reading as its own negation.
+    """
+    masked = list(sentence)
+    for item in masks:
+        masked[item.start() : item.end()] = "x" * (item.end() - item.start())
+    return classify_prohibited_hit("".join(masked), start, end, field=field)
+
+
+def causal_map_claim_hits(text: str, *, field: str) -> list[dict[str, Any]]:
+    """Sentences pairing a map-absence term with a causal form."""
+    hits: list[dict[str, Any]] = []
+    for _, sentence in _sentences(text):
+        absence = _MAP_ABSENCE.search(sentence)
+        causal = _CAUSAL.search(sentence)
+        if absence is None or causal is None:
+            continue
+        first = min(absence.start(), causal.start())
+        classification = _classify(
+            sentence, first, first + 1, masks=[absence], field=field
+        )
+        counts = classification not in _EXEMPT
+        hits.append(
+            {
+                "field": field,
+                "sentence": sentence.strip(),
+                "absence_term": absence.group(0),
+                "causal_term": causal.group(0),
+                "classification": (
+                    ClaimHitClassification.ASSERTION.value
+                    if counts
+                    else classification.value
+                ),
+                "counts_as_violation": counts,
+            }
+        )
+    return hits
+
+
+def map_recommendation_supported(
+    active_factor_ids: list[str],
+    annotations: Mapping[DeathImportanceFactorId, FactorAnnotation] | None = None,
+) -> bool:
+    """True when an active map factor carries a catalog recommendation."""
+    catalog = FACTOR_ANNOTATIONS if annotations is None else annotations
+    for factor_id in active_factor_ids:
+        if factor_id not in MAP_FACTOR_IDS:
+            continue
+        annotation = catalog.get(DeathImportanceFactorId(factor_id))
+        if annotation is not None and annotation.recommendation is not None:
+            return True
+    return False
+
+
+def _advice_candidates(assessment: Mapping[str, Any]) -> list[tuple[str, str]]:
+    """``recommendations`` items plus prescriptive ``assessment`` sentences."""
+    items = assessment.get("recommendations") or []
+    out = [("recommendations", str(item)) for item in items]
+    for _, sentence in _sentences(str(assessment.get("assessment") or "")):
+        if _PRESCRIPTIVE.search(sentence) or _IMPERATIVE_START.search(sentence):
+            out.append(("assessment", sentence.strip()))
+    return out
+
+
+def unsupported_recommendation_hits(
+    assessment: Mapping[str, Any],
+    *,
+    active_factor_ids: list[str],
+    annotations: Mapping[DeathImportanceFactorId, FactorAnnotation] | None = None,
+) -> list[dict[str, Any]]:
+    """Map-usage advice not backed by an active map factor recommendation."""
+    if map_recommendation_supported(active_factor_ids, annotations):
+        return []
+    hits: list[dict[str, Any]] = []
+    for field, text in _advice_candidates(assessment):
+        for match in _MAP_ADVICE.finditer(text):
+            classification = _classify(
+                text, match.start(), match.end(), masks=[], field=field
+            )
+            hits.append(
+                {
+                    "field": field,
+                    "text": text,
+                    "phrase": match.group(0),
+                    "classification": classification.value,
+                    "counts_as_violation": classification
+                    is not ClaimHitClassification.NEGATED,
+                }
+            )
+    return hits
+
+
+def _walk(node: Any, segments: list[str]) -> tuple[bool, Any]:
+    """Follow dotted segments (with ``[i]`` list indexes) through JSON."""
+    for raw in segments:
+        match = _SEGMENT.match(raw)
+        if match is None or not isinstance(node, dict) or match.group(1) not in node:
+            return False, None
+        node = node[match.group(1)]
+        index = match.group(2)
+        if index is not None:
+            valid = isinstance(node, list) and index.isdigit()
+            if not valid or int(index) >= len(node):
+                return False, None
+            node = node[int(index)]
+    return True, node
+
+
+def _source_blocks(node: Any) -> list[dict[str, Any]]:
+    """Every dict in the view that carries a string ``source_path`` label."""
+    found: list[dict[str, Any]] = []
+    if isinstance(node, dict):
+        if isinstance(node.get("source_path"), str):
+            found.append(node)
+        for value in node.values():
+            found.extend(_source_blocks(value))
+    elif isinstance(node, list):
+        for value in node:
+            found.extend(_source_blocks(value))
+    return found
+
+
+def resolve_evidence_reference(view: Mapping[str, Any], text: str) -> dict[str, Any]:
+    """Resolve one ``evidence_used`` entry against the serialized view.
+
+    ``source_path_ref`` means "represented in the view under that audit
+    label"; it is never a CoachInput JSON path.
+    """
+    match = _PATH.search(text)
+    if match is None:
+        kind = ReferenceKind.UNRESOLVED.value
+        return {"text": text, "kind": kind, "reason": "malformed"}
+    path = match.group(0)
+    segments = path.split(".")
+    found, _ = _walk(view, segments)
+    if found:
+        return {"text": text, "kind": ReferenceKind.VIEW_NATIVE.value, "path": path}
+    block_hit = False
+    for block in _source_blocks(view):
+        label = block["source_path"]
+        if path == label:
+            return _ref(text, path, label)
+        if not path.startswith(label + "."):
+            continue
+        block_hit = True
+        if _walk(block, path[len(label) + 1 :].split("."))[0]:
+            return _ref(text, path, label)
+    top = _SEGMENT.match(segments[0])
+    if block_hit or (top is not None and top.group(1) in view):
+        reason = "unknown_key"
+    else:
+        reason = "unknown_block"
+    return {
+        "text": text,
+        "kind": ReferenceKind.UNRESOLVED.value,
+        "path": path,
+        "reason": reason,
+    }
+
+
+_CITED_VALUE = re.compile(r"(?:=|:)\s*(.+?)\s*$")
+
+
+def _resolved_value(view: Mapping[str, Any], resolution: Mapping[str, Any]) -> Any:
+    path = str(resolution.get("path") or "")
+    if resolution["kind"] == ReferenceKind.VIEW_NATIVE.value:
+        return _walk(view, path.split("."))
+    label = str(resolution.get("source_path") or "")
+    for block in _source_blocks(view):
+        if block["source_path"] == label:
+            rest = path[len(label) + 1 :]
+            return _walk(block, rest.split(".")) if rest else (False, None)
+    return False, None
+
+
+def _same(cited: str, actual: Any) -> bool:
+    text = cited.strip().strip("\"'`").rstrip(".")
+    if actual is None:
+        return text.lower() in ("null", "none")
+    if isinstance(actual, bool):
+        return text.lower() == str(actual).lower()
+    if isinstance(actual, int | float):
+        try:
+            return abs(float(text.rstrip("s")) - float(actual)) <= 0.05 + 1e-9
+        except ValueError:
+            return False
+    return text == str(actual)
+
+
+def evidence_value_hits(
+    view: Mapping[str, Any], resolutions: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """R7: ``path = value`` citations whose value differs from the view."""
+    hits: list[dict[str, Any]] = []
+    for resolution in resolutions:
+        if resolution["kind"] == ReferenceKind.UNRESOLVED.value:
+            continue
+        text = str(resolution["text"])
+        cited = _CITED_VALUE.search(text[text.find(str(resolution["path"])) :])
+        found, actual = _resolved_value(view, resolution)
+        if cited is None or not found or isinstance(actual, dict | list):
+            continue
+        if not _same(cited.group(1), actual):
+            hits.append(
+                {
+                    "rule": "R7",
+                    "check": "value_mismatch",
+                    "field": "evidence_used",
+                    "text": text,
+                    "view_value": actual,
+                    "counts_as_violation": True,
+                }
+            )
+    return hits
+
+
+def _ref(text: str, path: str, label: str) -> dict[str, Any]:
+    return {
+        "text": text,
+        "kind": ReferenceKind.SOURCE_PATH_REF.value,
+        "path": path,
+        "source_path": label,
+    }
+
+
+def validate_assessment(
+    assessment: Mapping[str, Any],
+    view: Mapping[str, Any] | None,
+    *,
+    prohibited_hit_count: int = 0,
+    annotations: Mapping[DeathImportanceFactorId, FactorAnnotation] | None = None,
+) -> dict[str, Any]:
+    """Run every rule; ``view=None`` leaves paths unchecked (not_validated).
+
+    Claim-family hits block regardless of ``view``: without a view the roster
+    capability is off and no judgment subcategory is authorized.
+    """
+    causal: list[dict[str, Any]] = []
+    for field in ("assessment", "recommendations", "limitations"):
+        value = assessment.get(field)
+        for text in value if isinstance(value, list) else [value or ""]:
+            causal.extend(causal_map_claim_hits(str(text), field=field))
+    active = list((view or {}).get("importance", {}).get("active_factor_ids") or [])
+    map_grounded = "rec_map_after_respawn" in grounded_templates(view or {})
+    recommendations = [] if map_grounded else unsupported_recommendation_hits(
+        assessment, active_factor_ids=active, annotations=annotations
+    )
+    resolutions = [
+        resolve_evidence_reference(view, str(item))
+        for item in assessment.get("evidence_used") or []
+    ] if view is not None else []
+    unresolved = [r for r in resolutions if r["kind"] == ReferenceKind.UNRESOLVED.value]
+    family_hits = claim_rule_hits(assessment, view)
+    blocking = blocking_hits(family_hits)
+    integrity = claim_integrity_hits(assessment, view)
+    if view is not None:
+        integrity += evidence_value_hits(view, resolutions)
+    violations = (
+        prohibited_hit_count
+        + sum(1 for h in causal if h["counts_as_violation"])
+        + sum(1 for h in recommendations if h["counts_as_violation"])
+        + len(unresolved)
+        + len(integrity)
+    )
+    if blocking:
+        status = ValidationStatus.BLOCKED_UNSUPPORTED_CLAIM
+    elif violations:
+        status = ValidationStatus.CONTAINS_UNVERIFIED_WORDING
+    elif view is None:
+        status = ValidationStatus.NOT_VALIDATED
+    else:
+        status = ValidationStatus.VALIDATED
+    return {
+        "causal_claim_hits": causal,
+        "unsupported_recommendation_hits": recommendations,
+        "evidence_path_resolution": resolutions,
+        "unresolved_evidence_paths": unresolved,
+        "claim_rule_hits": family_hits,
+        "integrity_hits": integrity,
+        "blocked": bool(blocking),
+        "validation_status": status.value,
+    }

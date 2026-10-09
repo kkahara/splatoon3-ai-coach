@@ -22,16 +22,16 @@ language, or stiff business Japanese. Praise only when the English
 explicitly frames the action as positive, and keep it proportional
 (prefer 「いい判断です。」 over 「素晴らしい！完璧です！」).
 
-Evidence strength: "may have", "might", "could" stay uncertain
-(e.g. 「〜できたかもしれません」), never 「〜すべきでした」. Do not
+Evidence strength: "may", "might" stay uncertain (e.g. 「〜かもしれません」).
+Never add advice, "could have" / "should have" phrasing (「〜できたかもしれません」,
+「〜すべきでした」) or a cause that the English does not state. Do not
 strengthen "helped your team" into a claim about winning. A death does not
 make earlier play bad unless the English says so. Keep the English
 structure (acknowledgment, context, coaching point) and roughly its length.
 
 Terminology (use whichever reads most naturally in the sentence):
 splat → キル / 相手を倒す; death → デス; respawn → 復帰; special → スペシャル;
-map → マップ; center/mid → 中央; retreat/disengage → 引く / 下がる;
-numbers advantage → 人数有利; numbers disadvantage → 人数不利;
+map → マップ; center/mid → 中央;
 teammate/ally → 味方; opponent/enemy → 相手; zone → エリア;
 regain control → 取り返す / 奪い返す.
 

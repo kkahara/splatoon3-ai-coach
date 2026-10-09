@@ -16,6 +16,11 @@ from splatoon3_ai_coach.coach.evidence_contract import (
     describe_trade_candidate,
     engagement_proves_complete_fight,
 )
+from splatoon3_ai_coach.coach.playback_clock import (
+    ClockedDuration,
+    PlaybackClockInfo,
+    PlaybackClockStatus,
+)
 from splatoon3_ai_coach.coach.player_count_clock import PlayerCountWindowPoint
 from splatoon3_ai_coach.coach.player_count_context import PlayerCountContext
 from splatoon3_ai_coach.coach.score_facts import ScoreFacts
@@ -91,14 +96,32 @@ def collect_evidence_limits(
         and context.map is not None
         and context.map.map_check_before_death is None
     ):
+        reason = context.map.map_check_unknown_reason
+        reason_txt = f" (reason: {reason.value})" if reason is not None else ""
         limits.append(
             EvidenceLimit(
                 code="map_check_unobservable",
                 statement=(
-                    "Map-check evidence is unavailable or not assertable for this "
-                    "video source (unobservable or potentially_observable). "
-                    "Absence of MAP_OVERLAY must not be treated as proof the "
-                    "player did not check the map."
+                    "Map-check evidence before this death is not assertable"
+                    f"{reason_txt}. Absence of MAP_OVERLAY must not be treated as "
+                    "proof the player did not check the map."
+                ),
+            )
+        )
+
+    death = context.death_episode
+    if (
+        context.players is not None
+        and death is not None
+        and context.players.unreliable_at(death.death_time)
+    ):
+        limits.append(
+            EvidenceLimit(
+                code="player_count_implausible",
+                statement=(
+                    "Roster counts around this death include an alive-count rise "
+                    "that no earlier death can explain within the minimum respawn "
+                    "time; roster counts at the death are withheld."
                 ),
             )
         )
@@ -171,6 +194,59 @@ def collect_evidence_limits(
         )
 
     return limits
+
+
+def playback_evidence_limits(
+    info: PlaybackClockInfo, durations: object | None = None
+) -> list[EvidenceLimit]:
+    """Non-claims about reading video seconds as play time."""
+    limits: list[EvidenceLimit] = []
+    if info.status is PlaybackClockStatus.RATE_MISMATCH:
+        rate = info.game_seconds_per_video_second
+        limits.append(
+            EvidenceLimit(
+                code="playback_rate_mismatch",
+                statement=(
+                    f"Video plays at about {rate:.2f} game seconds per video "
+                    "second; elapsed video seconds are not play time. Durations "
+                    "are given in game-clock seconds."
+                ),
+            )
+        )
+    elif info.status is PlaybackClockStatus.INSUFFICIENT_CLOCK_EVIDENCE:
+        limits.append(
+            EvidenceLimit(
+                code="playback_clock_insufficient",
+                statement=(
+                    "The match timer was not observed well enough to confirm "
+                    "playback speed; elapsed video seconds are not established "
+                    "as play time."
+                ),
+            )
+        )
+    for name, value in _clocked_items(durations):
+        if value.method == "rate_converted":
+            limits.append(
+                EvidenceLimit(
+                    code="game_clock_endpoint_missing",
+                    statement=(
+                        f"{name}: no timer read near an endpoint; the game-clock "
+                        "value is converted from video seconds with the "
+                        "estimated playback rate."
+                    ),
+                )
+            )
+    return limits
+
+
+def _clocked_items(durations: object | None) -> list[tuple[str, ClockedDuration]]:
+    if durations is None:
+        return []
+    items = []
+    for name, value in vars(durations).items():
+        if isinstance(value, ClockedDuration):
+            items.append((name, value))
+    return items
 
 
 def score_evidence_limits(facts: ScoreFacts) -> list[EvidenceLimit]:

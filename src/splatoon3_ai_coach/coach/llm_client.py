@@ -2,22 +2,54 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from splatoon3_ai_coach.config.models import canonical_factor_id
+
+SettingSupport = Literal["supported", "unsupported", "unverified"]
+
+
+class GenerationSetting(BaseModel):
+    """What was asked for, what was actually sent, and whether it is honored."""
+
+    requested: float | int | None = None
+    sent: float | int | None = None
+    support: SettingSupport
+
+
+def sha256_text(text: str) -> str:
+    """Hex sha256 of the UTF-8 bytes of ``text``."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+class ClaimStatement(BaseModel):
+    """One authorized ``claim_basis`` claim as the model worded it."""
+
+    claim_id: str
+    level: str = ""
+    sentence: str = ""
+
+    @field_validator("claim_id")
+    @classmethod
+    def _current_id(cls, value: str) -> str:
+        return canonical_factor_id(value)
 
 
 class CoachingAssessment(BaseModel):
     """Evidence-grounded coaching reply for one CoachInput unit.
 
     Empty ``recommendations`` is a valid success when evidence is insufficient
-    for behavioral advice. ``selected_claim_ids`` is optional experiment metadata
-    (claim catalog IDs); it never rewrites other fields.
+    for behavioral advice. ``selected_claim_ids`` and ``claims`` name
+    ``claim_basis`` entries; the validator checks them, never rewrites them.
+    Renamed factor IDs are read under their current name (identifiers only).
     """
 
     assessment: str = ""
@@ -25,6 +57,20 @@ class CoachingAssessment(BaseModel):
     limitations: list[str] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
     selected_claim_ids: list[str] = Field(default_factory=list)
+    claims: list[ClaimStatement] = Field(default_factory=list)
+
+    @field_validator("claims", mode="before")
+    @classmethod
+    def _bare_claim_ids(cls, value: Any) -> Any:
+        """Accept ``["claim_id", ...]`` as claims with no sentence."""
+        if not isinstance(value, list):
+            return value
+        return [{"claim_id": v} if isinstance(v, str) else v for v in value]
+
+    @field_validator("selected_claim_ids")
+    @classmethod
+    def _current_ids(cls, value: list[str]) -> list[str]:
+        return [canonical_factor_id(item) for item in value]
 
 
 # Backwards-compatible name used by the earlier Phase-5 stub.
@@ -34,9 +80,43 @@ CoachingOutput = CoachingAssessment
 class LLMProvider(ABC):
     """Abstract interface for LLM backends (OpenAI, Anthropic, local, etc.)."""
 
+    temperature: float | None = None
+    seed: int | None = None
+    temperature_support: SettingSupport = "unsupported"
+    seed_support: SettingSupport = "unsupported"
+
     @abstractmethod
     def complete(self, system_prompt: str, user_prompt: str) -> str:
         """Return a raw completion string from the provider."""
+
+    def generation_settings(self) -> dict[str, GenerationSetting]:
+        """Requested vs sent temperature / seed; unsupported values are not sent."""
+        return {
+            "temperature": _setting(self.temperature, self.temperature_support),
+            "seed": _setting(self.seed, self.seed_support),
+        }
+
+    def input_hashes(self, system_prompt: str, user_prompt: str) -> dict[str, str]:
+        """sha256 of the exact strings this provider passes to its API call."""
+        return {
+            "system_prompt_sha256": sha256_text(system_prompt),
+            "user_prompt_sha256": sha256_text(user_prompt),
+        }
+
+
+def _setting(value: float | int | None, support: SettingSupport) -> GenerationSetting:
+    sent = value if support != "unsupported" else None
+    return GenerationSetting(requested=value, sent=sent, support=support)
+
+
+def _sampling_fields(provider: LLMProvider) -> dict[str, Any]:
+    """Temperature / seed fields actually placed in the request body."""
+    settings = provider.generation_settings()
+    return {
+        name: setting.sent
+        for name, setting in settings.items()
+        if setting.sent is not None
+    }
 
 
 class OllamaProvider(LLMProvider):
@@ -48,10 +128,17 @@ class OllamaProvider(LLMProvider):
         *,
         base_url: str = "http://127.0.0.1:11434",
         timeout_seconds: float = 300.0,
+        temperature: float | None = None,
+        seed: int | None = None,
     ) -> None:
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        self.temperature = temperature
+        self.seed = seed
+
+    temperature_support: SettingSupport = "supported"
+    seed_support: SettingSupport = "supported"
 
     def complete(self, system_prompt: str, user_prompt: str) -> str:
         """POST ``/api/chat`` and return the assistant message content."""
@@ -64,6 +151,9 @@ class OllamaProvider(LLMProvider):
                 {"role": "user", "content": user_prompt},
             ],
         }
+        options = _sampling_fields(self)
+        if options:
+            payload["options"] = options
         body = json.dumps(payload).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base_url}/api/chat",
@@ -103,6 +193,8 @@ class OpenAICompatibleProvider(LLMProvider):
         api_key: str,
         base_url: str = "https://integrate.api.nvidia.com/v1",
         timeout_seconds: float = 300.0,
+        temperature: float | None = None,
+        seed: int | None = None,
     ) -> None:
         if not api_key.strip():
             raise ValueError(
@@ -113,6 +205,12 @@ class OpenAICompatibleProvider(LLMProvider):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        self.temperature = temperature
+        self.seed = seed
+
+    # NVIDIA documents temperature; whether a seed is honored is not documented.
+    temperature_support: SettingSupport = "supported"
+    seed_support: SettingSupport = "unverified"
 
     def complete(self, system_prompt: str, user_prompt: str) -> str:
         """POST ``/chat/completions`` and return assistant message content."""
@@ -123,6 +221,7 @@ class OpenAICompatibleProvider(LLMProvider):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
+            **_sampling_fields(self),
         }
         body = json.dumps(payload).encode("utf-8")
         url = f"{self.base_url}/chat/completions"
@@ -175,7 +274,14 @@ class CursorProvider(LLMProvider):
     both prompts are sent as one message. Never logs the API key.
     """
 
-    def __init__(self, model: str, *, api_key: str) -> None:
+    def __init__(
+        self,
+        model: str,
+        *,
+        api_key: str,
+        temperature: float | None = None,
+        seed: int | None = None,
+    ) -> None:
         if not api_key.strip():
             raise ValueError(
                 "CursorProvider requires a non-empty API key "
@@ -183,6 +289,19 @@ class CursorProvider(LLMProvider):
             )
         self.model = model
         self.api_key = api_key
+        # Recorded as requested only: the SDK exposes no sampling controls.
+        self.temperature = temperature
+        self.seed = seed
+
+    @staticmethod
+    def joined_message(system_prompt: str, user_prompt: str) -> str:
+        """The single message the SDK receives (no separate system field)."""
+        return f"{system_prompt}\n\n---\n\n{user_prompt}"
+
+    def input_hashes(self, system_prompt: str, user_prompt: str) -> dict[str, str]:
+        """sha256 of the one joined message actually sent."""
+        message = self.joined_message(system_prompt, user_prompt)
+        return {"message_sha256": sha256_text(message)}
 
     def complete(self, system_prompt: str, user_prompt: str) -> str:
         """Run one tool-less Cursor agent turn and return its final text."""
@@ -197,7 +316,7 @@ class CursorProvider(LLMProvider):
             raise RuntimeError(
                 "provider=cursor needs the cursor-sdk package: pip install -e '.[cursor]'"
             ) from exc
-        message = f"{system_prompt}\n\n---\n\n{user_prompt}"
+        message = self.joined_message(system_prompt, user_prompt)
         with tempfile.TemporaryDirectory(prefix="s3-coach-cursor-") as scratch:
             options = AgentOptions(
                 api_key=self.api_key,

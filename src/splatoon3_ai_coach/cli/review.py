@@ -1,6 +1,7 @@
 """Commands for local Review screenshot evidence."""
 
 from pathlib import Path
+from typing import Literal
 
 import typer
 from rich.console import Console
@@ -16,6 +17,18 @@ from splatoon3_ai_coach.review.video_adapter import (
 
 console = Console()
 review_app = typer.Typer(no_args_is_help=True, help="Review screenshot evidence.")
+_MODES = {"splat_zones", "tower_control", "rainmaker", "clam_blitz"}
+
+
+def _battle_mode(mode: str | None) -> str | None:
+    """Validate an explicit mode. Extraction does not change with the value."""
+    if mode is None:
+        return None
+    if mode not in _MODES:
+        raise typer.BadParameter(
+            f"mode must be one of {', '.join(sorted(_MODES))}"
+        )
+    return mode
 
 
 @review_app.command("timeline-import")
@@ -25,6 +38,11 @@ def timeline_import(
     output: Path | None = typer.Option(None, "--out"),
     config_path: Path | None = typer.Option(None, "--config"),
     recording_id: str | None = typer.Option(None, "--recording-id"),
+    gameplay_analysis_dir: Path | None = typer.Option(
+        None, "--gameplay-analysis-dir", exists=True, file_okay=False
+    ),
+    ally_row: Literal["top", "bottom"] | None = typer.Option(None, "--ally-row"),
+    mode: str | None = typer.Option(None, "--mode"),
 ) -> None:
     """Import a local Review timeline screenshot sweep."""
     try:
@@ -36,6 +54,9 @@ def timeline_import(
             manifest_path=manifest,
             output_dir=out_dir,
             source_recording_id=recording_id,
+            gameplay_analysis_dir=gameplay_analysis_dir,
+            ally_row=ally_row,
+            battle_mode_id=_battle_mode(mode),
         )
     except (ConfigError, S3CoachError, OSError, ValueError) as exc:
         console.print(f"[red]Error:[/red] {exc}")
@@ -53,6 +74,11 @@ def timeline_video_import(
     output: Path = typer.Option(..., "--out"),
     config_path: Path | None = typer.Option(None, "--config"),
     recording_id: str | None = typer.Option(None, "--recording-id"),
+    gameplay_analysis_dir: Path | None = typer.Option(
+        None, "--gameplay-analysis-dir", exists=True, file_okay=False
+    ),
+    ally_row: Literal["top", "bottom"] | None = typer.Option(None, "--ally-row"),
+    mode: str | None = typer.Option(None, "--mode"),
 ) -> None:
     """Adapt a timeline video and import it through the screenshot pipeline."""
     try:
@@ -62,6 +88,9 @@ def timeline_video_import(
             output,
             config=config.review,
             source_recording_id=recording_id,
+            gameplay_analysis_dir=gameplay_analysis_dir,
+            ally_row=ally_row,
+            battle_mode_id=_battle_mode(mode),
         )
     except NoUsableTimelineSamples as exc:
         console.print(f"[red]Error:[/red] {exc}")

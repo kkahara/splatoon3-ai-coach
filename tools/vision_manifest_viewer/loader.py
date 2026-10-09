@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from loguru import logger
 
 from vision_manifest_viewer.diagnose import (
     apply_episode_completeness,
@@ -180,33 +181,45 @@ def _load_scenario_evidence(analysis_dir: Path) -> list[ScenarioEvidenceView]:
 
 def _load_coaching_by_scenario(analysis_dir: Path) -> dict[str, dict[str, Any]]:
     """Load deterministic coaching JSON from coach_prototype/ when present."""
-    root = analysis_dir / "coach_prototype"
-    index_path = root / "coaching_index.json"
-    if not index_path.is_file():
-        return {}
+    from splatoon3_ai_coach.coach.artifacts import (
+        ArtifactError,
+        coach_prototype_dir,
+        read_document,
+        read_prototype_index,
+    )
+
+    _warn_if_stale(analysis_dir)
+    root = coach_prototype_dir(analysis_dir)
     try:
-        index = json.loads(index_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        index = read_prototype_index(root)
+    except ArtifactError as exc:
+        logger.warning("Skipping coaching cards: {}", exc)
         return {}
-    if not isinstance(index, list):
+    if index is None:
         return {}
     out: dict[str, dict[str, Any]] = {}
-    for row in index:
-        if not isinstance(row, dict) or not row.get("scenario_id"):
-            continue
-        name = row.get("coaching_json")
-        if not isinstance(name, str):
-            continue
-        path = root / name
-        if not path.is_file():
-            continue
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if isinstance(payload, dict):
-            out[str(row["scenario_id"])] = payload
+    for entry in index.entries:
+        payload = read_document(root, entry.coaching_json)
+        if payload is not None:
+            out[entry.scenario_id] = payload
     return out
+
+
+def _warn_if_stale(analysis_dir: Path) -> None:
+    """Log when saved coach inputs predate the current evidence or analysis."""
+    from splatoon3_ai_coach.coach.artifacts import (
+        ArtifactError,
+        coach_inputs_dir,
+        coach_inputs_staleness,
+    )
+
+    try:
+        staleness = coach_inputs_staleness(coach_inputs_dir(analysis_dir), analysis_dir)
+    except ArtifactError as exc:
+        logger.warning("Cannot check coach_inputs staleness: {}", exc)
+        return
+    if staleness is not None and staleness.stale:
+        logger.warning("{}: {}", analysis_dir.name, staleness.message())
 
 
 def _join_scenario_card(

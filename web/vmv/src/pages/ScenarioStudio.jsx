@@ -181,6 +181,9 @@ export function ScenarioStudio({ runId, scenarios, scenarioIndex, onSelect, vide
           </p>
         ) : null}
       </header>
+      {layers?.staleness?.status === "stale" && (
+        <p className="warn">{layers.staleness.message}</p>
+      )}
       {findings.length > 0 && (
         <aside className="key-finding">
           <h3>Key finding</h3>
@@ -360,8 +363,8 @@ function evidenceFacts(scenario) {
     if (recovery.death_time != null) facts.push(["Death", formatTime(recovery.death_time)]);
     if (recovery.respawn_time != null) facts.push(["Respawn", formatTime(recovery.respawn_time)]);
     if (recovery.active_again_time != null) facts.push(["Active again", formatTime(recovery.active_again_time)]);
-    if (map.map_check_before_death === true) facts.push(["Map overlay", "observed before death"]);
-    if (map.map_check_before_death === false) facts.push(["Map overlay", "not observed before death"]);
+    const mapFact = mapCheckFact(map);
+    if (mapFact) facts.push(["Map overlay", mapFact]);
   } else if (scenario.scenario_type === "engagement") {
     if (combat.splat_count != null) facts.push(["Splats", String(combat.splat_count)]);
     if (combat.first_splat_time != null) facts.push(["First splat", formatTime(combat.first_splat_time)]);
@@ -443,4 +446,16 @@ async function pollJob(jobId, setJobNote) {
     if (job.status === "completed" || job.status === "failed" || job.status === "cancelled") return job;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
+}
+
+function mapCheckFact(map) {
+  const status = map.map_check_status;
+  if (status === "observed" || (!status && map.map_check_before_death === true)) {
+    return "observed before death";
+  }
+  if (status === "not_observed") return "not observed before death";
+  if (status === "unknown") {
+    return `not assertable (${map.map_check_unknown_reason || "no reason recorded"})`;
+  }
+  return null;
 }

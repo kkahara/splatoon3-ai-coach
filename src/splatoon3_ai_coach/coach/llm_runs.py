@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
+from splatoon3_ai_coach.coach.artifacts import RunProvenance
 from splatoon3_ai_coach.coach.llm_client import (
     CoachingAssessment,
     CursorProvider,
@@ -27,6 +30,39 @@ class LlmRun:
 
     label: str
     provider: LLMProvider
+
+
+def utc_timestamp() -> str:
+    """ISO-8601 UTC timestamp for ``RunProvenance.executed_at``."""
+    return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+def run_provenance(
+    run: LlmRun,
+    *,
+    provider_name: str,
+    system_prompt: str,
+    user_prompt: str,
+    llm_view_bytes: bytes | None,
+    importance_config_hash: str | None,
+    executed_at: str,
+) -> RunProvenance:
+    """Record what one call actually sent (settings, exact-input hashes)."""
+    settings = run.provider.generation_settings()
+    return RunProvenance(
+        provider=provider_name,
+        model=run.label,
+        temperature=settings["temperature"],
+        seed=settings["seed"],
+        input_hashes=run.provider.input_hashes(system_prompt, user_prompt),
+        llm_view_sha256=(
+            hashlib.sha256(llm_view_bytes).hexdigest()
+            if llm_view_bytes is not None
+            else None
+        ),
+        importance_config_hash=importance_config_hash,
+        executed_at=executed_at,
+    )
 
 
 def should_skip_llm(
@@ -81,7 +117,9 @@ def build_llm_runs(
         runs.append(
             LlmRun(
                 label=primary,
-                provider=OllamaProvider(primary, base_url=ollama_base),
+                provider=OllamaProvider(
+                    primary, base_url=ollama_base, **_sampling(coach_cfg)
+                ),
             )
         )
     elif provider_name == "nvidia":
@@ -99,7 +137,9 @@ def build_llm_runs(
         runs.append(
             LlmRun(
                 label=baseline,
-                provider=OllamaProvider(baseline, base_url=ollama_base),
+                provider=OllamaProvider(
+                    baseline, base_url=ollama_base, **_sampling(coach_cfg)
+                ),
             )
         )
     return runs
@@ -128,7 +168,10 @@ def _nvidia_run(
     return LlmRun(
         label=model,
         provider=OpenAICompatibleProvider(
-            model, api_key=api_key, base_url=coach_cfg.openai_compatible_base_url
+            model,
+            api_key=api_key,
+            base_url=coach_cfg.openai_compatible_base_url,
+            **_sampling(coach_cfg),
         ),
     )
 
@@ -139,7 +182,15 @@ def _cursor_run(
     """Cursor-hosted model through the Cursor SDK."""
     api_key = _require_key(settings.cursor_api_key, "cursor", "S3_COACH_CURSOR_API_KEY")
     model = model_override or coach_cfg.cursor_model
-    return LlmRun(label=model, provider=CursorProvider(model, api_key=api_key))
+    return LlmRun(
+        label=model,
+        provider=CursorProvider(model, api_key=api_key, **_sampling(coach_cfg)),
+    )
+
+
+def _sampling(coach_cfg: CoachConfig) -> dict[str, float | int | None]:
+    """Requested temperature / seed; each provider decides what it sends."""
+    return {"temperature": coach_cfg.llm_temperature, "seed": coach_cfg.llm_seed}
 
 
 # Backward-compatible aliases.

@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 import pytest
+from coach_artifact_helpers import index_entry
 from fastapi.testclient import TestClient
 from public_site import localize
 from public_site.app import create_app
@@ -67,15 +68,7 @@ def _seed(analysis: Path, assessments: dict[str, str | None]) -> None:
     prototype.mkdir(parents=True, exist_ok=True)
     entries = []
     for rank, (safe_id, assessment) in enumerate(assessments.items(), start=1):
-        entries.append(
-            {
-                "candidate_type": "death_episode",
-                "safe_id": safe_id,
-                "video_time": float(10 * rank),
-                "rank": rank,
-                "coaching_json": f"{safe_id}.coaching.json",
-            }
-        )
+        entries.append(index_entry(safe_id, video_time=float(10 * rank), rank=rank))
         factors = {"factors": [{"active": True, "statement_player": STATEMENT}]}
         coaching = inputs / f"{safe_id}.coaching.json"
         coaching.write_text(json.dumps(factors), encoding="utf-8")
@@ -220,6 +213,29 @@ def test_one_failed_translation_leaves_the_rest_japanese(tmp_path: Path) -> None
     cached = json.loads(cache_path(tmp_path).read_text(encoding="utf-8"))
     stored = [entry["en"] for entry in cached["entries"].values()]
     assert stored == ["Paragraph one."]
+
+
+class _CausalTranslator(_Translator):
+    """Fake translator that adds a causal claim the English never made."""
+
+    def __call__(self, text: str) -> str:
+        super().__call__(text)
+        return f"マップを見なかったことがデスの原因です。{text}"
+
+
+def test_translation_that_adds_a_claim_falls_back_to_english(tmp_path: Path) -> None:
+    english = PublicSubmissionResult(moments=[_moment("You had low ink at death.")])
+    moment = localize_result(english, "ja", tmp_path, _CausalTranslator()).moments[0]
+    assert moment.assessment == "You had low ink at death."
+    assert moment.assessment_locale == "en"
+    assert not cache_path(tmp_path).exists()
+
+
+def test_faithful_translation_of_a_negated_claim_is_kept(tmp_path: Path) -> None:
+    text = "The evidence does not show what caused the death."
+    english = PublicSubmissionResult(moments=[_moment(text)])
+    moment = localize_result(english, "ja", tmp_path, _CausalTranslator()).moments[0]
+    assert moment.assessment_locale == "ja"
 
 
 def test_shared_paragraph_is_translated_once(tmp_path: Path) -> None:
@@ -378,3 +394,61 @@ def test_unsupported_locale_is_rejected(tmp_path: Path) -> None:
     client = _client(tmp_path, _Translator(), [])
     token = _finished_token(client)
     assert client.get(f"/api/submissions/{token}?locale=fr").status_code == 422
+
+
+_CAUSAL = (
+    "The death at 72.5 s occurred without a prior map check. This lack of map "
+    "awareness may have contributed to the splat."
+)
+_VIEW = {
+    "schema_version": 2,
+    "unit": {"scenario_id": "death_episode:72.500"},
+    "importance": {"active_factor_ids": []},
+    "map": {
+        "map_check_before_death": {"status": "not_observed"},
+        "source_path": "primary_context.map",
+    },
+}
+
+
+def _write_view_and_stale_flags(analysis: Path, safe_id: str) -> None:
+    prototype = analysis / "coach_prototype"
+    (prototype / f"{safe_id}.llm_view.json").write_text(
+        json.dumps(_VIEW), encoding="utf-8"
+    )
+    (prototype / f"{safe_id}.model.flags.json").write_text(
+        json.dumps({"hit_count": 0, "validation_status": "validated"}),
+        encoding="utf-8",
+    )
+
+
+def test_status_is_recomputed_not_read_from_flags(tmp_path: Path) -> None:
+    _seed(tmp_path, {"unit": _CAUSAL})
+    _write_view_and_stale_flags(tmp_path, "unit")
+    english = load_result(tmp_path)
+    moment = english.moments[0]
+    assert moment.assessment_status == "blocked_unsupported_claim"
+    assert moment.coaching_state == "blocked"
+    assert moment.assessment is None
+    translator = _Translator()
+    japanese = localize_result(english, "ja", tmp_path, translator)
+    assert japanese.moments[0].coaching_state == "blocked"
+    assert translator.calls == []
+    assert japanese.moments[0].assessment is None
+
+
+def test_status_validated_and_not_validated(tmp_path: Path) -> None:
+    clean = "No map overlay was observed before the death."
+    _seed(tmp_path, {"viewed": clean, "unviewed": clean})
+    (tmp_path / "coach_prototype" / "viewed.llm_view.json").write_text(
+        json.dumps(_VIEW), encoding="utf-8"
+    )
+    statuses = {m.video_time: m.assessment_status for m in load_result(tmp_path).moments}
+    assert statuses == {10.0: "validated", 20.0: "not_validated"}
+
+
+def test_context_mark_offset_labels_localize() -> None:
+    assert localize_line("8.5s before", "ja") == "8.5秒前"
+    assert localize_line("22s before (game clock)", "ja") == "22秒前（試合時間）"
+    assert localize_line("3s after (game clock)", "ja") == "3秒後（試合時間）"
+    assert localize_line("4.0s of video before", "ja") == "動画上4.0秒前"

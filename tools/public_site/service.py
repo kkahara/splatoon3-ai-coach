@@ -43,6 +43,7 @@ from public_site.results import load_result
 from public_site.settings import PublicSettings
 from public_site.storage import LocalStorage, R2Storage
 from public_site.store import PublicStore, add_days, parse_utc, utc_now
+from public_site.telemetry import TelemetryStore, best_effort, classify_error
 from public_site.tokens import hash_ip, hash_token, new_token
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -66,6 +67,7 @@ class SubmissionService:
         probe: Probe | None = None,
         accounts: AccountStore | None = None,
         translator: Translator | None = None,
+        telemetry: TelemetryStore | None = None,
     ) -> None:
         self.settings = settings
         self.store = store
@@ -73,6 +75,7 @@ class SubmissionService:
         self.notices = notices
         self.accounts = accounts
         self.translator = translator
+        self.telemetry = telemetry
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
             store,
@@ -107,7 +110,7 @@ class SubmissionService:
         suffix, mime = _declared_file(filename, content_type, size_bytes, self.settings)
         notice_email = _notice_email(email, notify)
         name = _display_name(display_name)
-        return self._persist(
+        created, submission = self._persist(
             suffix=suffix,
             mime=mime,
             size_bytes=size_bytes,
@@ -120,6 +123,15 @@ class SubmissionService:
             user_id=user_id,
             retention_days=retention_days,
         )
+        if self.telemetry is not None:
+            best_effort(
+                "open_initial_run",
+                self.telemetry.open_initial_run,
+                submission.id,
+                user_id=user_id,
+                language=language,
+            )
+        return created
 
     def _check_limits(self, ip: str, user_id: str | None, now: datetime) -> None:
         """Network cap for everyone, plus a per-account or per-network guest cap."""
@@ -143,6 +155,12 @@ class SubmissionService:
         submission = self._require(token)
         if submission.status != "received":
             return self.project(submission)
+        if self.telemetry is not None:
+            best_effort(
+                "upload_confirmed",
+                self.telemetry.upload_confirmed,
+                submission.id,
+            )
         video = self.store.get_video(submission.id)
         if video is None:
             raise RequestRejected(400, UPLOAD_MISSING)
@@ -162,7 +180,8 @@ class SubmissionService:
         and nothing is re-analyzed or re-coached.
         """
         result = None
-        if submission.status == "complete" and submission.analysis_dir:
+        coached = submission.outcome != "no_deaths"
+        if submission.status == "complete" and coached and submission.analysis_dir:
             self._fill_frames(submission)
             analysis = Path(submission.analysis_dir)
             result = localize_result(load_result(analysis), locale, analysis, self.translator)
@@ -174,6 +193,7 @@ class SubmissionService:
             expires_at=submission.expires_at,
             display_name=submission.display_name,
             error=error,
+            outcome=submission.outcome,
             match_seconds=_match_seconds(self.store.get_video(submission.id)),
             locale=locale,
             result=result,
@@ -209,7 +229,7 @@ class SubmissionService:
         now: datetime,
         user_id: str | None = None,
         retention_days: int | None = None,
-    ) -> CreateSubmissionResponse:
+    ) -> tuple[CreateSubmissionResponse, Submission]:
         stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         submission_id = uuid.uuid4().hex
         token = new_token()
@@ -240,10 +260,13 @@ class SubmissionService:
         if notify:
             self.notices.seal(submission_id, token)
         upload = self.storage.presign_put(video.object_key, mime, size_bytes)
-        return CreateSubmissionResponse(
-            token=token,
-            review_path=f"/review/{token}",
-            upload=upload,
+        return (
+            CreateSubmissionResponse(
+                token=token,
+                review_path=f"/review/{token}",
+                upload=upload,
+            ),
+            submission,
         )
 
     def _probe_and_queue(
@@ -255,6 +278,12 @@ class SubmissionService:
         submission.status = "validating"
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
+        if self.telemetry is not None:
+            best_effort(
+                "validation_started",
+                self.telemetry.validation_started,
+                submission.id,
+            )
         dest = self.settings.root / "probe" / f"{submission.id}{Path(video.object_key).suffix}"
         path, temporary = self.storage.local_file(video.object_key, dest)
         try:
@@ -285,6 +314,16 @@ class SubmissionService:
         self.store.save_video(video)
         self.notices.send(submission, "received", token)
         self.store.save_submission(submission)
+        if self.telemetry is not None:
+            best_effort(
+                "queued",
+                self.telemetry.queued,
+                submission.id,
+                video_seconds=facts.duration_seconds,
+                size_bytes=video.size_bytes,
+                width=facts.width,
+                height=facts.height,
+            )
 
     def _fail(self, submission: Submission, video: VideoInput, detail: str) -> None:
         self.storage.delete(video.object_key)
@@ -294,6 +333,16 @@ class SubmissionService:
         submission.updated_at = utc_now()
         self.store.save_video(video)
         self.note_terminal(submission, "failed")
+        if self.telemetry is not None:
+            code, diagnostic = classify_error(detail)
+            best_effort(
+                "validation_failed",
+                self.telemetry.failed,
+                submission.id,
+                stage=None,
+                error_code=code,
+                diagnostic=diagnostic,
+            )
 
     def note_terminal(self, submission: Submission, kind: str) -> None:
         """Send a ready or failed notice when a sealed token still exists."""
@@ -350,7 +399,7 @@ class SubmissionService:
         entries = ranked_entries(analysis)
         if index < 0 or index >= len(entries):
             return None
-        dest = frame_path(analysis, str(entries[index].get("safe_id") or ""))
+        dest = frame_path(analysis, entries[index].safe_id)
         if dest is None:
             return None
         if not dest.is_file():
@@ -409,6 +458,16 @@ class SubmissionService:
         submission.error = UPLOAD_UNFINISHED
         submission.updated_at = utc_now()
         self.note_terminal(submission, "failed")
+        if self.telemetry is not None:
+            code, diagnostic = classify_error(UPLOAD_UNFINISHED)
+            best_effort(
+                "upload_unfinished",
+                self.telemetry.failed,
+                submission.id,
+                stage=None,
+                error_code=code,
+                diagnostic=diagnostic,
+            )
 
     def _expire(self, now: datetime) -> None:
         for submission in self.store.list_submissions():
@@ -431,6 +490,12 @@ class SubmissionService:
         self.notices.clear_sealed(submission.id)
         if self.accounts is not None:
             self.accounts.drop_history(submission.id)
+        if self.telemetry is not None:
+            best_effort(
+                "unlink_expired",
+                self.telemetry.unlink_user,
+                submission.id,
+            )
         submission.email = None
         submission.display_name = None
         submission.user_id = None

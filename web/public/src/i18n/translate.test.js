@@ -30,3 +30,32 @@ test("unknown locales use English", () => {
   assert.equal(normalizeLocale("fr"), "en");
   assert.equal(normalizeLocale("ja"), "ja");
 });
+
+test("the unverified-wording badge has English and Japanese text", () => {
+  const en = translate(resources, "en", "review.unverified_wording");
+  const ja = translate(resources, "ja", "review.unverified_wording");
+  assert.match(en, /^Contains unverified wording/);
+  assert.notEqual(ja, en);
+  assert.notEqual(ja, "review.unverified_wording");
+});
+
+test("every public coaching state has English and Japanese text", () => {
+  for (const key of ["review.not_reviewed", "review.blocked", "review.no_recommendation"]) {
+    const en = translate(resources, "en", key);
+    const ja = translate(resources, "ja", key);
+    assert.notEqual(en, key);
+    assert.notEqual(ja, en);
+  }
+  assert.equal(
+    translate(resources, "en", "review.no_recommendation"),
+    "No recommendation supported by the available evidence.",
+  );
+});
+
+test("the stale-evidence notice has English and Japanese text", () => {
+  const en = translate(resources, "en", "review.stale_evidence");
+  const ja = translate(resources, "ja", "review.stale_evidence");
+  assert.match(en, /older version of the match evidence/);
+  assert.notEqual(ja, en);
+  assert.notEqual(ja, "review.stale_evidence");
+});

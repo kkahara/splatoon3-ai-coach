@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { createSubmission, loadAccount, loadConfig, markUploaded, uploadVideo } from "../api.js";
+import inkThinkWin from "../assets/ink-think-win.svg";
 import { useT } from "../i18n/LocaleContext.jsx";
-
-function systemLanguage() {
-  const tags = navigator.languages?.length ? navigator.languages : [navigator.language || "en"];
-  return tags.some((tag) => String(tag).toLowerCase().startsWith("ja")) ? "ja" : "en";
-}
+import { submissionBody, submitError } from "./submitForm.js";
 
 function videoLabel(config, t) {
   const bytes = config?.max_video_bytes || 500 * 1024 * 1024;
@@ -20,7 +17,8 @@ export function SubmitPage() {
   const t = useT();
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
-  const [language, setLanguage] = useState(systemLanguage());
+  // No browser-locale default: it selects HUD templates and must match the video.
+  const [language, setLanguage] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [account, setAccount] = useState(null);
   const [notify, setNotify] = useState(false);
@@ -64,31 +62,17 @@ export function SubmitPage() {
   async function onSubmit(event) {
     event.preventDefault();
     setError("");
-    if (!file) {
-      setError(t("submit.error_file"));
-      return;
-    }
-    if (config && file.size > config.max_video_bytes) {
-      setError(t("submit.error_size"));
-      return;
-    }
     const token = config?.dev_mode ? "dev" : turnstileToken;
-    if (!token) {
-      setError(t("submit.error_check"));
+    const problem = submitError({ file, language, maxBytes: config?.max_video_bytes, token });
+    if (problem) {
+      setError(t(problem));
       return;
     }
     setBusy(true);
     try {
-      const created = await createSubmission({
-        turnstile_token: token,
-        filename: file.name,
-        size_bytes: file.size,
-        content_type: file.type || "video/mp4",
-        language,
-        email: account ? null : notify ? email : null,
-        notify: account ? false : notify,
-        display_name: displayName || null,
-      });
+      const created = await createSubmission(
+        submissionBody({ token, file, language, account, notify, email, displayName }),
+      );
       await uploadVideo(created.upload, file);
       await markUploaded(created.token);
       navigate(created.review_path);
@@ -103,6 +87,7 @@ export function SubmitPage() {
       <AccountBar account={account} onChange={setAccount} />
       <h1>{t("submit.title")}</h1>
       <p>{t("submit.intro")}</p>
+      <img className="hero-catchphrase" src={inkThinkWin} alt="Ink. Think. Win." />
       <form onSubmit={onSubmit}>
         <label>
           {videoLabel(config, t)}
@@ -114,7 +99,10 @@ export function SubmitPage() {
         </label>
         <label>
           {t("submit.system_language")}
-          <select value={language} onChange={(event) => setLanguage(event.target.value)}>
+          <select value={language} onChange={(event) => setLanguage(event.target.value)} required>
+            <option value="" disabled>
+              {t("submit.choose_language")}
+            </option>
             <option value="en">English</option>
             <option value="ja">日本語</option>
           </select>

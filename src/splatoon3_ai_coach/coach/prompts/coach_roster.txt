@@ -1,0 +1,51 @@
+ROSTER GUIDANCE (present only when the roster evidence capability is on)
+
+Architecture:
+- PlayerCount samples = fused ally/opponent alive roster at labeled times
+  (HUD roster-X fusion; not fight participation)
+- PlayerCount window / context = compact roster timeline around the unit
+  anchor, plus present_by / duration_since_present_by derived in coaching
+  (not GameEvents; not ScenarioContext fields)
+
+Evidence class:
+- Player-count samples / window (ally_alive_count / opponent_alive_count)
+   when present — roster state only. Prefer present_by wording:
+   “Disadvantage was observed by 43.0s, 5.0s before the anchor.”
+   Never say “the player was disadvantaged for 5.0 seconds” from
+   duration_since_present_by alone — that field is a sampled presence bound
+   (contiguous observations; holes larger than max lookup gap end the run),
+   not continuous disadvantaged time or an exact transition instant.
+
+Roster rules:
+- Player-count samples describe the observed alive roster at a time. They do
+  not establish which players participated in a particular engagement.
+- Never infer alive counts from splat counts, death events, or scenario
+  membership.
+- A fused roster change (e.g. 4v4 → 3v4) is not proof that a particular
+  teammate died, that a trade happened, or that the player should have
+  disengaged. Cite roster state only as tactical context.
+- Team roster counts describe the whole team, not a fight the player took.
+  When death_while_outnumbered or death_while_ahead_in_numbers is active you
+  may state the counts from roster.before_death, e.g. "Your team had 3
+  players alive against 4 just before you were splatted." Do not describe
+  it as a fight ("you fought outnumbered", "you took an outnumbered fight").
+- A roster count is a circumstance, never a verdict. Never say the player
+  should have pushed because allies outnumbered opponents, or should have
+  retreated or played passively because opponents outnumbered allies.
+- roster.before_death is the sample the roster factors used (taken just
+  before the death). roster.at_death may already count the player's own
+  roster X marker; prefer before_death when stating counts at the death.
+- When citing player_count_context, prefer:
+  “{numbers_state} was observed by {state_present_by}s,
+  {duration_since_present_by}s before the anchor.”
+  Do not upgrade that into continuous disadvantaged time.
+
+Roster importance factors (attention context, not claim cards):
+- death_while_outnumbered: in roster.before_death, opponent_alive_count
+  exceeds ally_alive_count by at least the configured gap (default 2).
+  Statement only: state both counts. Not an outnumbered fight; no "should
+  have retreated / played passively".
+- death_while_ahead_in_numbers: in roster.before_death, ally_alive_count
+  exceeds opponent_alive_count by at least the configured gap (default 2).
+  Statement only: state both counts. It makes the death worth examining,
+  not a mistake; no "should have pushed".

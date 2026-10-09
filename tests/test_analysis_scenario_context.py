@@ -228,7 +228,8 @@ def test_map_after_active_again_is_standalone_map_check() -> None:
     ctx = build_scenario_context(events, episode, config)
     assert ctx.map is not None
     assert ctx.map.map_checks_during_death_episode == 0
-    assert ctx.map.map_checked_while_dead is False
+    # No overlay during its own respawn → episode not covered → unknown, not False.
+    assert ctx.map.map_checked_while_dead is None
     assert ctx.map.map_event_ids_during_episode == []
     assert len(maps) == 1
     assert maps[0].context["in_death_episode"] is False
@@ -377,7 +378,8 @@ def test_insufficient_evidence_is_none_not_invented() -> None:
     assert ctx.death_episode.death_to_active_again is None
     assert ctx.combat is None
     assert ctx.map is not None
-    assert ctx.map.map_check_before_death is False
+    assert ctx.map.map_check_before_death is None
+    assert ctx.map.map_check_status == "unknown"
     assert ctx.map.seconds_since_map_check_before_death is None
 
 

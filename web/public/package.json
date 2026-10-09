@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "node --test \"src/i18n/*.test.js\""
+    "test": "node --test \"src/i18n/*.test.js\" \"src/pages/*.test.js\""
   },
   "dependencies": {
     "react": "^19.0.0",

@@ -166,3 +166,88 @@ def numbers_differential_from_observation(
 def format_avb(ally_alive_count: int, opponent_alive_count: int) -> str:
     """Compact ``AvB`` label from alive counts."""
     return f"{int(ally_alive_count)}v{int(opponent_alive_count)}"
+
+
+TEAM_SIZE = 4
+RosterSide = Literal["ally", "opponent"]
+
+
+class RosterInterval(BaseModel):
+    """Closed video-time interval where roster counts are not plausible."""
+
+    start: float
+    end: float
+    side: RosterSide
+    increase_at: float
+    reason: str
+
+    def contains(self, video_time: float) -> bool:
+        """Closed-interval membership (boundaries count as unreliable)."""
+        return self.start <= float(video_time) <= self.end
+
+
+def assess_roster_plausibility(
+    observations: Sequence[PlayerCountObservation],
+    *,
+    min_respawn_seconds: float,
+    window_seconds: float | None = None,
+) -> list[RosterInterval]:
+    """Intervals around alive-count increases no earlier death can explain.
+
+    Per side and queue-based: each decrease records pending deaths; an
+    increase must consume pending deaths at least ``min_respawn_seconds`` old.
+    The deficit present when the series starts counts as pending from the
+    series start. Detector confidence is never consulted or changed.
+    """
+    window = min_respawn_seconds if window_seconds is None else window_seconds
+    ordered = sorted(observations, key=lambda o: o.video_time)
+    intervals: list[RosterInterval] = []
+    for side in ("ally", "opponent"):
+        intervals.extend(
+            _side_intervals(ordered, side, min_respawn_seconds, window)
+        )
+    return sorted(intervals, key=lambda item: (item.start, item.side))
+
+
+def _side_intervals(
+    ordered: Sequence[PlayerCountObservation],
+    side: RosterSide,
+    min_respawn_seconds: float,
+    window: float,
+) -> list[RosterInterval]:
+    """Replay one side's counts against a FIFO queue of pending deaths."""
+    attr = f"{side}_alive_count"
+    if not ordered:
+        return []
+    previous = int(getattr(ordered[0], attr))
+    pending = [float(ordered[0].video_time)] * max(0, TEAM_SIZE - previous)
+    out: list[RosterInterval] = []
+    for obs in ordered[1:]:
+        count, t = int(getattr(obs, attr)), float(obs.video_time)
+        if count < previous:
+            pending.extend([t] * (previous - count))
+        elif count > previous:
+            needed = count - previous
+            eligible = [p for p in pending if t - p >= min_respawn_seconds]
+            for stamp in eligible[:needed]:
+                pending.remove(stamp)
+            missing = needed - min(needed, len(eligible))
+            if missing:
+                # Still consume the youngest pending deaths so the queue
+                # tracks the observed count after the implausible step.
+                del pending[len(pending) - min(missing, len(pending)) :]
+                out.append(
+                    RosterInterval(
+                        start=max(0.0, t - window),
+                        end=t + window,
+                        side=side,
+                        increase_at=t,
+                        reason=(
+                            f"{side} alive count rose by {needed} with only "
+                            f"{needed - missing} death(s) at least "
+                            f"{min_respawn_seconds:g}s earlier"
+                        ),
+                    )
+                )
+        previous = count
+    return out

@@ -20,6 +20,7 @@ from splatoon3_ai_coach.vision.splat_episodes import SplatEpisodeFuser
 def infer_events(
     snapshots: list[GameStateSnapshot],
     config: EventFusionConfig,
+    match_end: GameEvent | None = None,
 ) -> list[GameEvent]:
     """Build the match event timeline from fused domain state.
 
@@ -34,7 +35,13 @@ def infer_events(
 
     ``EventFusionConfig.debounce_ms`` only guards lifecycle edges. It must
     not define splat episodes.
+
+    MATCH_END (``match_end``, decided in ``vision.match_end``): snapshots at
+    or after it never start events, open intervals close at it, and the
+    MATCH_END event itself is appended last.
     """
+    if match_end is not None:
+        snapshots = [item for item in snapshots if item.timestamp < match_end.start_time]
     debounce_s = config.debounce_ms / 1000.0
     events: list[GameEvent] = []
     previous_alive: bool | None = None
@@ -104,11 +111,23 @@ def infer_events(
             snapshot.zone_control_quality,
         )
 
-    if open_map is not None and snapshots:
-        open_map.end_time = snapshots[-1].timestamp
-    if open_low_ink is not None and snapshots:
-        open_low_ink.end_time = snapshots[-1].timestamp
+    close_at = _close_time(snapshots, match_end)
+    if open_map is not None and close_at is not None:
+        open_map.end_time = close_at
+    if open_low_ink is not None and close_at is not None:
+        open_low_ink.end_time = close_at
+    if match_end is not None:
+        events.append(match_end)
     return events
+
+
+def _close_time(
+    snapshots: list[GameStateSnapshot], match_end: GameEvent | None
+) -> float | None:
+    """Where still-open intervals end: MATCH_END, else the last snapshot."""
+    if match_end is not None:
+        return match_end.start_time
+    return snapshots[-1].timestamp if snapshots else None
 
 
 def _death_event(

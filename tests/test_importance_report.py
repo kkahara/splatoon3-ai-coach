@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from coach_artifact_helpers import index_entry
 from importance_report import (
     ROSTER_MISSING,
     ROSTER_SAMPLE,
@@ -225,12 +226,14 @@ def test_find_analyses_and_read_old_ranking(tmp_path: Path) -> None:
     (inputs / "coaching_index.json").write_text(
         json.dumps(
             [
-                {
-                    "candidate_id": "death_episode:10.000",
-                    "importance_score": 2.5,
-                    "selected_for_llm": True,
-                    "active_factors": ["death_last_ally_alive"],
-                }
+                index_entry(
+                    "death_episode_10.000",
+                    scenario_id="death_episode:10.000",
+                    candidate_id="death_episode:10.000",
+                    importance_score=2.5,
+                    selected_for_llm=True,
+                    active_factors=["death_last_ally_alive"],
+                )
             ]
         ),
         encoding="utf-8",

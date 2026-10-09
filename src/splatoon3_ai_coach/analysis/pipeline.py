@@ -6,6 +6,8 @@ from typing import Any
 
 from loguru import logger
 
+from splatoon3_ai_coach.analysis.map_coverage import MapOverlaySample
+from splatoon3_ai_coach.analysis.match_bounds import before_match_end, match_end_time
 from splatoon3_ai_coach.analysis.scenario_context import (
     ScenarioContext,
     build_scenario_contexts,
@@ -31,6 +33,7 @@ from splatoon3_ai_coach.vision.map_ink import MAP_OBSERVATIONS_FILENAME, MapObse
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
     GameStateSnapshot,
+    MapOverlayReading,
     SpecialGaugeReading,
     VisionFrameResult,
     VisionManifest,
@@ -127,7 +130,12 @@ def _write_scenario_contexts(
     manifest: VisionManifest | None = None,
 ) -> list[ScenarioContext]:
     """Persist scenario_contexts.json. Does not change scenarios.json."""
-    evidence = load_scenario_evidence_pack(output_dir, manifest=manifest)
+    evidence = load_scenario_evidence_pack(
+        output_dir,
+        manifest=manifest,
+        map_overlay_min_confidence=config.vision.map_overlay.min_usable_confidence,
+        special_ring_fill_threshold=config.vision.special_gauge.ready_fill_threshold,
+    )
     observability = Observability.OBSERVABLE
     if manifest is not None and manifest.video is not None:
         observability = manifest.video.map_overlay_observability
@@ -152,14 +160,21 @@ def load_scenario_evidence_pack(
     analysis_dir: Path,
     *,
     manifest: VisionManifest | None = None,
+    map_overlay_min_confidence: float = 0.5,
+    special_ring_fill_threshold: float | None = None,
 ) -> ScenarioEvidencePack:
-    """Load persisted secondary evidence for ScenarioContext enrichment."""
+    """Load persisted secondary evidence for ScenarioContext enrichment.
+
+    Every sample at or after ``MATCH_END`` is dropped (see ``match_bounds``).
+    """
     map_obs = _load_map_observations(analysis_dir / MAP_OBSERVATIONS_FILENAME)
     snapshots: list[GameStateSnapshot] = []
-    special: list[SpecialReading] = []
+    frames: list[VisionFrameResult] = []
+    events: list[GameEvent] = []
     if manifest is not None:
         snapshots = list(manifest.state_snapshots)
-        special = extract_special_readings(manifest.frame_results)
+        frames = list(manifest.frame_results)
+        events = list(manifest.game_events)
     else:
         # Fallback: read vision_manifest.json beside scenarios when re-run.
         raw = _read_json_object(analysis_dir / "vision_manifest.json")
@@ -174,12 +189,49 @@ def load_scenario_evidence_pack(
                 for item in (raw.get("frame_results") or [])
                 if isinstance(item, dict)
             ]
-            special = extract_special_readings(frames)
+            events = [
+                GameEvent.model_validate(item)
+                for item in (raw.get("game_events") or [])
+                if isinstance(item, dict)
+            ]
+    match_end = match_end_time(events)
+    map_obs = before_match_end(map_obs, lambda item: item.video_time, match_end)
+    snapshots = before_match_end(snapshots, lambda item: item.timestamp, match_end)
+    frames = before_match_end(frames, lambda item: item.timestamp, match_end)
     return ScenarioEvidencePack(
         map_observations=map_obs,
         state_snapshots=snapshots,
-        special_readings=special,
+        special_readings=extract_special_readings(frames),
+        map_overlay_samples=extract_map_overlay_samples(
+            frames, min_confidence=map_overlay_min_confidence
+        ),
+        cadence_times=sorted(float(frame.timestamp) for frame in frames),
+        special_ring_fill_threshold=special_ring_fill_threshold,
     )
+
+
+def extract_map_overlay_samples(
+    frame_results: list[VisionFrameResult],
+    *,
+    min_confidence: float,
+) -> list[MapOverlaySample]:
+    """Raw map_overlay readings; ``usable`` = confidence ≥ the detector floor."""
+    out: list[MapOverlaySample] = []
+    for frame in frame_results:
+        for det in frame.detections:
+            if not isinstance(det.reading, MapOverlayReading):
+                continue
+            confidence = float(det.confidence)
+            out.append(
+                MapOverlaySample(
+                    video_time=float(frame.timestamp),
+                    present=bool(det.reading.present),
+                    confidence=confidence,
+                    usable=confidence >= min_confidence,
+                )
+            )
+    out.sort(key=lambda item: item.video_time)
+    return out
 
 
 def extract_special_readings(
