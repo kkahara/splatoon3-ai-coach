@@ -247,3 +247,104 @@ recordings.
 
 **Timing failures without bias.** FAIL. Implementation unchanged; failing
 cases listed and diagnosed; no threshold or offset change.
+
+## Final held-out gate
+
+Mechanical result: `gate/gate.json`, `gate/gate.md` (committed `9f052f6`
+before any failure was inspected). Pre-registration `8828b46`; gate tool
+`cefeb80` (tool and config clean at run time); `configs/default.yaml` sha256
+`3ef4b496…e503f`, `review` block sha256 `98c2bf53…5e24`. Blind recheck labels:
+`recheck/recheck_labels.yaml` (8 cases, reviewer `status: reviewed`).
+
+**Verdict: FAIL** (isolated timing failures, no systematic bias).
+Implementation unchanged; no threshold, offset, template, scale or dedupe
+change. Nothing is frozen.
+
+### Merged labels and score (B 71 + C 30 = 101 cases)
+
+| | Raw labels | Final (recheck merged) |
+|---|---|---|
+| Labels alive / dead / indeterminate | 35 / 37 / 29 | 35 / 37 / 29 |
+| Correct (X = 0 state matches) | 46 | 52 |
+| Wrong | 6 | 0 |
+| Indeterminate label | 29 | 29 |
+| X = 0 `unknown`, label decided | 20 | 20 |
+| X = 0 `unknown` in bracket / out of bracket | 46 / 0 | 46 / 0 |
+| Timing failures | 8 (B07, B08, B09, B39, B46, B58, B66, C30) | 2 (B09, B39) |
+| Non-timing failures (pre-registered) | 1 (B38) | 1 (B38) |
+| Direction of timing failures | lag 4, lead 2, none 2 | lag 0, lead 0, none 2 |
+| Empirical X, all cases | 0.57 s | 0.28 s (B38) |
+
+Recheck: 8 cases rechecked; 6 now agree with X = 0 (B07, B08, B46, B58 flipped
+from the opposite state; B66, C30 from `indeterminate` to `dead`); B09 and B39
+moved from `alive` to `indeterminate`. Label totals happen to be unchanged.
+
+### Gate conditions
+
+1. Timing failures over merged B + C: **2** (B09, B39). Condition fails.
+2. Among 52 timing-attributable cases with a determinable label and an X = 0
+   state: 0 timing failures. Redundant with condition 1 (a subset of it); the
+   timing-attributable empirical X is 0.09 s, set by B39 (`indeterminate`
+   label, no `wrong` case).
+
+Bias test: 2 timing failures (lag 0, lead 0, none 2); needs >= 3 and >= 80% in
+one direction: **no systematic bias**. Both failures are `none` (the label is
+`indeterminate`, not the opposite state), so they carry no offset direction.
+
+### Failures (diagnosis written after the result was committed)
+
+| Case | Recording / slot | Sheet frames | Final label | X = 0 | Direction | Mechanical kind | Diagnostic cause |
+|---|---|---|---|---|---|---|---|
+| B09 | 21-35-40 `top_2`, alive->dead bracket [-1.01, -0.06] s | `recheck/sheets/B09.jpg`: BEFORE -1.01 s alive, AT -0.06 s (-0.5 px) X, AFTER +1.01 s X | indeterminate | dead | none | timing | label |
+| B39 | 06-43-43 `top_4`, dead->alive bracket [+0.09, +1.04] s | `recheck/sheets/B39.jpg`: BEFORE -1.04 s X, AT +0.09 s (+0.5 px) X, AFTER +1.04 s alive | indeterminate | dead | none | timing | label |
+| B38 | 06-43-43 `bottom_2` | `boundary/sheets_compact/B38.jpg`: BEFORE -0.28 s and AFTER +0.66 s empty dark silhouette | indeterminate | alive | none | non_timing (pre-registered) | detection |
+
+- **B09, B39 (label):** each sheet has an AT frame within 0.5 px of the special
+  glyph centre, and it shows the X. The state at the special is therefore
+  demonstrably `dead`, which is the X = 0 state; the transition lies on the
+  far side of the AT frame (between BEFORE and AT for B09, between AT and
+  AFTER for B39). The reviewer's basis was "both dead and alive exist" on the
+  sheet, i.e. the BEFORE / AFTER disagreement was treated as indeterminate
+  without letting the AT frame decide. No sheet shows the opposite state at
+  the special, so no timing defect is observed. This diagnosis does not change
+  the mechanical FAIL. Both cases also fail under the literal pre-registered
+  wording (BEFORE and AFTER do disagree on these sheets), so the strict reading
+  of clause 2 did not decide the verdict.
+- **B38 (detection):** the disconnected `bottom_2` silhouette (no icon, no X)
+  read `alive`; the documented disconnected-slot false-alive defect.
+
+### Observed defects
+
+- Disconnected-slot false-alive read: 06-43-43 `bottom_2` (B38) and 07-54-48
+  `top_4` (stray low-confidence `alive` reads kept over `unknown`). Not fixed;
+  to be designed on the tuning set (21-41-07 `top_1`) and re-checked on fresh
+  held-out data.
+
+### Known precision limitations
+
+- Roster lamps about 1 px (0.19 s) late on 21-23-30 (tuning) and 07-54-48
+  (held-out); zero offset still the most consistent fit. Not corrected.
+- Glow-end timing best fit +0.10 s vs 0 s (77 vs 76 brackets), within glyph
+  localisation. Not corrected.
+
+### Validation coverage gaps
+
+- Five special types never label-confirmed: reefslider,
+  splattercolor_screen, super_chump, tenta_missiles, zipcaster.
+- Big Bubbler and Trizooka have no held-out detections (absent from the held-out
+  recordings; not a detector failure). Inkjet and Kraken Royale absent from
+  both sets.
+- Held-out special identity is unverified (no special labels for these
+  recordings); this gate validates timing / sync only.
+
+### Decision
+
+The pre-registered gate **fails**; the SPECIAL_USE synchronisation / timing
+lane is **not frozen**. No systematic directional bias, so no correction
+hypothesis; production synchronisation (zero offset, X = 0) is unchanged and
+B / C are not reused for tuning. The two failures are diagnosed as label
+errors, which the gate rules do not allow to overturn the result. Closing the
+lane needs a new held-out set (fresh recordings), labelled with an explicit
+rule that an AT frame within glyph localisation decides the state when BEFORE
+and AFTER disagree, and the same pre-registered gate.
+`coach.roster_evidence` stays `false`; no scenario / CoachInput work.
