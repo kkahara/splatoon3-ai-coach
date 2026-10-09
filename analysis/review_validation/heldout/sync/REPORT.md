@@ -348,3 +348,44 @@ lane needs a new held-out set (fresh recordings), labelled with an explicit
 rule that an AT frame within glyph localisation decides the state when BEFORE
 and AFTER disagree, and the same pre-registered gate.
 `coach.roster_evidence` stays `false`; no scenario / CoachInput work.
+
+### Closure (after the verdict)
+
+- The FAIL stands as recorded. B09 / B39 are not relabelled; the post-gate
+  "label" diagnosis is not used to rescue the gate.
+- **B and C are permanently sealed and finished.** They are not reused for
+  tuning, threshold or offset search, or as part of any later gate.
+- 0.09 s (timing-attributable empirical X, set by the disputed B39) and the
+  +0.10 s glow-end fit are descriptive outputs only, never candidate
+  corrections. X = 0 and the zero offset are unchanged.
+- What the gate showed: after the blind recheck, 0 opposite-state errors and
+  no lag / lead signal (raw 4 lag / 2 lead collapsed to 0 / 0). The remaining
+  failures point at the labelling protocol, not at synchronisation.
+
+### Next gate (to be pre-registered before any new labelling)
+
+Same question, unchanged system: does X = 0 survive fresh recordings? No
+SPECIAL_USE redesign or recalibration.
+
+Draft labelling rule, fixed from sheet geometry before labelling:
+
+- `g` is the special glyph centre; every sheet frame prints `dx` = cursor x
+  minus `g` (px) and the matching `dt` (s).
+- **AT frame:** the single nearest frame with |dx| <= 0.5 px (`AT_PX`, the
+  existing sheet constant; <= 0.095 s at the observed 0.059-0.189 s/px).
+  Frames beyond 0.5 px are never AT, however close they look.
+- **Label:** (1) if an AT frame exists and the icon is legible, its state is
+  the label; (2) otherwise, if the nearest BEFORE (dx < 0) and AFTER (dx > 0)
+  frames are legible and agree, that state; (3) otherwise `indeterminate`.
+  Alive and dead both appearing on the sheet is not by itself grounds for
+  `indeterminate`. Illegible / disconnected icons are `indeterminate`.
+- This mirrors the frames X = 0 consults (last lamp frame at x <= g, first at
+  x > g), but the label is the reviewer's reading of the icon, never the lamp
+  detector output; sheets keep hiding the pipeline state.
+
+Corpus: only cases where X = 0 returns a state close to a transition
+challenge it (in-bracket cases read `unknown` by design). B + C had 101 cases
+but only 55 with an X = 0 state, 43 of them within 0.6 s of a transition and
+22 within 0.25 s. The next set should be selected for such boundary cases
+(target size fixed at pre-registration), not padded with far-from-transition
+cases.
