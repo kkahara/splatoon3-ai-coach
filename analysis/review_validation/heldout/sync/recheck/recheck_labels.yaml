@@ -1,0 +1,28 @@
+status: reviewed
+question: At the special, is this slot demonstrably alive, demonstrably dead, or indeterminate? Use only
+  the BEFORE / AT / AFTER frames on the sheet.
+cases:
+- case_id: B07
+  reviewed_state_at_special: alive
+  reviewer_note: 'this looks a New Squiffer, which looks quite blur here. the background is bright yellow gree and looks like a squidling. the player is alive. the special doesnt look ready because it is not gloswing whiteish.' 
+- case_id: B08
+  reviewed_state_at_special: dead
+  reviewer_note: 'The weapon looks one of those splat dulies. The roster lamp has a octoling background. The player is dead right now. before and after are equaly clear to me. To me there is no question that this player is dead.'
+- case_id: B09
+  reviewed_state_at_special: indeterminate
+  reviewer_note: 'the weapons looks Wellstring V. Before one is not dead. The special is not ready. clock 216 and 217 are both dead.'
+- case_id: B39
+  reviewed_state_at_special: indeterminate
+  reviewer_note: '163 and 162 are both dead. 161 is alive. the special is not ready'
+- case_id: B46
+  reviewed_state_at_special: alive
+  reviewer_note: 'the weapon looks Rapid Blaster Pro WNT-R. the background is bright yellow gree. the background is squidling. before and after look identifcal.'
+- case_id: B58
+  reviewed_state_at_special: alive
+  reviewer_note: 'the weapon looks Tentatek Splattershot. background is pink. Before and after look identifcal. the special is not ready.'
+- case_id: B66
+  reviewed_state_at_special: dead
+  reviewer_note: 'the weapon looks Tri-Stringer. before and after look identifcal and dead. the background is octoling.'
+- case_id: C30
+  reviewed_state_at_special: dead
+  reviewer_note: 'the weapon looksDapple Dualies. both before and after look identifcal and dead. the background is squidling.'
