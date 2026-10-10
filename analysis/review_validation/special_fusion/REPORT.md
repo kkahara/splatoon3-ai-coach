@@ -77,3 +77,12 @@ Own-transition coverage (non-null / total; raw seconds, no thresholds):
   facts carry `unconfirmed_type` and are not blocked.
 - The disconnected-slot and ~1 px lamp issues remain future detector work;
   fusion has no disconnect classifier.
+
+## Verification
+
+- Promoted X = 0 rule parity: 209 / 209 held-out cases (B 71, C 30, D 108).
+- Review config sha256 unchanged: `98c2bf537caee518ce609812eea509e53fea1e7f4239a72120631e4230325e24`.
+- Full suite attempted (at `d021131`): 1456 passed; 33 database-dependent
+  public-site/admin tests could not execute because local PostgreSQL was
+  unavailable. No test assertions failed. A full-suite run with PostgreSQL
+  available is pending as closure verification.
