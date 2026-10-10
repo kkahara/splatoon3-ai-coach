@@ -14,7 +14,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from splatoon3_ai_coach.review.clock import is_overtime_display
 from splatoon3_ai_coach.review.models import (
+    AxisCalibrationEvidence,
     PlayerDeathEpisodeEvidence,
     ReviewTimelineDataset,
     SpecialUseEvent,
@@ -25,6 +27,7 @@ from splatoon3_ai_coach.review.slot_state import (
     SEARCH_PX,
     LampSequence,
     lamp_states,
+    nearest_transition_px,
     slot_state,
 )
 
@@ -97,18 +100,28 @@ class SpecialUseFacts(BaseModel):
 def derive_special_use_facts(
     ds: ReviewTimelineDataset, source_sha256: str | None = None
 ) -> SpecialUseFacts:
-    """Build one fact per ``ds.special_events`` entry, in dataset order."""
-    axis = ds.axis_calibration
-    spp = abs(axis.slope) / SCREEN_WIDTH if axis is not None else None
+    """Build one fact per ``ds.special_events`` entry, in dataset order.
+
+    Raises ``OutsidePlayableInterval`` if any glyph lies before GO or in a
+    negative-clock range not observed as overtime, and ``ValueError`` if the
+    cursor frame width is not ``SCREEN_WIDTH``.
+    """
+    check_frame_width(ds)
+    floor = overtime_floor(ds)
+    phases = [
+        playable_phase(e.elapsed_estimate, ds.regulation_seconds, floor)
+        for e in ds.special_events
+    ]
     lamps = lamp_states(ds)
     facts = [
-        _fact(i, event, ds, lamps.get(event.slot_id, []), spp)
+        _fact(i, event, ds, lamps.get(event.slot_id, []), phases[i])
         for i, event in enumerate(ds.special_events)
     ]
+    axis = ds.axis_calibration
     return SpecialUseFacts(
         source_recording_id=ds.source_recording_id,
         source_dataset_sha256=source_sha256,
-        seconds_per_px=spp,
+        seconds_per_px=None if axis is None else px_to_seconds(axis, 1.0),
         facts=facts,
     )
 
@@ -118,15 +131,13 @@ def _fact(
     event: SpecialUseEvent,
     ds: ReviewTimelineDataset,
     lamps: LampSequence,
-    spp: float | None,
+    phase: Literal["regulation", "overtime"],
 ) -> SpecialUseFact:
     g = event.x_norm * SCREEN_WIDTH
     at = slot_state(lamps, g)
     status = identity_status(event.special_id)
     death = next_own_death(event, ds.match_history_events)
-    distance = None
-    if at.transition_px is not None and spp is not None:
-        distance = round(at.transition_px * spp, 3)
+    distance = own_transition_distance_s(lamps, g, ds.axis_calibration)
     blockers = integration_blockers(at.state, status)
     return SpecialUseFact(
         special_index=index,
@@ -141,7 +152,7 @@ def _fact(
         x_norm=event.x_norm,
         glyph_x=round(g, 1),
         remaining_estimate=event.elapsed_estimate,
-        phase=phase_of(event.elapsed_estimate),
+        phase=phase,
         slot_state_at_use=at.state,
         slot_state_reason=at.reason,
         own_transition_distance_s=distance,
@@ -171,9 +182,72 @@ def side_of(
     return "ally" if team_row == ally_row else "opponent"
 
 
-def phase_of(remaining: float) -> Literal["regulation", "overtime"]:
-    """Negative remaining clock after GO is overtime (no pre-GO specials)."""
-    return "overtime" if remaining < 0 else "regulation"
+class OutsidePlayableInterval(ValueError):
+    """A SPECIAL_USE glyph lies outside GO .. last observed match clock."""
+
+
+def overtime_floor(ds: ReviewTimelineDataset) -> int | None:
+    """Most negative observed overtime (``+M:SS``) label, or ``None``."""
+    values = [
+        s.elapsed_seconds
+        for s in ds.samples
+        if s.elapsed_seconds is not None
+        and s.clock_status != "implausible"
+        and is_overtime_display(s.displayed_clock)
+    ]
+    return min(values, default=None)
+
+
+def playable_phase(
+    remaining: float, regulation_seconds: int, floor: int | None
+) -> Literal["regulation", "overtime"]:
+    """Phase of a use on the remaining clock; fails closed outside play.
+
+    Pre-GO countdown labels are also negative but are not on the match axis,
+    so a negative value is overtime only when overtime labels were observed
+    and the value lies within one display second of the last of them.
+    """
+    if remaining > regulation_seconds:
+        raise OutsidePlayableInterval(
+            f"remaining {remaining:.2f} is before GO ({regulation_seconds})"
+        )
+    if remaining >= 0:
+        return "regulation"
+    if floor is None:
+        raise OutsidePlayableInterval(
+            f"remaining {remaining:.2f} is negative but no overtime label was observed"
+        )
+    if remaining < floor - 1:
+        raise OutsidePlayableInterval(
+            f"remaining {remaining:.2f} is past the last overtime label ({floor})"
+        )
+    return "overtime"
+
+
+def check_frame_width(ds: ReviewTimelineDataset, tolerance_px: float = 0.5) -> None:
+    """The X = 0 rule compares cursor px with ``x_norm * SCREEN_WIDTH``."""
+    for s in ds.samples:
+        x, x_norm = s.cursor.x, s.cursor.x_norm
+        if x is not None and x_norm is not None and x_norm > 0:
+            if abs(x - x_norm * SCREEN_WIDTH) > tolerance_px:
+                raise ValueError(
+                    f"{s.sample_id}: cursor x {x} is not x_norm * {SCREEN_WIDTH}"
+                )
+
+
+def px_to_seconds(axis: AxisCalibrationEvidence, px: float) -> float:
+    """Clock seconds spanned by ``px`` on the axis (``elapsed_at`` takes x_norm)."""
+    return abs(axis.elapsed_at(px / SCREEN_WIDTH) - axis.elapsed_at(0.0))
+
+
+def own_transition_distance_s(
+    lamps: LampSequence, g: float, axis: AxisCalibrationEvidence | None
+) -> float | None:
+    """Seconds from the glyph to the slot's nearest lamp transition bracket."""
+    px = nearest_transition_px(lamps, g)
+    if px is None or axis is None:
+        return None
+    return round(px_to_seconds(axis, px), 3)
 
 
 def integration_blockers(
@@ -194,6 +268,7 @@ def next_own_death(
     event: SpecialUseEvent, markers: list[TimelineEventMarker]
 ) -> tuple[str, float] | None:
     """Nearest own death glyph at or after the use: (marker id, seconds)."""
+    # Remaining clock: later in the match means a smaller value.
     gaps = [
         (event.elapsed_estimate - m.elapsed_estimate, m.marker_id)
         for m in markers
@@ -212,6 +287,7 @@ def since_own_recovery(
     event: SpecialUseEvent, episodes: list[PlayerDeathEpisodeEvidence]
 ) -> float | None:
     """Seconds since the latest own first-alive observation at or before the use."""
+    # Remaining clock: earlier in the match means a larger value.
     gaps = [
         e.next_alive_elapsed - event.elapsed_estimate
         for e in episodes

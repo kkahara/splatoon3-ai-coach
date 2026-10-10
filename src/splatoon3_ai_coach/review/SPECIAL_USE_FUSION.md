@@ -37,9 +37,20 @@ frame). These are recorded facts whatever `integration_valid` says.
   value is the **remaining** game clock at the glyph centre.
 - It is copied from `SpecialUseEvent.elapsed_estimate`. That frozen dataset
   field keeps its name; nothing in `ReviewTimelineDataset` is renamed.
-- `phase`: `regulation` when `remaining_estimate >= 0`, `overtime` when it is
-  negative. Assumption: a special cannot be used in the pre-GO countdown
-  (also negative on the Review clock), so every negative value is overtime.
+- `phase` is `regulation` or `overtime`; there is no `countdown` value. A
+  SPECIAL_USE cannot occur before GO, and this is **enforced, not assumed**:
+  fact construction fails closed (`OutsidePlayableInterval`, no artifact
+  written) unless the glyph lies in the playable Review interval.
+  - `remaining_estimate > regulation_seconds`: before GO, refused.
+  - `0 <= remaining_estimate <= regulation_seconds`: `regulation`.
+  - `remaining_estimate < 0`: the pre-GO countdown (`-M:SS`) is also negative
+    but is not on the match axis, so a negative value is `overtime` only if
+    overtime labels (`+M:SS`) were observed and the value is no more than one
+    display second past the most negative of them. Otherwise refused.
+- Glyph px and clock both come from the import's axis:
+  `remaining_estimate == axis.elapsed_at(x_norm)` and `glyph_x = x_norm *
+  1920`. Construction refuses an import whose cursor `x` is not
+  `x_norm * 1920` (the X = 0 rule compares the two).
 
 ### Slot state at use (validated X = 0 rule)
 
@@ -64,17 +75,26 @@ the lamp; it is kept and blocked from integration, never "resolved".
 
 ### Own-transition context (raw numbers only)
 
-All in Review-clock seconds, match-forward, for the same slot:
+All in Review-clock seconds, match-forward, for the same slot. The source
+values are **remaining** time: later in the match is a *smaller* value. Tests
+named `test_direction_*` pin this; do not "fix" the inequalities.
 
-- `own_transition_distance_s`: distance from the glyph to the nearest lamp
-  transition bracket of the slot (0 inside a bracket); `null` without a
-  transition or axis calibration.
+- `own_transition_distance_s`: px distance from the glyph to the nearest lamp
+  transition bracket `(x_a, x_b]` of the slot (`slot_state.nearest_transition_px`;
+  0 inside a bracket, nearest of several wins), converted with the axis
+  mapping `|elapsed_at((g + px) / 1920) - elapsed_at(g / 1920)|`, which equals
+  `|slope| * px / 1920`. `null` without a transition or without axis
+  calibration (the slot state still stands).
 - `seconds_to_next_own_death`: `remaining_estimate - death.elapsed_estimate`
-  for the nearest own death glyph at or after the use
-  (`next_own_death_marker_id`); `null` if none. Never extrapolated.
+  for the nearest own death glyph at or after the use, i.e. with
+  `death.elapsed_estimate <= remaining_estimate`
+  (`next_own_death_marker_id`); `null` if none. Never extrapolated. Example:
+  use at 100, death at 95 gives 5; a death at 105 is earlier and ignored.
 - `seconds_since_own_recovery_observed`: `next_alive_elapsed -
   remaining_estimate` for the latest own death episode whose first alive
-  observation is at or before the use. Integer-second resolution: the real
+  observation is at or before the use (`next_alive_elapsed >=
+  remaining_estimate`). Example: recovery at 120, use at 100 gives 20; a
+  recovery at 90 is later and ignored. Integer-second resolution: the real
   respawn lies between `last_dead_elapsed` and `next_alive_elapsed`. `null` if
   none.
 

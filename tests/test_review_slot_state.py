@@ -22,6 +22,7 @@ from splatoon3_ai_coach.review.slot_state import (
     SCREEN_WIDTH,
     SEARCH_PX,
     lamp_states,
+    nearest_transition_px,
     slot_state,
 )
 
@@ -54,6 +55,25 @@ def test_slot_state_matches_tools_on_synthetic_sequences(seed: int) -> None:
         ours = slot_state(seq, g, window).model_dump()
         theirs = tools_sync.slot_state(seq, g, window)
         assert ours == theirs, (seq, g, window)
+
+
+@pytest.mark.parametrize("seed", range(10))
+def test_nearest_transition_px_matches_tools_transition_px(seed: int) -> None:
+    rng = random.Random(1000 + seed)
+    for _ in range(50):
+        seq = _random_seq(rng)
+        g = rng.uniform(-20, 420)
+        dist = nearest_transition_px(seq, g)
+        theirs = tools_sync.slot_state(seq, g, 0.0)["transition_px"]
+        assert (None if dist is None else round(dist, 1)) == theirs
+
+
+def test_nearest_transition_px_geometry() -> None:
+    seq = [(100.0, "alive"), (110.0, "alive"), (120.0, "dead"), (130.0, "unknown")]
+    assert nearest_transition_px(seq, 105.0) == 5.0
+    assert nearest_transition_px(seq, 115.0) == 0.0
+    assert nearest_transition_px(seq, 126.0) == 6.0
+    assert nearest_transition_px([(100.0, "alive"), (110.0, "alive")], 105.0) is None
 
 
 def test_slot_state_exact_on_frame_and_transition_edges() -> None:

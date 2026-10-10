@@ -15,6 +15,13 @@ by `analysis/` or `coach/`; `coach.roster_evidence` stays `false`.
 - Tuning set: `gate/<rid>` for 21-23-30, 21-41-07, 21-49-20, 21-56-52.
 - `special_use_facts.json` was written beside each `review_timeline.json`. The
   sha256 of every `review_timeline.json` is identical before and after the run.
+- The fail-closed playable-interval check refused no import. All 6 negative
+  uses (5 in D, 1 in tuning) lie within recordings with observed `+M:SS`
+  overtime labels and inside their range. No use is before GO (maximum
+  remaining 287.66 of 300).
+- Axis semantics checked on the real imports: every cursor `x` equals
+  `x_norm * 1920`, and every glyph's `elapsed_estimate` equals
+  `axis.elapsed_at(x_norm)` exactly, so `seconds_per_px = |slope| / 1920`.
 - The promoted X = 0 rule (`review/slot_state.py`) reproduces
   `pipeline_state_x0` for all 209 B, C and D boundary cases
   (`tests/test_review_slot_state.py`).

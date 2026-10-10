@@ -59,10 +59,7 @@ def slot_state(seq: LampSequence, g: float, window_px: float = 0.0) -> SlotState
     known = [(x, s) for x, s in seq if s != "unknown"]
     before = [p for p in known if p[0] <= g and g - p[0] <= SEARCH_PX]
     after = [p for p in known if p[0] > g and p[0] - g <= SEARCH_PX]
-    transitions = [
-        (a[0], b[0]) for a, b in zip(known, known[1:], strict=False) if a[1] != b[1]
-    ]
-    dist = min((_gap(t, g) for t in transitions), default=None)
+    dist = nearest_transition_px(seq, g)
     transition_px = None if dist is None else round(dist, 1)
     if not before or not after:
         return SlotStateAt(
@@ -74,6 +71,19 @@ def slot_state(seq: LampSequence, g: float, window_px: float = 0.0) -> SlotState
             state="unknown", reason="near_roster_transition", transition_px=transition_px
         )
     return SlotStateAt(state=prev, transition_px=transition_px)
+
+
+def nearest_transition_px(seq: LampSequence, g: float) -> float | None:
+    """Px from ``g`` to the nearest lamp transition bracket; 0 inside one.
+
+    A bracket is ``(x_a, x_b]`` between consecutive known frames whose states
+    differ. ``None`` when the slot has no transition.
+    """
+    known = [(x, s) for x, s in seq if s != "unknown"]
+    transitions = [
+        (a[0], b[0]) for a, b in zip(known, known[1:], strict=False) if a[1] != b[1]
+    ]
+    return min((_gap(t, g) for t in transitions), default=None)
 
 
 def _gap(bracket: tuple[float, float], g: float) -> float:
