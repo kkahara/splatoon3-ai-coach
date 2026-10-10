@@ -1,0 +1,2594 @@
+[
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@970",
+    "special_slot": "bottom_1",
+    "special_clock": 125.56,
+    "glyph_x": 970.0,
+    "slot": "bottom_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      963.0,
+      968.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.5,
+      -0.43
+    ],
+    "distance_to_transition_s": 0.43,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D01"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@1524",
+    "special_slot": "bottom_1",
+    "special_clock": 7.21,
+    "glyph_x": 1524.0,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1525.0,
+      1529.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.21,
+      1.07
+    ],
+    "distance_to_transition_s": 0.21,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D02"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@1524",
+    "special_slot": "bottom_1",
+    "special_clock": 7.21,
+    "glyph_x": 1524.0,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1525.0,
+      1529.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.21,
+      1.07
+    ],
+    "distance_to_transition_s": 0.21,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D03"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "super_chump@1459",
+    "special_slot": "bottom_2",
+    "special_clock": 21.09,
+    "glyph_x": 1459.0,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1455.0,
+      1459.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.85,
+      0.0
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D04"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "super_chump@1459",
+    "special_slot": "bottom_2",
+    "special_clock": 21.09,
+    "glyph_x": 1459.0,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1455.0,
+      1459.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.85,
+      0.0
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D05"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@299",
+    "special_slot": "bottom_3",
+    "special_clock": 268.91,
+    "glyph_x": 299.0,
+    "slot": "top_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      293.0,
+      298.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.28,
+      -0.21
+    ],
+    "distance_to_transition_s": 0.21,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D06"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@601",
+    "special_slot": "bottom_3",
+    "special_clock": 204.4,
+    "glyph_x": 601.0,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      598.0,
+      603.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.64,
+      0.43
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D07"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@1051",
+    "special_slot": "bottom_3",
+    "special_clock": 108.26,
+    "glyph_x": 1051.0,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1048.0,
+      1052.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.64,
+      0.21
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D08"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@1051",
+    "special_slot": "bottom_3",
+    "special_clock": 108.26,
+    "glyph_x": 1051.0,
+    "slot": "bottom_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1052.0,
+      1057.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.21,
+      1.28
+    ],
+    "distance_to_transition_s": 0.21,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D09"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@1678",
+    "special_slot": "bottom_3",
+    "special_clock": -25.69,
+    "glyph_x": 1678.0,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1679.0,
+      1684.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.21,
+      1.28
+    ],
+    "distance_to_transition_s": 0.21,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D10"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "trizooka@724",
+    "special_slot": "bottom_4",
+    "special_clock": 178.01,
+    "glyph_x": 724.5,
+    "slot": "top_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      729.0,
+      739.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.96,
+      3.1
+    ],
+    "distance_to_transition_s": 0.96,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D11"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "trizooka@724",
+    "special_slot": "bottom_4",
+    "special_clock": 178.01,
+    "glyph_x": 724.5,
+    "slot": "bottom_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      729.0,
+      739.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.96,
+      3.1
+    ],
+    "distance_to_transition_s": 0.96,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D12"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "big_bubbler@438",
+    "special_slot": "top_1",
+    "special_clock": 239.22,
+    "glyph_x": 438.0,
+    "slot": "top_3",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      439.0,
+      444.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.21,
+      1.28
+    ],
+    "distance_to_transition_s": 0.21,
+    "lane_death_glyph_dt_s": 0.21,
+    "lane_death_glyph_x": 439.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D13"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "reefslider@318",
+    "special_slot": "top_2",
+    "special_clock": 264.96,
+    "glyph_x": 317.5,
+    "slot": "top_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      317.0,
+      321.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.11,
+      0.75
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D14"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "reefslider@562",
+    "special_slot": "top_2",
+    "special_clock": 212.83,
+    "glyph_x": 561.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      556.0,
+      561.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.18,
+      -0.11
+    ],
+    "distance_to_transition_s": 0.11,
+    "lane_death_glyph_dt_s": -1.18,
+    "lane_death_glyph_x": 556.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D15"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "reefslider@1308",
+    "special_slot": "top_2",
+    "special_clock": 53.25,
+    "glyph_x": 1308.5,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1300.0,
+      1310.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.82,
+      0.32
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D16"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "booyah_bomb@408",
+    "special_slot": "top_3",
+    "special_clock": 245.73,
+    "glyph_x": 407.5,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      402.0,
+      407.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.18,
+      -0.11
+    ],
+    "distance_to_transition_s": 0.11,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D17"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "booyah_bomb@428",
+    "special_slot": "top_4",
+    "special_clock": 241.25,
+    "glyph_x": 428.5,
+    "slot": "bottom_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      421.0,
+      425.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.6,
+      -0.75
+    ],
+    "distance_to_transition_s": 0.75,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D18"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "booyah_bomb@1340",
+    "special_slot": "top_4",
+    "special_clock": 46.62,
+    "glyph_x": 1339.5,
+    "slot": "bottom_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1338.0,
+      1342.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.32,
+      0.53
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D19"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "booyah_bomb@1340",
+    "special_slot": "top_4",
+    "special_clock": 46.62,
+    "glyph_x": 1339.5,
+    "slot": "bottom_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1333.0,
+      1338.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.39,
+      -0.32
+    ],
+    "distance_to_transition_s": 0.32,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D20"
+  },
+  {
+    "recording": "09-53-27",
+    "special": "booyah_bomb@1340",
+    "special_slot": "top_4",
+    "special_clock": 46.62,
+    "glyph_x": 1339.5,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1338.0,
+      1342.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.32,
+      0.53
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.2136401776785564,
+    "case_id": "D21"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "ultra_stamp@298",
+    "special_slot": "bottom_1",
+    "special_clock": 271.8,
+    "glyph_x": 298.5,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      302.0,
+      307.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.69,
+      1.67
+    ],
+    "distance_to_transition_s": 0.69,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D22"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@1166",
+    "special_slot": "bottom_2",
+    "special_clock": 101.54,
+    "glyph_x": 1166.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1169.0,
+      1174.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.49,
+      1.47
+    ],
+    "distance_to_transition_s": 0.49,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D23"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@1166",
+    "special_slot": "bottom_2",
+    "special_clock": 101.54,
+    "glyph_x": 1166.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1159.0,
+      1164.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.47,
+      -0.49
+    ],
+    "distance_to_transition_s": 0.49,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D24"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@1166",
+    "special_slot": "bottom_2",
+    "special_clock": 101.54,
+    "glyph_x": 1166.5,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1164.0,
+      1169.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.49,
+      0.49
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D25"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@450",
+    "special_slot": "bottom_3",
+    "special_clock": 241.99,
+    "glyph_x": 450.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      451.0,
+      456.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      1.08
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D26"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@1564",
+    "special_slot": "bottom_3",
+    "special_clock": 23.47,
+    "glyph_x": 1564.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1567.0,
+      1572.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.49,
+      1.47
+    ],
+    "distance_to_transition_s": 0.49,
+    "lane_death_glyph_dt_s": 1.28,
+    "lane_death_glyph_x": 1571.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D27"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "inkjet@587",
+    "special_slot": "bottom_4",
+    "special_clock": 215.21,
+    "glyph_x": 587.0,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      588.0,
+      593.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.2,
+      1.18
+    ],
+    "distance_to_transition_s": 0.2,
+    "lane_death_glyph_dt_s": 0.59,
+    "lane_death_glyph_x": 590.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D28"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "inkjet@587",
+    "special_slot": "bottom_4",
+    "special_clock": 215.21,
+    "glyph_x": 587.0,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      578.0,
+      588.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.77,
+      0.2
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D29"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "inkjet@587",
+    "special_slot": "bottom_4",
+    "special_clock": 215.21,
+    "glyph_x": 587.0,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      588.0,
+      593.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.2,
+      1.18
+    ],
+    "distance_to_transition_s": 0.2,
+    "lane_death_glyph_dt_s": 0.2,
+    "lane_death_glyph_x": 588.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D30"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "inkjet@1114",
+    "special_slot": "bottom_4",
+    "special_clock": 111.84,
+    "glyph_x": 1114.0,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1118.0,
+      1123.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.78,
+      1.77
+    ],
+    "distance_to_transition_s": 0.78,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D31"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "inkjet@1415",
+    "special_slot": "bottom_4",
+    "special_clock": 52.79,
+    "glyph_x": 1415.0,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1419.0,
+      1424.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.78,
+      1.77
+    ],
+    "distance_to_transition_s": 0.78,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D32"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "inkjet@1415",
+    "special_slot": "bottom_4",
+    "special_clock": 52.79,
+    "glyph_x": 1415.0,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1414.0,
+      1419.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.2,
+      0.78
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D33"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "triple_splashdown@583",
+    "special_slot": "top_1",
+    "special_clock": 216.0,
+    "glyph_x": 583.0,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      578.0,
+      588.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.98,
+      0.98
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D34"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@710",
+    "special_slot": "top_2",
+    "special_clock": 191.18,
+    "glyph_x": 709.5,
+    "slot": "top_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      711.0,
+      716.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.29,
+      1.28
+    ],
+    "distance_to_transition_s": 0.29,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D35"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@710",
+    "special_slot": "top_2",
+    "special_clock": 191.18,
+    "glyph_x": 709.5,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      711.0,
+      716.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.29,
+      1.28
+    ],
+    "distance_to_transition_s": 0.29,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D36"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@952",
+    "special_slot": "top_2",
+    "special_clock": 143.71,
+    "glyph_x": 951.5,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      950.0,
+      955.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.29,
+      0.69
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D37"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@1238",
+    "special_slot": "top_2",
+    "special_clock": 87.61,
+    "glyph_x": 1237.5,
+    "slot": "top_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1230.0,
+      1236.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.47,
+      -0.29
+    ],
+    "distance_to_transition_s": 0.29,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D38"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "zipcaster@1238",
+    "special_slot": "top_2",
+    "special_clock": 87.61,
+    "glyph_x": 1237.5,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1230.0,
+      1236.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.47,
+      -0.29
+    ],
+    "distance_to_transition_s": 0.29,
+    "lane_death_glyph_dt_s": -1.28,
+    "lane_death_glyph_x": 1231.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D39"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@260",
+    "special_slot": "top_3",
+    "special_clock": 279.45,
+    "glyph_x": 259.5,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      256.0,
+      261.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.69,
+      0.29
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D40"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@260",
+    "special_slot": "top_3",
+    "special_clock": 279.45,
+    "glyph_x": 259.5,
+    "slot": "bottom_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      261.0,
+      266.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.29,
+      1.28
+    ],
+    "distance_to_transition_s": 0.29,
+    "lane_death_glyph_dt_s": 1.28,
+    "lane_death_glyph_x": 266.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D41"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@492",
+    "special_slot": "top_3",
+    "special_clock": 233.95,
+    "glyph_x": 491.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      492.0,
+      497.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      1.08
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D42"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1082",
+    "special_slot": "top_3",
+    "special_clock": 118.02,
+    "glyph_x": 1082.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1083.0,
+      1093.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      2.06
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D43"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1082",
+    "special_slot": "top_3",
+    "special_clock": 118.02,
+    "glyph_x": 1082.5,
+    "slot": "top_3",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1083.0,
+      1093.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      2.06
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D44"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1082",
+    "special_slot": "top_3",
+    "special_clock": 118.02,
+    "glyph_x": 1082.5,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1083.0,
+      1093.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      2.06
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": 0.88,
+    "lane_death_glyph_x": 1087.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D45"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1082",
+    "special_slot": "top_3",
+    "special_clock": 118.02,
+    "glyph_x": 1082.5,
+    "slot": "bottom_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1083.0,
+      1093.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      2.06
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D46"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1170",
+    "special_slot": "top_3",
+    "special_clock": 100.76,
+    "glyph_x": 1170.5,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1169.0,
+      1174.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.29,
+      0.69
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D47"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1170",
+    "special_slot": "top_3",
+    "special_clock": 100.76,
+    "glyph_x": 1170.5,
+    "slot": "bottom_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1164.0,
+      1169.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.28,
+      -0.29
+    ],
+    "distance_to_transition_s": 0.29,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D48"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "reefslider@1566",
+    "special_slot": "top_3",
+    "special_clock": 23.08,
+    "glyph_x": 1566.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1567.0,
+      1572.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.1,
+      1.08
+    ],
+    "distance_to_transition_s": 0.1,
+    "lane_death_glyph_dt_s": 0.88,
+    "lane_death_glyph_x": 1571.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D49"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "ink_storm@1009",
+    "special_slot": "top_4",
+    "special_clock": 132.43,
+    "glyph_x": 1009.0,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1011.0,
+      1016.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.39,
+      1.37
+    ],
+    "distance_to_transition_s": 0.39,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D50"
+  },
+  {
+    "recording": "09-54-34",
+    "special": "ink_storm@1538",
+    "special_slot": "top_4",
+    "special_clock": 28.67,
+    "glyph_x": 1538.0,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1536.0,
+      1541.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.39,
+      0.59
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.19615731760395552,
+    "case_id": "D51"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "triple_inkstrike@834",
+    "special_slot": "bottom_1",
+    "special_clock": 201.54,
+    "glyph_x": 833.5,
+    "slot": "top_3",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      824.0,
+      831.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.39,
+      -0.37
+    ],
+    "distance_to_transition_s": 0.37,
+    "lane_death_glyph_dt_s": -1.39,
+    "lane_death_glyph_x": 824.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D52"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "triple_inkstrike@834",
+    "special_slot": "bottom_1",
+    "special_clock": 201.54,
+    "glyph_x": 833.5,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      831.0,
+      837.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.37,
+      0.51
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D53"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "ink_storm@1010",
+    "special_slot": "bottom_2",
+    "special_clock": 175.74,
+    "glyph_x": 1010.0,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      995.0,
+      1015.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -2.19,
+      0.73
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D54"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "tacticooler@910",
+    "special_slot": "bottom_3",
+    "special_clock": 190.43,
+    "glyph_x": 909.5,
+    "slot": "bottom_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      906.0,
+      913.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.51,
+      0.51
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D55"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "big_bubbler@701",
+    "special_slot": "top_1",
+    "special_clock": 220.91,
+    "glyph_x": 701.0,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      707.0,
+      714.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.88,
+      1.9
+    ],
+    "distance_to_transition_s": 0.88,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D56"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "tenta_missiles@1012",
+    "special_slot": "top_3",
+    "special_clock": 175.45,
+    "glyph_x": 1012.0,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      995.0,
+      1015.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -2.49,
+      0.44
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D57"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "reefslider@402",
+    "special_slot": "top_4",
+    "special_clock": 264.55,
+    "glyph_x": 402.5,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      407.0,
+      413.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.66,
+      1.53
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D58"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "reefslider@1504",
+    "special_slot": "top_4",
+    "special_clock": 103.6,
+    "glyph_x": 1503.5,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1508.0,
+      1514.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.66,
+      1.53
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D59"
+  },
+  {
+    "recording": "09-55-33",
+    "special": "reefslider@1504",
+    "special_slot": "top_4",
+    "special_clock": 103.6,
+    "glyph_x": 1503.5,
+    "slot": "bottom_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1494.0,
+      1501.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.39,
+      -0.37
+    ],
+    "distance_to_transition_s": 0.37,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.14618845418311213,
+    "case_id": "D60"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "reefslider@1526",
+    "special_slot": "bottom_3",
+    "special_clock": 40.45,
+    "glyph_x": 1526.5,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1518.0,
+      1523.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.61,
+      -0.66
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D61"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "reefslider@1526",
+    "special_slot": "bottom_3",
+    "special_clock": 40.45,
+    "glyph_x": 1526.5,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1529.0,
+      1534.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.47,
+      1.42
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D62"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@220",
+    "special_slot": "bottom_4",
+    "special_clock": 287.66,
+    "glyph_x": 220.5,
+    "slot": "top_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      223.0,
+      229.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.47,
+      1.61
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": 0.85,
+    "lane_death_glyph_x": 225.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D63"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@220",
+    "special_slot": "bottom_4",
+    "special_clock": 287.66,
+    "glyph_x": 220.5,
+    "slot": "bottom_3",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      213.0,
+      218.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.42,
+      -0.47
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D64"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@340",
+    "special_slot": "bottom_4",
+    "special_clock": 264.95,
+    "glyph_x": 340.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      341.0,
+      346.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.09,
+      1.04
+    ],
+    "distance_to_transition_s": 0.09,
+    "lane_death_glyph_dt_s": 0.66,
+    "lane_death_glyph_x": 344.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D65"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@464",
+    "special_slot": "bottom_4",
+    "special_clock": 241.67,
+    "glyph_x": 463.5,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      462.0,
+      467.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.28,
+      0.66
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D66"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@464",
+    "special_slot": "bottom_4",
+    "special_clock": 241.67,
+    "glyph_x": 463.5,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      457.0,
+      462.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.23,
+      -0.28
+    ],
+    "distance_to_transition_s": 0.28,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D67"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@680",
+    "special_slot": "bottom_4",
+    "special_clock": 200.59,
+    "glyph_x": 680.5,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      679.0,
+      684.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.28,
+      0.66
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D68"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@920",
+    "special_slot": "bottom_4",
+    "special_clock": 155.16,
+    "glyph_x": 920.5,
+    "slot": "bottom_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      911.0,
+      916.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.8,
+      -0.85
+    ],
+    "distance_to_transition_s": 0.85,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D69"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@1204",
+    "special_slot": "bottom_4",
+    "special_clock": 101.4,
+    "glyph_x": 1204.5,
+    "slot": "bottom_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1207.0,
+      1212.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.47,
+      1.42
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D70"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@1584",
+    "special_slot": "bottom_4",
+    "special_clock": 29.66,
+    "glyph_x": 1583.5,
+    "slot": "top_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1582.0,
+      1587.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.28,
+      0.66
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D71"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "ultra_stamp@1584",
+    "special_slot": "bottom_4",
+    "special_clock": 29.66,
+    "glyph_x": 1583.5,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1582.0,
+      1587.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.28,
+      0.66
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D72"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "big_bubbler@1708",
+    "special_slot": "top_2",
+    "special_clock": 6.09,
+    "glyph_x": 1708.0,
+    "slot": "top_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1703.0,
+      1708.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.95,
+      0.0
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D73"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "triple_inkstrike@454",
+    "special_slot": "top_3",
+    "special_clock": 243.56,
+    "glyph_x": 453.5,
+    "slot": "bottom_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      457.0,
+      462.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.66,
+      1.61
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D74"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "wave_breaker@654",
+    "special_slot": "top_4",
+    "special_clock": 205.51,
+    "glyph_x": 654.5,
+    "slot": "bottom_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      647.0,
+      652.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.42,
+      -0.47
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D75"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "wave_breaker@810",
+    "special_slot": "top_4",
+    "special_clock": 176.17,
+    "glyph_x": 809.5,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      805.0,
+      816.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.85,
+      1.23
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D76"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "wave_breaker@998",
+    "special_slot": "top_4",
+    "special_clock": 140.39,
+    "glyph_x": 998.5,
+    "slot": "top_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      995.0,
+      1001.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.66,
+      0.47
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D77"
+  },
+  {
+    "recording": "09-56-35",
+    "special": "wave_breaker@1498",
+    "special_slot": "top_4",
+    "special_clock": 45.75,
+    "glyph_x": 1498.5,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1502.0,
+      1508.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.66,
+      1.8
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892923356490611,
+    "case_id": "D78"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "reefslider@662",
+    "special_slot": "bottom_1",
+    "special_clock": 237.32,
+    "glyph_x": 662.5,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      649.0,
+      657.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.7,
+      -0.69
+    ],
+    "distance_to_transition_s": 0.69,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D79"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "reefslider@662",
+    "special_slot": "bottom_1",
+    "special_clock": 237.32,
+    "glyph_x": 662.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      665.0,
+      681.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.31,
+      2.32
+    ],
+    "distance_to_transition_s": 0.31,
+    "lane_death_glyph_dt_s": 1.82,
+    "lane_death_glyph_x": 677.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D80"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "super_chump@1695",
+    "special_slot": "bottom_2",
+    "special_clock": 107.67,
+    "glyph_x": 1695.0,
+    "slot": "bottom_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1684.0,
+      1692.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.38,
+      -0.38
+    ],
+    "distance_to_transition_s": 0.38,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D81"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "tenta_missiles@783",
+    "special_slot": "bottom_4",
+    "special_clock": 222.19,
+    "glyph_x": 783.0,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      769.0,
+      777.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.76,
+      -0.75
+    ],
+    "distance_to_transition_s": 0.75,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D82"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "tenta_missiles@783",
+    "special_slot": "bottom_4",
+    "special_clock": 222.19,
+    "glyph_x": 783.0,
+    "slot": "top_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      769.0,
+      777.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.76,
+      -0.75
+    ],
+    "distance_to_transition_s": 0.75,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D83"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "booyah_bomb@1362",
+    "special_slot": "top_1",
+    "special_clock": 149.55,
+    "glyph_x": 1361.5,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1366.0,
+      1374.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.57,
+      1.57
+    ],
+    "distance_to_transition_s": 0.57,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D84"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "ink_vac@445",
+    "special_slot": "top_3",
+    "special_clock": 264.64,
+    "glyph_x": 445.0,
+    "slot": "bottom_3",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      434.0,
+      442.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.38,
+      -0.38
+    ],
+    "distance_to_transition_s": 0.38,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D85"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "wave_breaker@556",
+    "special_slot": "top_4",
+    "special_clock": 250.76,
+    "glyph_x": 555.5,
+    "slot": "bottom_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      554.0,
+      562.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.19,
+      0.82
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D86"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "wave_breaker@1260",
+    "special_slot": "top_4",
+    "special_clock": 162.23,
+    "glyph_x": 1260.5,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1246.0,
+      1254.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.82,
+      -0.82
+    ],
+    "distance_to_transition_s": 0.82,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D87"
+  },
+  {
+    "recording": "09-57-43",
+    "special": "wave_breaker@1260",
+    "special_slot": "top_4",
+    "special_clock": 162.23,
+    "glyph_x": 1260.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1262.0,
+      1270.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.19,
+      1.19
+    ],
+    "distance_to_transition_s": 0.19,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.12557338533292764,
+    "case_id": "D88"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "reefslider@986",
+    "special_slot": "bottom_1",
+    "special_clock": 142.67,
+    "glyph_x": 986.5,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      990.0,
+      995.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.66,
+      1.61
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D89"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "trizooka@1082",
+    "special_slot": "bottom_2",
+    "special_clock": 124.49,
+    "glyph_x": 1082.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1085.0,
+      1090.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.47,
+      1.42
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": 1.23,
+    "lane_death_glyph_x": 1089.0,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D90"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "ink_storm@456",
+    "special_slot": "bottom_3",
+    "special_clock": 243.09,
+    "glyph_x": 456.0,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      457.0,
+      462.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.19,
+      1.14
+    ],
+    "distance_to_transition_s": 0.19,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D91"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "ink_storm@456",
+    "special_slot": "bottom_3",
+    "special_clock": 243.09,
+    "glyph_x": 456.0,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      457.0,
+      462.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.19,
+      1.14
+    ],
+    "distance_to_transition_s": 0.19,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D92"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "ink_storm@1147",
+    "special_slot": "bottom_3",
+    "special_clock": 112.29,
+    "glyph_x": 1147.0,
+    "slot": "top_4",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1133.0,
+      1143.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -2.65,
+      -0.76
+    ],
+    "distance_to_transition_s": 0.76,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D93"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "ink_storm@1531",
+    "special_slot": "bottom_3",
+    "special_clock": 39.6,
+    "glyph_x": 1531.0,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      1523.0,
+      1529.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.51,
+      -0.38
+    ],
+    "distance_to_transition_s": 0.38,
+    "lane_death_glyph_dt_s": -0.95,
+    "lane_death_glyph_x": 1526.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D94"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "ink_storm@1707",
+    "special_slot": "bottom_3",
+    "special_clock": 6.28,
+    "glyph_x": 1707.0,
+    "slot": "bottom_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1708.0,
+      1714.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.19,
+      1.33
+    ],
+    "distance_to_transition_s": 0.19,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D95"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "wave_breaker@290",
+    "special_slot": "bottom_4",
+    "special_clock": 274.6,
+    "glyph_x": 289.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      292.0,
+      303.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.47,
+      2.56
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D96"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "wave_breaker@290",
+    "special_slot": "bottom_4",
+    "special_clock": 274.6,
+    "glyph_x": 289.5,
+    "slot": "bottom_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      281.0,
+      287.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.61,
+      -0.47
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": -1.04,
+    "lane_death_glyph_x": 284.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D97"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "wave_breaker@940",
+    "special_slot": "bottom_4",
+    "special_clock": 151.56,
+    "glyph_x": 939.5,
+    "slot": "top_2",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      927.0,
+      937.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -2.37,
+      -0.47
+    ],
+    "distance_to_transition_s": 0.47,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D98"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "wave_breaker@1144",
+    "special_slot": "bottom_4",
+    "special_clock": 112.95,
+    "glyph_x": 1143.5,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1133.0,
+      1143.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.99,
+      -0.09
+    ],
+    "distance_to_transition_s": 0.09,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D99"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "triple_inkstrike@1484",
+    "special_slot": "top_1",
+    "special_clock": 48.4,
+    "glyph_x": 1484.5,
+    "slot": "bottom_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1476.0,
+      1481.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.61,
+      -0.66
+    ],
+    "distance_to_transition_s": 0.66,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D100"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "triple_splashdown@533",
+    "special_slot": "top_2",
+    "special_clock": 228.51,
+    "glyph_x": 533.0,
+    "slot": "top_1",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      531.0,
+      536.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -0.38,
+      0.57
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D101"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "triple_splashdown@781",
+    "special_slot": "top_2",
+    "special_clock": 181.57,
+    "glyph_x": 781.0,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      774.0,
+      779.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.33,
+      -0.38
+    ],
+    "distance_to_transition_s": 0.38,
+    "lane_death_glyph_dt_s": -0.95,
+    "lane_death_glyph_x": 776.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D102"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "triple_splashdown@1131",
+    "special_slot": "top_2",
+    "special_clock": 115.31,
+    "glyph_x": 1131.0,
+    "slot": "top_4",
+    "corpus": "flip",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1133.0,
+      1143.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.38,
+      2.27
+    ],
+    "distance_to_transition_s": 0.38,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D103"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "killer_wail_5.1@496",
+    "special_slot": "top_4",
+    "special_clock": 235.52,
+    "glyph_x": 496.0,
+    "slot": "top_1",
+    "corpus": "flip",
+    "transition_type": "alive_to_dead",
+    "transition_bracket_px": [
+      483.0,
+      494.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -2.46,
+      -0.38
+    ],
+    "distance_to_transition_s": 0.38,
+    "lane_death_glyph_dt_s": -1.51,
+    "lane_death_glyph_x": 488.0,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D104"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "killer_wail_5.1@496",
+    "special_slot": "top_4",
+    "special_clock": 235.52,
+    "glyph_x": 496.0,
+    "slot": "bottom_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      499.0,
+      504.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      0.57,
+      1.51
+    ],
+    "distance_to_transition_s": 0.57,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "dead",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D105"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "killer_wail_5.1@716",
+    "special_slot": "top_4",
+    "special_clock": 193.87,
+    "glyph_x": 716.0,
+    "slot": "top_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      710.0,
+      716.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.14,
+      0.0
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D106"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "killer_wail_5.1@716",
+    "special_slot": "top_4",
+    "special_clock": 193.87,
+    "glyph_x": 716.0,
+    "slot": "bottom_2",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      710.0,
+      716.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.14,
+      0.0
+    ],
+    "distance_to_transition_s": 0.0,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "unknown",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D107"
+  },
+  {
+    "recording": "09-59-27",
+    "special": "killer_wail_5.1@1433",
+    "special_slot": "top_4",
+    "special_clock": 58.15,
+    "glyph_x": 1433.0,
+    "slot": "bottom_3",
+    "corpus": "respawn_supplement",
+    "transition_type": "dead_to_alive",
+    "transition_bracket_px": [
+      1423.0,
+      1428.0
+    ],
+    "transition_bracket_s_relative_to_special": [
+      -1.89,
+      -0.95
+    ],
+    "distance_to_transition_s": 0.95,
+    "lane_death_glyph_dt_s": null,
+    "lane_death_glyph_x": null,
+    "pipeline_state_x0": "alive",
+    "seconds_per_px": 0.1892937226412706,
+    "case_id": "D108"
+  }
+]

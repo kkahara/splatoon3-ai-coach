@@ -1,0 +1,16 @@
+status: preregistered
+description: Pre-registered non-timing failures for gate D (empty; see disconnect inventory).
+rule: >-
+  A case is a known failure only if its slot is visibly disconnected (empty dark
+  silhouette, no icon, no X) at the special: recording/slot in the inventory below and
+  glyph_x after the slot's last visible icon frame. Fixed before any sheet was viewed;
+  nothing is added later.
+disconnect_inventory:
+- recording: 09-54-34
+  slot: bottom_1
+  last_visible_icon_x: 1302.0
+  silhouette_from_x: 1307.0
+  evidence: disconnect_check_09-54-34_bottom.png, disconnect_check_all.png
+  cases_on_slot: [D39 (glyph_x 1237.5), D45 (glyph_x 1082.5)]
+  cases_after_disconnect: []
+known_failures: []
