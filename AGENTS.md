@@ -197,6 +197,27 @@ Claim-pattern flags are **experiment annotations only**; they never rewrite
 model output. CLI: `s3-coach coach-inputs`, then `s3-coach coach-prototype`.
 Add `--call-llm` to call the provider for `selected_for_llm` units.
 
+### Review SPECIAL_USE facts
+
+Contract: `src/splatoon3_ai_coach/review/SPECIAL_USE_FUSION.md`.
+`s3-coach review special-facts <import_dir>` writes `special_use_facts.json`
+beside `review_timeline.json` (never rewritten): one closed-vocabulary
+`SpecialUseFact` per detected glyph.
+
+- **Review clock only.** No mapping to gameplay video time, no GameEvents
+ (never `SPECIAL_USED` / `SPECIAL_READY`), not consumed by `analysis/` or
+ `coach/` until a separate integration assignment.
+- The SPECIAL_USE timing lane is frozen (tag `special-use-timing-frozen`).
+ `slot_state_at_use` uses the parity-locked X = 0 rule in
+ `review/slot_state.py`; do not change its semantics or add a
+ disconnected-slot classifier in fusion.
+- Slots, never "user": Review has no local-player slot.
+- `integration_valid` / `integration_blockers` (`slot_dead_at_use`,
+ `slot_state_unknown`, `unknown_type`) only gate later integration; the
+ observation itself always stands. No `fact_valid`.
+- `remaining_estimate` is the fact's name for the dataset's unchanged
+ `SpecialUseEvent.elapsed_estimate` (a remaining clock).
+
 ## Coaching evidence contract
 
 `ScenarioContext` must not encode judgments (fight quality, map advice, gear blame).

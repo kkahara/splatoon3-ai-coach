@@ -78,7 +78,7 @@ request observed at five-minute resolution, not the last browser page view.
 | `review_extraction_misses.py` | Read-only stage trace (cursor / floor / NMS / std / neighbour-row echo / scored) of every reviewed confirmed death glyph through the frozen lane detector on the production static frames |
 | `review_roster_timing.py` | Interval-censored roster-lamp alive->dead timing against death glyphs (per recording / team / slot) plus dead->alive death-state durations |
 | `review_special_glow_timing.py` | Interval-censored special-use timing: roster special-ready glow end against special glyph centres. Run with `PYTHONPATH=tools/diagnostics` |
-| `review_special_roster_sync.py` | All eight roster lamps at each Review special with a required reporting window (`unknown` / `near_roster_transition`), an X sweep checked against event-lane order, and stratified manual-review sheets. Run with `PYTHONPATH=tools/diagnostics` |
+| `review_special_roster_sync.py` | All eight roster lamps at each Review special with a required reporting window (`unknown` / `near_roster_transition`), an X sweep checked against event-lane order, and stratified manual-review sheets. Run with `PYTHONPATH=tools/diagnostics`. Its X = 0 rule (with `review_roster_timing.lamp_states`) is promoted to `src/.../review/slot_state.py` for `s3-coach review special-facts`; `tests/test_review_slot_state.py` keeps the two copies in parity |
 | `map_ink_geometry_validate.py` | Multi-frame map ink geometry validation (needs local paint-map references) |
 | `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
 | `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |

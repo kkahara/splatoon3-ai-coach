@@ -9,6 +9,7 @@ from rich.console import Console
 from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.paths import resolve_config_path
 from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
+from splatoon3_ai_coach.review.special_fusion import write_special_use_facts
 from splatoon3_ai_coach.review.timeline_pipeline import import_timeline
 from splatoon3_ai_coach.review.video_adapter import (
     NoUsableTimelineSamples,
@@ -25,9 +26,7 @@ def _battle_mode(mode: str | None) -> str | None:
     if mode is None:
         return None
     if mode not in _MODES:
-        raise typer.BadParameter(
-            f"mode must be one of {', '.join(sorted(_MODES))}"
-        )
+        raise typer.BadParameter(f"mode must be one of {', '.join(sorted(_MODES))}")
     return mode
 
 
@@ -103,3 +102,18 @@ def timeline_video_import(
         f"from {video}; output: {output}"
     )
 
+
+@review_app.command("special-facts")
+def special_facts(
+    import_dir: Path = typer.Argument(..., exists=True, file_okay=False),
+) -> None:
+    """Write special_use_facts.json beside review_timeline.json (Review clock only)."""
+    try:
+        out, facts = write_special_use_facts(import_dir)
+    except (OSError, ValueError) as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    valid = sum(f.integration_valid for f in facts.facts)
+    console.print(
+        f"{len(facts.facts)} SPECIAL_USE facts ({valid} integration_valid); output: {out}"
+    )

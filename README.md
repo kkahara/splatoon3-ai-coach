@@ -65,6 +65,7 @@ Run any command with `--help` for its options. Add `-v` for verbose logging.
 | `coach-reannotate-flags` | Rewrite claim-pattern flag files from existing assessments |
 | `review timeline-import` | Import a folder of Review timeline screenshots |
 | `review timeline-video-import` | Adapt a Review timeline video and import it |
+| `review special-facts` | Write Review-clock SPECIAL_USE facts (`special_use_facts.json`) for an import |
 | `vmv-site` | Local analysis platform (API + React admin UI) |
 | `public-site` / `public-monitor` | Public coaching submission site and its status monitor |
 
