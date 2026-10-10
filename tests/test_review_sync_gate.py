@@ -403,3 +403,65 @@ def test_sealed_bc_gate_reproduces() -> None:
     stored = json.loads((SEALED / "gate/gate.json").read_text("utf-8"))
     for key in ("raw", "final", "verdict", "cases", "rechecked_cases"):
         assert json.loads(json.dumps(result[key])) == stored[key]
+
+
+# --- decoy-mixed recheck -------------------------------------------------------------
+
+
+def _decoy_batch() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
+    cases = [_case(f"D{i}", "alive") for i in range(1, 9)]
+    labels = {f"D{i}": "alive" for i in range(1, 9)} | {
+        "D2": "dead",
+        "D5": "indeterminate",
+    }
+    return _batch(cases, labels)
+
+
+def test_decoy_plan_is_seeded_balanced_and_neutral() -> None:
+    from review_sync_boundary_sheet import decoy_plan
+
+    _, cases, labels = _decoy_batch()
+    by_id = {c["case_id"]: c for c in cases}
+    targets = recheck_ids(by_id, labels)
+    plan = decoy_plan(by_id, labels, targets, seed=7)
+    assert plan == decoy_plan(by_id, labels, targets, seed=7)
+    assert targets == ["D2", "D5"]
+    assert sorted(p["case_id"] for p in plan if p["role"] == "target") == targets
+    decoys = [p["case_id"] for p in plan if p["role"] == "decoy"]
+    assert len(decoys) == 2 and not set(decoys) & set(targets)
+    assert [p["sheet_id"] for p in plan] == ["R01", "R02", "R03", "R04"]
+
+
+def test_decoys_never_change_the_gate() -> None:
+    from review_sync_boundary_sheet import apply_recheck_key, decoy_check, decoy_plan
+
+    batch = _decoy_batch()
+    by_id = {c["case_id"]: c for c in batch[1]}
+    plan = decoy_plan(by_id, batch[2], recheck_ids(by_id, batch[2]), seed=7)
+    answers = {"D2": "alive", "D5": "alive"}
+    recheck = {
+        p["sheet_id"]: {
+            "case_id": p["sheet_id"],
+            "reviewed_state_at_special": answers.get(p["case_id"], "dead"),
+            "reviewer_note": "frames",
+        }
+        for p in plan
+    }
+    targets, decoys = apply_recheck_key(recheck, {"sheets": plan})
+    assert sorted(targets) == ["D2", "D5"]
+    result = run_gate([batch], targets, {})
+    check_recheck_coverage(result)
+    plain = run_gate([batch], _recheck(D2="alive", D5="alive"), {})
+    assert result["verdict"] == plain["verdict"]
+    assert result["final"]["timing_failures"] == []
+    check = decoy_check(decoys, result["cases"])
+    assert check["decoys"] == 2 and len(check["changed"]) == 2
+    assert all(r["reviewed"] == "alive" for r in result["cases"])
+
+
+def test_recheck_key_mismatch_is_rejected() -> None:
+    from review_sync_boundary_sheet import apply_recheck_key
+
+    plan = [{"sheet_id": "R01", "case_id": "D2", "role": "target"}]
+    with pytest.raises(SystemExit, match="key differ: R02"):
+        apply_recheck_key(_recheck(R01="dead", R02="dead"), {"sheets": plan})

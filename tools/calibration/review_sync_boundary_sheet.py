@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import random
 import subprocess
 from collections import Counter
 from pathlib import Path
@@ -437,22 +438,28 @@ def cmd_recheck(args: argparse.Namespace) -> int:
     known = read_known_failures(args.known_failures) if args.known_failures else {}
     ids = recheck_ids(cases, labels, known)
     out: Path = args.out
+    plan = [{"sheet_id": i, "case_id": i, "role": "target"} for i in ids]
+    if args.decoy_seed is not None:
+        plan = decoy_plan(cases, labels, ids, args.decoy_seed)
+        key = {"seed": args.decoy_seed, "labels": str(args.labels), "sheets": plan}
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "recheck_key.json").write_text(json.dumps(key, indent=2), "utf-8")
     (out / "sheets").mkdir(parents=True, exist_ok=True)
-    for case_id in ids:
-        case = cases[case_id]
+    for item in plan:
+        case = cases[item["case_id"]] | {"case_id": item["sheet_id"]}
         ds = datasets[case["recording"]]
         if args.compact:
             cv2.imwrite(
-                str(out / "sheets" / f"{case_id}.jpg"),
+                str(out / "sheets" / f"{item['sheet_id']}.jpg"),
                 render_compact(ds, case, config),
                 [cv2.IMWRITE_JPEG_QUALITY, COMPACT_JPEG_QUALITY],
             )
         else:
             image = render_recheck(ds, case, config)
-            cv2.imwrite(str(out / "sheets" / f"{case_id}.png"), image)
+            cv2.imwrite(str(out / "sheets" / f"{item['sheet_id']}.png"), image)
     entries = [
-        {"case_id": i, "reviewed_state_at_special": None, "reviewer_note": ""}
-        for i in ids
+        {"case_id": p["sheet_id"], "reviewed_state_at_special": None, "reviewer_note": ""}
+        for p in plan
     ]
     question = (
         AT_FRAME_RULE
@@ -464,8 +471,73 @@ def cmd_recheck(args: argparse.Namespace) -> int:
     header = {"status": "draft", "question": question, "replaces": str(args.labels)}
     text = yaml.safe_dump(header | {"cases": entries}, sort_keys=False, width=100)
     (out / "recheck_labels.yaml").write_text(text, "utf-8")
-    print(f"{len(ids)} cases: {', '.join(ids)}")
+    print(f"{len(plan)} recheck sheets ({len(ids)} targets)")
     return 0
+
+
+def decoy_plan(
+    cases: dict[str, dict[str, Any]],
+    labels: dict[str, Any],
+    targets: list[str],
+    seed: int,
+) -> list[dict[str, Any]]:
+    """Targets mixed with as many agreeing X = 0-known decoys, under neutral IDs.
+
+    Decoys are drawn with ``seed`` from cases whose raw label equals the X = 0
+    state; the combined list is shuffled and renamed ``R01``, ``R02``, ...
+    """
+    rows = [_score_row(cases[e["case_id"]], e) for e in labels["cases"]]
+    pool = sorted(
+        r["case_id"]
+        for r in rows
+        if r["outcome"] == "correct" and r["case_id"] not in targets
+    )
+    rng = random.Random(seed)
+    decoys = rng.sample(pool, min(len(targets), len(pool)))
+    mixed = [(i, "target") for i in targets] + [(i, "decoy") for i in decoys]
+    rng.shuffle(mixed)
+    return [
+        {"sheet_id": f"R{n:02d}", "case_id": case_id, "role": role}
+        for n, (case_id, role) in enumerate(mixed, start=1)
+    ]
+
+
+def apply_recheck_key(
+    recheck: dict[str, dict[str, Any]], key: dict[str, Any]
+) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
+    """Neutral sheet IDs back to case IDs: target entries and decoy entries."""
+    sheets = {s["sheet_id"]: s for s in key["sheets"]}
+    if set(sheets) != set(recheck):
+        diff = sorted(set(sheets) ^ set(recheck))
+        raise SystemExit(f"recheck labels and key differ: {', '.join(diff)}")
+    targets: dict[str, dict[str, Any]] = {}
+    decoys: list[dict[str, Any]] = []
+    for sheet_id, entry in recheck.items():
+        item = sheets[sheet_id]
+        mapped = entry | {"case_id": item["case_id"], "sheet_id": sheet_id}
+        if item["role"] == "target":
+            targets[item["case_id"]] = mapped
+        else:
+            decoys.append(mapped)
+    return targets, decoys
+
+
+def decoy_check(
+    decoys: list[dict[str, Any]], rows: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Recheck consistency on decoys (raw label agreed with X = 0); never scored."""
+    by_id = {r["case_id"]: r for r in rows}
+    items = [
+        {
+            "case_id": d["case_id"],
+            "sheet_id": d["sheet_id"],
+            "raw_reviewed": by_id[d["case_id"]]["raw_reviewed"],
+            "recheck_reviewed": d["reviewed_state_at_special"],
+        }
+        for d in sorted(decoys, key=lambda d: d["case_id"])
+    ]
+    changed = [i["case_id"] for i in items if i["raw_reviewed"] != i["recheck_reviewed"]]
+    return {"decoys": len(items), "changed": changed, "items": items}
 
 
 def render_compact(
@@ -642,9 +714,15 @@ def cmd_gate(args: argparse.Namespace) -> int:
     """Pre-registered held-out gate: merge recheck, classify, verdict, persist."""
     batches = [_read_batch(Path(c), Path(lab)) for c, lab in args.batch]
     recheck = read_recheck(args.recheck) if args.recheck else {}
+    decoys: list[dict[str, Any]] = []
+    if args.recheck_key:
+        key = json.loads(args.recheck_key.read_text("utf-8"))
+        recheck, decoys = apply_recheck_key(recheck, key)
     known = read_known_failures(args.known_failures)
     result = run_gate(batches, recheck, known)
     check_recheck_coverage(result)
+    if args.recheck_key:
+        result["decoy_check"] = decoy_check(decoys, result["cases"])
     result["provenance"] = _provenance(args)
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "gate.json").write_text(json.dumps(result, indent=2), "utf-8")
@@ -905,7 +983,8 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _provenance(args: argparse.Namespace) -> dict[str, Any]:
     paths = [Path(p) for pair in args.batch for p in pair]
-    paths += [p for p in (args.recheck, args.known_failures) if p is not None]
+    optional = (args.recheck, args.recheck_key, args.known_failures)
+    paths += [p for p in optional if p is not None]
     config = default_config_path()
     review = yaml.safe_load(config.read_text("utf-8"))["review"]
     head = _git("rev-parse", "HEAD")
@@ -981,6 +1060,13 @@ def gate_md(result: dict[str, Any]) -> str:
         f"| {final['window']['empirical_x_s']} s |"
     )
     lines += _verdict_md(v, bias, window)
+    if "decoy_check" in result:
+        d = result["decoy_check"]
+        lines += [
+            "",
+            f"Decoy consistency (not scored): {d['decoys']} decoys, "
+            f"{len(d['changed'])} relabelled {d['changed']}.",
+        ]
     lines += _cases_md(result["cases"])
     return "\n".join(lines) + "\n"
 
@@ -1070,6 +1156,11 @@ def _parse_args() -> argparse.Namespace:
     recheck.add_argument(
         "--known-failures", type=Path, help="Pre-registered non-timing failures to skip"
     )
+    recheck.add_argument(
+        "--decoy-seed",
+        type=int,
+        help="Mix in as many agreeing decoys under neutral IDs (writes recheck_key.json)",
+    )
     recheck.set_defaults(func=cmd_recheck)
     score = sub.add_parser("score", help="Score reviewed labels")
     score.add_argument("--cases", type=Path, required=True)
@@ -1087,6 +1178,9 @@ def _parse_args() -> argparse.Namespace:
     )
     gate.add_argument(
         "--recheck", type=Path, help="Omit only when no case qualified for a recheck"
+    )
+    gate.add_argument(
+        "--recheck-key", type=Path, help="recheck_key.json for decoy-mixed rechecks"
     )
     gate.add_argument("--known-failures", type=Path, required=True)
     gate.add_argument(
