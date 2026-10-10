@@ -8,12 +8,17 @@ from typing import Any
 import pytest
 import yaml
 from review_sync_boundary_sheet import (
+    _read_batch,
     bias_test,
+    check_recheck_coverage,
     read_known_failures,
     read_recheck,
+    recheck_ids,
     run_gate,
     transition_direction,
 )
+
+SEALED = Path(__file__).resolve().parents[1] / "analysis/review_validation/heldout/sync"
 
 AFTER = [0.12, 1.19]
 BEFORE = [-1.19, -0.12]
@@ -324,3 +329,77 @@ def test_unreviewed_or_mismatched_batch_is_rejected() -> None:
     missing = _batch([_case("B1", "alive"), _case("B2", "alive")], {"B1": "alive"})
     with pytest.raises(SystemExit, match="cases and labels differ: B2"):
         run_gate([missing], {}, {})
+
+
+# --- workflow options are non-semantic -----------------------------------------------
+
+
+def _mixed_batch() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
+    cases = [
+        _case("B1", "alive", AFTER),
+        _case("B2", "dead", BEFORE),
+        _case("B3", "alive"),
+        _case("B4", "unknown", IN),
+        _case("B5", "alive"),
+    ]
+    labels = {
+        "B1": "dead",
+        "B2": "dead",
+        "B3": "indeterminate",
+        "B4": "alive",
+        "B5": "dead",
+    }
+    return _batch(cases, labels)
+
+
+def test_recheck_selection_equals_raw_timing_failures() -> None:
+    src, cases, labels = _mixed_batch()
+    by_id = {c["case_id"]: c for c in cases}
+    known = {"B5": "disconnected_slot"}
+    raw = run_gate([(src, cases, labels)], {}, known)["raw"]
+    assert recheck_ids(by_id, labels, known) == raw["timing_failures"] == ["B1", "B3"]
+    assert recheck_ids(by_id, labels) == ["B1", "B3", "B5"]
+
+
+def test_gate_without_recheck_equals_identity_recheck() -> None:
+    batch = _mixed_batch()
+    plain = run_gate([batch], {}, {})
+    same = {e["case_id"]: e["reviewed_state_at_special"] for e in batch[2]["cases"]}
+    echoed = run_gate([batch], _recheck(**same), {})
+    assert plain["verdict"] == echoed["verdict"]
+    for key in ("labels", "outcomes", "timing_failures", "directions", "window"):
+        assert plain["final"][key] == echoed["final"][key]
+    strip = ("label_source", "recheck_reviewed", "recheck_note", "basis")
+    for a, b in zip(plain["cases"], echoed["cases"], strict=True):
+        assert {k: v for k, v in a.items() if k not in strip} == {
+            k: v for k, v in b.items() if k not in strip
+        }
+
+
+def test_recheck_coverage_must_equal_raw_timing_failures() -> None:
+    batch = _mixed_batch()
+    with pytest.raises(SystemExit, match="raw timing failures"):
+        check_recheck_coverage(run_gate([batch], {}, {}))
+    with pytest.raises(SystemExit, match="raw timing failures"):
+        check_recheck_coverage(run_gate([batch], _recheck(B1="dead"), {}))
+    full = _recheck(B1="dead", B3="alive", B5="dead")
+    check_recheck_coverage(run_gate([batch], full, {}))
+    clean = _batch([_case("B1", "alive")], {"B1": "alive"})
+    check_recheck_coverage(run_gate([clean], {}, {}))
+
+
+@pytest.mark.skipif(not (SEALED / "gate/gate.json").exists(), reason="sealed B/C gate")
+def test_sealed_bc_gate_reproduces() -> None:
+    import json
+
+    batches = [
+        _read_batch(SEALED / f"{b}/cases.json", SEALED / f"{b}/reviewed_labels.yaml")
+        for b in ("boundary", "boundary_batch2")
+    ]
+    recheck = read_recheck(SEALED / "recheck/recheck_labels.yaml")
+    known = read_known_failures(SEALED / "gate/known_failures.yaml")
+    result = run_gate(batches, recheck, known)
+    check_recheck_coverage(result)
+    stored = json.loads((SEALED / "gate/gate.json").read_text("utf-8"))
+    for key in ("raw", "final", "verdict", "cases", "rechecked_cases"):
+        assert json.loads(json.dumps(result[key])) == stored[key]

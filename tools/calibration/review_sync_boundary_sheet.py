@@ -400,35 +400,68 @@ def _pad_h(tile: np.ndarray, height: int) -> np.ndarray:
 # --- recheck --------------------------------------------------------------
 
 
+AT_FRAME_RULE = (
+    "Label the slot in the yellow box at the special. (1) If an AT frame is shown "
+    "(|dx| <= 0.5 px), its icon decides: full-colour icon = alive, X over the icon = "
+    "dead. (2) Otherwise, if BEFORE and AFTER show the same state, label that state. "
+    "(3) Otherwise, or if the deciding icon is illegible, blank or a disconnected "
+    "silhouette: indeterminate. Alive and dead both appearing on the sheet is not by "
+    "itself grounds for indeterminate."
+)
+
+
+def recheck_ids(
+    cases: dict[str, dict[str, Any]],
+    labels: dict[str, Any],
+    known: dict[str, str] | None = None,
+) -> list[str]:
+    """Cases whose X = 0 state the label contradicts or does not support.
+
+    Pre-registered known failures are left out, so the set equals the raw
+    timing failures of ``gate``.
+    """
+    rows = [_score_row(cases[e["case_id"]], e) for e in labels["cases"]]
+    return [r["case_id"] for r in rows if classify_failure(r, known or {}) == "timing"]
+
+
 def cmd_recheck(args: argparse.Namespace) -> int:
-    """Focused sheets for reviewed cases that conflict with the frames."""
+    """Focused sheets for reviewed cases that conflict with the frames.
+
+    ``--compact`` renders the same BEFORE / AT / AFTER JPEGs as the labelling
+    sheets and states the AT-frame rule; case selection is identical.
+    """
     config = load_config(default_config_path()).review
     datasets = _load(args.imports)
     cases = {c["case_id"]: c for c in json.loads(args.cases.read_text("utf-8"))}
     labels = yaml.safe_load(args.labels.read_text("utf-8"))
-    rows = [_score_row(cases[e["case_id"]], e) for e in labels["cases"]]
-    ids = [
-        r["case_id"]
-        for r in rows
-        if r["pipeline_x0"] != "unknown" and r["outcome"] in ("wrong", "indeterminate")
-    ]
+    known = read_known_failures(args.known_failures) if args.known_failures else {}
+    ids = recheck_ids(cases, labels, known)
     out: Path = args.out
     (out / "sheets").mkdir(parents=True, exist_ok=True)
     for case_id in ids:
         case = cases[case_id]
-        image = render_recheck(datasets[case["recording"]], case, config)
-        cv2.imwrite(str(out / "sheets" / f"{case_id}.png"), image)
+        ds = datasets[case["recording"]]
+        if args.compact:
+            cv2.imwrite(
+                str(out / "sheets" / f"{case_id}.jpg"),
+                render_compact(ds, case, config),
+                [cv2.IMWRITE_JPEG_QUALITY, COMPACT_JPEG_QUALITY],
+            )
+        else:
+            image = render_recheck(ds, case, config)
+            cv2.imwrite(str(out / "sheets" / f"{case_id}.png"), image)
     entries = [
         {"case_id": i, "reviewed_state_at_special": None, "reviewer_note": ""}
         for i in ids
     ]
-    header = {
-        "status": "draft",
-        "question": "Earlier frame and later frame bracket the special. At the "
+    question = (
+        AT_FRAME_RULE
+        if args.compact
+        else "Earlier frame and later frame bracket the special. At the "
         "special, is this slot demonstrably alive, demonstrably dead, or "
-        "indeterminate?",
-        "replaces": str(args.labels),
-    }
+        "indeterminate?"
+    )
+    header = {"status": "draft", "question": question, "replaces": str(args.labels)}
     text = yaml.safe_dump(header | {"cases": entries}, sort_keys=False, width=100)
     (out / "recheck_labels.yaml").write_text(text, "utf-8")
     print(f"{len(ids)} cases: {', '.join(ids)}")
@@ -608,9 +641,10 @@ DIRECTIONS = ("lag", "lead", "none")
 def cmd_gate(args: argparse.Namespace) -> int:
     """Pre-registered held-out gate: merge recheck, classify, verdict, persist."""
     batches = [_read_batch(Path(c), Path(lab)) for c, lab in args.batch]
-    recheck = read_recheck(args.recheck)
+    recheck = read_recheck(args.recheck) if args.recheck else {}
     known = read_known_failures(args.known_failures)
     result = run_gate(batches, recheck, known)
+    check_recheck_coverage(result)
     result["provenance"] = _provenance(args)
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "gate.json").write_text(json.dumps(result, indent=2), "utf-8")
@@ -686,6 +720,16 @@ def run_gate(
         "verdict": gate_verdict(rows),
         "cases": rows,
     }
+
+
+def check_recheck_coverage(result: dict[str, Any]) -> None:
+    """The recheck must cover exactly the raw timing failures, no more, no less."""
+    required = sorted(result["raw"]["timing_failures"])
+    if sorted(result["rechecked_cases"]) != required:
+        raise SystemExit(
+            f"recheck covers {result['rechecked_cases']}, raw timing failures "
+            f"require {required}"
+        )
 
 
 def merge_inputs(
@@ -861,7 +905,7 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _provenance(args: argparse.Namespace) -> dict[str, Any]:
     paths = [Path(p) for pair in args.batch for p in pair]
-    paths += [args.recheck, args.known_failures]
+    paths += [p for p in (args.recheck, args.known_failures) if p is not None]
     config = default_config_path()
     review = yaml.safe_load(config.read_text("utf-8"))["review"]
     head = _git("rev-parse", "HEAD")
@@ -1020,6 +1064,12 @@ def _parse_args() -> argparse.Namespace:
     recheck.add_argument("--cases", type=Path, required=True)
     recheck.add_argument("--labels", type=Path, required=True)
     recheck.add_argument("--out", type=Path, required=True)
+    recheck.add_argument(
+        "--compact", action="store_true", help="BEFORE / AT / AFTER JPEG recheck sheets"
+    )
+    recheck.add_argument(
+        "--known-failures", type=Path, help="Pre-registered non-timing failures to skip"
+    )
     recheck.set_defaults(func=cmd_recheck)
     score = sub.add_parser("score", help="Score reviewed labels")
     score.add_argument("--cases", type=Path, required=True)
@@ -1035,7 +1085,9 @@ def _parse_args() -> argparse.Namespace:
         required=True,
         metavar=("CASES_JSON", "LABELS_YAML"),
     )
-    gate.add_argument("--recheck", type=Path, required=True)
+    gate.add_argument(
+        "--recheck", type=Path, help="Omit only when no case qualified for a recheck"
+    )
     gate.add_argument("--known-failures", type=Path, required=True)
     gate.add_argument(
         "--preregistration-sha",
