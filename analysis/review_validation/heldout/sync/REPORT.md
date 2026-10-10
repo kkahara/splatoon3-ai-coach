@@ -389,3 +389,9 @@ but only 55 with an X = 0 state, 43 of them within 0.6 s of a transition and
 22 within 0.25 s. The next set should be selected for such boundary cases
 (target size fixed at pre-registration), not padded with far-from-transition
 cases.
+
+### Follow-up
+
+The fresh confirmatory gate D (`../../heldout2/REPORT.md`) passed with the
+unchanged system; the SPECIAL_USE timing lane is frozen there. This B / C
+result stays FAIL as recorded.

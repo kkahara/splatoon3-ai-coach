@@ -160,3 +160,108 @@ single-slot `unknown` runs) and end-of-match roster crops
    (without `--recheck` / `--recheck-key` if there are no targets).
 5. Commit `gate.json` / `gate.md` before inspecting any case; then diagnose,
    report, and freeze only on PASS.
+
+## Final gate D
+
+Mechanical result: `gate/gate.json`, `gate/gate.md`, committed `59415ca` before
+any case was inspected.
+
+| Provenance | |
+|---|---|
+| `preregistration_git_sha` | `878696e22e8bda15b41e9ad3f3bfcbf65b26949d` |
+| Labels committed (as submitted) | `6d9e926` |
+| `gate_run_git_sha` | `6d9e926e77bb2aadc40ccba244296f4765bb5fb6` (tool / config clean) |
+| `configs/default.yaml` sha256 | `3ef4b496441774aee840880c4ff3ce6e2bb6c02980f1b253fc36e8a2400e503f` |
+| `review` block sha256 | `98c2bf537caee518ce609812eea509e53fea1e7f4239a72120631e4230325e24` (= B/C) |
+
+**Verdict: PASS** (`no_timing_failures`).
+
+### Labels and score (108 cases, one blind pass)
+
+- Labels: 49 alive / 36 dead / 23 indeterminate. Basis: `at_frame` 22,
+  `before_after_agree` 63, `rule_3_indeterminate` 23. A format check before the
+  gate confirmed every `at_frame` basis sits on a sheet with an AT frame and
+  every `before_after_agree` on one without; two basis / state inconsistencies
+  (D57, D106) were corrected by the reviewer before the labels were committed.
+- X = 0 gives a state: 77 cases, **77 correct, 0 wrong, 0 indeterminate**.
+  Challenge cases (<= 0.6 s from a transition): **56 / 56 correct**; within
+  0.25 s: **23 / 23**.
+- X = 0 `unknown` (all 31 in bracket, none out of bracket): labels 23
+  indeterminate, 7 alive, 1 dead (decided by the reviewer, mostly via AT
+  frames; X = 0 stays conservatively `unknown`).
+- Every `indeterminate` label is on an in-bracket case.
+
+### Recheck
+
+Zero raw timing failures, so zero recheck targets and no decoys
+(`recheck --decoy-seed 20261010` wrote an empty `recheck/`); the gate ran
+without `--recheck`, as pre-registered. Raw and final labels are identical.
+
+### Gate conditions
+
+1. Timing failures: **0**.
+2. Timing failures among 77 timing-attributable cases with an X = 0 state:
+   **0** (redundant with 1). Timing-attributable empirical X: **0.0 s**.
+
+Bias test: 0 timing failures (lag 0, lead 0, none 0); no systematic bias.
+Known failures: none pre-registered; none triggered. Non-timing failures: 0.
+
+### Failures
+
+None, timing or non-timing; nothing to diagnose.
+
+### Observed defects (outside this gate)
+
+- Disconnected-slot false-alive read, now seen on three recordings: 06-43-43
+  `bottom_2`, 07-54-48 `top_4` (held-out B/C) and 09-54-34 `bottom_1` (D; a
+  stray `alive` lamp on the silhouette at x 1500). No D case fell on the
+  disconnected stretch, so the gate did not exercise it. Unfixed; design on
+  the tuning set, re-check on fresh data.
+
+### Known precision limitations
+
+- Roster lamps about 1 px (0.19 s) late on 21-23-30 and 07-54-48; zero offset
+  remains the best fit. Not corrected.
+- Glow-end timing fits +0.10 s marginally better than 0 s on B/C (77 vs 76
+  brackets), within glyph localisation. Descriptive only.
+
+### Validation coverage gaps
+
+- This gate validates synchronisation / timing of roster state at Review
+  specials. Special **identity** on held-out recordings is still unverified
+  (no special labels for B, C or D).
+- Five special types never label-confirmed (reefslider, splattercolor_screen,
+  super_chump, tenta_missiles, zipcaster); Big Bubbler and Trizooka had no
+  B/C held-out detections. Coverage gaps, not failures.
+
+## Decision
+
+**Decision: SPECIAL_USE synchronization/timing lane frozen for the validated
+configuration.**
+
+Frozen (validated by gate D, `59415ca`):
+
+- Synchronisation offset between special glyph and roster lamps: **0** (no
+  correction).
+- Reliability window **X = 0**: the slot state at a special is the agreeing
+  state of the last lamp frame at x <= glyph centre and the first frame after
+  it; otherwise `unknown`.
+- Special glyph timestamp: `event_timestamp_anchor: center`.
+- Special templates: `special_template_dir: ../calibration/templates/review/specials`
+  (22 files, manifest sha256
+  `c3fd73b160a6ab2678a5214699c29adc5460e46b363da9b9c1850550dd3fa590`, last
+  changed `4b8ad88`); `event_glyph_representation: grayscale`.
+- Scale: `special_template_scales: [1.0]`.
+- Matching: `special_discovery_floor: 0.45`, `special_match_floor: 0.5`,
+  `special_match_margin: 0.15`, `event_glyph_min_std: 0.04`.
+- Dedupe: `special_deduplication_tolerance: 0.006`,
+  `cursor_exclusion_half_width: 0.004`.
+- Whole `review` block sha256 `98c2bf53…5e24`; `configs/default.yaml` sha256
+  `3ef4b496…e503f`; code at `6d9e926` (no `src/` change since `4b8ad88`).
+
+The freeze covers the validated synchronisation / timing configuration only.
+It does not claim special identity or every SPECIAL_USE detection is correct,
+and a future change to any frozen value requires a new held-out gate. The
+disconnected-slot defect, the lamp precision limitation and the coverage gaps
+above stay open. `coach.roster_evidence` remains `false`; scenario /
+CoachInput integration is a separate assignment.
