@@ -1,0 +1,8 @@
+status: draft
+question: 'Label the slot in the yellow box at the special. (1) If an AT frame is shown (|dx| <= 0.5 px),
+  its icon decides: full-colour icon = alive, X over the icon = dead. (2) Otherwise, if BEFORE and AFTER
+  show the same state, label that state. (3) Otherwise, or if the deciding icon is illegible, blank or
+  a disconnected silhouette: indeterminate. Alive and dead both appearing on the sheet is not by itself
+  grounds for indeterminate.'
+replaces: analysis/review_validation/heldout2/boundary/labels.yaml
+cases: []
