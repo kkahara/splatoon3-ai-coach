@@ -137,6 +137,7 @@ class PublicWorker:
                     self.telemetry.interrupted,
                     submission.id,
                 )
+            self.service.note_analysis_failed(submission.id, "processing")
             self.service.note_terminal(submission, "failed")
         return failed
 
@@ -260,6 +261,7 @@ class PublicWorker:
                 outcome=TelemetryOutcome(outcome),
             )
         notice = "no_moments" if outcome == "no_deaths" else "ready"
+        self.service.note_analysis_completed(submission.id)
         self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
         self._stage_seconds.pop(submission.id, None)
@@ -341,6 +343,7 @@ class PublicWorker:
                 error_code=code,
                 diagnostic=diagnostic or default_diagnostic,
             )
+        self.service.note_analysis_failed(submission.id, "processing")
         self.service.note_terminal(submission, "failed")
         self._stage_seconds.pop(submission.id, None)
 
@@ -369,6 +372,7 @@ class PublicWorker:
         return candidate if candidate.is_dir() else None
 
     def _write_trace(self, submission_id: str, analysis: Path) -> None:
+        from public_site.coaching_metrics import read_coaching_metrics
         from public_site.job_trace import (
             TopLevelTiming,
             read_job_trace,
@@ -387,6 +391,8 @@ class PublicWorker:
             provenance=trace.operational_provenance(),
             scalar=scalar_provenance(trace),
             llm_calls=calls,
+            coaching=read_coaching_metrics(analysis),
+            record_coaching=True,
         )
 
     def _loop(self) -> None:

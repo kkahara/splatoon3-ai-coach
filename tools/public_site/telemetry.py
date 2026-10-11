@@ -223,6 +223,7 @@ _SCHEMA = (
     "ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS snapshot_schema_version integer",
     "ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS snapshot_reader_version text",
     "ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS snapshot_at timestamptz",
+    "ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS coaching_metrics jsonb",
     "ALTER TABLE job_runs DROP CONSTRAINT IF EXISTS job_runs_importance_hash_hex",
     """
     ALTER TABLE job_runs ADD CONSTRAINT job_runs_importance_hash_hex
@@ -479,9 +480,12 @@ class TelemetryStore:
         provenance: BaseModel | None = None,
         scalar: BaseModel | None = None,
         llm_calls: list[BaseModel] | None = None,
+        coaching: BaseModel | None = None,
+        record_coaching: bool = False,
     ) -> bool:
         """Persist allowlisted summaries and replace that run's call rows."""
-        if _nothing_to_write(stage_seconds, llm, provenance, scalar, llm_calls):
+        pending = (stage_seconds, llm, provenance, scalar, llm_calls)
+        if not record_coaching and _nothing_to_write(*pending):
             return False
         with self._conn() as conn:
             run = self._latest(conn, submission_id)
@@ -492,6 +496,8 @@ class TelemetryStore:
                 self._write_scalar(conn, run["run_id"], scalar)
             if llm_calls is not None:
                 self._replace_calls(conn, run["run_id"], llm_calls)
+            if record_coaching:
+                self._write_coaching(conn, run["run_id"], coaching)
         return True
 
     @staticmethod
@@ -519,6 +525,27 @@ class TelemetryStore:
         conn.execute(
             f"UPDATE job_runs SET {', '.join(assignments)} WHERE run_id = %s",  # noqa: S608
             (*(payload[name] for name in columns), run_id),
+        )
+
+    @staticmethod
+    def _write_coaching(conn, run_id, coaching: BaseModel | None) -> None:
+        if coaching is None:
+            conn.execute(
+                "UPDATE job_runs SET coaching_metrics = NULL WHERE run_id = %s",
+                (run_id,),
+            )
+            return
+        document = coaching.model_dump(mode="json")
+        document.pop("snapshot_at", None)
+        conn.execute(
+            """
+            UPDATE job_runs
+            SET coaching_metrics = %s || jsonb_build_object(
+                'snapshot_at', to_jsonb(now())
+            )
+            WHERE run_id = %s
+            """,
+            (Jsonb(document), run_id),
         )
 
     @staticmethod

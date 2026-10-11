@@ -11,15 +11,26 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from public_site.accounts import Account, AccountStore, account_email
-from public_site.errors import ACCOUNTS_UNAVAILABLE, LOGIN_REQUIRED, RequestRejected
+from public_site.errors import (
+    ACCOUNTS_UNAVAILABLE,
+    LOGIN_REQUIRED,
+    PAYMENT_UNAVAILABLE,
+    RequestRejected,
+)
 from public_site.localize import Translator, build_translator
 from public_site.models import DisplayLocale, HistoryItem, PublicConfig, Submission
 from public_site.notices import NoticeSender
+from public_site.payments import PaymentStore
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
 from public_site.storage import LocalStorage, R2Storage
 from public_site.store import PublicStore
+from public_site.stripe_checkout import (
+    CheckoutGateway,
+    CheckoutSignatureError,
+    StripeCheckout,
+)
 from public_site.telemetry import TelemetryStore
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
@@ -80,6 +91,14 @@ class FeedbackBody(BaseModel):
     body: str = ""
 
 
+class PriceBody(BaseModel):
+    """A new per-analysis price in US cents."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    price_cents: int = Field(ge=0, le=100_000)
+
+
 class TokenBody(BaseModel):
     """A verify or reset token from an email link."""
 
@@ -102,6 +121,8 @@ def create_app(
     accounts: AccountStore | None = None,
     translator: Translator | None = None,
     telemetry: TelemetryStore | None = None,
+    payments: PaymentStore | None = None,
+    checkout: CheckoutGateway | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
@@ -114,6 +135,11 @@ def create_app(
     if telemetry is None and settings.database_url:
         telemetry = TelemetryStore(settings.database_url)
         telemetry.ensure_schema()
+    if payments is None and settings.database_url:
+        payments = PaymentStore(settings.database_url)
+        payments.ensure_schema()
+    if checkout is None and settings.stripe_secret_key:
+        checkout = StripeCheckout(settings.stripe_secret_key)
     if translator is None:
         translator = build_translator(settings.config_path, settings.llm_provider)
     service = SubmissionService(
@@ -125,6 +151,8 @@ def create_app(
         accounts=accounts,
         translator=translator,
         telemetry=telemetry,
+        payments=payments,
+        checkout=checkout,
     )
     if verifier is None:
         verifier = build_verifier(settings)
@@ -142,7 +170,8 @@ def create_app(
     app.state.worker = worker
     app.state.accounts = accounts
     app.state.telemetry = telemetry
-    _routes(app, settings, service, storage, verifier, worker, accounts, notices)
+    app.state.payments = payments
+    _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout)
     from public_site.admin import register_admin_routes
 
     register_admin_routes(
@@ -171,17 +200,16 @@ def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
     return LocalStorage(settings.root, url_seconds=settings.upload_url_seconds)
 
 
-def _routes(app, settings, service, storage, verifier, worker, accounts, notices) -> None:
+def _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout) -> None:
     @app.get("/api/config")
-    def get_config() -> dict:
-        payload = PublicConfig(
-            turnstile_site_key=settings.turnstile_site_key,
-            dev_mode=settings.dev_mode,
-            max_video_bytes=settings.max_video_bytes,
-            max_duration_seconds=int(settings.max_duration_seconds),
-            feedback=accounts is not None,
-        )
-        return payload.model_dump()
+    def get_config(request: Request) -> dict:
+        return _public_config(request, settings, accounts, payments).model_dump()
+
+    @app.post("/api/funnel/page-view")
+    def page_view() -> dict:
+        if payments is not None:
+            payments.record_page_view()
+        return {"recorded": payments is not None}
 
     @app.post("/api/submissions")
     def post_submission(body: CreateBody, request: Request) -> dict:
@@ -227,6 +255,36 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         worker.wake()
         return view.model_dump()
 
+    @app.post("/api/submissions/{token}/checkout")
+    def post_checkout(token: str) -> dict:
+        try:
+            started = service.start_checkout(token)
+        except RequestRejected as exc:
+            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+        return started
+
+    @app.post("/api/stripe/webhook")
+    async def stripe_webhook(request: Request) -> dict:
+        return await _stripe_webhook(request, settings, service, worker, checkout)
+
+    @app.get("/api/admin/price")
+    def get_price(request: Request) -> dict:
+        _required_admin(request, accounts)
+        return _price_payload(payments)
+
+    @app.put("/api/admin/price")
+    def put_price(body: PriceBody, request: Request) -> dict:
+        _required_admin(request, accounts)
+        if payments is None:
+            raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
+        price = payments.set_price(body.price_cents)
+        return {
+            "price_cents": price.price_cents,
+            "currency": price.currency,
+            "pricing_version": price.pricing_version,
+            "events": _event_rows(payments),
+        }
+
     @app.get("/api/submissions/{token}")
     def get_submission(token: str, locale: DisplayLocale = "en") -> dict:
         try:
@@ -251,6 +309,66 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         return FileResponse(path, media_type="image/jpeg")
 
     _register_dev_upload(app, storage)
+
+
+def _public_config(request: Request, settings, accounts, payments) -> PublicConfig:
+    """Submit-page config. Administrators are not asked to pay."""
+    user = _current_user(request, accounts)
+    admin = user is not None and user.role == "admin"
+    price = payments.current_price() if payments is not None else None
+    required = payments is not None and not admin and (price is None or price.price_cents > 0)
+    return PublicConfig(
+        turnstile_site_key=settings.turnstile_site_key,
+        dev_mode=settings.dev_mode,
+        max_video_bytes=None if admin else settings.max_video_bytes,
+        max_duration_seconds=int(settings.max_duration_seconds),
+        feedback=accounts is not None,
+        price_cents=None if price is None else price.price_cents,
+        currency=None if price is None else price.currency,
+        pricing_version=None if price is None else price.pricing_version,
+        payment_required=required,
+    )
+
+
+def _price_payload(payments: PaymentStore | None) -> dict:
+    if payments is None:
+        raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
+    price = payments.current_price()
+    return {
+        "price_cents": None if price is None else price.price_cents,
+        "currency": None if price is None else price.currency,
+        "pricing_version": None if price is None else price.pricing_version,
+        "events": _event_rows(payments),
+    }
+
+
+def _event_rows(payments: PaymentStore) -> list[dict]:
+    return [
+        {
+            "pricing_version": row.pricing_version,
+            "price_cents": row.price_cents,
+            "kind": row.kind,
+            "count": row.count,
+        }
+        for row in payments.event_counts()
+    ]
+
+
+async def _stripe_webhook(request: Request, settings, service, worker, checkout) -> dict:
+    if checkout is None or not settings.stripe_webhook_secret:
+        raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
+    payload = await request.body()
+    signature = request.headers.get("stripe-signature", "")
+    try:
+        event = checkout.construct_event(payload, signature, settings.stripe_webhook_secret)
+    except CheckoutSignatureError as exc:
+        raise HTTPException(status_code=400, detail="invalid signature") from exc
+    result = service.apply_webhook(event)
+    if result in {"amount", "association"}:
+        raise HTTPException(status_code=400, detail=result)
+    if result == "paid":
+        worker.wake()
+    return {"received": True, "result": result}
 
 
 def _register_dev_upload(app: FastAPI, storage) -> None:

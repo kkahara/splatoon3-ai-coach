@@ -12,9 +12,11 @@ from public_site.store import PublicStore
 class _Writer:
     def __init__(self) -> None:
         self.ids: list[str] = []
+        self.coaching: list[bool] = []
 
-    def update_artifacts(self, submission_id: str, **_kwargs) -> bool:
+    def update_artifacts(self, submission_id: str, **kwargs) -> bool:
         self.ids.append(submission_id)
+        self.coaching.append(kwargs.get("record_coaching") is True)
         return True
 
 
@@ -34,6 +36,7 @@ def test_backfill_skips_expired_and_missing_directories(tmp_path: Path) -> None:
 
     assert counts == {"updated": 1, "skipped_expired": 1, "skipped_missing": 1}
     assert writer.ids == ["a" * 32]
+    assert writer.coaching == [True]
     assert not (expired_dir / "vision_manifest.json").read_text(encoding="utf-8") == ""
 
 

@@ -11,6 +11,28 @@ export function sampleNote(n) {
   return `n=${count}`;
 }
 
+export function formatAverage(value) {
+  if (value == null || value === "") {
+    return "—";
+  }
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return "—";
+  }
+  return amount.toFixed(2);
+}
+
+export function formatEstimatedCost(value) {
+  if (value == null || value === "") {
+    return "—";
+  }
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return "—";
+  }
+  return `$${amount.toFixed(4)}`;
+}
+
 export function formatRate(value) {
   if (value == null || value === "") {
     return "—";

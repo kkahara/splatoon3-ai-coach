@@ -35,6 +35,7 @@ web = [
     "httpx>=0.27",
     "psycopg[binary]>=3.2",
     "argon2-cffi>=23.1",
+    "stripe>=11.0",
 ]
 
 [project.scripts]

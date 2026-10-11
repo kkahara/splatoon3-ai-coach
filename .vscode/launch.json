@@ -6,6 +6,13 @@
             "type": "promptString",
             "description": "Video / analysis folder name (no .mov), e.g. 2026-09-05 09-34-24",
             "default": "2026-09-05 23-15-32"
+        },
+        {
+            "id": "videoExt",
+            "type": "pickString",
+            "description": "Video file extension",
+            "options": [".mov", ".mp4"],
+            "default": ".mov"
         }
     ],
     "configurations": [
@@ -22,7 +29,7 @@
                 "--config",
                 "${workspaceFolder}/configs/default.yaml",
                 "--video",
-                "/Users/kenjikahara/Movies/${input:videoName}.mov"
+                "/Users/kenjikahara/Movies/${input:videoName}${input:videoExt}"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
@@ -51,6 +58,28 @@
             "justMyCode": true
         },
         {
+            "name": "s3-coach: analyze ja mp4",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "analyze",
+                "/Users/kenjikahara/Movies/${input:videoName}.mp4",
+                "--out",
+                "${workspaceFolder}/analysis/${input:videoName}",
+                "--config",
+                "${workspaceFolder}/configs/player_count_validate.yaml",
+                "--language",
+                "ja",
+                "--debug-persist-cadence-frames"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "s3-coach: analyze en",
             "type": "debugpy",
             "request": "launch",
@@ -60,6 +89,28 @@
                 "-v",
                 "analyze",
                 "/Users/kenjikahara/Movies/${input:videoName}.mov",
+                "--out",
+                "${workspaceFolder}/analysis/${input:videoName}",
+                "--config",
+                "${workspaceFolder}/configs/player_count_validate.yaml",
+                "--language",
+                "en",
+                "--debug-persist-cadence-frames"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "s3-coach: analyze en mp4",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/s3-coach",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-v",
+                "analyze",
+                "/Users/kenjikahara/Movies/${input:videoName}.mp4",
                 "--out",
                 "${workspaceFolder}/analysis/${input:videoName}",
                 "--config",
@@ -105,7 +156,8 @@
                 "${workspaceFolder}/configs/default.yaml",
                 "--limit",
                 "10",
-                "--also-baseline"
+                "--also-baseline",
+                "--call-llm"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",

@@ -8,13 +8,19 @@ from datetime import UTC, datetime
 from typing import Any
 
 import psycopg
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi import Path as ApiPath
 from psycopg.rows import dict_row
 from pydantic import BaseModel, ConfigDict, Field
 
 from public_site.accounts import Account, AccountStore
 from public_site.admin_analytics import AnalyticsWindow, require_label
+from public_site.admin_observatory import (
+    coaching_report,
+    llm_report,
+    product_report,
+    versions_report,
+)
 from public_site.admin_pipeline import (
     failure_filter,
     failures_page,
@@ -207,6 +213,71 @@ def register_admin_routes(
         )
         with _conn(database(request)) as conn:
             return failures_summary(conn, window=window, filters=filters)
+
+    _register_observatory(app, database, settings)
+
+
+def _register_observatory(app: FastAPI, database, settings) -> None:
+    """Coaching, version, LLM, and product reads. No coaching controls."""
+
+    @app.get("/api/admin/coaching")
+    def coaching(
+        request: Request,
+        window: AnalyticsWindow = AnalyticsWindow.H24,
+        filters: dict[str, str | None] = Depends(_query_filters),
+    ) -> dict[str, Any]:
+        return _observed(database, request, coaching_report, window, filters)
+
+    @app.get("/api/admin/versions")
+    def versions(
+        request: Request,
+        window: AnalyticsWindow = AnalyticsWindow.H24,
+        filters: dict[str, str | None] = Depends(_query_filters),
+    ) -> dict[str, Any]:
+        return _observed(database, request, versions_report, window, filters)
+
+    @app.get("/api/admin/llm")
+    def llm(
+        request: Request,
+        window: AnalyticsWindow = AnalyticsWindow.H24,
+        filters: dict[str, str | None] = Depends(_query_filters),
+    ) -> dict[str, Any]:
+        return _observed(database, request, llm_report, window, filters)
+
+    @app.get("/api/admin/product")
+    def product(
+        request: Request, window: AnalyticsWindow = AnalyticsWindow.H24
+    ) -> dict[str, Any]:
+        with _conn(database(request)) as conn:
+            return product_report(
+                conn,
+                window=window,
+                account_retention_days=settings.account_retention_days,
+            )
+
+
+def _observed(database, request: Request, report, window, filters) -> dict[str, Any]:
+    with _conn(database(request)) as conn:
+        return report(conn, window=window, filters=filters)
+
+
+def _query_filters(
+    pipeline_version: str | None = Query(default=None, max_length=128),
+    evidence_version: str | None = Query(default=None, max_length=16),
+    vision_config: str | None = Query(default=None, max_length=128),
+    importance_config: str | None = Query(default=None, max_length=12),
+    provider: str | None = Query(default=None, max_length=128),
+    model: str | None = Query(default=None, max_length=128),
+) -> dict[str, str | None]:
+    values = {
+        "pipeline_version": pipeline_version,
+        "evidence_version": evidence_version,
+        "vision_config": vision_config,
+        "importance_config": importance_config,
+        "provider": provider,
+        "model": model,
+    }
+    return {name: _label(value) for name, value in values.items()}
 
 
 def _overview(database_url: str, store: PublicStore, slow_seconds: int) -> dict[str, Any]:

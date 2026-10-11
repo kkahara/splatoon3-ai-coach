@@ -24,6 +24,8 @@ class _Writer(Protocol):
         provenance: BaseModel | None = None,
         scalar: BaseModel | None = None,
         llm_calls: list[BaseModel] | None = None,
+        coaching: BaseModel | None = None,
+        record_coaching: bool = False,
     ) -> bool:
         """Persist one allowlisted snapshot."""
 
@@ -62,6 +64,8 @@ def _analysis_dir(submission: Submission) -> Path | None:
 
 
 def _write(writer: _Writer, submission_id: str, analysis: Path) -> None:
+    from public_site.coaching_metrics import read_coaching_metrics
+
     trace = read_job_trace(analysis)
     calls = read_llm_calls(coach_prototype_dir(analysis) / "llm_metrics.jsonl")
     writer.update_artifacts(
@@ -71,6 +75,8 @@ def _write(writer: _Writer, submission_id: str, analysis: Path) -> None:
         provenance=trace.operational_provenance(),
         scalar=scalar_provenance(trace),
         llm_calls=calls,
+        coaching=read_coaching_metrics(analysis),
+        record_coaching=True,
     )
 
 

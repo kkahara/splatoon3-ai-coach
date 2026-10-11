@@ -1,9 +1,14 @@
 import { Route, Routes } from "react-router-dom";
 import { LanguageSwitch } from "./LanguageSwitch.jsx";
+import { AdminCoachingPage } from "./pages/AdminCoaching.jsx";
 import { AdminFailuresPage } from "./pages/AdminFailures.jsx";
 import { AdminLayout } from "./pages/AdminLayout.jsx";
+import { AdminLlmPage } from "./pages/AdminLlm.jsx";
 import { AdminPipelinePage } from "./pages/AdminPipeline.jsx";
+import { AdminProductPage } from "./pages/AdminProduct.jsx";
+import { AdminVersionsPage } from "./pages/AdminVersions.jsx";
 import { AdminOverviewPage } from "./pages/AdminOverview.jsx";
+import { AdminPricePage } from "./pages/AdminPrice.jsx";
 import { AdminRequestDetailPage } from "./pages/AdminRequestDetail.jsx";
 import { AdminRequestsPage } from "./pages/AdminRequests.jsx";
 import { AdminUserDetailPage } from "./pages/AdminUserDetail.jsx";
@@ -40,7 +45,12 @@ function AppRoutes() {
       <Route path="/review/:token" element={<ReviewPage />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminOverviewPage />} />
+        <Route path="price" element={<AdminPricePage />} />
         <Route path="pipeline" element={<AdminPipelinePage />} />
+        <Route path="coaching" element={<AdminCoachingPage />} />
+        <Route path="versions" element={<AdminVersionsPage />} />
+        <Route path="llm" element={<AdminLlmPage />} />
+        <Route path="product" element={<AdminProductPage />} />
         <Route path="failures" element={<AdminFailuresPage />} />
         <Route path="requests" element={<AdminRequestsPage />} />
         <Route path="requests/:id" element={<AdminRequestDetailPage />} />

@@ -10,6 +10,7 @@ from urllib.parse import urlsplit, urlunsplit
 import psycopg
 import pytest
 from public_site.accounts import AccountStore
+from public_site.coaching_metrics import CoachingSnapshot
 from public_site.job_trace import LlmCallRecord, ScalarProvenance
 from public_site.telemetry import (
     CoachingOutcome,
@@ -215,12 +216,18 @@ def test_expiry_removes_identity_but_keeps_measurements(
         width=1280,
         height=720,
     )
+    telemetry.update_artifacts(
+        submission_id,
+        coaching=CoachingSnapshot(candidate=2, selected=1),
+        record_coaching=True,
+    )
 
     assert telemetry.unlink_user(submission_id)
     with psycopg.connect(telemetry.database_url) as conn:
         run = conn.execute(
             """
-            SELECT user_id, video_seconds, size_bytes, stage_seconds, llm, provenance
+            SELECT user_id, video_seconds, size_bytes, stage_seconds, llm,
+                   provenance, coaching_metrics
             FROM job_runs WHERE submission_id = %s
             """,
             (submission_id,),
@@ -235,6 +242,8 @@ def test_expiry_removes_identity_but_keeps_measurements(
         ).fetchall()
     assert run[0] is None
     assert run[1:3] == (123, 456)
+    assert run[6]["candidate"] == 2
+    assert "snapshot_at" in run[6]
     all_text = " ".join(str(value) for value in (*run, *payloads))
     assert email not in all_text
     assert "Sensitive Name" not in all_text
@@ -308,6 +317,39 @@ def test_snapshot_keeps_12_hex_hash_and_replaces_call_rows(
     assert stored[1] == 1
     assert stored[2] is not None
     assert calls == [(0, "requested_failed")]
+
+
+def test_coaching_snapshot_replaces_without_touching_provenance(
+    telemetry: TelemetryStore,
+) -> None:
+    submission_id = uuid.uuid4().hex
+    telemetry.open_initial_run(submission_id, user_id=None, language="en")
+    telemetry.update_artifacts(
+        submission_id,
+        scalar=ScalarProvenance(importance_config_hash="abc123def456"),
+        coaching=CoachingSnapshot(candidate=1),
+        record_coaching=True,
+    )
+    telemetry.update_artifacts(
+        submission_id,
+        coaching=CoachingSnapshot(candidate=4, selected=2),
+        record_coaching=True,
+    )
+    with psycopg.connect(telemetry.database_url) as conn:
+        row = conn.execute(
+            """
+            SELECT snapshot_schema_version, snapshot_reader_version,
+                   importance_config_hash, coaching_metrics
+            FROM job_runs WHERE submission_id = %s
+            """,
+            (submission_id,),
+        ).fetchone()
+    assert row[0] == 1
+    assert row[1] == "job-trace-1"
+    assert row[2] == "abc123def456"
+    assert row[3]["candidate"] == 4
+    assert row[3]["selected"] == 2
+    assert row[3]["snapshot_schema_version"] == 1
 
 
 def test_concurrent_schema_setup_is_safe(telemetry: TelemetryStore) -> None:

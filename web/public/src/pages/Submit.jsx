@@ -1,13 +1,26 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
-import { createSubmission, loadAccount, loadConfig, markUploaded, uploadVideo } from "../api.js";
-import inkThinkWin from "../assets/ink-think-win.svg";
+import {
+  createSubmission,
+  loadAccount,
+  loadConfig,
+  markUploaded,
+  openCheckout,
+  recordPageView,
+  uploadVideo,
+} from "../api.js";
+import heroBanner from "../assets/splatoon3-ai-coach-banner.jpg";
 import { useT } from "../i18n/LocaleContext.jsx";
-import { submissionBody, submitError } from "./submitForm.js";
+import { submissionBody, submitButtonLabel, submitError } from "./submitForm.js";
+
+const REGULAR_MAX_BYTES = 750 * 1024 * 1024;
 
 function videoLabel(config, t) {
-  const bytes = config?.max_video_bytes || 500 * 1024 * 1024;
+  if (config && config.max_video_bytes == null) {
+    return t("submit.choose_video_any");
+  }
+  const bytes = config?.max_video_bytes || REGULAR_MAX_BYTES;
   const mb = Math.round(bytes / (1024 * 1024));
   return t("submit.choose_video", { mb });
 }
@@ -28,7 +41,12 @@ export function SubmitPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    loadConfig().then(setConfig).catch((exc) => setError(exc.message));
+    loadConfig()
+      .then((next) => {
+        setConfig(next);
+        recordPageView().catch(() => {});
+      })
+      .catch((exc) => setError(exc.message));
     loadAccount()
       .then((next) => {
         setAccount(next);
@@ -63,9 +81,16 @@ export function SubmitPage() {
     event.preventDefault();
     setError("");
     const token = config?.dev_mode ? "dev" : turnstileToken;
-    const problem = submitError({ file, language, maxBytes: config?.max_video_bytes, token });
+    const maxBytes = config && config.max_video_bytes == null ? null : config?.max_video_bytes;
+    const problem = submitError({ file, language, maxBytes, token });
     if (problem) {
       setError(t(problem));
+      return;
+    }
+    const fresh = await loadConfig();
+    if (fresh.payment_required && fresh.price_cents !== config?.price_cents) {
+      setConfig(fresh);
+      setError(t("submit.price_changed"));
       return;
     }
     setBusy(true);
@@ -75,6 +100,13 @@ export function SubmitPage() {
       );
       await uploadVideo(created.upload, file);
       await markUploaded(created.token);
+      if (created.payment_required) {
+        const checkout = await openCheckout(created.token);
+        if (checkout.url) {
+          window.location.assign(checkout.url);
+          return;
+        }
+      }
       navigate(created.review_path);
     } catch (exc) {
       setError(exc.message);
@@ -85,9 +117,11 @@ export function SubmitPage() {
   return (
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
-      <h1>{t("submit.title")}</h1>
+      <div className="hero">
+        <img className="hero-banner" src={heroBanner} alt="" />
+        <h1>{t("submit.title")}</h1>
+      </div>
       <p>{t("submit.intro")}</p>
-      <img className="hero-catchphrase" src={inkThinkWin} alt="Ink. Think. Win." />
       <form onSubmit={onSubmit}>
         <label>
           {videoLabel(config, t)}
@@ -139,8 +173,17 @@ export function SubmitPage() {
         ) : null}
         {config?.turnstile_site_key ? <div id="turnstile-slot" /> : null}
         {error ? <p className="error">{error}</p> : null}
-        <button type="submit" disabled={busy}>
-          {busy ? t("submit.submitting") : t("submit.submit")}
+        {config?.payment_required && config.price_cents > 0 ? (
+          <>
+            <p className="note">{t("submit.one_time")}</p>
+            <p className="note">{t("submit.terms")}</p>
+          </>
+        ) : null}
+        <button
+          type="submit"
+          disabled={busy || (config?.payment_required && config.price_cents == null)}
+        >
+          {busy ? t("submit.submitting") : submitButtonLabel(t, config)}
         </button>
       </form>
       <p className="note">{t("submit.note")}</p>

@@ -108,6 +108,8 @@ class CreateSubmissionResponse(BaseModel):
     token: str
     review_path: str
     upload: PresignedUpload
+    price_cents: int | None = None
+    payment_required: bool = False
 
 
 class LifecycleMark(BaseModel):
@@ -173,6 +175,7 @@ class PublicSubmissionResponse(BaseModel):
     match_seconds: int | None = None
     locale: DisplayLocale = "en"
     result: PublicSubmissionResult | None = None
+    payment_state: Literal["not_required", "unpaid", "checkout_created", "paid"] | None = None
 
 
 class HistoryItem(BaseModel):
@@ -188,10 +191,17 @@ class HistoryItem(BaseModel):
 
 
 class PublicConfig(BaseModel):
-    """Values the submit page needs. Secrets are not included."""
+    """Values the submit page needs. Secrets are not included.
+
+    ``max_video_bytes`` is null for an administrator, who has no size cap.
+    """
 
     turnstile_site_key: str | None = None
     dev_mode: bool = False
-    max_video_bytes: int
+    max_video_bytes: int | None = None
     max_duration_seconds: int
     feedback: bool = False
+    price_cents: int | None = None
+    currency: str | None = None
+    pricing_version: int | None = None
+    payment_required: bool = False

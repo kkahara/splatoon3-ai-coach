@@ -259,6 +259,17 @@ class AccountStore:
                 )
         return _account(row)
 
+    def role_for(self, user_id: str) -> str | None:
+        """Return the account role, or None when that account is gone."""
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT role FROM users WHERE id = %s",
+                (user_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return str(row["role"] or "user")
+
     def set_role(self, email: str, role: str) -> tuple[str, str, str]:
         """Set an account role and return user id, prior role, and new role."""
         if role not in {"user", "admin"}:

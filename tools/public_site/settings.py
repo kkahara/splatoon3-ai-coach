@@ -36,7 +36,7 @@ class PublicSettings:
     host: str = "127.0.0.1"
     port: int = 8770
     storage: str = "local"
-    max_video_bytes: int = 500 * _MIB
+    max_video_bytes: int = 750 * _MIB
     max_duration_seconds: float = 1800
     min_dimension: int = 320
     max_dimension: int = 3840
@@ -68,6 +68,9 @@ class PublicSettings:
     worker_id: str = ""
     llm_provider: str = ""
     admin_slow_seconds: int = 600
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    payment_hold_seconds: int = 24 * 60 * 60
 
     @property
     def r2_ready(self) -> bool:
@@ -91,13 +94,11 @@ class PublicSettings:
         dev_mode = _flag("PUBLIC_DEV_MODE")
         per_hour = os.environ.get("PUBLIC_VIDEO_PER_HOUR")
         window = os.environ.get("PUBLIC_VIDEO_WINDOW_SECONDS")
+        # Upload caps are the same on localhost and production. Dev mode only
+        # relaxes how many accounts one network may register.
         relaxed = dev_mode and per_hour is None and window is None
-        if relaxed:
-            submissions, window_seconds = 50, 86400
-        else:
-            submissions = int(per_hour or "6")
-            window_seconds = int(window or "3600")
-        per_user_default = str(submissions) if relaxed else "2"
+        submissions = int(per_hour or "6")
+        window_seconds = int(window or "3600")
         return cls(
             root=root.resolve(),
             config_path=default_config_path(),
@@ -105,14 +106,14 @@ class PublicSettings:
             host=os.environ.get("PUBLIC_HOST", "127.0.0.1"),
             port=int(os.environ.get("PUBLIC_PORT", "8770")),
             storage=os.environ.get("PUBLIC_STORAGE", "local"),
-            max_video_bytes=int(os.environ.get("PUBLIC_MAX_VIDEO_BYTES", str(500 * _MIB))),
+            max_video_bytes=int(os.environ.get("PUBLIC_MAX_VIDEO_BYTES", str(750 * _MIB))),
             max_duration_seconds=float(os.environ.get("PUBLIC_MAX_DURATION_SECONDS", "1800")),
             submissions_per_hour=submissions,
             guest_submissions_per_hour=int(
-                os.environ.get("PUBLIC_GUEST_VIDEO_PER_HOUR", per_user_default)
+                os.environ.get("PUBLIC_GUEST_VIDEO_PER_HOUR", "2")
             ),
             account_submissions_per_hour=int(
-                os.environ.get("PUBLIC_ACCOUNT_VIDEO_PER_HOUR", per_user_default)
+                os.environ.get("PUBLIC_ACCOUNT_VIDEO_PER_HOUR", "2")
             ),
             submission_window_seconds=window_seconds,
             accounts_per_ip=int(
@@ -140,4 +141,7 @@ class PublicSettings:
             worker_id=os.environ.get("PUBLIC_WORKER_ID") or uuid.uuid4().hex,
             llm_provider=os.environ.get("PUBLIC_LLM_PROVIDER", "").strip(),
             admin_slow_seconds=int(os.environ.get("PUBLIC_ADMIN_SLOW_SECONDS", "600")),
+            stripe_secret_key=os.environ.get("PUBLIC_STRIPE_SECRET_KEY", "").strip(),
+            stripe_webhook_secret=os.environ.get("PUBLIC_STRIPE_WEBHOOK_SECRET", "").strip(),
+            payment_hold_seconds=int(os.environ.get("PUBLIC_PAYMENT_HOLD_SECONDS", str(24 * 60 * 60))),
         )

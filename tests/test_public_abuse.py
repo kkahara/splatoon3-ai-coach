@@ -18,7 +18,8 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi.testclient import TestClient
-from public_site.app import create_app
+from public_site.accounts import Account
+from public_site.app import SESSION_COOKIE, create_app
 from public_site.errors import (
     ACCOUNT_RATE_LIMIT,
     BAD_SIZE,
@@ -63,11 +64,13 @@ def _probe_ok(_path: Path) -> ProbeFacts:
 def _client(tmp_path: Path, **kwargs) -> TestClient:
     probe = kwargs.pop("probe", _probe_ok)
     run_command = kwargs.pop("run_command", lambda _argv: 0)
+    accounts = kwargs.pop("accounts", None)
     settings = _settings(tmp_path, **kwargs)
     app = create_app(
         settings,
         probe=probe,
         run_command=run_command,
+        accounts=accounts,
         start_worker=False,
     )
     client = TestClient(app)
@@ -162,6 +165,72 @@ def test_accounts_and_guests_share_the_network_cap(tmp_path: Path) -> None:
     rate = (client.app.state.settings.root / "rate_limits.json").read_text()
     assert ip not in rate
     assert "account-a" not in rate
+
+
+class _Roles:
+    """Session lookup for the administrator exemption test. Not a database."""
+
+    def __init__(self, people: dict[str, tuple[str, str, str]]) -> None:
+        self.people = people
+
+    def user_from_session(self, token: str, _now: datetime) -> Account | None:
+        found = self.people.get(token)
+        if found is None:
+            return None
+        user_id, email, role = found
+        return Account(id=user_id, email=email, name="Tester", verified=True, role=role)
+
+    def role_for(self, user_id: str) -> str | None:
+        for found_id, _email, role in self.people.values():
+            if found_id == user_id:
+                return role
+        return None
+
+    def record_history(self, _user_id: str, _submission_id: str, _created: str, _expires: str) -> None:
+        return None
+
+
+def test_admins_skip_the_size_and_hourly_caps(tmp_path: Path) -> None:
+    accounts = _Roles(
+        {
+            "admin-session": ("admin-id", "kkahara@outlook.com", "admin"),
+            "user-session": ("user-id", "player@example.com", "user"),
+            "other-session": ("other-id", "other@example.com", "user"),
+        }
+    )
+    client = _client(
+        tmp_path,
+        max_video_bytes=8,
+        submissions_per_hour=6,
+        account_submissions_per_hour=2,
+        accounts=accounts,
+    )
+    client.cookies.set(SESSION_COOKIE, "user-session")
+    too_big = client.post("/api/submissions", json=_body(size_bytes=9))
+    assert too_big.status_code == 400
+    assert too_big.json()["detail"] == BAD_SIZE
+    assert client.get("/api/config").json()["max_video_bytes"] == 8
+
+    client.cookies.set(SESSION_COOKIE, "admin-session")
+    assert client.get("/api/config").json()["max_video_bytes"] is None
+    for _ in range(3):
+        created = _create(client, size_bytes=9)
+        uploaded = client.put(
+            created["upload"]["url"],
+            content=b"123456789",
+            headers=created["upload"]["headers"],
+        )
+        assert uploaded.status_code == 200, uploaded.text
+        confirmed = client.post(f"/api/submissions/{created['token']}/uploaded")
+        assert confirmed.status_code == 200, confirmed.text
+        assert confirmed.json()["status"] == "queued"
+
+    client.cookies.set(SESSION_COOKIE, "other-session")
+    _create(client, size_bytes=8)
+    _create(client, size_bytes=8)
+    blocked = client.post("/api/submissions", json=_body(size_bytes=8))
+    assert blocked.status_code == 429
+    assert blocked.json()["detail"] == ACCOUNT_RATE_LIMIT
 
 
 def test_guest_limit_is_two_per_network(tmp_path: Path) -> None:

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  loadAccount,
   loadConfig,
   loadOwnedSubmission,
   loadSubmission,
+  logoutAccount,
+  openCheckout,
   sendFeedback,
   shareOwnedReview,
 } from "../api.js";
@@ -18,11 +21,15 @@ export function ReviewPage() {
   const { locale } = useLocale();
   const [view, setView] = useState(null);
   const [config, setConfig] = useState(null);
+  const [account, setAccount] = useState(null);
   const [error, setError] = useState("");
+  const [payError, setPayError] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadConfig().then(setConfig).catch(() => setConfig(null));
+    loadAccount().then(setAccount).catch(() => setAccount(null));
   }, []);
 
   useEffect(() => {
@@ -58,6 +65,25 @@ export function ReviewPage() {
     };
   }, [token, id, owned, locale]);
 
+  async function pay() {
+    if (!token) {
+      return;
+    }
+    setPayError("");
+    try {
+      const checkout = await openCheckout(token);
+      if (checkout.url) {
+        window.location.assign(checkout.url);
+        return;
+      }
+      if (checkout.pending || checkout.paid) {
+        setConfirming(true);
+      }
+    } catch (exc) {
+      setPayError(exc.message);
+    }
+  }
+
   function copyLink() {
     const link = window.location.href;
     if (copyWithSelection(link)) {
@@ -70,10 +96,13 @@ export function ReviewPage() {
   }
 
   const reached = view ? reachedStep(view) : 0;
-  const spinning = Boolean(view) && !["complete", "failed", "expired"].includes(view.status);
+  const spinning = Boolean(view)
+    && !awaitingPayment(view)
+    && !["complete", "failed", "expired"].includes(view.status);
 
   return (
     <main className="sheet">
+      <ResultNav account={account} onChange={setAccount} />
       <p className="brand">{t("brand")}</p>
       <h1>{t(headingKey(view))}</h1>
       <p>{t("review.keep_link")}</p>
@@ -84,7 +113,16 @@ export function ReviewPage() {
         </button>
       </div>
       {error ? <p className="error">{error}</p> : null}
+      {payError ? <p className="error">{payError}</p> : null}
       {view?.error ? <p className="error">{view.error}</p> : null}
+      {token && awaitingPayment(view) ? (
+        <p>
+          <button type="button" onClick={pay}>{t("review.pay")}</button>
+        </p>
+      ) : null}
+      {confirming || (view?.payment_state === "paid" && view.status === "received") ? (
+        <p className="note">{t("review.waiting_payment")}</p>
+      ) : null}
       <ol className="steps">
         {STEPS.map((step, index) => (
           <li key={step} className={index < reached ? "done" : spinning && index === reached ? "current" : ""}>
@@ -126,6 +164,34 @@ export function ReviewPage() {
         <Link to="/">{t("review.submit_another")}</Link>
       </p>
     </main>
+  );
+}
+
+function ResultNav({ account, onChange }) {
+  const navigate = useNavigate();
+  const t = useT();
+
+  async function logout() {
+    await logoutAccount();
+    if (onChange) {
+      onChange(null);
+    }
+    navigate("/");
+  }
+
+  return (
+    <header className="top">
+      <nav>
+        <Link to="/">{t("review.submit_another")}</Link>
+        {account ? (
+          <button type="button" className="linkish" onClick={logout}>
+            {t("account.log_out")}
+          </button>
+        ) : (
+          <Link to="/login">{t("common.log_in")}</Link>
+        )}
+      </nav>
+    </header>
   );
 }
 
@@ -563,9 +629,16 @@ function noDeaths(view) {
   return view?.status === "complete" && view.outcome === "no_deaths";
 }
 
+function awaitingPayment(view) {
+  return view?.payment_state === "unpaid" || view?.payment_state === "checkout_created";
+}
+
 function headingKey(view) {
   if (!view) {
     return "review.heading.default";
+  }
+  if (awaitingPayment(view)) {
+    return "review.heading.payment";
   }
   if (view.status === "complete") {
     return noDeaths(view) ? "review.heading.no_moments" : "review.heading.complete";

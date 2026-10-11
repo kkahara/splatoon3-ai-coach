@@ -19,6 +19,9 @@ from public_site.errors import (
     BAD_SIZE,
     CAPACITY,
     EXPIRED,
+    PAYMENT_NOT_REQUIRED,
+    PAYMENT_UNAVAILABLE,
+    PAYMENT_WINDOW,
     PROBE_SIZE,
     RATE_LIMIT,
     UPLOAD_MISMATCH,
@@ -39,10 +42,12 @@ from public_site.models import (
     VideoInput,
 )
 from public_site.notices import NoticeSender
+from public_site.payments import FailureCategory, PaymentStore, PriceQuote, SubmissionGate
 from public_site.results import load_result
 from public_site.settings import PublicSettings
 from public_site.storage import LocalStorage, R2Storage
 from public_site.store import PublicStore, add_days, parse_utc, utc_now
+from public_site.stripe_checkout import CheckoutEvent, CheckoutGateway, CheckoutSession
 from public_site.telemetry import TelemetryStore, best_effort, classify_error
 from public_site.tokens import hash_ip, hash_token, new_token
 
@@ -68,6 +73,8 @@ class SubmissionService:
         accounts: AccountStore | None = None,
         translator: Translator | None = None,
         telemetry: TelemetryStore | None = None,
+        payments: PaymentStore | None = None,
+        checkout: CheckoutGateway | None = None,
     ) -> None:
         self.settings = settings
         self.store = store
@@ -76,6 +83,8 @@ class SubmissionService:
         self.accounts = accounts
         self.translator = translator
         self.telemetry = telemetry
+        self.payments = payments
+        self.checkout = checkout
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
             store,
@@ -104,10 +113,14 @@ class SubmissionService:
         if not verifier(turnstile_token):
             raise RequestRejected(400, VERIFY)
         moment = now or datetime.now(UTC)
-        self._check_limits(ip, user_id, moment)
+        quote = self._quote(user_id)
+        privileged = self._privileged(user_id)
+        if not privileged:
+            self._check_limits(ip, user_id, moment)
         if self.store.unfinished_count() >= self.settings.max_queued:
             raise RequestRejected(429, CAPACITY)
-        suffix, mime = _declared_file(filename, content_type, size_bytes, self.settings)
+        cap = None if privileged else self.settings.max_video_bytes
+        suffix, mime = _declared_file(filename, content_type, size_bytes, cap)
         notice_email = _notice_email(email, notify)
         name = _display_name(display_name)
         created, submission = self._persist(
@@ -123,6 +136,7 @@ class SubmissionService:
             user_id=user_id,
             retention_days=retention_days,
         )
+        created = self._open_payment(created, submission, quote, moment)
         if self.telemetry is not None:
             best_effort(
                 "open_initial_run",
@@ -132,6 +146,18 @@ class SubmissionService:
                 language=language,
             )
         return created
+
+    def _privileged(self, user_id: str | None) -> bool:
+        """True for an administrator, who skips the hourly and file-size caps."""
+        if not user_id or self.accounts is None:
+            return False
+        return self.accounts.role_for(user_id) == "admin"
+
+    def _within_size_cap(self, size_bytes: int, user_id: str | None) -> bool:
+        """True when the object is allowed for this account."""
+        if self._privileged(user_id):
+            return True
+        return size_bytes <= self.settings.max_video_bytes
 
     def _check_limits(self, ip: str, user_id: str | None, now: datetime) -> None:
         """Network cap for everyone, plus a per-account or per-network guest cap."""
@@ -151,10 +177,16 @@ class SubmissionService:
         raise RequestRejected(429, RATE_LIMIT)
 
     def confirm(self, token: str) -> PublicSubmissionResponse:
-        """Verify the stored object, probe it, and queue only on success."""
+        """Record the upload, then queue when payment is already satisfied."""
         submission = self._require(token)
         if submission.status != "received":
             return self.project(submission)
+        if self.payments is not None:
+            return self._confirm_gated(submission, token)
+        return self._confirm_free(submission, token)
+
+    def _confirm_free(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+        """Probe and queue immediately when this site is not charging."""
         if self.telemetry is not None:
             best_effort(
                 "upload_confirmed",
@@ -164,7 +196,7 @@ class SubmissionService:
         video = self.store.get_video(submission.id)
         if video is None:
             raise RequestRejected(400, UPLOAD_MISSING)
-        self._require_owned(video)
+        self._require_owned(video, submission.user_id)
         return self._probe_and_queue(submission, video, token)
 
     def view(self, token: str, locale: DisplayLocale = "en") -> PublicSubmissionResponse:
@@ -197,6 +229,7 @@ class SubmissionService:
             match_seconds=_match_seconds(self.store.get_video(submission.id)),
             locale=locale,
             result=result,
+            payment_state=self._payment_state(submission.id),
         )
 
     def moment_frame(self, token: str, index: int) -> Path:
@@ -213,6 +246,8 @@ class SubmissionService:
     def maintain(self, now: datetime) -> None:
         """Release abandoned uploads and expire old submissions."""
         self._abandon(now)
+        self._release_unpaid(now)
+        self._recover_ready()
         self._expire(now)
 
     def _persist(
@@ -325,7 +360,14 @@ class SubmissionService:
                 height=facts.height,
             )
 
-    def _fail(self, submission: Submission, video: VideoInput, detail: str) -> None:
+    def _fail(
+        self,
+        submission: Submission,
+        video: VideoInput,
+        detail: str,
+        *,
+        category: FailureCategory | None = None,
+    ) -> None:
         self.storage.delete(video.object_key)
         video.upload_state = "rejected"
         submission.status = "failed"
@@ -343,6 +385,16 @@ class SubmissionService:
                 error_code=code,
                 diagnostic=diagnostic,
             )
+        if category is not None:
+            self._record_paid_failure(submission.id, category)
+
+    def note_analysis_completed(self, submission_id: str) -> None:
+        """Count a delivered analysis against the snapshotted price."""
+        self._price_event(submission_id, "analysis_completed")
+
+    def note_analysis_failed(self, submission_id: str, category: FailureCategory) -> None:
+        """Count a processing failure. The category is allowlisted, never an exception."""
+        self._price_event(submission_id, "analysis_failed", category)
 
     def note_terminal(self, submission: Submission, kind: str) -> None:
         """Send a ready or failed notice when a sealed token still exists."""
@@ -379,7 +431,7 @@ class SubmissionService:
         logger.error("source video delete failed for submission {}", video.submission_id)
         return False
 
-    def _require_owned(self, video: VideoInput) -> None:
+    def _require_owned(self, video: VideoInput, user_id: str | None = None) -> None:
         stat = self.storage.head(video.object_key)
         prefix = f"submissions/{video.submission_id}/"
         if stat is None:
@@ -388,7 +440,7 @@ class SubmissionService:
             raise RequestRejected(400, UPLOAD_MISMATCH)
         if stat.size_bytes != video.size_bytes:
             raise RequestRejected(400, UPLOAD_MISMATCH)
-        if stat.size_bytes > self.settings.max_video_bytes:
+        if not self._within_size_cap(stat.size_bytes, user_id):
             self.storage.delete(video.object_key)
             raise RequestRejected(400, PROBE_SIZE)
 
@@ -444,11 +496,18 @@ class SubmissionService:
             self._abandon_one(submission)
 
     def _abandon_one(self, submission: Submission) -> None:
+        if self._hold_unpaid(submission):
+            return
         video = self.store.get_video(submission.id)
         if video is not None and self.storage.head(video.object_key) is not None:
+            if self.payments is not None:
+                self.payments.mark_uploaded(submission.id)
+                sealed = self.notices.read_sealed(submission.id) or ""
+                self.attempt_queue(submission, sealed)
+                return
             token = self.notices.read_sealed(submission.id) or ""
             try:
-                self._require_owned(video)
+                self._require_owned(video, submission.user_id)
             except RequestRejected as exc:
                 self._fail(submission, video, exc.detail)
                 return
@@ -504,6 +563,257 @@ class SubmissionService:
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
 
+    def _quote(self, user_id: str | None) -> PriceQuote | None:
+        if self.payments is None:
+            return None
+        return self.payments.quote(admin=self._is_admin(user_id))
+
+    def _is_admin(self, user_id: str | None) -> bool:
+        if not user_id or self.accounts is None:
+            return False
+        return self.accounts.role_for(user_id) == "admin"
+
+    def _open_payment(
+        self,
+        created: CreateSubmissionResponse,
+        submission: Submission,
+        quote: PriceQuote | None,
+        now: datetime,
+    ) -> CreateSubmissionResponse:
+        if self.payments is None or quote is None:
+            return created
+        expires = now + timedelta(seconds=self.settings.payment_hold_seconds)
+        self.payments.open_gate(submission.id, quote, expires)
+        self._price_event(submission.id, "upload_started")
+        return created.model_copy(
+            update={
+                "price_cents": quote.price_cents,
+                "payment_required": quote.payment_state == "unpaid",
+            }
+        )
+
+    def _confirm_gated(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+        """Mark the upload, then queue only when this submission is already paid."""
+        self._owned_video(submission)
+        if self.payments is not None and self.payments.mark_uploaded(submission.id):
+            self._price_event(submission.id, "upload_completed")
+        if self.telemetry is not None:
+            best_effort("upload_confirmed", self.telemetry.upload_confirmed, submission.id)
+        return self.attempt_queue(submission, token)
+
+    def attempt_queue(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+        """Probe and queue when upload and payment are both already true."""
+        current = self.store.get(submission.id) or submission
+        if self.payments is None or current.status != "received":
+            return self.project(current)
+        gate = self.payments.get(current.id)
+        if gate is None or not _ready(gate):
+            return self.project(current)
+        video = self.store.get_video(current.id)
+        if video is None:
+            raise RequestRejected(400, UPLOAD_MISSING)
+        facts = self._probe_facts(current, video)
+        if facts is None:
+            return self.project(self.store.get(current.id) or current)
+        if self.payments.try_queue(current.id):
+            sealed = token or self.notices.read_sealed(current.id) or ""
+            self._queue(current, video, facts, sealed)
+        return self.project(self.store.get(current.id) or current)
+
+    def start_checkout(self, token: str) -> dict[str, str | bool | None]:
+        """Return the current card session, or open the next attempt."""
+        if self.payments is None or self.checkout is None:
+            raise RequestRejected(503, PAYMENT_UNAVAILABLE)
+        submission = self._require(token)
+        gate = self.payments.get(submission.id)
+        if gate is None:
+            raise RequestRejected(404, "not found")
+        if gate.payment_state == "paid":
+            return {"url": None, "paid": True, "pending": False}
+        if gate.payment_state == "not_required":
+            raise RequestRejected(400, PAYMENT_NOT_REQUIRED)
+        self._require_open_window(gate)
+        reusable = self._reusable_session(gate)
+        if reusable == "pending":
+            return {"url": None, "paid": False, "pending": True}
+        if isinstance(reusable, CheckoutSession):
+            return {"url": reusable.url or gate.checkout_url, "paid": False, "pending": False}
+        return self._open_next_session(submission, token, gate)
+
+    def apply_webhook(self, event: CheckoutEvent) -> str:
+        """Record a synchronously paid card session, then try to queue."""
+        if self.payments is None or event.type != "checkout.session.completed":
+            return "ignored"
+        session = event.session
+        if session.payment_status != "paid":
+            return "ignored"
+        gate = self.payments.get_by_session(session.id)
+        if gate is None or gate.submission_id != (session.client_reference_id or ""):
+            return "association"
+        result = self.payments.apply_paid(
+            submission_id=gate.submission_id,
+            session_id=session.id,
+            amount_total=session.amount_total,
+            currency=(session.currency or "").lower(),
+            payment_intent_id=session.payment_intent_id,
+        )
+        if result != "paid":
+            return result
+        submission = self.store.get(gate.submission_id)
+        if submission is not None:
+            self.attempt_queue(submission, "")
+        self._note_paid_past_window(gate.submission_id)
+        return "paid"
+
+    def _owned_video(self, submission: Submission) -> VideoInput:
+        video = self.store.get_video(submission.id)
+        if video is None:
+            raise RequestRejected(400, UPLOAD_MISSING)
+        self._require_owned(video)
+        return video
+
+    def _probe_facts(self, submission: Submission, video: VideoInput) -> ProbeFacts | None:
+        if self.telemetry is not None:
+            best_effort(
+                "validation_started",
+                self.telemetry.validation_started,
+                submission.id,
+            )
+        dest = self.settings.root / "probe" / f"{submission.id}{Path(video.object_key).suffix}"
+        path, temporary = self.storage.local_file(video.object_key, dest)
+        try:
+            return self.probe(path)
+        except ProbeRejected as exc:
+            self._fail(submission, video, exc.detail, category="invalid_upload")
+            return None
+        finally:
+            if temporary and path.is_file():
+                path.unlink()
+
+    def _reusable_session(self, gate: SubmissionGate) -> CheckoutSession | str | None:
+        if self.checkout is None or gate.payment_state != "checkout_created":
+            return None
+        if not gate.checkout_session_id:
+            return None
+        session = self.checkout.retrieve_session(gate.checkout_session_id)
+        if session.status == "open":
+            return session
+        if session.payment_status == "paid":
+            return "pending"
+        return None
+
+    def _open_next_session(
+        self, submission: Submission, token: str, gate: SubmissionGate
+    ) -> dict[str, str | bool | None]:
+        if self.payments is None or self.checkout is None:
+            raise RequestRejected(503, PAYMENT_UNAVAILABLE)
+        replace = gate.checkout_session_id if gate.payment_state == "checkout_created" else None
+        attempt = self.payments.claim_checkout(submission.id, replace)
+        if attempt is None:
+            raise RequestRejected(409, PAYMENT_WINDOW)
+        self._require_stripe_lifetime(gate)
+        created = self.checkout.create_session(
+            submission_id=submission.id,
+            price_cents=gate.price_cents,
+            currency=gate.currency,
+            expires_at=gate.expires_at,
+            success_url=f"{self.settings.public_base_url}/review/{token}",
+            cancel_url=f"{self.settings.public_base_url}/review/{token}",
+            idempotency_key=f"{submission.id}:{attempt}",
+        )
+        if not self.payments.attach_session(submission.id, attempt, created.id, created.url or ""):
+            raise RequestRejected(409, PAYMENT_WINDOW)
+        return {"url": created.url, "paid": False, "pending": False}
+
+    def _require_open_window(self, gate: SubmissionGate) -> None:
+        if gate.status == "expired" or gate.expires_at <= datetime.now(UTC):
+            raise RequestRejected(400, PAYMENT_WINDOW)
+
+    def _require_stripe_lifetime(self, gate: SubmissionGate) -> None:
+        remaining = gate.expires_at - datetime.now(UTC)
+        if remaining < timedelta(minutes=30):
+            raise RequestRejected(400, PAYMENT_WINDOW)
+
+    def _note_paid_past_window(self, submission_id: str) -> None:
+        if self.payments is None:
+            return
+        gate = self.payments.get(submission_id)
+        if gate is None or gate.payment_state != "paid" or gate.status != "received":
+            return
+        if gate.expires_at <= datetime.now(UTC):
+            self._price_event(submission_id, "analysis_failed", "expired")
+
+    def _release_unpaid(self, now: datetime) -> None:
+        if self.payments is None:
+            return
+        for submission_id in self.payments.unpaid_due_ids(now):
+            if not self.payments.claim_unpaid_expiry(submission_id, now):
+                continue
+            if not self.payments.remains_unpaid_expired(submission_id):
+                continue
+            self._delete_unpaid(submission_id)
+
+    def _delete_unpaid(self, submission_id: str) -> None:
+        submission = self.store.get(submission_id)
+        if submission is None or submission.status != "received":
+            return
+        video = self.store.get_video(submission_id)
+        if video is not None and video.object_key:
+            self.storage.delete(video.object_key)
+            video.object_key = ""
+            video.upload_state = "rejected"
+            self.store.save_video(video)
+        submission.status = "expired"
+        submission.error = EXPIRED
+        submission.updated_at = utc_now()
+        self.store.save_submission(submission)
+        self._price_event(submission_id, "analysis_failed", "expired")
+
+    def _recover_ready(self) -> None:
+        if self.payments is None:
+            return
+        for submission_id in self.payments.ready_ids():
+            submission = self.store.get(submission_id)
+            if submission is not None and submission.status == "received":
+                self.attempt_queue(submission, "")
+
+    def _hold_unpaid(self, submission: Submission) -> bool:
+        if self.payments is None:
+            return False
+        gate = self.payments.get(submission.id)
+        if gate is None or gate.payment_state in {"paid", "not_required"}:
+            return False
+        video = self.store.get_video(submission.id)
+        return video is not None and self.storage.head(video.object_key) is not None
+
+    def _payment_state(self, submission_id: str) -> str | None:
+        if self.payments is None:
+            return None
+        gate = self.payments.get(submission_id)
+        return None if gate is None else gate.payment_state
+
+    def _record_paid_failure(self, submission_id: str, category: FailureCategory) -> None:
+        if self.payments is None:
+            return
+        gate = self.payments.get(submission_id)
+        if gate is not None and gate.payment_state in {"paid", "not_required"}:
+            self._price_event(submission_id, "analysis_failed", category)
+
+    def _price_event(
+        self,
+        submission_id: str,
+        kind: str,
+        category: FailureCategory | None = None,
+    ) -> None:
+        if self.payments is None:
+            return
+        best_effort(
+            "price_event",
+            self.payments.record_for_submission,
+            submission_id,
+            kind,
+            category,
+        )
 
     def _remember_account(self, user_id: str | None, submission: Submission) -> None:
         if user_id and self.accounts is not None:
@@ -519,13 +829,13 @@ def _declared_file(
     filename: str,
     content_type: str,
     size_bytes: int,
-    settings: PublicSettings,
+    max_bytes: int | None,
 ) -> tuple[str, str]:
     suffix = Path(filename).suffix.lower()
     mime = content_type.split(";", 1)[0].strip().lower()
     if suffix not in _SUFFIXES or mime not in _TYPES:
         raise RequestRejected(400, BAD_FILE)
-    if size_bytes < 1 or size_bytes > settings.max_video_bytes:
+    if size_bytes < 1 or (max_bytes is not None and size_bytes > max_bytes):
         raise RequestRejected(400, BAD_SIZE)
     return suffix, mime
 
@@ -555,6 +865,16 @@ def _remove_tree(path: Path) -> None:
 
     if path.is_dir():
         shutil.rmtree(path, ignore_errors=True)
+
+
+def _ready(gate: SubmissionGate) -> bool:
+    """True when both prerequisites are present and the site lifetime is open."""
+    return (
+        gate.status == "received"
+        and gate.uploaded
+        and gate.payment_state in {"paid", "not_required"}
+        and gate.expires_at > datetime.now(UTC)
+    )
 
 
 def _match_seconds(video: object) -> int | None:

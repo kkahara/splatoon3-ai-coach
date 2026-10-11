@@ -41,7 +41,12 @@ export function AdminLayout() {
         <>
           <nav className="admin-nav" aria-label="Admin">
             <NavLink to="/admin" end>Overview</NavLink>
+            <NavLink to="/admin/price">Price</NavLink>
             <NavLink to="/admin/pipeline">Pipeline</NavLink>
+            <NavLink to="/admin/coaching">Coaching</NavLink>
+            <NavLink to="/admin/versions">Versions</NavLink>
+            <NavLink to="/admin/llm">LLM</NavLink>
+            <NavLink to="/admin/product">Product</NavLink>
             <NavLink to="/admin/failures">Failures</NavLink>
             <NavLink to="/admin/requests">Requests</NavLink>
             <NavLink to="/admin/users">Users</NavLink>

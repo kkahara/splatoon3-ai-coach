@@ -740,9 +740,10 @@ def test_presign_matches_the_aws_query_string_example() -> None:
     assert _AWS_SIGNATURE in url
 
 
-def test_dev_mode_allows_fifty_submissions_per_day(monkeypatch, tmp_path: Path) -> None:
+def test_dev_mode_keeps_regular_upload_limits(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setenv("PUBLIC_DEV_MODE", "1")
     monkeypatch.setenv("PUBLIC_ROOT", str(tmp_path))
+    monkeypatch.delenv("PUBLIC_MAX_VIDEO_BYTES", raising=False)
     monkeypatch.delenv("PUBLIC_VIDEO_PER_HOUR", raising=False)
     monkeypatch.delenv("PUBLIC_VIDEO_WINDOW_SECONDS", raising=False)
     for name in (
@@ -752,12 +753,15 @@ def test_dev_mode_allows_fifty_submissions_per_day(monkeypatch, tmp_path: Path) 
     ):
         monkeypatch.delenv(name, raising=False)
     settings = PublicSettings.from_env()
-    assert settings.submissions_per_hour == 50
-    assert settings.guest_submissions_per_hour == 50
-    assert settings.account_submissions_per_hour == 50
-    assert settings.submission_window_seconds == 86400
+    assert settings.max_video_bytes == 750 * 1024 * 1024
+    assert settings.submissions_per_hour == 6
+    assert settings.guest_submissions_per_hour == 2
+    assert settings.account_submissions_per_hour == 2
+    assert settings.submission_window_seconds == 3600
+    assert settings.accounts_per_ip == 50
     monkeypatch.delenv("PUBLIC_DEV_MODE", raising=False)
     production = PublicSettings.from_env()
+    assert production.max_video_bytes == 750 * 1024 * 1024
     assert production.submissions_per_hour == 6
     assert production.guest_submissions_per_hour == 2
     assert production.account_submissions_per_hour == 2

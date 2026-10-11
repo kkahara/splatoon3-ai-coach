@@ -16,7 +16,6 @@ export function AccountBar({ account, onChange }) {
 
   return (
     <header className="top">
-      <p className="brand">{t("brand")}</p>
       <nav>
         {account ? (
           <>

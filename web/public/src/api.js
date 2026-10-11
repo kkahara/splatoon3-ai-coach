@@ -32,6 +32,25 @@ export async function uploadVideo(upload, file) {
   }
 }
 
+export async function recordPageView() {
+  const response = await fetch("/api/funnel/page-view", { method: "POST" });
+  if (!response.ok) {
+    throw new Error("The coaching site is unavailable.");
+  }
+  return response.json();
+}
+
+export async function openCheckout(token) {
+  const response = await fetch(`/api/submissions/${encodeURIComponent(token)}/checkout`, {
+    method: "POST",
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.detail || "Checkout could not be opened.");
+  }
+  return payload;
+}
+
 export async function markUploaded(token) {
   const response = await fetch(`/api/submissions/${encodeURIComponent(token)}/uploaded`, {
     method: "POST",
@@ -199,6 +218,30 @@ export async function loadAdminFailures(options = {}) {
   return read(response, "Failures are unavailable.");
 }
 
+export async function loadAdminCoaching(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/coaching?${query}`);
+  return read(response, "Coaching metrics are unavailable.");
+}
+
+export async function loadAdminVersions(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/versions?${query}`);
+  return read(response, "Version metrics are unavailable.");
+}
+
+export async function loadAdminLlm(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/llm?${query}`);
+  return read(response, "LLM metrics are unavailable.");
+}
+
+export async function loadAdminProduct(options = {}) {
+  const query = boundedAdminQuery(options);
+  const response = await fetch(`/api/admin/product?${query}`);
+  return read(response, "Product metrics are unavailable.");
+}
+
 export async function loadAdminFailureSummary(options = {}) {
   const query = boundedAdminQuery(options);
   const response = await fetch(`/api/admin/failures/summary?${query}`);
@@ -208,6 +251,20 @@ export async function loadAdminFailureSummary(options = {}) {
 export async function loadAdminOverview() {
   const response = await fetch("/api/admin/overview");
   return read(response, "Admin overview is unavailable.");
+}
+
+export async function loadAdminPrice() {
+  const response = await fetch("/api/admin/price");
+  return read(response, "The analysis price is unavailable.");
+}
+
+export async function saveAdminPrice(priceCents) {
+  const response = await fetch("/api/admin/price", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ price_cents: priceCents }),
+  });
+  return read(response, "The analysis price was not saved.");
 }
 
 export async function loadAdminRequests(options = {}) {

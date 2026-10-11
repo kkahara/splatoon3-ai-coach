@@ -81,13 +81,22 @@ def test_admin_endpoints_require_server_side_role(
     admin_client: tuple[TestClient, AccountStore, TelemetryStore],
 ) -> None:
     client, accounts, _telemetry = admin_client
-    assert client.get("/api/admin/overview").status_code == 401
-    assert client.get("/api/admin/pipeline").status_code == 401
-    assert client.get("/api/admin/failures").status_code == 401
+    for path in (
+        "/api/admin/overview",
+        "/api/admin/pipeline",
+        "/api/admin/failures",
+        "/api/admin/coaching",
+        "/api/admin/versions",
+        "/api/admin/llm",
+        "/api/admin/product",
+    ):
+        assert client.get(path).status_code == 401
 
     user_session = _session(accounts, "user@example.test", "user")
     client.cookies.set(SESSION_COOKIE, user_session)
     assert client.get("/api/admin/overview").status_code == 403
+    assert client.get("/api/admin/coaching").status_code == 403
+    assert client.get("/api/admin/product").status_code == 403
 
     admin_session = _session(accounts, "admin@example.test", "admin")
     client.cookies.set(SESSION_COOKIE, admin_session)
@@ -114,6 +123,9 @@ def test_admin_filters_are_bounded_and_parameterized(
         "/api/admin/pipeline", params={"pipeline_version": "%' OR TRUE--"}
     )
     assert injected.status_code == 422
+    for path in ("/api/admin/coaching", "/api/admin/versions", "/api/admin/llm"):
+        rejected = client.get(path, params={"pipeline_version": "%' OR TRUE--"})
+        assert rejected.status_code == 422
     pipeline = client.get("/api/admin/pipeline")
     assert pipeline.status_code == 200
     assert pipeline.json()["population"] == "executions_in_window"
