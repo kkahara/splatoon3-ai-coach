@@ -346,6 +346,22 @@ vision:
     zero_tail_seconds: 2.0
     hud_loss_fallback: false
 
+# Review <-> gameplay clock alignment (src/.../alignment/ALIGNMENT_CONTRACT.md).
+# Provisional until frozen from tuning pairs. delta is the cross-source clock
+# semantics correction; pre-registered null 0, changed only by the contract's
+# replication rule.
+alignment:
+  delta: 0.0
+  min_edges: 20
+  max_inconsistent_edge_share: 0.1
+  max_edge_gap_seconds: 10.0
+  min_coverage_fraction: 0.5
+  clock_domain_tolerance_seconds: 2.0
+  # Death-reference diagnostics only (never part of the mapping or pair check).
+  association_window_seconds: 5.0
+  max_onset_bracket_seconds: 3.0
+  nearest_clock_max_gap_seconds: 1.0
+
 scenarios:
   post_death_follow_seconds: 8.0
   post_death_max_seconds: 30.0

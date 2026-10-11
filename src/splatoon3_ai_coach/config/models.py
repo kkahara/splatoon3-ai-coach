@@ -1067,6 +1067,24 @@ class CoachConfig(BaseModel):
         return value
 
 
+class AlignmentConfig(BaseModel):
+    """Review to gameplay clock alignment (``alignment/ALIGNMENT_CONTRACT.md``).
+
+    Provisional until frozen from tuning pairs; ``delta`` stays 0 unless the
+    contract's replication rule is met.
+    """
+
+    delta: float = 0.0
+    min_edges: int = Field(default=20, ge=1)
+    max_inconsistent_edge_share: float = Field(default=0.1, ge=0, le=1)
+    max_edge_gap_seconds: float = Field(default=10.0, gt=0)
+    min_coverage_fraction: float = Field(default=0.5, ge=0, le=1)
+    clock_domain_tolerance_seconds: float = Field(default=2.0, ge=0)
+    association_window_seconds: float = Field(default=5.0, ge=0)
+    max_onset_bracket_seconds: float = Field(default=3.0, gt=0)
+    nearest_clock_max_gap_seconds: float = Field(default=1.0, ge=0)
+
+
 class AppConfig(BaseModel):
     """Top-level application configuration."""
 
@@ -1077,3 +1095,4 @@ class AppConfig(BaseModel):
     review: ReviewTimelineConfig = Field(default_factory=ReviewTimelineConfig)
     scenarios: ScenarioBuilderConfig = Field(default_factory=ScenarioBuilderConfig)
     coach: CoachConfig = Field(default_factory=CoachConfig)
+    alignment: AlignmentConfig = Field(default_factory=AlignmentConfig)

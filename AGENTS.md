@@ -18,6 +18,7 @@ Dependency direction is one-way:
 | Analysis | `analysis/` | `GameSession`, metrics, scenarios, ScenarioContext |
 | Coach | `coach/` | Evidence-constrained LLM coaching |
 | Review | `review/` | Local Review timeline screenshots → elapsed-clock evidence |
+| Alignment | `alignment/` | Declared Review import + gameplay analysis pair → Review remaining clock to gameplay video interval |
 
 ### Future vision layers
 
@@ -217,6 +218,29 @@ beside `review_timeline.json` (never rewritten): one closed-vocabulary
  observation itself always stands. No `fact_valid`.
 - `remaining_estimate` is the fact's name for the dataset's unchanged
  `SpecialUseEvent.elapsed_estimate` (a remaining clock).
+
+### Review to gameplay clock alignment
+
+Contract: `src/splatoon3_ai_coach/alignment/ALIGNMENT_CONTRACT.md`.
+`s3-coach align review-clock <review_import> <gameplay_analysis> --out <dir>`
+writes `review_gameplay_alignment.json` for one operator-declared pair; neither
+input is rewritten.
+
+- Two layers. `GameplayClockCalibration` estimates `c` in
+ `video_t = c - remaining` (an interval) from gameplay HUD timer edges only.
+ `ReviewGameplayAlignment` composes it with the Review axis:
+ `video_interval(r) = [c_lo - (r + delta) - e_axis, c_hi - (r + delta) + e_axis]`.
+- `delta` is pre-registered 0; it changes only under the contract's
+ replication rule, never to a numerical optimum. Deaths only test `delta`;
+ they never estimate `c`.
+- Three separate statuses: `pair_status` (structural only; not proof of match
+ identity), `fit_status`, per-value `alignment_status`. Overtime values are
+ `unknown` / `overtime_no_gameplay_timer`. No extrapolation across cuts.
+- Intervals end to end; `AlignedReviewTime` has no `game_remaining`.
+- No SPECIAL_USE input anywhere in alignment code, tools or gates; no local
+ slot; no GameEvents. `review/`, `coach/`, `analysis/` and `vision/` do not
+ import `alignment/`; ScenarioContext / CoachInput do not consume it until a
+ separate bridge assignment.
 
 ## Coaching evidence contract
 
