@@ -35,6 +35,7 @@ from splatoon3_ai_coach.vision.models import (
 ALIGNMENT_FILENAME = "review_gameplay_alignment.json"
 TIMELINE_FILENAME = "review_timeline.json"
 MATCH_IDENTITY_FILENAME = "match_identity.json"
+TURF_WAR = "turf_war"
 
 PairReason = Literal[
     "mode_mismatch",
@@ -59,7 +60,7 @@ class PairCheck(BaseModel):
     review_battle_mode: str | None = None
     gameplay_battle_mode: str | None = None
     review_overtime: bool
-    gameplay_overtime: bool
+    gameplay_overtime: bool | None = None
     gameplay_clock_zero_end: bool
     review_regulation_label: int | None = None
     gameplay_highest_hud_read: int | None = None
@@ -165,8 +166,9 @@ def check_pair(
         e.event_type is GameEventType.MATCH_END and e.reason is GameEventReason.CLOCK_ZERO
         for e in manifest.game_events
     )
-    low = calibration.lowest_hud_read
-    gameplay_ot = not clock_zero and low is not None and low <= 1
+    gameplay_ot = gameplay_overtime(
+        clock_zero, calibration.lowest_hud_read, gameplay_battle_mode
+    )
     coverage = _coverage(calibration.raw_edge_remaining_span, reg_lo, reg_hi)
     reasons: list[PairReason] = []
     if (
@@ -175,7 +177,7 @@ def check_pair(
         and ds.battle_mode_id != gameplay_battle_mode
     ):
         reasons.append("mode_mismatch")
-    if review_ot != gameplay_ot:
+    if gameplay_ot is not None and review_ot != gameplay_ot:
         reasons.append("overtime_mismatch")
     if coverage is None or coverage < cfg.min_coverage_fraction:
         reasons.append("insufficient_clock_coverage")
@@ -198,6 +200,22 @@ def check_pair(
         gameplay_highest_hud_read=high,
         coverage_fraction=None if coverage is None else round(coverage, 4),
     )
+
+
+def gameplay_overtime(
+    clock_zero: bool, lowest_hud_read: int | None, battle_mode: str | None
+) -> bool | None:
+    """Gameplay overtime status; ``None`` when the HUD cannot tell.
+
+    A clock-zero end, Turf War (no overtime by rule) or a knockout (HUD stops
+    above 0:01) is not overtime. A last read of 0:01 without a 0:00 read is
+    either overtime or a missed 0:00 frame, so it is unknown and not compared.
+    """
+    if clock_zero or battle_mode == TURF_WAR:
+        return False
+    if lowest_hud_read is None or lowest_hud_read <= 1:
+        return None
+    return False
 
 
 def _coverage(

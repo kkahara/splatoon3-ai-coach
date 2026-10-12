@@ -299,7 +299,8 @@ def test_overtime_match_is_consistent_and_overtime_values_unknown() -> None:
         _config(),
     )
     assert alignment.pair.pair_status == "consistent"
-    assert alignment.pair.review_overtime and alignment.pair.gameplay_overtime
+    assert alignment.pair.review_overtime is True
+    assert alignment.pair.gameplay_overtime is None
     assert alignment.calibration.fit_status == "calibrated"
     assert alignment.map_review_remaining(120.0).alignment_status == "aligned"
     out = alignment.map_review_remaining(-12.0)
@@ -311,7 +312,18 @@ def test_overtime_match_is_consistent_and_overtime_values_unknown() -> None:
     [
         ({"mode": "rainmaker"}, {}, "splat_zones", "mode_mismatch"),
         ({"overtime": ("+0:05",)}, {}, None, "overtime_mismatch"),
-        ({}, {"clock_zero": False, "lowest": 1}, None, "overtime_mismatch"),
+        (
+            {"overtime": ("+0:05",)},
+            {"t_end": 200.0, "clock_zero": False, "lowest": 120},
+            None,
+            "overtime_mismatch",
+        ),
+        (
+            {"overtime": ("+0:05",)},
+            {"clock_zero": False, "lowest": 1},
+            "turf_war",
+            "overtime_mismatch",
+        ),
         (
             {},
             {"t_end": 80.0, "clock_zero": False, "lowest": 240},
@@ -340,6 +352,24 @@ def test_knockout_is_not_overtime() -> None:
         _manifest(t_end=200.0, clock_zero=False, lowest=120),
         None,
         _config(),
+    )
+    assert alignment.pair.gameplay_overtime is False
+    assert alignment.pair.pair_status == "consistent"
+
+
+def test_missed_zero_read_leaves_gameplay_overtime_unknown() -> None:
+    # Last read 0:01 and no 0:00 read: overtime or a missed frame; not compared.
+    alignment = align_pair(
+        _review(), _manifest(clock_zero=False, lowest=1), None, _config()
+    )
+    assert alignment.pair.gameplay_overtime is None
+    assert "overtime_mismatch" not in alignment.pair.reasons
+    assert alignment.pair.pair_status == "consistent"
+
+
+def test_turf_war_is_never_overtime() -> None:
+    alignment = align_pair(
+        _review(), _manifest(clock_zero=False, lowest=1), "turf_war", _config()
     )
     assert alignment.pair.gameplay_overtime is False
     assert alignment.pair.pair_status == "consistent"

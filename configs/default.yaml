@@ -347,9 +347,9 @@ vision:
     hud_loss_fallback: false
 
 # Review <-> gameplay clock alignment (src/.../alignment/ALIGNMENT_CONTRACT.md).
-# Provisional until frozen from tuning pairs. delta is the cross-source clock
-# semantics correction; pre-registered null 0, changed only by the contract's
-# replication rule.
+# Frozen from 5 tuning pairs (analysis/review_validation/alignment/). delta is
+# the cross-source clock semantics correction; pre-registered null 0, changed
+# only by the contract's replication rule.
 alignment:
   delta: 0.0
   min_edges: 20
@@ -361,6 +361,11 @@ alignment:
   association_window_seconds: 5.0
   max_onset_bracket_seconds: 3.0
   nearest_clock_max_gap_seconds: 1.0
+  min_usable_per_reference: 3
+  # Pre-registered gate (roster-X pass reference; local DEATH reported only).
+  gate_min_roster_x_used: 20
+  gate_min_contains_zero_share: 0.75
+  gate_max_median_abs_residual_seconds: 1.0
 
 scenarios:
   post_death_follow_seconds: 8.0

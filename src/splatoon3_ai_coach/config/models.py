@@ -1070,8 +1070,9 @@ class CoachConfig(BaseModel):
 class AlignmentConfig(BaseModel):
     """Review to gameplay clock alignment (``alignment/ALIGNMENT_CONTRACT.md``).
 
-    Provisional until frozen from tuning pairs; ``delta`` stays 0 unless the
-    contract's replication rule is met.
+    Frozen from the tuning pairs; ``delta`` stays 0 unless the contract's
+    replication rule is met. ``gate_*`` values apply to the roster-X pass
+    reference only.
     """
 
     delta: float = 0.0
@@ -1083,6 +1084,10 @@ class AlignmentConfig(BaseModel):
     association_window_seconds: float = Field(default=5.0, ge=0)
     max_onset_bracket_seconds: float = Field(default=3.0, gt=0)
     nearest_clock_max_gap_seconds: float = Field(default=1.0, ge=0)
+    min_usable_per_reference: int = Field(default=3, ge=1)
+    gate_min_roster_x_used: int = Field(default=20, ge=1)
+    gate_min_contains_zero_share: float = Field(default=0.75, ge=0, le=1)
+    gate_max_median_abs_residual_seconds: float = Field(default=1.0, gt=0)
 
 
 class AppConfig(BaseModel):

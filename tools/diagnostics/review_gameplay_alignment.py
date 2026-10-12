@@ -25,9 +25,10 @@ import json
 from collections import Counter
 from pathlib import Path
 from statistics import median
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 
 from splatoon3_ai_coach.alignment.review_alignment import (
+    MappingReason,
     ReviewGameplayAlignment,
     align_pair,
     load_pair,
@@ -46,7 +47,6 @@ from splatoon3_ai_coach.vision.models import (
 
 Row = Literal["top", "bottom"]
 Interval = tuple[float, float]
-MIN_USABLE_PER_REFERENCE = 3  # provisional sufficiency floor, frozen at freeze
 
 
 def main() -> int:
@@ -58,6 +58,15 @@ def main() -> int:
     ]
     report = {"pairs": pairs, "delta_test": delta_test(pairs)}
     args.out.mkdir(parents=True, exist_ok=True)
+    if args.gate:
+        controls = [
+            negative_control(Path(r), Path(g), config)
+            for r, g in args.negative_control or []
+        ]
+        gate = evaluate_gate(pairs, controls, config)
+        (args.out / "gate.json").write_text(json.dumps(gate, indent=2) + "\n", "utf-8")
+        (args.out / "gate.md").write_text(render_gate(gate), "utf-8")
+        print(json.dumps(gate["verdict"]))
     (args.out / "alignment_tuning.json").write_text(
         json.dumps(report, indent=2) + "\n", "utf-8"
     )
@@ -75,6 +84,7 @@ def measure_pair(
     glyphs = mapped_death_glyphs(ds, alignment)
     window = config.alignment.association_window_seconds
     cadence = config.vision.hud_cadence_fps
+    min_usable = config.alignment.min_usable_per_reference
     local = [
         associate(b, _ally_rows(ds), glyphs, window)
         for b in local_death_brackets(manifest, cadence)
@@ -82,10 +92,7 @@ def measure_pair(
     onsets, too_wide = roster_x_onsets(
         manifest, config.alignment.max_onset_bracket_seconds
     )
-    roster = [
-        associate(b, _team_rows(ds, team), glyphs, window, split_rows=True)
-        for team, b in onsets
-    ]
+    roster = [associate(b, _team_rows(ds, team), glyphs, window) for team, b in onsets]
     clock = _clock(manifest, config)
     for item in local + roster:
         item["nearest_observed_game_clock"] = nearest_observed_game_clock(
@@ -96,10 +103,14 @@ def measure_pair(
         "pair": alignment.pair.model_dump(mode="json"),
         "calibration": calibration_summary(alignment),
         "glyph_status": dict(Counter(g["status"] for g in glyphs)),
-        "local_death": {"items": local, "summary": summarize(local)},
+        "glyph_rows": dict(Counter(g["team_row"] for g in glyphs)),
+        "glyph_unknown_reasons": dict(
+            Counter(g["reason"] for g in glyphs if g["status"] == "unknown")
+        ),
+        "local_death": {"items": local, "summary": summarize(local, min_usable)},
         "roster_x": {
             "items": roster,
-            "summary": summarize(roster),
+            "summary": summarize(roster, min_usable),
             "onsets_excluded_wide_bracket": too_wide,
         },
     }
@@ -141,7 +152,7 @@ def mapped_death_glyphs(
                 "review_remaining": r,
                 "video_interval": None if mapped is None else mapped.video_interval,
                 "status": "unknown" if mapped is None else mapped.alignment_status,
-                "reason": "no_estimate" if mapped is None else mapped.reason,
+                "reason": "no_review_axis" if mapped is None else mapped.reason,
             }
         )
     return out
@@ -225,8 +236,6 @@ def associate(
     rows: list[Row],
     glyphs: list[dict[str, Any]],
     window: float,
-    *,
-    split_rows: bool = False,
 ) -> dict[str, Any]:
     """Apply the pre-committed association rule to one gameplay bracket."""
     item: dict[str, Any] = {"gameplay_bracket": bracket, "rows": rows}
@@ -289,7 +298,7 @@ def nearest_observed_game_clock(
     return {"video_time": t, "seconds_remaining": value}
 
 
-def summarize(items: list[dict[str, Any]]) -> dict[str, Any]:
+def summarize(items: list[dict[str, Any]], min_usable: int) -> dict[str, Any]:
     """Counts plus residual statistics over ``used`` associations only."""
     counts = Counter(i["status"] for i in items)
     used = [i for i in items if i["status"] == "used"]
@@ -307,7 +316,7 @@ def summarize(items: list[dict[str, Any]]) -> dict[str, Any]:
         "median_abs_residual_midpoint": round(median(abs(m) for m in mids), 4),
         "median_half_width": round(half, 4),
     }
-    if len(used) < MIN_USABLE_PER_REFERENCE:
+    if len(used) < min_usable:
         return out | {"direction": "insufficient"}
     if abs(med) <= half:
         return out | {"direction": "within_uncertainty"}
@@ -340,6 +349,98 @@ def delta_test(pairs: list[dict[str, Any]]) -> dict[str, Any]:
         "nonzero_delta_supported": supported,
         "decision": "evidence_for_nonzero_delta" if supported else "delta_stays_0",
     }
+
+
+def _pooled(pairs: list[dict[str, Any]], ref: str) -> dict[str, Any]:
+    used = [i for p in pairs for i in p[ref]["items"] if i["status"] == "used"]
+    counts = Counter(i["status"] for p in pairs for i in p[ref]["items"])
+    out: dict[str, Any] = {"used": len(used), "counts": dict(counts)}
+    if used:
+        out["contains_zero_share"] = round(
+            sum(i["contains_zero"] for i in used) / len(used), 4
+        )
+        out["median_abs_residual_midpoint"] = round(
+            median(abs(i["residual_midpoint"]) for i in used), 4
+        )
+    return out
+
+
+def evaluate_gate(
+    pairs: list[dict[str, Any]], controls: list[dict[str, Any]], config: AppConfig
+) -> dict[str, Any]:
+    """Pre-registered criteria; roster-X is the pass reference."""
+    cfg = config.alignment
+    roster = _pooled(pairs, "roster_x")
+    declared = set(get_args(MappingReason))
+    criteria = {
+        "all_pairs_consistent_and_calibrated": all(
+            p["pair"]["pair_status"] == "consistent"
+            and p["calibration"]["fit_status"] == "calibrated"
+            for p in pairs
+        ),
+        "roster_x_contains_zero_share": roster.get("contains_zero_share", 0.0)
+        >= cfg.gate_min_contains_zero_share,
+        "roster_x_median_abs_residual": roster.get(
+            "median_abs_residual_midpoint", float("inf")
+        )
+        <= cfg.gate_max_median_abs_residual_seconds,
+        "unknown_values_carry_declared_reason": all(
+            reason in declared for p in pairs for reason in p["glyph_unknown_reasons"]
+        ),
+    }
+    enough = roster["used"] >= cfg.gate_min_roster_x_used
+    if not all(criteria.values()):
+        verdict = "FAIL"
+    else:
+        verdict = "PASS" if enough else "INCONCLUSIVE"
+    return {
+        "verdict": verdict,
+        "criteria": criteria,
+        "roster_x_evidence_sufficient": enough,
+        "thresholds": cfg.model_dump(mode="json"),
+        "roster_x_pooled": roster,
+        "reported_only": {
+            "local_death_pooled": _pooled(pairs, "local_death"),
+            "glyph_rows": {p["label"]: p["glyph_rows"] for p in pairs},
+            "negative_controls": controls,
+        },
+    }
+
+
+def negative_control(review_dir: Path, gameplay_dir: Path, config: AppConfig) -> dict:
+    """A deliberately mismatched pair: structural result and roster-X residuals."""
+    label = f"{review_dir.name} x {gameplay_dir.name}"
+    measured = measure_pair(review_dir, gameplay_dir, config, label=label)
+    return {
+        "label": label,
+        "pair_status": measured["pair"]["pair_status"],
+        "reasons": measured["pair"]["reasons"],
+        "structurally_rejected": measured["pair"]["pair_status"] == "inconsistent",
+        "roster_x_pooled": _pooled([measured], "roster_x"),
+    }
+
+
+def render_gate(gate: dict[str, Any]) -> str:
+    """Markdown for the gate run."""
+    lines = [f"# Alignment gate: {gate['verdict']}", "", "## Criteria", ""]
+    lines += [f"- {k}: {'pass' if v else 'FAIL'}" for k, v in gate["criteria"].items()]
+    lines += [
+        f"- roster_x evidence sufficient: {gate['roster_x_evidence_sufficient']}",
+        "",
+        "## Roster-X pooled (pass reference)",
+        "",
+        "```json",
+        json.dumps(gate["roster_x_pooled"], indent=2),
+        "```",
+        "",
+        "## Reported only (not pass criteria)",
+        "",
+        "```json",
+        json.dumps(gate["reported_only"], indent=2),
+        "```",
+        "",
+    ]
+    return "\n".join(lines)
 
 
 def render(report: dict[str, Any]) -> str:
@@ -377,6 +478,16 @@ def _parse_args() -> argparse.Namespace:
         action="append",
         required=True,
         metavar=("REVIEW_IMPORT", "GAMEPLAY_ANALYSIS"),
+    )
+    parser.add_argument(
+        "--negative-control",
+        nargs=2,
+        action="append",
+        metavar=("REVIEW_IMPORT", "GAMEPLAY_ANALYSIS"),
+        help="Deliberately mismatched pair; reported, never a pass criterion.",
+    )
+    parser.add_argument(
+        "--gate", action="store_true", help="Evaluate the pre-registered gate."
     )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--config", type=Path, default=None)

@@ -164,11 +164,11 @@ def _used(mid: float, half: float = 0.4) -> dict:
 
 
 def test_summarize_direction_against_uncertainty() -> None:
-    assert tool.summarize([_used(0.1)] * 3)["direction"] == "within_uncertainty"
-    assert tool.summarize([_used(1.0)] * 3)["direction"] == "positive"
-    assert tool.summarize([_used(-1.0)] * 3)["direction"] == "negative"
-    assert tool.summarize([_used(1.0)] * 2)["direction"] == "insufficient"
-    out = tool.summarize([{"status": "ambiguous"}, {"status": "unassociated"}])
+    assert tool.summarize([_used(0.1)] * 3, 3)["direction"] == "within_uncertainty"
+    assert tool.summarize([_used(1.0)] * 3, 3)["direction"] == "positive"
+    assert tool.summarize([_used(-1.0)] * 3, 3)["direction"] == "negative"
+    assert tool.summarize([_used(1.0)] * 2, 3)["direction"] == "insufficient"
+    out = tool.summarize([{"status": "ambiguous"}, {"status": "unassociated"}], 3)
     assert out["direction"] == "insufficient" and out["used"] == 0
 
 
@@ -191,6 +191,51 @@ def test_delta_change_needs_replication_in_every_match_and_reference() -> None:
     assert tool.delta_test(matches_disagree)["decision"] == "delta_stays_0"
     insufficient = [both[0], both[1], _pair("c", "insufficient", "positive")]
     assert tool.delta_test(insufficient)["decision"] == "delta_stays_0"
+
+
+# --- pre-registered gate ----------------------------------------------------------
+
+
+def _gate_pair(
+    mids: list[float], *, pair_status: str = "consistent", unknown: dict | None = None
+) -> dict:
+    items = [_used(m) for m in mids] + [{"status": "ambiguous"}]
+    return {
+        "label": "p",
+        "pair": {"pair_status": pair_status},
+        "calibration": {"fit_status": "calibrated"},
+        "glyph_rows": {"top": 3},
+        "glyph_unknown_reasons": unknown or {},
+        "roster_x": {"items": items},
+        "local_death": {"items": [_used(0.2)]},
+    }
+
+
+def test_gate_pass_inconclusive_and_fail() -> None:
+    config = _config()
+    good = [_gate_pair([0.3] * 12), _gate_pair([-0.2] * 12)]
+    assert tool.evaluate_gate(good, [], config)["verdict"] == "PASS"
+    few = [_gate_pair([0.3] * 5)]
+    assert tool.evaluate_gate(few, [], config)["verdict"] == "INCONCLUSIVE"
+    far = [_gate_pair([2.0] * 30)]
+    out = tool.evaluate_gate(far, [], config)
+    assert out["verdict"] == "FAIL"
+    assert out["criteria"]["roster_x_median_abs_residual"] is False
+    bad_pair = good + [_gate_pair([0.3] * 3, pair_status="inconsistent")]
+    assert tool.evaluate_gate(bad_pair, [], config)["verdict"] == "FAIL"
+    bad_reason = [_gate_pair([0.3] * 30, unknown={"made_up": 1})]
+    assert tool.evaluate_gate(bad_reason, [], config)["verdict"] == "FAIL"
+
+
+def test_gate_ignores_local_death_and_negative_controls() -> None:
+    config = _config()
+    pairs = [_gate_pair([0.3] * 25)]
+    pairs[0]["local_death"] = {"items": [_used(9.0)] * 5}
+    controls = [{"label": "x", "structurally_rejected": False}]
+    out = tool.evaluate_gate(pairs, controls, config)
+    assert out["verdict"] == "PASS"
+    assert out["reported_only"]["negative_controls"] == controls
+    assert out["reported_only"]["local_death_pooled"]["used"] == 5
 
 
 # --- end to end -----------------------------------------------------------------

@@ -1,0 +1,4582 @@
+{
+  "pairs": [
+    {
+      "label": "23-43-31",
+      "pair": {
+        "pair_status": "consistent",
+        "reasons": [],
+        "review_battle_mode": "clam_blitz",
+        "gameplay_battle_mode": "clam_blitz",
+        "review_overtime": true,
+        "gameplay_overtime": null,
+        "gameplay_clock_zero_end": false,
+        "review_regulation_label": 300,
+        "gameplay_highest_hud_read": 300,
+        "coverage_fraction": 0.9967
+      },
+      "calibration": {
+        "fit_status": "calibrated",
+        "reason": null,
+        "c_interval": [
+          319.0,
+          319.5
+        ],
+        "c_width": 0.5,
+        "edge_count": 288,
+        "consistent_edge_count": 288,
+        "inconsistent_edge_share": 0.0,
+        "playback_status": "normal",
+        "free_slope_game_seconds_per_video_second": 1.0,
+        "e_axis": 0.12885658073696504,
+        "delta": 0.0
+      },
+      "glyph_status": {
+        "aligned": 46,
+        "unknown": 4
+      },
+      "glyph_rows": {
+        "bottom": 23,
+        "top": 27
+      },
+      "glyph_unknown_reasons": {
+        "overtime_no_gameplay_timer": 3,
+        "outside_observed_gameplay_clock": 1
+      },
+      "local_death": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              73.5,
+              74.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0001",
+              "death-bottom_2-0011"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              140.0,
+              140.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_2-0013"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_2-0013",
+            "review_video_interval": [
+              139.50742880397527,
+              140.2651419654492
+            ],
+            "residual_interval": [
+              -0.2651,
+              0.9926
+            ],
+            "residual_midpoint": 0.3637,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 140.0,
+              "seconds_remaining": 180
+            }
+          },
+          {
+            "gameplay_bracket": [
+              204.5,
+              205.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0007",
+              "death-bottom_2-0015"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              225.5,
+              226.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0008",
+              "death-bottom_2-0016",
+              "death-bottom_3-0023"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              319.0,
+              319.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "ambiguous": 3,
+            "used": 1,
+            "unassociated": 1
+          },
+          "used": 1,
+          "contains_zero_share": 1.0,
+          "median_residual_midpoint": 0.3637,
+          "median_abs_residual_midpoint": 0.3637,
+          "median_half_width": 0.6289,
+          "direction": "insufficient"
+        }
+      },
+      "roster_x": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              6.0,
+              6.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              34.5,
+              35.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0047"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0047",
+            "review_video_interval": [
+              34.150754710126876,
+              34.908467871600806
+            ],
+            "residual_interval": [
+              -0.4085,
+              0.8492
+            ],
+            "residual_midpoint": 0.2204,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 34.5,
+              "seconds_remaining": 285
+            }
+          },
+          {
+            "gameplay_bracket": [
+              44.0,
+              44.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0071"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0071",
+            "review_video_interval": [
+              43.54689072988185,
+              44.30460389135578
+            ],
+            "residual_interval": [
+              -0.3046,
+              0.9531
+            ],
+            "residual_midpoint": 0.3243,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 44.0,
+              "seconds_remaining": 276
+            }
+          },
+          {
+            "gameplay_bracket": [
+              49.5,
+              50.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0000"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_1-0000",
+            "review_video_interval": [
+              49.14458878420396,
+              49.90230194567789
+            ],
+            "residual_interval": [
+              -0.4023,
+              0.8554
+            ],
+            "residual_midpoint": 0.2266,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 49.5,
+              "seconds_remaining": 270
+            }
+          },
+          {
+            "gameplay_bracket": [
+              55.0,
+              55.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0059"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0059",
+            "review_video_interval": [
+              54.342451263217356,
+              55.100164424691286
+            ],
+            "residual_interval": [
+              -0.1002,
+              1.1575
+            ],
+            "residual_midpoint": 0.5287,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 54.5,
+              "seconds_remaining": 265
+            }
+          },
+          {
+            "gameplay_bracket": [
+              56.5,
+              57.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_4-0028"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_4-0028",
+            "review_video_interval": [
+              56.341629139760926,
+              57.099342301234856
+            ],
+            "residual_interval": [
+              -0.5993,
+              0.6584
+            ],
+            "residual_midpoint": 0.0295,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 56.5,
+              "seconds_remaining": 263
+            }
+          },
+          {
+            "gameplay_bracket": [
+              68.5,
+              69.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0001",
+              "death-bottom_2-0011"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              73.5,
+              74.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0001",
+              "death-bottom_2-0011"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              75.0,
+              76.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0049",
+              "death-top_3-0060",
+              "death-top_4-0073"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              80.0,
+              80.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0049",
+              "death-top_3-0060",
+              "death-top_4-0073"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              80.0,
+              80.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0049",
+              "death-top_3-0060",
+              "death-top_4-0073"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              103.5,
+              104.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0039"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0039",
+            "review_video_interval": [
+              102.92247366322715,
+              103.68018682470108
+            ],
+            "residual_interval": [
+              -0.1802,
+              1.0775
+            ],
+            "residual_midpoint": 0.4487,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 103.5,
+              "seconds_remaining": 216
+            }
+          },
+          {
+            "gameplay_bracket": [
+              119.5,
+              120.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0003"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_1-0003",
+            "review_video_interval": [
+              118.91589667557605,
+              119.67360983704998
+            ],
+            "residual_interval": [
+              -0.1736,
+              1.0841
+            ],
+            "residual_midpoint": 0.4552,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 119.5,
+              "seconds_remaining": 200
+            }
+          },
+          {
+            "gameplay_bracket": [
+              126.0,
+              126.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              133.0,
+              133.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_4-0030"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_4-0030",
+            "review_video_interval": [
+              133.11005959903574,
+              133.86777276050967
+            ],
+            "residual_interval": [
+              -0.8678,
+              0.3899
+            ],
+            "residual_midpoint": -0.2389,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 133.5,
+              "seconds_remaining": 186
+            }
+          },
+          {
+            "gameplay_bracket": [
+              140.0,
+              140.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_2-0013"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_2-0013",
+            "review_video_interval": [
+              139.50742880397527,
+              140.2651419654492
+            ],
+            "residual_interval": [
+              -0.2651,
+              0.9926
+            ],
+            "residual_midpoint": 0.3637,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 140.0,
+              "seconds_remaining": 180
+            }
+          },
+          {
+            "gameplay_bracket": [
+              150.0,
+              150.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0041",
+              "death-top_2-0051"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              150.5,
+              151.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0041",
+              "death-top_2-0051"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              153.0,
+              153.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0005"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_1-0005",
+            "review_video_interval": [
+              152.5020850015088,
+              153.25979816298272
+            ],
+            "residual_interval": [
+              -0.2598,
+              0.9979
+            ],
+            "residual_midpoint": 0.3691,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 153.0,
+              "seconds_remaining": 167
+            }
+          },
+          {
+            "gameplay_bracket": [
+              160.0,
+              160.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0074"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0074",
+            "review_video_interval": [
+              160.0989609323745,
+              160.85667409384843
+            ],
+            "residual_interval": [
+              -0.8567,
+              0.401
+            ],
+            "residual_midpoint": -0.2278,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 160.5,
+              "seconds_remaining": 159
+            }
+          },
+          {
+            "gameplay_bracket": [
+              171.5,
+              172.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0063"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0063",
+            "review_video_interval": [
+              169.29517916447514,
+              170.05289232594907
+            ],
+            "residual_interval": [
+              1.4471,
+              2.7048
+            ],
+            "residual_midpoint": 2.076,
+            "residual_half_width": 0.6289,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 169.5,
+              "seconds_remaining": 150
+            }
+          },
+          {
+            "gameplay_bracket": [
+              182.0,
+              182.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0022",
+              "death-bottom_4-0031"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              182.5,
+              183.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0052",
+              "death-top_4-0075"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              184.0,
+              184.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0052",
+              "death-top_3-0064",
+              "death-top_4-0075"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              186.5,
+              187.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0022",
+              "death-bottom_4-0031"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              189.0,
+              189.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0052",
+              "death-top_3-0064"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              200.5,
+              201.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0007",
+              "death-bottom_2-0015"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              204.5,
+              205.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0007",
+              "death-bottom_2-0015"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              205.5,
+              207.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0042",
+              "death-top_2-0053",
+              "death-top_3-0065"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              210.0,
+              211.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0042",
+              "death-top_2-0053",
+              "death-top_3-0065"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              211.5,
+              213.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0042",
+              "death-top_2-0053",
+              "death-top_3-0065"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              220.0,
+              220.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0008",
+              "death-bottom_2-0016",
+              "death-bottom_3-0023",
+              "death-bottom_4-0033"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              221.0,
+              221.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0008",
+              "death-bottom_2-0016",
+              "death-bottom_3-0023",
+              "death-bottom_4-0033"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              222.5,
+              223.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0008",
+              "death-bottom_2-0016",
+              "death-bottom_3-0023",
+              "death-bottom_4-0033"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              224.5,
+              225.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0077"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0077",
+            "review_video_interval": [
+              224.2725707694245,
+              225.03028393089843
+            ],
+            "residual_interval": [
+              -0.5303,
+              0.7274
+            ],
+            "residual_midpoint": 0.0986,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 224.5,
+              "seconds_remaining": 95
+            }
+          },
+          {
+            "gameplay_bracket": [
+              225.5,
+              226.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0008",
+              "death-bottom_2-0016",
+              "death-bottom_3-0023"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              239.0,
+              239.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0009",
+              "death-bottom_3-0024"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              239.0,
+              239.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0009",
+              "death-bottom_3-0024"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              248.5,
+              249.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0044",
+              "death-top_2-0055",
+              "death-top_3-0067"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              249.5,
+              250.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0044",
+              "death-top_2-0055",
+              "death-top_3-0067"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              250.0,
+              250.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_4-0034"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_4-0034",
+            "review_video_interval": [
+              249.46221201387408,
+              250.219925175348
+            ],
+            "residual_interval": [
+              -0.2199,
+              1.0378
+            ],
+            "residual_midpoint": 0.4089,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 250.0,
+              "seconds_remaining": 70
+            }
+          },
+          {
+            "gameplay_bracket": [
+              253.0,
+              253.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0044",
+              "death-top_2-0055",
+              "death-top_3-0067",
+              "death-top_4-0078"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              256.5,
+              257.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0055",
+              "death-top_4-0078"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              283.5,
+              284.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0068"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0068",
+            "review_video_interval": [
+              282.8484825521524,
+              283.60619571362633
+            ],
+            "residual_interval": [
+              -0.1062,
+              1.1515
+            ],
+            "residual_midpoint": 0.5227,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 283.0,
+              "seconds_remaining": 37
+            }
+          },
+          {
+            "gameplay_bracket": [
+              291.5,
+              292.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              303.5,
+              304.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0046",
+              "death-top_2-0057"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              305.5,
+              306.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0046",
+              "death-top_2-0057",
+              "death-top_4-0080"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              309.5,
+              310.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0046",
+              "death-top_4-0080"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              317.5,
+              318.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0070"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0070",
+            "review_video_interval": [
+              317.0344242410482,
+              317.79213740252214
+            ],
+            "residual_interval": [
+              -0.2921,
+              0.9656
+            ],
+            "residual_midpoint": 0.3367,
+            "residual_half_width": 0.6289,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 317.5,
+              "seconds_remaining": 2
+            }
+          },
+          {
+            "gameplay_bracket": [
+              319.0,
+              319.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              333.0,
+              333.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "unassociated": 5,
+            "used": 16,
+            "ambiguous": 30
+          },
+          "used": 16,
+          "contains_zero_share": 0.9375,
+          "median_residual_midpoint": 0.3502,
+          "median_abs_residual_midpoint": 0.3502,
+          "median_half_width": 0.6289,
+          "direction": "within_uncertainty"
+        },
+        "onsets_excluded_wide_bracket": 2
+      }
+    },
+    {
+      "label": "23-56-41",
+      "pair": {
+        "pair_status": "consistent",
+        "reasons": [],
+        "review_battle_mode": "rainmaker",
+        "gameplay_battle_mode": "rainmaker",
+        "review_overtime": true,
+        "gameplay_overtime": null,
+        "gameplay_clock_zero_end": false,
+        "review_regulation_label": 300,
+        "gameplay_highest_hud_read": 300,
+        "coverage_fraction": 0.9967
+      },
+      "calibration": {
+        "fit_status": "calibrated",
+        "reason": null,
+        "c_interval": [
+          319.0,
+          319.5
+        ],
+        "c_width": 0.5,
+        "edge_count": 286,
+        "consistent_edge_count": 286,
+        "inconsistent_edge_share": 0.0,
+        "playback_status": "normal",
+        "free_slope_game_seconds_per_video_second": 1.0,
+        "e_axis": 0.21069096282315058,
+        "delta": 0.0
+      },
+      "glyph_status": {
+        "aligned": 25
+      },
+      "glyph_rows": {
+        "top": 25
+      },
+      "glyph_unknown_reasons": {},
+      "local_death": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              45.5,
+              46.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              119.0,
+              119.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              136.0,
+              136.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              171.5,
+              172.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              322.5,
+              323.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "unassociated": 5
+          },
+          "used": 0,
+          "direction": "insufficient"
+        }
+      },
+      "roster_x": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              28.0,
+              28.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0022"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0022",
+            "review_video_interval": [
+              27.567149906896077,
+              28.488531832542378
+            ],
+            "residual_interval": [
+              -0.4885,
+              0.9329
+            ],
+            "residual_midpoint": 0.2222,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 28.0,
+              "seconds_remaining": 292
+            }
+          },
+          {
+            "gameplay_bracket": [
+              34.5,
+              35.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              35.0,
+              35.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0035"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0035",
+            "review_video_interval": [
+              34.40614167625205,
+              35.32752360189835
+            ],
+            "residual_interval": [
+              -0.3275,
+              1.0939
+            ],
+            "residual_midpoint": 0.3832,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 35.0,
+              "seconds_remaining": 285
+            }
+          },
+          {
+            "gameplay_bracket": [
+              46.0,
+              46.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              47.5,
+              48.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              48.5,
+              50.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              59.0,
+              59.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              65.0,
+              65.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              65.5,
+              66.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              73.0,
+              73.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0023"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0023",
+            "review_video_interval": [
+              72.22174322445568,
+              73.14312515010198
+            ],
+            "residual_interval": [
+              -0.1431,
+              1.2783
+            ],
+            "residual_midpoint": 0.5676,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 72.5,
+              "seconds_remaining": 247
+            }
+          },
+          {
+            "gameplay_bracket": [
+              82.0,
+              82.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0015"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0015",
+            "review_video_interval": [
+              81.4744967947608,
+              82.3958787204071
+            ],
+            "residual_interval": [
+              -0.3959,
+              1.0255
+            ],
+            "residual_midpoint": 0.3148,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 82.0,
+              "seconds_remaining": 238
+            }
+          },
+          {
+            "gameplay_bracket": [
+              85.0,
+              85.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              87.5,
+              88.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              99.5,
+              100.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              103.5,
+              104.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0016",
+              "death-top_2-0025"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              106.0,
+              106.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              106.5,
+              107.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0016",
+              "death-top_2-0025"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              111.5,
+              112.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              119.0,
+              119.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              121.0,
+              122.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              125.5,
+              126.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              131.5,
+              132.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              135.5,
+              136.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              136.0,
+              136.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              136.0,
+              136.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0026",
+            "review_video_interval": [
+              135.58299049937128,
+              136.50437242501758
+            ],
+            "residual_interval": [
+              -0.5044,
+              0.917
+            ],
+            "residual_midpoint": 0.2063,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 136.0,
+              "seconds_remaining": 184
+            }
+          },
+          {
+            "gameplay_bracket": [
+              144.0,
+              144.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              150.0,
+              150.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0017",
+              "death-top_2-0027"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              154.5,
+              155.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0017",
+              "death-top_2-0027"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              166.0,
+              166.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              166.5,
+              167.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0018",
+              "death-top_3-0038"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              170.5,
+              171.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              171.5,
+              172.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              171.5,
+              172.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              171.5,
+              172.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0018",
+              "death-top_3-0038"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              189.0,
+              189.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              194.5,
+              195.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0045"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0045",
+            "review_video_interval": [
+              194.1167141723886,
+              195.0380960980349
+            ],
+            "residual_interval": [
+              -0.5381,
+              0.8833
+            ],
+            "residual_midpoint": 0.1726,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 194.5,
+              "seconds_remaining": 125
+            }
+          },
+          {
+            "gameplay_bracket": [
+              207.5,
+              208.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0029"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0029",
+            "review_video_interval": [
+              206.7889636273717,
+              207.710345553018
+            ],
+            "residual_interval": [
+              -0.2103,
+              1.211
+            ],
+            "residual_midpoint": 0.5003,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 207.0,
+              "seconds_remaining": 113
+            }
+          },
+          {
+            "gameplay_bracket": [
+              211.0,
+              211.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              218.0,
+              218.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0039",
+              "death-top_4-0046"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              222.0,
+              222.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0039",
+              "death-top_4-0046"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              240.0,
+              240.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0040"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0040",
+            "review_video_interval": [
+              239.37474794018547,
+              240.29612986583177
+            ],
+            "residual_interval": [
+              -0.2961,
+              1.1253
+            ],
+            "residual_midpoint": 0.4146,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 240.0,
+              "seconds_remaining": 80
+            }
+          },
+          {
+            "gameplay_bracket": [
+              242.0,
+              242.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              249.5,
+              250.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0030",
+              "death-top_4-0047"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              253.0,
+              253.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0030",
+              "death-top_4-0047"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              257.5,
+              258.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              266.0,
+              266.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0031",
+              "death-top_3-0041",
+              "death-top_4-0048"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              267.5,
+              268.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0031",
+              "death-top_3-0041",
+              "death-top_4-0048"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              268.0,
+              268.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0031",
+              "death-top_3-0041",
+              "death-top_4-0048"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              275.5,
+              276.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              278.0,
+              278.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              280.5,
+              281.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              295.5,
+              296.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0032"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0032",
+            "review_video_interval": [
+              294.89126936201626,
+              295.81265128766256
+            ],
+            "residual_interval": [
+              -0.3127,
+              1.1087
+            ],
+            "residual_midpoint": 0.398,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 295.5,
+              "seconds_remaining": 24
+            }
+          },
+          {
+            "gameplay_bracket": [
+              302.0,
+              302.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0043"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0043",
+            "review_video_interval": [
+              301.5291143146265,
+              302.4504962402728
+            ],
+            "residual_interval": [
+              -0.4505,
+              0.9709
+            ],
+            "residual_midpoint": 0.2602,
+            "residual_half_width": 0.7107,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 302.0,
+              "seconds_remaining": 18
+            }
+          },
+          {
+            "gameplay_bracket": [
+              304.0,
+              304.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0043"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0043",
+            "review_video_interval": [
+              301.5291143146265,
+              302.4504962402728
+            ],
+            "residual_interval": [
+              1.5495,
+              2.9709
+            ],
+            "residual_midpoint": 2.2602,
+            "residual_half_width": 0.7107,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 302.0,
+              "seconds_remaining": 18
+            }
+          },
+          {
+            "gameplay_bracket": [
+              307.0,
+              307.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              310.5,
+              311.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              311.0,
+              311.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0021",
+              "death-top_3-0044"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              313.5,
+              314.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0021",
+              "death-top_3-0044"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              319.0,
+              319.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              322.5,
+              323.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              323.0,
+              323.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              332.0,
+              332.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "used": 11,
+            "unassociated": 36,
+            "ambiguous": 15
+          },
+          "used": 11,
+          "contains_zero_share": 0.9091,
+          "median_residual_midpoint": 0.3832,
+          "median_abs_residual_midpoint": 0.3832,
+          "median_half_width": 0.7107,
+          "direction": "within_uncertainty"
+        },
+        "onsets_excluded_wide_bracket": 0
+      }
+    },
+    {
+      "label": "18-18-00",
+      "pair": {
+        "pair_status": "consistent",
+        "reasons": [],
+        "review_battle_mode": "tower_control",
+        "gameplay_battle_mode": "tower_control",
+        "review_overtime": false,
+        "gameplay_overtime": false,
+        "gameplay_clock_zero_end": true,
+        "review_regulation_label": 300,
+        "gameplay_highest_hud_read": 300,
+        "coverage_fraction": 0.9967
+      },
+      "calibration": {
+        "fit_status": "calibrated",
+        "reason": null,
+        "c_interval": [
+          318.0,
+          318.5
+        ],
+        "c_width": 0.5,
+        "edge_count": 284,
+        "consistent_edge_count": 284,
+        "inconsistent_edge_share": 0.0,
+        "playback_status": "normal",
+        "free_slope_game_seconds_per_video_second": 1.0,
+        "e_axis": 0.21647836251639774,
+        "delta": 0.0
+      },
+      "glyph_status": {
+        "aligned": 13
+      },
+      "glyph_rows": {
+        "top": 13
+      },
+      "glyph_unknown_reasons": {},
+      "local_death": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              65.0,
+              65.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0011"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0011",
+            "review_video_interval": [
+              64.4721118822134,
+              65.40506860724619
+            ],
+            "residual_interval": [
+              -0.4051,
+              1.0279
+            ],
+            "residual_midpoint": 0.3114,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 65.0,
+              "seconds_remaining": 254
+            }
+          },
+          {
+            "gameplay_bracket": [
+              113.5,
+              114.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0014"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0014",
+            "review_video_interval": [
+              113.12172041165363,
+              114.05467713668642
+            ],
+            "residual_interval": [
+              -0.5547,
+              0.8783
+            ],
+            "residual_midpoint": 0.1618,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 113.5,
+              "seconds_remaining": 205
+            }
+          },
+          {
+            "gameplay_bracket": [
+              197.0,
+              197.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0017",
+              "death-top_4-0042"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "used": 2,
+            "ambiguous": 1
+          },
+          "used": 2,
+          "contains_zero_share": 1.0,
+          "median_residual_midpoint": 0.2366,
+          "median_abs_residual_midpoint": 0.2366,
+          "median_half_width": 0.7165,
+          "direction": "insufficient"
+        }
+      },
+      "roster_x": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              29.0,
+              29.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0034"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0034",
+            "review_video_interval": [
+              28.31617713854382,
+              29.249133863576617
+            ],
+            "residual_interval": [
+              -0.2491,
+              1.1838
+            ],
+            "residual_midpoint": 0.4673,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 29.0,
+              "seconds_remaining": 290
+            }
+          },
+          {
+            "gameplay_bracket": [
+              29.0,
+              29.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              40.0,
+              40.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              41.0,
+              41.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              47.0,
+              47.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              55.0,
+              55.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              60.0,
+              60.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              64.0,
+              64.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              65.5,
+              66.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0011"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0011",
+            "review_video_interval": [
+              64.4721118822134,
+              65.40506860724619
+            ],
+            "residual_interval": [
+              0.0949,
+              1.5279
+            ],
+            "residual_midpoint": 0.8114,
+            "residual_half_width": 0.7165,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 65.0,
+              "seconds_remaining": 254
+            }
+          },
+          {
+            "gameplay_bracket": [
+              75.0,
+              75.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              85.0,
+              85.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              85.5,
+              86.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0036"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0036",
+            "review_video_interval": [
+              84.72700726217488,
+              85.65996398720768
+            ],
+            "residual_interval": [
+              -0.16,
+              1.273
+            ],
+            "residual_midpoint": 0.5565,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 85.0,
+              "seconds_remaining": 234
+            }
+          },
+          {
+            "gameplay_bracket": [
+              99.0,
+              99.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              111.5,
+              112.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              114.0,
+              114.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0014"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0014",
+            "review_video_interval": [
+              113.12172041165363,
+              114.05467713668642
+            ],
+            "residual_interval": [
+              -0.0547,
+              1.3783
+            ],
+            "residual_midpoint": 0.6618,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 113.5,
+              "seconds_remaining": 205
+            }
+          },
+          {
+            "gameplay_bracket": [
+              114.0,
+              114.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0014"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0014",
+            "review_video_interval": [
+              113.12172041165363,
+              114.05467713668642
+            ],
+            "residual_interval": [
+              -0.0547,
+              1.3783
+            ],
+            "residual_midpoint": 0.6618,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 113.5,
+              "seconds_remaining": 205
+            }
+          },
+          {
+            "gameplay_bracket": [
+              117.5,
+              118.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              131.0,
+              131.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0039"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0039",
+            "review_video_interval": [
+              130.1585483013409,
+              131.09150502637368
+            ],
+            "residual_interval": [
+              -0.0915,
+              1.3415
+            ],
+            "residual_midpoint": 0.625,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 130.5,
+              "seconds_remaining": 188
+            }
+          },
+          {
+            "gameplay_bracket": [
+              138.5,
+              139.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              156.0,
+              156.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              160.5,
+              161.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              167.5,
+              168.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              180.0,
+              180.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              180.5,
+              181.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0041"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0041",
+            "review_video_interval": [
+              179.56534918143387,
+              180.49830590646667
+            ],
+            "residual_interval": [
+              0.0017,
+              1.4347
+            ],
+            "residual_midpoint": 0.7182,
+            "residual_half_width": 0.7165,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 180.0,
+              "seconds_remaining": 139
+            }
+          },
+          {
+            "gameplay_bracket": [
+              180.5,
+              181.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              182.5,
+              183.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              192.0,
+              192.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0017",
+              "death-top_4-0042"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              193.0,
+              193.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              197.0,
+              197.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0017",
+              "death-top_4-0042"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              213.5,
+              214.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0043"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0043",
+            "review_video_interval": [
+              217.6142648017354,
+              218.5472215267682
+            ],
+            "residual_interval": [
+              -5.0472,
+              -3.6143
+            ],
+            "residual_midpoint": -4.3307,
+            "residual_half_width": 0.7165,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 218.0,
+              "seconds_remaining": 101
+            }
+          },
+          {
+            "gameplay_bracket": [
+              216.0,
+              216.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              217.0,
+              217.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              218.0,
+              218.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              218.5,
+              219.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026",
+              "death-top_4-0043"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              224.5,
+              225.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0026",
+            "review_video_interval": [
+              223.86110169462074,
+              224.79405841965354
+            ],
+            "residual_interval": [
+              -0.2941,
+              1.1389
+            ],
+            "residual_midpoint": 0.4224,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 224.5,
+              "seconds_remaining": 94
+            }
+          },
+          {
+            "gameplay_bracket": [
+              249.0,
+              249.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              251.0,
+              251.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0045"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0045",
+            "review_video_interval": [
+              249.9842377921412,
+              250.91719451717398
+            ],
+            "residual_interval": [
+              0.0828,
+              1.5158
+            ],
+            "residual_midpoint": 0.7993,
+            "residual_half_width": 0.7165,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 250.5,
+              "seconds_remaining": 68
+            }
+          },
+          {
+            "gameplay_bracket": [
+              251.0,
+              251.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              253.0,
+              253.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              258.5,
+              259.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              270.5,
+              271.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              285.5,
+              286.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              288.0,
+              288.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              295.5,
+              296.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0033"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0033",
+            "review_video_interval": [
+              294.4692883929912,
+              295.402245118024
+            ],
+            "residual_interval": [
+              0.0978,
+              1.5307
+            ],
+            "residual_midpoint": 0.8142,
+            "residual_half_width": 0.7165,
+            "contains_zero": false,
+            "nearest_observed_game_clock": {
+              "video_time": 295.0,
+              "seconds_remaining": 24
+            }
+          },
+          {
+            "gameplay_bracket": [
+              296.5,
+              297.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              298.5,
+              299.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              302.5,
+              303.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              302.5,
+              303.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              305.5,
+              306.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0047"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0047",
+            "review_video_interval": [
+              304.8806832144667,
+              305.8136399394995
+            ],
+            "residual_interval": [
+              -0.3136,
+              1.1193
+            ],
+            "residual_midpoint": 0.4028,
+            "residual_half_width": 0.7165,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 305.5,
+              "seconds_remaining": 13
+            }
+          },
+          {
+            "gameplay_bracket": [
+              307.5,
+              308.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              317.0,
+              317.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "used": 12,
+            "unassociated": 36,
+            "ambiguous": 3
+          },
+          "used": 12,
+          "contains_zero_share": 0.5833,
+          "median_residual_midpoint": 0.6434,
+          "median_abs_residual_midpoint": 0.6618,
+          "median_half_width": 0.7165,
+          "direction": "within_uncertainty"
+        },
+        "onsets_excluded_wide_bracket": 1
+      }
+    },
+    {
+      "label": "18-25-16",
+      "pair": {
+        "pair_status": "consistent",
+        "reasons": [],
+        "review_battle_mode": "turf_war",
+        "gameplay_battle_mode": "turf_war",
+        "review_overtime": false,
+        "gameplay_overtime": false,
+        "gameplay_clock_zero_end": false,
+        "review_regulation_label": 180,
+        "gameplay_highest_hud_read": 180,
+        "coverage_fraction": 0.9944
+      },
+      "calibration": {
+        "fit_status": "calibrated",
+        "reason": null,
+        "c_interval": [
+          197.5,
+          198.0
+        ],
+        "c_width": 0.5,
+        "edge_count": 171,
+        "consistent_edge_count": 171,
+        "inconsistent_edge_share": 0.0,
+        "playback_status": "normal",
+        "free_slope_game_seconds_per_video_second": 1.0,
+        "e_axis": 0.13726983655848812,
+        "delta": 0.0
+      },
+      "glyph_status": {
+        "aligned": 19
+      },
+      "glyph_rows": {
+        "bottom": 10,
+        "top": 9
+      },
+      "glyph_unknown_reasons": {},
+      "local_death": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              84.5,
+              85.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0009",
+              "death-bottom_4-0014"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              175.0,
+              175.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0011",
+              "death-bottom_4-0016"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              194.5,
+              195.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0012",
+              "death-bottom_4-0017"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "ambiguous": 3
+          },
+          "used": 0,
+          "direction": "insufficient"
+        }
+      },
+      "roster_x": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              5.0,
+              5.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              5.5,
+              6.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              40.5,
+              41.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0027"
+            ],
+            "status": "used",
+            "marker_id": "death-top_3-0027",
+            "review_video_interval": [
+              40.257359019933745,
+              41.03189869305072
+            ],
+            "residual_interval": [
+              -0.5319,
+              0.7426
+            ],
+            "residual_midpoint": 0.1054,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 40.5,
+              "seconds_remaining": 158
+            }
+          },
+          {
+            "gameplay_bracket": [
+              56.5,
+              57.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0000"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_1-0000",
+            "review_video_interval": [
+              56.26325543799831,
+              57.03779511111529
+            ],
+            "residual_interval": [
+              -0.5378,
+              0.7367
+            ],
+            "residual_midpoint": 0.0995,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 56.5,
+              "seconds_remaining": 142
+            }
+          },
+          {
+            "gameplay_bracket": [
+              71.5,
+              72.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_2-0004"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_2-0004",
+            "review_video_interval": [
+              71.46885703515966,
+              72.24339670827663
+            ],
+            "residual_interval": [
+              -0.7434,
+              0.5311
+            ],
+            "residual_midpoint": -0.1061,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 72.0,
+              "seconds_remaining": 126
+            }
+          },
+          {
+            "gameplay_bracket": [
+              85.0,
+              85.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0009",
+              "death-bottom_4-0014"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              111.0,
+              111.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0001"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_1-0001",
+            "review_video_interval": [
+              110.45464759630264,
+              111.22918726941961
+            ],
+            "residual_interval": [
+              -0.2292,
+              1.0454
+            ],
+            "residual_midpoint": 0.4081,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 111.0,
+              "seconds_remaining": 87
+            }
+          },
+          {
+            "gameplay_bracket": [
+              112.5,
+              113.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0024"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0024",
+            "review_video_interval": [
+              112.1695650696667,
+              112.94410474278368
+            ],
+            "residual_interval": [
+              -0.4441,
+              0.8304
+            ],
+            "residual_midpoint": 0.1932,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 112.5,
+              "seconds_remaining": 86
+            }
+          },
+          {
+            "gameplay_bracket": [
+              147.0,
+              147.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0018"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0018",
+            "review_video_interval": [
+              146.69657020006315,
+              147.47110987318013
+            ],
+            "residual_interval": [
+              -0.4711,
+              0.8034
+            ],
+            "residual_midpoint": 0.1662,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 147.0,
+              "seconds_remaining": 51
+            }
+          },
+          {
+            "gameplay_bracket": [
+              156.5,
+              157.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0019",
+              "death-top_2-0025"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              160.5,
+              161.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0019",
+              "death-top_2-0025"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              161.0,
+              161.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_1-0002"
+            ],
+            "status": "used",
+            "marker_id": "death-bottom_1-0002",
+            "review_video_interval": [
+              160.75889348164847,
+              161.53343315476545
+            ],
+            "residual_interval": [
+              -0.5334,
+              0.7411
+            ],
+            "residual_midpoint": 0.1038,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 161.0,
+              "seconds_remaining": 37
+            }
+          },
+          {
+            "gameplay_bracket": [
+              170.5,
+              171.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026",
+              "death-top_4-0033"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              172.5,
+              173.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0011",
+              "death-bottom_4-0016"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              175.0,
+              175.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0011",
+              "death-bottom_4-0016"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              175.0,
+              175.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026",
+              "death-top_3-0030",
+              "death-top_4-0033"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              176.5,
+              178.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0011",
+              "death-bottom_4-0016"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              176.5,
+              178.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0011",
+              "death-bottom_4-0016"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              176.5,
+              178.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026",
+              "death-top_3-0030"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              178.0,
+              178.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0026",
+              "death-top_3-0030"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              191.5,
+              192.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0012",
+              "death-bottom_4-0017"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              191.5,
+              192.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0020"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0020",
+            "review_video_interval": [
+              191.28442450752874,
+              192.05896418064572
+            ],
+            "residual_interval": [
+              -0.559,
+              0.7156
+            ],
+            "residual_midpoint": 0.0783,
+            "residual_half_width": 0.6373,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 191.5,
+              "seconds_remaining": 7
+            }
+          },
+          {
+            "gameplay_bracket": [
+              195.0,
+              195.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [
+              "death-bottom_3-0012",
+              "death-bottom_4-0017"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "unassociated": 2,
+            "used": 8,
+            "ambiguous": 13
+          },
+          "used": 8,
+          "contains_zero_share": 1.0,
+          "median_residual_midpoint": 0.1046,
+          "median_abs_residual_midpoint": 0.1057,
+          "median_half_width": 0.6373,
+          "direction": "within_uncertainty"
+        },
+        "onsets_excluded_wide_bracket": 0
+      }
+    },
+    {
+      "label": "20-33-31",
+      "pair": {
+        "pair_status": "consistent",
+        "reasons": [],
+        "review_battle_mode": "rainmaker",
+        "gameplay_battle_mode": "rainmaker",
+        "review_overtime": false,
+        "gameplay_overtime": false,
+        "gameplay_clock_zero_end": false,
+        "review_regulation_label": 300,
+        "gameplay_highest_hud_read": 300,
+        "coverage_fraction": 0.9949
+      },
+      "calibration": {
+        "fit_status": "calibrated",
+        "reason": null,
+        "c_interval": [
+          312.0,
+          312.5
+        ],
+        "c_width": 0.5,
+        "edge_count": 171,
+        "consistent_edge_count": 171,
+        "inconsistent_edge_share": 0.0,
+        "playback_status": "normal",
+        "free_slope_game_seconds_per_video_second": 1.0,
+        "e_axis": 0.08349953266787224,
+        "delta": 0.0
+      },
+      "glyph_status": {
+        "aligned": 14
+      },
+      "glyph_rows": {
+        "top": 14
+      },
+      "glyph_unknown_reasons": {},
+      "local_death": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              37.0,
+              37.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              68.0,
+              68.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              122.5,
+              123.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              150.5,
+              151.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              180.0,
+              180.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              199.0,
+              199.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "unassociated": 6
+          },
+          "used": 0,
+          "direction": "insufficient"
+        }
+      },
+      "roster_x": {
+        "items": [
+          {
+            "gameplay_bracket": [
+              28.0,
+              28.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0018",
+              "death-top_4-0025"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              29.0,
+              29.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0018",
+              "death-top_4-0025"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              33.0,
+              33.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              37.0,
+              37.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              40.5,
+              41.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              47.5,
+              48.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              51.0,
+              51.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              56.0,
+              56.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              65.5,
+              66.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0019",
+              "death-top_4-0026"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              65.5,
+              66.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0019",
+              "death-top_4-0026"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              68.0,
+              68.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              78.0,
+              78.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              81.5,
+              82.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              91.5,
+              92.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0006"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0006",
+            "review_video_interval": [
+              91.18684870161871,
+              91.85384776695446
+            ],
+            "residual_interval": [
+              -0.3538,
+              0.8132
+            ],
+            "residual_midpoint": 0.2297,
+            "residual_half_width": 0.5835,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 91.5,
+              "seconds_remaining": 221
+            }
+          },
+          {
+            "gameplay_bracket": [
+              101.0,
+              101.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0021",
+              "death-top_4-0027"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              104.0,
+              104.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0021",
+              "death-top_4-0027"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              104.5,
+              105.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_3-0021",
+              "death-top_4-0027"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              116.5,
+              117.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0013"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0013",
+            "review_video_interval": [
+              116.17778992943647,
+              116.84478899477222
+            ],
+            "residual_interval": [
+              -0.3448,
+              0.8222
+            ],
+            "residual_midpoint": 0.2387,
+            "residual_half_width": 0.5835,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 116.5,
+              "seconds_remaining": 196
+            }
+          },
+          {
+            "gameplay_bracket": [
+              120.5,
+              121.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              123.0,
+              123.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              127.5,
+              128.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              137.5,
+              138.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              141.5,
+              142.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              144.0,
+              144.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_1-0008"
+            ],
+            "status": "used",
+            "marker_id": "death-top_1-0008",
+            "review_video_interval": [
+              143.79277998617508,
+              144.45977905151082
+            ],
+            "residual_interval": [
+              -0.4598,
+              0.7072
+            ],
+            "residual_midpoint": 0.1237,
+            "residual_half_width": 0.5835,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 144.0,
+              "seconds_remaining": 169
+            }
+          },
+          {
+            "gameplay_bracket": [
+              151.0,
+              151.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              153.0,
+              153.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0015",
+              "death-top_3-0023"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              158.0,
+              158.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0015",
+              "death-top_3-0023",
+              "death-top_4-0028"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              159.0,
+              159.5
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0015",
+              "death-top_4-0028"
+            ],
+            "status": "ambiguous",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              166.5,
+              167.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_2-0016"
+            ],
+            "status": "used",
+            "marker_id": "death-top_2-0016",
+            "review_video_interval": [
+              166.15967238507196,
+              166.8266714504077
+            ],
+            "residual_interval": [
+              -0.3267,
+              0.8403
+            ],
+            "residual_midpoint": 0.2568,
+            "residual_half_width": 0.5835,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 166.5,
+              "seconds_remaining": 146
+            }
+          },
+          {
+            "gameplay_bracket": [
+              171.0,
+              172.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              179.0,
+              179.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              179.0,
+              179.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              180.5,
+              181.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              187.0,
+              187.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              194.0,
+              194.5
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              198.5,
+              199.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              202.5,
+              203.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              202.5,
+              203.0
+            ],
+            "rows": [
+              "top"
+            ],
+            "candidate_marker_ids": [
+              "death-top_4-0029"
+            ],
+            "status": "used",
+            "marker_id": "death-top_4-0029",
+            "review_video_interval": [
+              202.0216730469904,
+              202.68867211232615
+            ],
+            "residual_interval": [
+              -0.1887,
+              0.9783
+            ],
+            "residual_midpoint": 0.3948,
+            "residual_half_width": 0.5835,
+            "contains_zero": true,
+            "nearest_observed_game_clock": {
+              "video_time": 202.5,
+              "seconds_remaining": 110
+            }
+          },
+          {
+            "gameplay_bracket": [
+              207.5,
+              208.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              207.5,
+              208.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          },
+          {
+            "gameplay_bracket": [
+              209.0,
+              210.0
+            ],
+            "rows": [
+              "bottom"
+            ],
+            "candidate_marker_ids": [],
+            "status": "unassociated",
+            "nearest_observed_game_clock": null
+          }
+        ],
+        "summary": {
+          "counts": {
+            "ambiguous": 10,
+            "unassociated": 26,
+            "used": 5
+          },
+          "used": 5,
+          "contains_zero_share": 1.0,
+          "median_residual_midpoint": 0.2387,
+          "median_abs_residual_midpoint": 0.2387,
+          "median_half_width": 0.5835,
+          "direction": "within_uncertainty"
+        },
+        "onsets_excluded_wide_bracket": 0
+      }
+    }
+  ],
+  "delta_test": {
+    "per_match": [
+      {
+        "label": "23-43-31",
+        "roster_x": "within_uncertainty",
+        "local_death": "insufficient"
+      },
+      {
+        "label": "23-56-41",
+        "roster_x": "within_uncertainty",
+        "local_death": "insufficient"
+      },
+      {
+        "label": "18-18-00",
+        "roster_x": "within_uncertainty",
+        "local_death": "insufficient"
+      },
+      {
+        "label": "18-25-16",
+        "roster_x": "within_uncertainty",
+        "local_death": "insufficient"
+      },
+      {
+        "label": "20-33-31",
+        "roster_x": "within_uncertainty",
+        "local_death": "insufficient"
+      }
+    ],
+    "matches_with_both_references_usable": 0,
+    "nonzero_delta_supported": false,
+    "decision": "delta_stays_0"
+  }
+}

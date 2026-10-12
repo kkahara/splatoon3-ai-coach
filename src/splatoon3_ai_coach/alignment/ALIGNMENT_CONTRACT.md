@@ -97,9 +97,12 @@ more tuning data is collected first.
 
 ### Structural checks
 
-- **Overtime.** Review: any `+M:SS` label. Gameplay: no `MATCH_END` with
-  `reason = clock_zero` and the lowest HUD read is `<= 1` (the OVERTIME banner
-  replaces the digits). A knockout (lowest read `> 1`) is not overtime.
+- **Overtime.** Review: any `+M:SS` label. Gameplay is three-valued:
+  not overtime after a `MATCH_END` with `reason = clock_zero`, in Turf War
+  (no overtime by rule), or after a knockout (lowest read `> 1`); **unknown**
+  when the last read is `0:01` with no `0:00` read, because the OVERTIME
+  banner and a missed `0:00` frame look the same on the HUD. Unknown is not
+  compared (like an unknown mode). The gameplay side never asserts overtime.
 - **Coverage.** Raw HUD edges must span at least `min_coverage_fraction` of
   the Review regulation clock range.
 - **Clock domain.** The highest Review regulation label and the highest HUD
@@ -144,6 +147,19 @@ interval-valued). Association never chooses by residual:
   counted and reported.
 - The window, the persistence rule and the ambiguity rule are not tuned after
   residuals are seen.
+
+## Validation gate references (decided at freeze)
+
+- **Roster-X onset is the pass reference.** Gate criteria and thresholds
+  (`alignment.gate_*`) apply to its pooled residuals only.
+- **Local DEATH is reported only.** On the tuning pairs it gave 3 usable
+  residuals across 5 matches: the frozen Review lane detector found no
+  bottom-row death glyphs in the 3 recordings whose bottom team hue was 125
+  to 136, and ally deaths often fall within one association window. That is
+  an upstream Review recall issue, not an alignment property, and is left to
+  a separate assignment.
+- `delta` stayed 0: no tuning match had usable evidence from both references,
+  so the replication rule could not be met.
 
 ## Forbidden
 
