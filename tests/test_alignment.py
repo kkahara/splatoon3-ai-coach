@@ -62,9 +62,9 @@ def _frame(t: float, value: int | None) -> VisionFrameResult:
     )
 
 
-def _display(t: float, c: float) -> int:
-    """HUD shows k while remaining is in (k - 1, k]; frozen 300 before GO."""
-    return min(300, max(0, math.ceil(c - t)))
+def _display(t: float, c: float, opening: int = 300) -> int:
+    """HUD shows k while remaining is in (k - 1, k]; frozen opening before GO."""
+    return min(opening, max(0, math.ceil(c - t)))
 
 
 def _manifest(
@@ -75,11 +75,12 @@ def _manifest(
     overrides: dict[float, int | None] | None = None,
     clock_zero: bool = True,
     lowest: int = 0,
+    opening: int = 300,
 ) -> VisionManifest:
     frames = []
     t = t_start
     while t <= t_end:
-        value = max(_display(t, c), lowest)
+        value = max(_display(t, c, opening), lowest)
         if overrides and round(t, 1) in overrides:
             value = overrides[round(t, 1)]
         frames.append(_frame(round(t, 1), value))
@@ -373,6 +374,88 @@ def test_turf_war_is_never_overtime() -> None:
     )
     assert alignment.pair.gameplay_overtime is False
     assert alignment.pair.pair_status == "consistent"
+
+
+# --- v2: clock domain and coverage from consistent edges only ----------------
+
+
+def _turf_war_22_31_53(overrides: dict[float, int | None]) -> VisionManifest:
+    # 3:00 Turf War; GO near video 39.8 s, last read 0:01, no 0:00 read.
+    return _manifest(
+        c=219.8,
+        t_start=16.5,
+        t_end=219.0,
+        overrides=overrides,
+        clock_zero=False,
+        lowest=1,
+        opening=180,
+    )
+
+
+def test_observed_6_21_and_8_21_misreads_keep_turf_war_consistent() -> None:
+    misreads = {149.5: 381, 150.0: 501, 160.0: 501}
+    alignment = align_pair(
+        _review(labels=(180, 120, 60, 0), mode="turf_war"),
+        _turf_war_22_31_53(misreads),
+        "turf_war",
+        _config(),
+    )
+    pair = alignment.pair
+    assert pair.pair_status == "consistent", pair.reasons
+    assert pair.gameplay_consistent_clock_top == 180
+    assert pair.gameplay_highest_hud_read == 501  # diagnostic only
+    assert alignment.calibration.fit_status == "calibrated"
+
+
+def test_scattered_impossible_high_reads_do_not_set_the_clock_domain() -> None:
+    misreads = {12.0: 581, 80.0: 459, 150.0: 501, 230.0: 777, 290.0: 999}
+    alignment = align_pair(_review(), _manifest(overrides=misreads), None, _config())
+    assert alignment.pair.pair_status == "consistent", alignment.pair.reasons
+    assert alignment.pair.gameplay_consistent_clock_top == 300
+    assert alignment.pair.gameplay_highest_hud_read == 999
+
+
+def test_glitch_edge_outside_the_c_cluster_is_not_trusted() -> None:
+    alignment = align_pair(
+        _review(), _manifest(overrides={150.0: 501, 150.5: 500}), None, _config()
+    )
+    cal = alignment.calibration
+    assert cal.raw_edge_remaining_span[1] == 501  # the glitch formed a raw edge
+    assert 500 not in cal.consistent_remaining
+    assert alignment.pair.gameplay_consistent_clock_top == 300
+    clean = align_pair(_review(), _manifest(), None, _config())
+    assert alignment.pair.coverage_fraction == clean.pair.coverage_fraction
+    assert alignment.pair.pair_status == "consistent"
+
+
+@pytest.mark.parametrize(
+    ("review_labels", "manifest", "top"),
+    [
+        ((180, 100, 0), lambda: _manifest(), 300),
+        ((300, 200, 100, 0), lambda: _turf_war_22_31_53({}), 180),
+    ],
+)
+def test_genuinely_different_clock_domains_are_still_rejected(
+    review_labels: tuple[int, ...], manifest, top: int
+) -> None:
+    alignment = align_pair(_review(labels=review_labels), manifest(), None, _config())
+    assert alignment.pair.gameplay_consistent_clock_top == top
+    assert "clock_domain_mismatch" in alignment.pair.reasons
+
+
+def test_recording_started_after_go_is_still_a_clock_domain_mismatch() -> None:
+    alignment = align_pair(_review(), _manifest(t_start=70.0), None, _config())
+    assert alignment.pair.gameplay_consistent_clock_top == 251
+    assert "clock_domain_mismatch" in alignment.pair.reasons
+
+
+def test_no_consistent_edges_means_no_trusted_clock_statistics() -> None:
+    alignment = align_pair(_review(), _manifest(t_end=30.0), None, _config())
+    assert alignment.calibration.consistent_remaining == []
+    assert alignment.pair.gameplay_consistent_clock_top is None
+    assert {"clock_domain_mismatch", "insufficient_clock_coverage"} <= set(
+        alignment.pair.reasons
+    )
 
 
 def test_unknown_mode_on_either_side_is_not_a_mismatch() -> None:

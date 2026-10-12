@@ -63,6 +63,7 @@ class PairCheck(BaseModel):
     gameplay_overtime: bool | None = None
     gameplay_clock_zero_end: bool
     review_regulation_label: int | None = None
+    gameplay_consistent_clock_top: int | None = None
     gameplay_highest_hud_read: int | None = None
     coverage_fraction: float | None = None
 
@@ -81,7 +82,7 @@ class AlignedReviewTime(BaseModel):
 class ReviewGameplayAlignment(BaseModel):
     """Alignment of one declared pair; see ``map_review_remaining``."""
 
-    schema_version: str = "1.0"
+    schema_version: str = "2.0"
     review_recording_id: str | None = None
     review_dataset_sha256: str | None = None
     gameplay_analysis_id: str | None = None
@@ -169,7 +170,9 @@ def check_pair(
     gameplay_ot = gameplay_overtime(
         clock_zero, calibration.lowest_hud_read, gameplay_battle_mode
     )
-    coverage = _coverage(calibration.raw_edge_remaining_span, reg_lo, reg_hi)
+    span = consistent_edge_span(calibration)
+    top = None if span is None else span[1]
+    coverage = _coverage(span, reg_lo, reg_hi)
     reasons: list[PairReason] = []
     if (
         ds.battle_mode_id
@@ -181,11 +184,10 @@ def check_pair(
         reasons.append("overtime_mismatch")
     if coverage is None or coverage < cfg.min_coverage_fraction:
         reasons.append("insufficient_clock_coverage")
-    high = calibration.highest_hud_read
     if (
         reg_hi is None
-        or high is None
-        or abs(reg_hi - high) > cfg.clock_domain_tolerance_seconds
+        or top is None
+        or abs(reg_hi - top) > cfg.clock_domain_tolerance_seconds
     ):
         reasons.append("clock_domain_mismatch")
     return PairCheck(
@@ -197,7 +199,8 @@ def check_pair(
         gameplay_overtime=gameplay_ot,
         gameplay_clock_zero_end=clock_zero,
         review_regulation_label=reg_hi,
-        gameplay_highest_hud_read=high,
+        gameplay_consistent_clock_top=top,
+        gameplay_highest_hud_read=calibration.highest_hud_read,
         coverage_fraction=None if coverage is None else round(coverage, 4),
     )
 
@@ -218,10 +221,24 @@ def gameplay_overtime(
     return False
 
 
+def consistent_edge_span(
+    calibration: GameplayClockCalibration,
+) -> tuple[int, int] | None:
+    """Remaining span ``(lowest, top)`` of the consistent HUD edges.
+
+    ``top`` is ``k`` of the earliest consistent ``k -> k-1`` edge. Raw reads
+    outside the ``c`` cluster (isolated OCR misreads) never contribute.
+    """
+    values = calibration.consistent_remaining
+    if not values:
+        return None
+    return min(values), max(values) + 1
+
+
 def _coverage(
     span: tuple[int, int] | None, reg_lo: int | None, reg_hi: int | None
 ) -> float | None:
-    """Share of the Review regulation range covered by raw HUD edges."""
+    """Share of the Review regulation range covered by consistent HUD edges."""
     if span is None or reg_lo is None or reg_hi is None or reg_hi <= reg_lo:
         return None
     overlap = min(span[1], reg_hi) - max(span[0], reg_lo)

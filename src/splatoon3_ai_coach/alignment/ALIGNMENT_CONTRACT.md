@@ -103,11 +103,18 @@ more tuning data is collected first.
   when the last read is `0:01` with no `0:00` read, because the OVERTIME
   banner and a missed `0:00` frame look the same on the HUD. Unknown is not
   compared (like an unknown mode). The gameplay side never asserts overtime.
-- **Coverage.** Raw HUD edges must span at least `min_coverage_fraction` of
-  the Review regulation clock range.
-- **Clock domain.** The highest Review regulation label and the highest HUD
-  read (the frozen opening value) must agree within
-  `clock_domain_tolerance_seconds`.
+- **Trusted clock evidence.** Coverage and clock domain use only the
+  **consistent HUD edges** (the `max_overlap` set that also fixes `c`). Raw
+  reads outside that set, such as an isolated `8:21` misread, never establish
+  either statistic. `highest_hud_read` and the raw edge span are diagnostics
+  only. No alignment residual decides what is trusted.
+- **Coverage.** The consistent-edge span must cover at least
+  `min_coverage_fraction` of the Review regulation clock range.
+- **Clock domain.** The highest Review regulation label and
+  `consistent_clock_top` (`k` of the earliest consistent `k -> k-1` edge) must
+  agree within `clock_domain_tolerance_seconds`. With no consistent edges both
+  statistics are missing: `insufficient_clock_coverage` and
+  `clock_domain_mismatch`.
 - **Mode.** Compared only when both sides know it. When the Review import took
   its mode from the same gameplay analysis this check is trivially true; it is
   still reported.
@@ -160,6 +167,19 @@ interval-valued). Association never chooses by residual:
   a separate assignment.
 - `delta` stayed 0: no tuning match had usable evidence from both references,
   so the replication rule could not be met.
+
+## Method versions
+
+- **v1** (`a1f447c`): the held-out gate FAILED under its pre-registered rules
+  (`analysis/review_validation/alignment/REPORT.md`). The clock-domain check
+  used the single highest raw HUD read, and three low-confidence mid-match
+  misreads (`6:21`, `8:21`) made one true Turf War pair `clock_domain_mismatch`.
+  The alignment measurements themselves passed. No production freeze or tag.
+- **v2** (output `schema_version` `"2.0"`): coverage and clock domain come from
+  the consistent HUD edges only. Nothing else changed: the `c` fit, the
+  mapping, `delta = 0`, the association rules and every config value are as
+  in v1. The v1 held-out pairs are v2 tuning evidence; v2 is gated on fresh
+  pairs (`analysis/review_validation/alignment/v2/`).
 
 ## Forbidden
 
