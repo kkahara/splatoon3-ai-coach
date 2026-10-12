@@ -1,0 +1,125 @@
+{
+  "verdict": "FAIL",
+  "criteria": {
+    "all_pairs_consistent_and_calibrated": false,
+    "roster_x_contains_zero_share": true,
+    "roster_x_median_abs_residual": true,
+    "unknown_values_carry_declared_reason": true
+  },
+  "roster_x_evidence_sufficient": true,
+  "thresholds": {
+    "delta": 0.0,
+    "min_edges": 20,
+    "max_inconsistent_edge_share": 0.1,
+    "max_edge_gap_seconds": 10.0,
+    "min_coverage_fraction": 0.5,
+    "clock_domain_tolerance_seconds": 2.0,
+    "association_window_seconds": 5.0,
+    "max_onset_bracket_seconds": 3.0,
+    "nearest_clock_max_gap_seconds": 1.0,
+    "min_usable_per_reference": 3,
+    "gate_min_roster_x_used": 20,
+    "gate_min_contains_zero_share": 0.75,
+    "gate_max_median_abs_residual_seconds": 1.0
+  },
+  "roster_x_pooled": {
+    "used": 56,
+    "counts": {
+      "unassociated": 69,
+      "used": 56,
+      "ambiguous": 85
+    },
+    "contains_zero_share": 0.8393,
+    "median_abs_residual_midpoint": 0.3097
+  },
+  "reported_only": {
+    "local_death_pooled": {
+      "used": 6,
+      "counts": {
+        "unassociated": 8,
+        "used": 6,
+        "ambiguous": 6
+      },
+      "contains_zero_share": 0.6667,
+      "median_abs_residual_midpoint": 0.3537
+    },
+    "glyph_rows": {
+      "22-20-42": {
+        "top": 27
+      },
+      "22-31-53": {
+        "top": 11
+      },
+      "22-37-47": {
+        "bottom": 23,
+        "top": 27
+      },
+      "22-57-30": {
+        "bottom": 35,
+        "top": 29
+      }
+    },
+    "negative_controls": [
+      {
+        "label": "22-20-42 x en-live-playerview-2026-10-11 22-31-53",
+        "pair_status": "inconsistent",
+        "reasons": [
+          "mode_mismatch",
+          "clock_domain_mismatch"
+        ],
+        "structurally_rejected": true,
+        "roster_x_pooled": {
+          "used": 0,
+          "counts": {
+            "unassociated": 29
+          }
+        }
+      },
+      {
+        "label": "22-31-53 x en-live-playerview-2026-10-11 22-37-47",
+        "pair_status": "inconsistent",
+        "reasons": [
+          "mode_mismatch",
+          "clock_domain_mismatch"
+        ],
+        "structurally_rejected": true,
+        "roster_x_pooled": {
+          "used": 0,
+          "counts": {
+            "unassociated": 59
+          }
+        }
+      },
+      {
+        "label": "22-37-47 x en-live-playerview-2026-10-11 22-57-30",
+        "pair_status": "consistent",
+        "reasons": [],
+        "structurally_rejected": false,
+        "roster_x_pooled": {
+          "used": 32,
+          "counts": {
+            "unassociated": 23,
+            "used": 32,
+            "ambiguous": 11
+          },
+          "contains_zero_share": 0.125,
+          "median_abs_residual_midpoint": 2.1947
+        }
+      },
+      {
+        "label": "22-57-30 x en-live-playerview-2026-10-11 22-20-42",
+        "pair_status": "inconsistent",
+        "reasons": [
+          "mode_mismatch"
+        ],
+        "structurally_rejected": true,
+        "roster_x_pooled": {
+          "used": 0,
+          "counts": {
+            "unassociated": 56
+          }
+        }
+      }
+    ]
+  }
+}
