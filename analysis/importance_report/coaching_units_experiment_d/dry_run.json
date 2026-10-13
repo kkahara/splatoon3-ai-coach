@@ -1,0 +1,283 @@
+{
+ "dry_run": true,
+ "llm_calls_made": 0,
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "requested_temperature": 0.0,
+ "requested_seed": 0,
+ "temperature_support": "unsupported",
+ "temperature_honored": false,
+ "temperature_note": "never sent: the Cursor SDK has no sampling field (AgentOptions has none; model params are context / reasoning / fast only), and the SDK takes one joined message, no separate system prompt",
+ "stale_inputs": [],
+ "arms": [
+  {
+   "arm": "individual",
+   "calls": 13,
+   "user_prompt_chars": 109890,
+   "total_input_chars": 309453
+  },
+  {
+   "arm": "episode",
+   "calls": 6,
+   "user_prompt_chars": 107240,
+   "total_input_chars": 199346
+  },
+  {
+   "arm": "episode_by_factor",
+   "calls": 11,
+   "user_prompt_chars": 109160,
+   "total_input_chars": 278021
+  }
+ ],
+ "calls": [
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1__individual__call_1",
+   "lead": "death_episode:176.500",
+   "members": [
+    "death_episode:176.500"
+   ],
+   "user_prompt_chars": 8340
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1__individual__call_2",
+   "lead": "death_episode:188.500",
+   "members": [
+    "death_episode:188.500"
+   ],
+   "user_prompt_chars": 8569
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1__episode__call_1",
+   "lead": "death_episode:176.500",
+   "members": [
+    "death_episode:176.500",
+    "death_episode:188.500"
+   ],
+   "user_prompt_chars": 16544
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1__episode_by_factor__call_1",
+   "lead": "death_episode:176.500",
+   "members": [
+    "death_episode:176.500",
+    "death_episode:188.500"
+   ],
+   "user_prompt_chars": 16544
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1__individual__call_1",
+   "lead": "death_episode:206.500",
+   "members": [
+    "death_episode:206.500"
+   ],
+   "user_prompt_chars": 7908
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1__individual__call_2",
+   "lead": "death_episode:223.500",
+   "members": [
+    "death_episode:223.500"
+   ],
+   "user_prompt_chars": 8271
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1__episode__call_1",
+   "lead": "death_episode:223.500",
+   "members": [
+    "death_episode:206.500",
+    "death_episode:223.500"
+   ],
+   "user_prompt_chars": 15814
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1__episode_by_factor__call_1",
+   "lead": "death_episode:206.500",
+   "members": [
+    "death_episode:206.500"
+   ],
+   "user_prompt_chars": 7908
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1__episode_by_factor__call_2",
+   "lead": "death_episode:223.500",
+   "members": [
+    "death_episode:223.500"
+   ],
+   "user_prompt_chars": 8271
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep1__individual__call_1",
+   "lead": "death_episode:144.000",
+   "members": [
+    "death_episode:144.000"
+   ],
+   "user_prompt_chars": 9105
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep1__individual__call_2",
+   "lead": "death_episode:158.500",
+   "members": [
+    "death_episode:158.500"
+   ],
+   "user_prompt_chars": 8905
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep1__episode__call_1",
+   "lead": "death_episode:158.500",
+   "members": [
+    "death_episode:144.000",
+    "death_episode:158.500"
+   ],
+   "user_prompt_chars": 17645
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep1__episode_by_factor__call_1",
+   "lead": "death_episode:144.000",
+   "members": [
+    "death_episode:144.000"
+   ],
+   "user_prompt_chars": 9105
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep1__episode_by_factor__call_2",
+   "lead": "death_episode:158.500",
+   "members": [
+    "death_episode:158.500"
+   ],
+   "user_prompt_chars": 8905
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep2__individual__call_1",
+   "lead": "death_episode:327.500",
+   "members": [
+    "death_episode:327.500"
+   ],
+   "user_prompt_chars": 8519
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep2__individual__call_2",
+   "lead": "death_episode:343.000",
+   "members": [
+    "death_episode:343.000"
+   ],
+   "user_prompt_chars": 9381
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep2__episode__call_1",
+   "lead": "death_episode:343.000",
+   "members": [
+    "death_episode:327.500",
+    "death_episode:343.000"
+   ],
+   "user_prompt_chars": 17535
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep2__episode_by_factor__call_1",
+   "lead": "death_episode:327.500",
+   "members": [
+    "death_episode:327.500"
+   ],
+   "user_prompt_chars": 8519
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21__ep2__episode_by_factor__call_2",
+   "lead": "death_episode:343.000",
+   "members": [
+    "death_episode:343.000"
+   ],
+   "user_prompt_chars": 9381
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1__individual__call_1",
+   "lead": "death_episode:272.500",
+   "members": [
+    "death_episode:272.500"
+   ],
+   "user_prompt_chars": 8047
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1__individual__call_2",
+   "lead": "death_episode:290.500",
+   "members": [
+    "death_episode:290.500"
+   ],
+   "user_prompt_chars": 8898
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1__episode__call_1",
+   "lead": "death_episode:290.500",
+   "members": [
+    "death_episode:272.500",
+    "death_episode:290.500"
+   ],
+   "user_prompt_chars": 16580
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1__episode_by_factor__call_1",
+   "lead": "death_episode:272.500",
+   "members": [
+    "death_episode:272.500"
+   ],
+   "user_prompt_chars": 8047
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1__episode_by_factor__call_2",
+   "lead": "death_episode:290.500",
+   "members": [
+    "death_episode:290.500"
+   ],
+   "user_prompt_chars": 8898
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1__individual__call_1",
+   "lead": "death_episode:285.000",
+   "members": [
+    "death_episode:285.000"
+   ],
+   "user_prompt_chars": 7866
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1__individual__call_2",
+   "lead": "death_episode:298.000",
+   "members": [
+    "death_episode:298.000"
+   ],
+   "user_prompt_chars": 8348
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1__individual__call_3",
+   "lead": "death_episode:313.500",
+   "members": [
+    "death_episode:313.500"
+   ],
+   "user_prompt_chars": 7733
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1__episode__call_1",
+   "lead": "death_episode:298.000",
+   "members": [
+    "death_episode:285.000",
+    "death_episode:298.000",
+    "death_episode:313.500"
+   ],
+   "user_prompt_chars": 23122
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1__episode_by_factor__call_1",
+   "lead": "death_episode:285.000",
+   "members": [
+    "death_episode:285.000"
+   ],
+   "user_prompt_chars": 7866
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1__episode_by_factor__call_2",
+   "lead": "death_episode:298.000",
+   "members": [
+    "death_episode:298.000",
+    "death_episode:313.500"
+   ],
+   "user_prompt_chars": 15716
+  }
+ ]
+}

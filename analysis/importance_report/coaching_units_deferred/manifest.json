@@ -1,0 +1,335 @@
+{
+ "episodes": [
+  {
+   "arms": {
+    "episode": [
+     {
+      "chars": 16544,
+      "file": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1/episode/call_1.user_prompt.txt",
+      "lead": "death_episode:176.500",
+      "members": [
+       "death_episode:176.500",
+       "death_episode:188.500"
+      ]
+     }
+    ],
+    "episode_by_factor": [
+     {
+      "chars": 16544,
+      "file": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1/episode_by_factor/call_1.user_prompt.txt",
+      "lead": "death_episode:176.500",
+      "members": [
+       "death_episode:176.500",
+       "death_episode:188.500"
+      ]
+     }
+    ],
+    "individual": [
+     {
+      "chars": 8340,
+      "file": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1/individual/call_1.user_prompt.txt",
+      "lead": "death_episode:176.500",
+      "members": [
+       "death_episode:176.500"
+      ]
+     },
+     {
+      "chars": 8569,
+      "file": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1/individual/call_2.user_prompt.txt",
+      "lead": "death_episode:188.500",
+      "members": [
+       "death_episode:188.500"
+      ]
+     }
+    ]
+   },
+   "episode": "public_analysis_014c50601b1541a6917ed6afb7714fbe__ep1",
+   "match": "_public/analysis/014c50601b1541a6917ed6afb7714fbe"
+  },
+  {
+   "arms": {
+    "episode": [
+     {
+      "chars": 15814,
+      "file": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1/episode/call_1.user_prompt.txt",
+      "lead": "death_episode:223.500",
+      "members": [
+       "death_episode:206.500",
+       "death_episode:223.500"
+      ]
+     }
+    ],
+    "episode_by_factor": [
+     {
+      "chars": 7908,
+      "file": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1/episode_by_factor/call_1.user_prompt.txt",
+      "lead": "death_episode:206.500",
+      "members": [
+       "death_episode:206.500"
+      ]
+     },
+     {
+      "chars": 8271,
+      "file": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1/episode_by_factor/call_2.user_prompt.txt",
+      "lead": "death_episode:223.500",
+      "members": [
+       "death_episode:223.500"
+      ]
+     }
+    ],
+    "individual": [
+     {
+      "chars": 7908,
+      "file": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1/individual/call_1.user_prompt.txt",
+      "lead": "death_episode:206.500",
+      "members": [
+       "death_episode:206.500"
+      ]
+     },
+     {
+      "chars": 8271,
+      "file": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1/individual/call_2.user_prompt.txt",
+      "lead": "death_episode:223.500",
+      "members": [
+       "death_episode:223.500"
+      ]
+     }
+    ]
+   },
+   "episode": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1",
+   "match": "_public/analysis/1828351988f0450cb9529e914840c8f2"
+  },
+  {
+   "arms": {
+    "episode": [
+     {
+      "chars": 17645,
+      "file": "en_2026_09_21_23_13_21__ep1/episode/call_1.user_prompt.txt",
+      "lead": "death_episode:158.500",
+      "members": [
+       "death_episode:144.000",
+       "death_episode:158.500"
+      ]
+     }
+    ],
+    "episode_by_factor": [
+     {
+      "chars": 9105,
+      "file": "en_2026_09_21_23_13_21__ep1/episode_by_factor/call_1.user_prompt.txt",
+      "lead": "death_episode:144.000",
+      "members": [
+       "death_episode:144.000"
+      ]
+     },
+     {
+      "chars": 8905,
+      "file": "en_2026_09_21_23_13_21__ep1/episode_by_factor/call_2.user_prompt.txt",
+      "lead": "death_episode:158.500",
+      "members": [
+       "death_episode:158.500"
+      ]
+     }
+    ],
+    "individual": [
+     {
+      "chars": 9105,
+      "file": "en_2026_09_21_23_13_21__ep1/individual/call_1.user_prompt.txt",
+      "lead": "death_episode:144.000",
+      "members": [
+       "death_episode:144.000"
+      ]
+     },
+     {
+      "chars": 8905,
+      "file": "en_2026_09_21_23_13_21__ep1/individual/call_2.user_prompt.txt",
+      "lead": "death_episode:158.500",
+      "members": [
+       "death_episode:158.500"
+      ]
+     }
+    ]
+   },
+   "episode": "en_2026_09_21_23_13_21__ep1",
+   "match": "en-2026-09-21 23-13-21"
+  },
+  {
+   "arms": {
+    "episode": [
+     {
+      "chars": 17535,
+      "file": "en_2026_09_21_23_13_21__ep2/episode/call_1.user_prompt.txt",
+      "lead": "death_episode:343.000",
+      "members": [
+       "death_episode:327.500",
+       "death_episode:343.000"
+      ]
+     }
+    ],
+    "episode_by_factor": [
+     {
+      "chars": 8519,
+      "file": "en_2026_09_21_23_13_21__ep2/episode_by_factor/call_1.user_prompt.txt",
+      "lead": "death_episode:327.500",
+      "members": [
+       "death_episode:327.500"
+      ]
+     },
+     {
+      "chars": 9381,
+      "file": "en_2026_09_21_23_13_21__ep2/episode_by_factor/call_2.user_prompt.txt",
+      "lead": "death_episode:343.000",
+      "members": [
+       "death_episode:343.000"
+      ]
+     }
+    ],
+    "individual": [
+     {
+      "chars": 8519,
+      "file": "en_2026_09_21_23_13_21__ep2/individual/call_1.user_prompt.txt",
+      "lead": "death_episode:327.500",
+      "members": [
+       "death_episode:327.500"
+      ]
+     },
+     {
+      "chars": 9381,
+      "file": "en_2026_09_21_23_13_21__ep2/individual/call_2.user_prompt.txt",
+      "lead": "death_episode:343.000",
+      "members": [
+       "death_episode:343.000"
+      ]
+     }
+    ]
+   },
+   "episode": "en_2026_09_21_23_13_21__ep2",
+   "match": "en-2026-09-21 23-13-21"
+  },
+  {
+   "arms": {
+    "episode": [
+     {
+      "chars": 16580,
+      "file": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1/episode/call_1.user_prompt.txt",
+      "lead": "death_episode:290.500",
+      "members": [
+       "death_episode:272.500",
+       "death_episode:290.500"
+      ]
+     }
+    ],
+    "episode_by_factor": [
+     {
+      "chars": 8047,
+      "file": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1/episode_by_factor/call_1.user_prompt.txt",
+      "lead": "death_episode:272.500",
+      "members": [
+       "death_episode:272.500"
+      ]
+     },
+     {
+      "chars": 8898,
+      "file": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1/episode_by_factor/call_2.user_prompt.txt",
+      "lead": "death_episode:290.500",
+      "members": [
+       "death_episode:290.500"
+      ]
+     }
+    ],
+    "individual": [
+     {
+      "chars": 8047,
+      "file": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1/individual/call_1.user_prompt.txt",
+      "lead": "death_episode:272.500",
+      "members": [
+       "death_episode:272.500"
+      ]
+     },
+     {
+      "chars": 8898,
+      "file": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1/individual/call_2.user_prompt.txt",
+      "lead": "death_episode:290.500",
+      "members": [
+       "death_episode:290.500"
+      ]
+     }
+    ]
+   },
+   "episode": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19__ep1",
+   "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16"
+  },
+  {
+   "arms": {
+    "episode": [
+     {
+      "chars": 23122,
+      "file": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1/episode/call_1.user_prompt.txt",
+      "lead": "death_episode:298.000",
+      "members": [
+       "death_episode:285.000",
+       "death_episode:298.000",
+       "death_episode:313.500"
+      ]
+     }
+    ],
+    "episode_by_factor": [
+     {
+      "chars": 7866,
+      "file": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1/episode_by_factor/call_1.user_prompt.txt",
+      "lead": "death_episode:285.000",
+      "members": [
+       "death_episode:285.000"
+      ]
+     },
+     {
+      "chars": 15716,
+      "file": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1/episode_by_factor/call_2.user_prompt.txt",
+      "lead": "death_episode:298.000",
+      "members": [
+       "death_episode:298.000",
+       "death_episode:313.500"
+      ]
+     }
+    ],
+    "individual": [
+     {
+      "chars": 7866,
+      "file": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1/individual/call_1.user_prompt.txt",
+      "lead": "death_episode:285.000",
+      "members": [
+       "death_episode:285.000"
+      ]
+     },
+     {
+      "chars": 8348,
+      "file": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1/individual/call_2.user_prompt.txt",
+      "lead": "death_episode:298.000",
+      "members": [
+       "death_episode:298.000"
+      ]
+     },
+     {
+      "chars": 7733,
+      "file": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1/individual/call_3.user_prompt.txt",
+      "lead": "death_episode:313.500",
+      "members": [
+       "death_episode:313.500"
+      ]
+     }
+    ]
+   },
+   "episode": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19___ep1",
+   "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39"
+  }
+ ],
+ "settings": {
+  "budget_calls_per_match": 3,
+  "llm_calls_made": 0,
+  "model": "deferred",
+  "storage": "coach_experiments/ with experiment: true",
+  "temperature": 0,
+  "unsupported_claim_metric": "validator rule hits",
+  "validation": "claim_validation.validate_assessment"
+ },
+ "system_prompt_chars": 15351
+}
