@@ -1,0 +1,223 @@
+# Review lane template variant candidates (not loaded by the detector)
+#
+# Collected 2026-10-12 for a later, separately pre-registered colour-robust
+# glyph investigation. The frozen detector loads only the exact filenames in
+# ../specials/mapping.yaml; nothing here changes detection.
+# colour_class comes from the operator's filename suffix; hue is the median
+# OpenCV H (0-180) of saturated pixels; same_as_frozen names a byte-identical
+# frozen template.
+candidates:
+  - file: big_bubbler_cool.png
+    special_id: big_bubbler
+    colour_class: cool
+    hue: 138
+    size: [26, 28]
+    same_as_frozen: null
+    sha256: 4a2310a4cefb2548af221e0b2f2e9e4ef4200bd8bc4a0bc9da4cba038361328d
+  - file: booyah_bomb_blue.png
+    special_id: booyah_bomb
+    colour_class: blue
+    hue: 122
+    size: [23, 29]
+    same_as_frozen: null
+    sha256: 686843c611324328263c16814dcc2f6d7838f4ac3715b3fc9a9c7a0798b22389
+  - file: booyah_bomb_cool.png
+    special_id: booyah_bomb
+    colour_class: cool
+    hue: 80
+    size: [25, 28]
+    same_as_frozen: booyah_bomb.png
+    sha256: 0494071ebde5df587b044c4c42c6506e45c3a268e0ebc57633bb29f4ebd61490
+  - file: booyah_bomb_warm.png
+    special_id: booyah_bomb
+    colour_class: warm
+    hue: 32
+    size: [26, 29]
+    same_as_frozen: null
+    sha256: 80c5d516e231846cd0ee0ea0e909b013cf7305cf6a8d9dfdf236be515dff252a
+  - file: crab_tank_pink.png
+    special_id: crab_tank
+    colour_class: pink
+    hue: 149
+    size: [30, 26]
+    same_as_frozen: null
+    sha256: 0e20900eac3948d0fe9c2d1466b4b6d16c4aeef31ac2969fd0901669313a2c79
+  - file: death_octopus_cool.png
+    special_id: death
+    death_variant: octopus
+    colour_class: cool
+    hue: 125
+    size: [22, 22]
+    same_as_frozen: null
+    sha256: 14481d59115cbab16475ae7d17b56337052ecdb99731fb004214680f0ca90363
+  - file: death_octopus_warm.png
+    special_id: death
+    death_variant: octopus
+    colour_class: warm
+    hue: 8
+    size: [22, 21]
+    same_as_frozen: death.png
+    sha256: 6c62b8b65958b7b3c3d51f5e633053365b9ffbca2b48a64e6a14291a764f6e08
+  - file: death_squid_cool.png
+    special_id: death
+    death_variant: squid
+    colour_class: cool
+    hue: 80
+    size: [21, 22]
+    same_as_frozen: null
+    sha256: bd3fa3535fe02bdd8cded6aeecc1c8bff0f246fc775c0398b61e979c8d3072d4
+  - file: death_squid_warm.png
+    special_id: death
+    death_variant: squid
+    colour_class: warm
+    hue: 9
+    size: [17, 17]
+    same_as_frozen: null
+    sha256: 59e9ebb9760a3b501febdf4effcdd5520f745c322e3e5b2d697a8dba775a6ee4
+  - file: ink_storm_cold.png
+    special_id: ink_storm
+    colour_class: cold
+    hue: 123
+    size: [25, 22]
+    same_as_frozen: null
+    sha256: 83feed12a27110a49d478dac47fcc91eeb23b8a35458ccc85cac214c996e2c3d
+  - file: ink_vac_cool.png
+    special_id: ink_vac
+    colour_class: cool
+    hue: 125
+    size: [26, 27]
+    same_as_frozen: ink_vac.png
+    sha256: 88071681250017def6076eb223671e3f8d4801b8b2b5b1285443bbff5eefa642
+  - file: ink_vac_warm.png
+    special_id: ink_vac
+    colour_class: warm
+    hue: 30
+    size: [29, 29]
+    same_as_frozen: null
+    sha256: 99389c63245aeb0a72007b5d0cf122a5e60e05639bfd8423104ab1a905cb73bd
+  - file: killer_wail_5.1_cool.png
+    special_id: killer_wail_5.1
+    colour_class: cool
+    hue: 80
+    size: [30, 30]
+    same_as_frozen: killer_wail_5.1.png
+    sha256: 6b9ccc6a192da690e53023ae436b4b4eff2bc5860a5dd0f42e1c46aec7f2cea0
+  - file: killer_wail_5.1_warm.png
+    special_id: killer_wail_5.1
+    colour_class: warm
+    hue: 35
+    size: [30, 31]
+    same_as_frozen: null
+    sha256: b9c1b7f2cb6df88202f86d94b025719a4c1f5004e113b153d7122b34a589db17
+  - file: kraken_royale_cool.png
+    special_id: kraken_royale
+    colour_class: cool
+    hue: 127
+    size: [27, 28]
+    same_as_frozen: kraken_royale.png
+    sha256: 0d2c033a93b7f42035ef1f9ad6d57bf3b54ad6dc0424751b6433b5e5aed7dcaa
+  - file: kraken_royale_warm.png
+    special_id: kraken_royale
+    colour_class: warm
+    hue: 164
+    size: [27, 30]
+    same_as_frozen: null
+    sha256: 14fbbb3d279171595a006907eafe8d8fa83a820375bc5fc27f8417788b500e94
+  - file: reefslider_cool.png
+    special_id: reefslider
+    colour_class: cool
+    hue: 80
+    size: [31, 21]
+    same_as_frozen: null
+    sha256: 94ba6d704f338d33d140831c4dc718929b492ebd5dc32ce898918a390af08810
+  - file: reefslider_warm.png
+    special_id: reefslider
+    colour_class: warm
+    hue: 34
+    size: [27, 21]
+    same_as_frozen: reefslider.png
+    sha256: ef6e5be0c2c9545d9e2657c14b7ffa0838db39f260a0336b96abb2271adc9d49
+  - file: splattercolor_screen_cool.png
+    special_id: splattercolor_screen
+    colour_class: cool
+    hue: 139
+    size: [27, 21]
+    same_as_frozen: null
+    sha256: 2ef06fc67159725d2b04757c53b1f972696528bf2e088885b33ab3a9b1ea1278
+  - file: splattercolor_screen_warm.png
+    special_id: splattercolor_screen
+    colour_class: warm
+    hue: 43
+    size: [27, 23]
+    same_as_frozen: splattercolor_screen.png
+    sha256: 04f1c189e614dc279c11b8c90efb08011275d6cc2d7ba0c8d16fdffda9b8c3ab
+  - file: super_chump_cool.png
+    special_id: super_chump
+    colour_class: cool
+    hue: 123
+    size: [29, 26]
+    same_as_frozen: null
+    sha256: 962b98b552457ac953b463a9771a5cba9c30b0a1c1767df180024ba3b97d4d61
+  - file: tacticooler_cool.png
+    special_id: tacticooler
+    colour_class: cool
+    hue: 80
+    size: [27, 31]
+    same_as_frozen: tacticooler.png
+    sha256: 6cd156b54b996c6bcda5791927e3f5b4a2d00623de9fe028b79f8183282e479d
+  - file: tacticooler_warm.png
+    special_id: tacticooler
+    colour_class: warm
+    hue: 34
+    size: [24, 26]
+    same_as_frozen: null
+    sha256: d37981e668c1dfa75031339b97f284511e1775bee53718a7e41c2b629a7f06ba
+  - file: triple_inkstrike_cool.png
+    special_id: triple_inkstrike
+    colour_class: cool
+    hue: 125
+    size: [32, 27]
+    same_as_frozen: null
+    sha256: c275fe78a9b396b0c31c0f263eafa84f3b908f308d0e8e5c5da08e8fe0bc9ed1
+  - file: triple_splashdown_warm.png
+    special_id: triple_splashdown
+    colour_class: warm
+    hue: 151
+    size: [32, 32]
+    same_as_frozen: null
+    sha256: c2e051c265c84545584bc057b6c13f43b0bce8f941316f1d63efd5561ec245b2
+  - file: trizooka_cool.png
+    special_id: trizooka
+    colour_class: cool
+    hue: 138
+    size: [29, 21]
+    same_as_frozen: null
+    sha256: d48052db937f8d296e044550bf560b915b676153075a87b676da841ead18fdc2
+  - file: trizooka_warm.png
+    special_id: trizooka
+    colour_class: warm
+    hue: 35
+    size: [32, 22]
+    same_as_frozen: null
+    sha256: c2bb5f2874a2dd29e3d295802aef4fde4f2461c353086cb0e2616f6afe623d28
+  - file: wave_breaker_cool.png
+    special_id: wave_breaker
+    colour_class: cool
+    hue: 137
+    size: [32, 29]
+    same_as_frozen: null
+    sha256: d06017f3ceb7057675be2abd0a59aaee5aca93f3ad47afcd568e0891cf3411b1
+  - file: zipcaster_cool.png
+    special_id: zipcaster
+    colour_class: cool
+    hue: 139
+    size: [29, 28]
+    same_as_frozen: null
+    sha256: 42541bddc7b6b8aaef0d54b4dc51cd09addb16ba54696389f5a92ea2acc5b09d
+  - file: zipcaster_warm.png
+    special_id: zipcaster
+    colour_class: warm
+    hue: 41
+    size: [29, 29]
+    same_as_frozen: zipcaster.png
+    sha256: e12b18a200f0c1ca9f9cf3334df9ac7d703ea612cdb034af4de500430119d8e7
