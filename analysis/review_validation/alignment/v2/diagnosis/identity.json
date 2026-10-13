@@ -1,0 +1,227 @@
+[
+  {
+    "review": "17-42-59",
+    "gameplay": "17-42-59",
+    "onsets": 30,
+    "glyphs": 25,
+    "share_at_0": 0.067,
+    "best_shift_s": -5.9,
+    "share_at_best": 0.267
+  },
+  {
+    "review": "17-42-59",
+    "gameplay": "19-47-46",
+    "onsets": 25,
+    "glyphs": 25,
+    "share_at_0": 0.08,
+    "best_shift_s": -20.0,
+    "share_at_best": 0.44
+  },
+  {
+    "review": "17-42-59",
+    "gameplay": "19-59-26",
+    "onsets": 20,
+    "glyphs": 25,
+    "share_at_0": 0.15,
+    "best_shift_s": 0.6,
+    "share_at_best": 0.3
+  },
+  {
+    "review": "17-42-59",
+    "gameplay": "20-17-32",
+    "onsets": 51,
+    "glyphs": 25,
+    "share_at_0": 0.118,
+    "best_shift_s": -12.0,
+    "share_at_best": 0.216
+  },
+  {
+    "review": "17-42-59",
+    "gameplay": "20-25-22",
+    "onsets": 50,
+    "glyphs": 25,
+    "share_at_0": 0.12,
+    "best_shift_s": -11.5,
+    "share_at_best": 0.2
+  },
+  {
+    "review": "19-47-46",
+    "gameplay": "17-42-59",
+    "onsets": 30,
+    "glyphs": 8,
+    "share_at_0": 0.0,
+    "best_shift_s": -21.8,
+    "share_at_best": 0.133
+  },
+  {
+    "review": "19-47-46",
+    "gameplay": "19-47-46",
+    "onsets": 25,
+    "glyphs": 8,
+    "share_at_0": 0.08,
+    "best_shift_s": 17.9,
+    "share_at_best": 0.24
+  },
+  {
+    "review": "19-47-46",
+    "gameplay": "19-59-26",
+    "onsets": 20,
+    "glyphs": 8,
+    "share_at_0": 0.15,
+    "best_shift_s": -18.1,
+    "share_at_best": 0.25
+  },
+  {
+    "review": "19-47-46",
+    "gameplay": "20-17-32",
+    "onsets": 51,
+    "glyphs": 8,
+    "share_at_0": 0.039,
+    "best_shift_s": -12.8,
+    "share_at_best": 0.078
+  },
+  {
+    "review": "19-47-46",
+    "gameplay": "20-25-22",
+    "onsets": 50,
+    "glyphs": 8,
+    "share_at_0": 0.04,
+    "best_shift_s": -15.3,
+    "share_at_best": 0.1
+  },
+  {
+    "review": "19-59-26",
+    "gameplay": "17-42-59",
+    "onsets": 30,
+    "glyphs": 6,
+    "share_at_0": 0.033,
+    "best_shift_s": -30.0,
+    "share_at_best": 0.1
+  },
+  {
+    "review": "19-59-26",
+    "gameplay": "19-47-46",
+    "onsets": 25,
+    "glyphs": 6,
+    "share_at_0": 0.04,
+    "best_shift_s": 10.0,
+    "share_at_best": 0.2
+  },
+  {
+    "review": "19-59-26",
+    "gameplay": "19-59-26",
+    "onsets": 20,
+    "glyphs": 6,
+    "share_at_0": 0.1,
+    "best_shift_s": 10.8,
+    "share_at_best": 0.3
+  },
+  {
+    "review": "19-59-26",
+    "gameplay": "20-17-32",
+    "onsets": 51,
+    "glyphs": 6,
+    "share_at_0": 0.02,
+    "best_shift_s": -7.2,
+    "share_at_best": 0.059
+  },
+  {
+    "review": "19-59-26",
+    "gameplay": "20-25-22",
+    "onsets": 50,
+    "glyphs": 6,
+    "share_at_0": 0.06,
+    "best_shift_s": -1.4,
+    "share_at_best": 0.08
+  },
+  {
+    "review": "20-17-32",
+    "gameplay": "17-42-59",
+    "onsets": 30,
+    "glyphs": 47,
+    "share_at_0": 0.2,
+    "best_shift_s": -17.8,
+    "share_at_best": 0.333
+  },
+  {
+    "review": "20-17-32",
+    "gameplay": "19-47-46",
+    "onsets": 25,
+    "glyphs": 47,
+    "share_at_0": 0.16,
+    "best_shift_s": -1.9,
+    "share_at_best": 0.4
+  },
+  {
+    "review": "20-17-32",
+    "gameplay": "19-59-26",
+    "onsets": 20,
+    "glyphs": 47,
+    "share_at_0": 0.1,
+    "best_shift_s": -18.5,
+    "share_at_best": 0.4
+  },
+  {
+    "review": "20-17-32",
+    "gameplay": "20-17-32",
+    "onsets": 51,
+    "glyphs": 47,
+    "share_at_0": 0.863,
+    "best_shift_s": 0.1,
+    "share_at_best": 0.882
+  },
+  {
+    "review": "20-17-32",
+    "gameplay": "20-25-22",
+    "onsets": 50,
+    "glyphs": 47,
+    "share_at_0": 0.22,
+    "best_shift_s": -2.5,
+    "share_at_best": 0.28
+  },
+  {
+    "review": "20-25-22",
+    "gameplay": "17-42-59",
+    "onsets": 30,
+    "glyphs": 47,
+    "share_at_0": 0.167,
+    "best_shift_s": -27.9,
+    "share_at_best": 0.233
+  },
+  {
+    "review": "20-25-22",
+    "gameplay": "19-47-46",
+    "onsets": 25,
+    "glyphs": 47,
+    "share_at_0": 0.16,
+    "best_shift_s": -19.9,
+    "share_at_best": 0.36
+  },
+  {
+    "review": "20-25-22",
+    "gameplay": "19-59-26",
+    "onsets": 20,
+    "glyphs": 47,
+    "share_at_0": 0.3,
+    "best_shift_s": 0.5,
+    "share_at_best": 0.35
+  },
+  {
+    "review": "20-25-22",
+    "gameplay": "20-17-32",
+    "onsets": 51,
+    "glyphs": 47,
+    "share_at_0": 0.255,
+    "best_shift_s": -0.2,
+    "share_at_best": 0.275
+  },
+  {
+    "review": "20-25-22",
+    "gameplay": "20-25-22",
+    "onsets": 50,
+    "glyphs": 47,
+    "share_at_0": 0.92,
+    "best_shift_s": -0.2,
+    "share_at_best": 0.92
+  }
+]
