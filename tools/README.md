@@ -97,6 +97,7 @@ scripts, so keep these together.
 | `ranking_cases.py` | Per-death case analysis of the importance factors |
 | `ranking_episodes.py` | Deaths versus coaching episodes as the selection unit |
 | `coaching_units.py` | Research comparison of coaching units (deaths, episodes, episode-by-factor; engagement and non-death feasibility); writes `coaching_units.md`, a blind rating sheet with a separate key, and the deferred Experiment D inputs (never calls a model). Sections live in `coaching_units_sections.py` |
+| `coaching_units_experiment_d.py` | Experiment D runner over those deferred inputs. `plan` is a dry run: calls, sizes, stale-input checks, and whether the provider honors temperature 0. `run` needs `--model` and `--confirm`, runs once, and writes `experiment: true` records validated against the lead view. `summary` aggregates rule hits per arm |
 
 ### studies/
 
