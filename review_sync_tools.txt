@@ -1,0 +1,869 @@
+===== tools/diagnostics/review_roster_timing.py =====
+#!/usr/bin/env python3
+"""Roster-lamp transition timing against death glyphs (interval-censored).
+
+Each Review frame shows the roster at its cursor position, so a lamp change is
+only known to lie between the last frame showing one state and the first
+showing the other. For every death marker this finds the same-slot
+alive->dead bracket ``(x_a, x_b]`` around it and reports the signed offset
+``lamp transition - glyph`` as an interval in match-forward seconds:
+``[(x_a - g), (x_b - g)] * seconds_per_px`` (positive = lamp later).
+
+Reported per recording, team row and slot: bracket widths, how many intervals
+contain 0, the offset values consistent with the most intervals, interval
+midpoint statistics, and outliers. Dead->alive brackets after each death give
+interval-censored death-state durations. Read-only.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from collections import defaultdict
+from pathlib import Path
+from statistics import mean, median
+from typing import Any
+
+from splatoon3_ai_coach.review.lane_glyphs import ROW_SLOTS
+from splatoon3_ai_coach.review.models import ReviewTimelineDataset
+
+SCREEN_WIDTH = 1920
+MAX_BRACKET_PX = 20
+SEARCH_PX = 40
+SWEEP = [round(-3 + 0.05 * i, 2) for i in range(121)]
+
+
+def main() -> int:
+    """Measure every recording and write ``roster_timing.md`` / ``.json``."""
+    args = _parse_args()
+    rows: list[dict[str, Any]] = []
+    for import_dir in args.imports:
+        ds = ReviewTimelineDataset.model_validate_json(
+            (import_dir / "review_timeline.json").read_text("utf-8")
+        )
+        rows += measure(ds, ds.source_recording_id or import_dir.name)
+    groups = _groups(rows)
+    summary = {name: summarize(items) for name, items in groups.items()}
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "roster_timing.json").write_text(
+        json.dumps({"summary": summary, "deaths": rows}, indent=2), "utf-8"
+    )
+    (args.out / "roster_timing.md").write_text(render(summary, rows), "utf-8")
+    print(json.dumps(summary["all"], indent=2))
+    return 0
+
+
+def lamp_states(ds: ReviewTimelineDataset) -> dict[str, list[tuple[float, str]]]:
+    """Per slot: (cursor x, state) with frames at one x merged; mixed -> unknown."""
+    by_x: dict[str, dict[float, set[str]]] = defaultdict(lambda: defaultdict(set))
+    for s in ds.samples:
+        if s.cursor.x is None or s.clock_status == "implausible":
+            continue
+        for o in s.slots:
+            by_x[o.slot_id][float(s.cursor.x)].add(o.state.value)
+    out: dict[str, list[tuple[float, str]]] = {}
+    for slot, xs in by_x.items():
+        seq = []
+        for x in sorted(xs):
+            known = xs[x] - {"unknown"}
+            seq.append((x, known.pop() if len(known) == 1 else "unknown"))
+        out[slot] = seq
+    return out
+
+
+def brackets(
+    seq: list[tuple[float, str]], before: str, after: str
+) -> list[tuple[float, float]]:
+    """``(x_a, x_b)`` where state goes ``before`` -> ``after`` between known frames."""
+    known = [(x, s) for x, s in seq if s != "unknown"]
+    return [
+        (a[0], b[0])
+        for a, b in zip(known, known[1:], strict=False)
+        if a[1] == before and b[1] == after and b[0] - a[0] <= MAX_BRACKET_PX
+    ]
+
+
+def measure(ds: ReviewTimelineDataset, rid: str) -> list[dict[str, Any]]:
+    """One row per death marker with its lamp brackets."""
+    axis = ds.axis_calibration
+    if axis is None:
+        return []
+    spp = abs(axis.slope) / SCREEN_WIDTH
+    lamps = lamp_states(ds)
+    rows = []
+    for m in ds.match_history_events:
+        if m.kind != "death" or m.player_slot_id not in ROW_SLOTS:
+            continue
+        g = m.x_norm * SCREEN_WIDTH
+        seq = lamps.get(m.player_slot_id, [])
+        down = [
+            b
+            for b in brackets(seq, "alive", "dead")
+            if abs((b[0] + b[1]) / 2 - g) <= SEARCH_PX
+        ]
+        down = min(down, key=lambda b: abs((b[0] + b[1]) / 2 - g), default=None)
+        row: dict[str, Any] = {
+            "recording": rid,
+            "slot": m.player_slot_id,
+            "team": m.player_slot_id.split("_")[0],
+            "marker_id": m.marker_id,
+            "glyph_x": round(g, 1),
+            "elapsed": round(m.elapsed_estimate, 2),
+            "seconds_per_px": round(spp, 4),
+        }
+        if down is not None:
+            row["down_px"] = list(down)
+            row["offset_s"] = [
+                round((down[0] - g) * spp, 3),
+                round((down[1] - g) * spp, 3),
+            ]
+            row["width_s"] = round((down[1] - down[0]) * spp, 3)
+            row.update(_recovery(seq, down, spp))
+        rows.append(row)
+    return rows
+
+
+def _recovery(
+    seq: list[tuple[float, str]], down: tuple[float, float], spp: float
+) -> dict:
+    """Interval-censored dead duration from the death bracket to the first recovery."""
+    up = [b for b in brackets(seq, "dead", "alive") if b[0] >= down[1]]
+    if not up:
+        return {}
+    first = min(up)
+    if any(s == "alive" for x, s in seq if down[1] <= x <= first[0]):
+        return {}
+    return {
+        "dead_seconds": [
+            round((first[0] - down[1]) * spp, 2),
+            round((first[1] - down[0]) * spp, 2),
+        ]
+    }
+
+
+def _groups(rows: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for r in rows:
+        for key in (
+            "all",
+            f"rec:{r['recording']}",
+            f"team:{r['team']}",
+            f"slot:{r['slot']}",
+        ):
+            groups[key].append(r)
+    return dict(groups)
+
+
+def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Interval statistics of the lamp-minus-glyph offset."""
+    iv = [r["offset_s"] for r in rows if "offset_s" in r]
+    if not iv:
+        return {"markers": len(rows), "bracketed": 0}
+    counts = [sum(lo <= d <= hi for lo, hi in iv) for d in SWEEP]
+    best = max(counts)
+    consistent = [d for d, c in zip(SWEEP, counts, strict=True) if c == best]
+    mids = [(lo + hi) / 2 for lo, hi in iv]
+    dead = [r["dead_seconds"] for r in rows if "dead_seconds" in r]
+    return {
+        "markers": len(rows),
+        "bracketed": len(iv),
+        "contain_zero": sum(lo <= 0 <= hi for lo, hi in iv),
+        "max_consistent": best,
+        "consistent_offset_s": [consistent[0], consistent[-1]],
+        "midpoint_mean_s": round(mean(mids), 3),
+        "midpoint_median_s": round(median(mids), 3),
+        "bracket_width_median_s": round(median(hi - lo for lo, hi in iv), 2),
+        "outside_by_s": sorted(
+            round(lo if lo > 0 else hi, 2) for lo, hi in iv if not lo <= 0 <= hi
+        ),
+        "dead_seconds_median_bounds": [
+            round(median(d[0] for d in dead), 2),
+            round(median(d[1] for d in dead), 2),
+        ]
+        if dead
+        else None,
+    }
+
+
+def render(summary: dict[str, Any], rows: list[dict[str, Any]]) -> str:
+    """Markdown summary plus outliers."""
+    lines = [
+        "# Roster-lamp alive->dead timing vs death glyphs",
+        "",
+        "Offset = lamp transition - glyph center, match-forward seconds"
+        " (+ = lamp later).",
+        "",
+        "| Group | Markers | Bracketed | Contain 0 | Max consistent "
+        "| Consistent offsets (s) | Midpoint mean / median (s) | Bracket width (s) "
+        "| Dead duration median bounds (s) |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for name, s in summary.items():
+        if not s.get("bracketed"):
+            lines.append(f"| {name} | {s['markers']} | 0 | | | | | | |")
+            continue
+        lines.append(
+            f"| {name} | {s['markers']} | {s['bracketed']} | {s['contain_zero']} "
+            f"| {s['max_consistent']} | {s['consistent_offset_s']} "
+            f"| {s['midpoint_mean_s']} / {s['midpoint_median_s']} "
+            f"| {s['bracket_width_median_s']} | {s['dead_seconds_median_bounds']} |"
+        )
+    lines += ["", "## Deaths whose bracket excludes 0 or with no bracket", ""]
+    for r in rows:
+        iv = r.get("offset_s")
+        if iv is None or not iv[0] <= 0 <= iv[1]:
+            lines.append(
+                f"- {r['recording']} {r['slot']} {r['marker_id']} x {r['glyph_x']} "
+                f"(clock {r['elapsed']}): offset {iv if iv else 'no bracket'}"
+            )
+    return "\n".join(lines) + "\n"
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("imports", type=Path, nargs="+")
+    parser.add_argument("--out", type=Path, required=True)
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+===== tools/diagnostics/review_special_glow_timing.py =====
+#!/usr/bin/env python3
+"""Special-use timing against the roster special-ready glow (interval-censored).
+
+A slot's roster icon turns pale while its special is ready and returns to full
+team colour when the special is used (or the player dies). The glow is read
+per frame as the mean HSV saturation of the icon's bright pixels; each slot
+gets its own two-level threshold (1-D two-means over its alive frames) with an
+uncertain band between the levels.
+
+For every accepted special event this finds the same-slot glow->plain bracket
+``(x_a, x_b]`` around the glyph with the lamp alive on both sides, and reports
+``glow end - glyph center`` in match-forward seconds (+ = glow ends later).
+Glow lost at a death is excluded. Statistics are shared with
+``review_roster_timing.py``. Read-only; nothing here feeds the pipeline.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from collections import defaultdict
+from pathlib import Path
+from typing import Any
+
+import cv2
+import numpy as np
+from review_roster_timing import SCREEN_WIDTH, SEARCH_PX, _groups, render, summarize
+
+from splatoon3_ai_coach.config import load_config
+from splatoon3_ai_coach.config.models import ReviewTimelineConfig
+from splatoon3_ai_coach.config.paths import default_config_path
+from splatoon3_ai_coach.review.models import ReviewTimelineDataset
+
+MAX_BRACKET_PX = 20
+MIN_LEVEL_RATIO = 0.85
+UNCERTAIN_FRACTION = 0.2
+
+
+def main() -> int:
+    """Measure every recording and write ``glow_timing.md`` / ``.json``."""
+    args = _parse_args()
+    config = load_config(default_config_path()).review
+    rows: list[dict[str, Any]] = []
+    levels: dict[str, Any] = {}
+    for import_dir in args.imports:
+        ds = ReviewTimelineDataset.model_validate_json(
+            (import_dir / "review_timeline.json").read_text("utf-8")
+        )
+        rid = ds.source_recording_id or import_dir.name
+        series = glow_series(ds, config)
+        thresholds = {slot: slot_levels(points) for slot, points in series.items()}
+        levels[rid] = thresholds
+        rows += measure(ds, rid, series, thresholds)
+    summary = {name: summarize(items) for name, items in _groups(rows).items()}
+    args.out.mkdir(parents=True, exist_ok=True)
+    payload = {"summary": summary, "levels": levels, "specials": rows}
+    (args.out / "glow_timing.json").write_text(json.dumps(payload, indent=2), "utf-8")
+    text = render(summary, rows).replace(
+        "Roster-lamp alive->dead timing vs death glyphs",
+        "Special-ready glow end vs special glyphs",
+    )
+    (args.out / "glow_timing.md").write_text(text, "utf-8")
+    print(json.dumps(summary["all"], indent=2))
+    return 0
+
+
+def glow_series(
+    ds: ReviewTimelineDataset, config: ReviewTimelineConfig
+) -> dict[str, list[tuple[float, float, str]]]:
+    """Per slot: (cursor x, icon saturation, lamp state), one entry per distinct x."""
+    out: dict[str, dict[float, tuple[float, str]]] = defaultdict(dict)
+    for sample in ds.samples:
+        x = sample.cursor.x
+        if x is None or sample.clock_status == "implausible":
+            continue
+        if all(float(x) in out[o.slot_id] for o in sample.slots):
+            continue
+        image = cv2.imread(sample.image_path)
+        if image is None:
+            continue
+        for obs in sample.slots:
+            if float(x) not in out[obs.slot_id]:
+                value = icon_saturation(image, float(x), obs.slot_id, config)
+                out[obs.slot_id][float(x)] = (value, obs.state.value)
+    return {s: sorted((x, v, st) for x, (v, st) in xs.items()) for s, xs in out.items()}
+
+
+def icon_saturation(
+    image: np.ndarray, cursor_x: float, slot_id: str, config: ReviewTimelineConfig
+) -> float:
+    """Mean saturation of bright pixels in the slot's roster box (cursor grid)."""
+    height, width = image.shape[:2]
+    slot_w = width * config.roster_row_width_fraction / 4
+    center = float(np.clip(cursor_x, 2 * slot_w, width - 2 * slot_w))
+    row, index = slot_id.split("_")
+    band = config.roster_top_band if row == "top" else config.roster_bottom_band
+    y1, y2 = int(height * band[0]), int(height * band[1])
+    left = center - 2 * slot_w + (int(index) - 1) * slot_w
+    roi = image[y1:y2, int(round(left)) : int(round(left + slot_w))]
+    hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV).astype(np.float32)
+    bright = hsv[..., 2] > 90
+    return float(hsv[..., 1][bright].mean()) if bright.any() else -1.0
+
+
+def slot_levels(points: list[tuple[float, float, str]]) -> dict[str, Any] | None:
+    """Two-means split of alive-frame saturation; ``None`` without two levels."""
+    values = np.array([v for _, v, st in points if st == "alive" and v >= 0])
+    if values.size < 10:
+        return None
+    lo, hi = float(np.percentile(values, 10)), float(np.percentile(values, 90))
+    for _ in range(20):
+        cut = (lo + hi) / 2
+        glow, plain = values[values < cut], values[values >= cut]
+        if glow.size == 0 or plain.size == 0:
+            return None
+        lo, hi = float(glow.mean()), float(plain.mean())
+    if lo / hi > MIN_LEVEL_RATIO:
+        return None
+    margin = UNCERTAIN_FRACTION * (hi - lo)
+    return {
+        "glow": round(lo, 1),
+        "plain": round(hi, 1),
+        "cut": [(lo + hi) / 2 - margin, (lo + hi) / 2 + margin],
+    }
+
+
+def glow_state(value: float, lamp: str, levels: dict[str, Any] | None) -> str:
+    """``glow`` / ``plain`` / ``dead`` / ``unknown`` for one frame."""
+    if lamp == "dead":
+        return "dead"
+    if lamp != "alive" or levels is None or value < 0:
+        return "unknown"
+    low, high = levels["cut"]
+    return "glow" if value < low else "plain" if value > high else "unknown"
+
+
+def measure(
+    ds: ReviewTimelineDataset,
+    rid: str,
+    series: dict[str, list[tuple[float, float, str]]],
+    thresholds: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """One row per accepted special event with its glow-end bracket."""
+    axis = ds.axis_calibration
+    if axis is None:
+        return []
+    spp = abs(axis.slope) / SCREEN_WIDTH
+    rows = []
+    for event in ds.special_events:
+        if event.special_id == "unknown":
+            continue
+        g = event.x_norm * SCREEN_WIDTH
+        levels = thresholds.get(event.slot_id)
+        states = [
+            (x, glow_state(v, st, levels)) for x, v, st in series.get(event.slot_id, [])
+        ]
+        row: dict[str, Any] = {
+            "recording": rid,
+            "slot": event.slot_id,
+            "team": event.team_row,
+            "marker_id": f"{event.special_id}@{g:.0f}",
+            "special_id": event.special_id,
+            "glyph_x": round(g, 1),
+            "elapsed": round(event.elapsed_estimate, 2),
+            "levels": levels is not None,
+        }
+        bracket = _glow_end(states, g)
+        if bracket is not None:
+            row["glow_end_px"] = list(bracket)
+            row["offset_s"] = [
+                round((bracket[0] - g) * spp, 3),
+                round((bracket[1] - g) * spp, 3),
+            ]
+            row["width_s"] = round((bracket[1] - bracket[0]) * spp, 3)
+        rows.append(row)
+    return rows
+
+
+def _glow_end(states: list[tuple[float, str]], g: float) -> tuple[float, float] | None:
+    known = [(x, s) for x, s in states if s != "unknown"]
+    ends = [
+        (a[0], b[0])
+        for a, b in zip(known, known[1:], strict=False)
+        if a[1] == "glow"
+        and b[1] == "plain"
+        and b[0] - a[0] <= MAX_BRACKET_PX
+        and abs((a[0] + b[0]) / 2 - g) <= SEARCH_PX
+    ]
+    return min(ends, key=lambda b: abs((b[0] + b[1]) / 2 - g), default=None)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("imports", type=Path, nargs="+")
+    parser.add_argument("--out", type=Path, required=True)
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+===== tools/diagnostics/review_special_roster_sync.py =====
+#!/usr/bin/env python3
+"""Roster state of all eight slots at each Review special (synchronisation test).
+
+For every accepted special event the eight roster lamps are queried at the
+glyph centre. Each slot's lamp is read from the nearest known frames on both
+sides; the slot is ``unknown`` when they disagree or when any lamp-transition
+bracket of that slot lies within ``X`` seconds of the special
+(``reason = near_roster_transition``), or when no frame lies within
+``SEARCH_PX`` on a side (``no_lamp_frames``). Rows are tagged with the
+stratification categories used for manual review, and the sweep over ``X``
+shows how many slot states each window leaves unknown and how the remaining
+lamp states compare with event-lane order (a nearby death glyph before /
+after the special glyph). ``--window`` only selects the reported table; the
+reliability window is decided from the sweep and the manual sheets.
+
+Writes ``sync.md`` / ``sync.json`` and, with ``--sheets``, roster crops before
+and after each sampled special for manual inspection. Read-only validation:
+nothing here is coaching evidence.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from collections import Counter
+from pathlib import Path
+from typing import Any
+
+import cv2
+import numpy as np
+from review_roster_timing import SCREEN_WIDTH, SEARCH_PX, lamp_states
+
+from splatoon3_ai_coach.config import load_config
+from splatoon3_ai_coach.config.paths import default_config_path
+from splatoon3_ai_coach.review.lane_glyphs import ROW_SLOTS
+from splatoon3_ai_coach.review.models import ReviewTimelineDataset, ReviewTimelineSample
+
+SLOTS = [f"{row}_{i}" for row in ("top", "bottom") for i in range(1, 5)]
+WINDOWS_S = [0.0, 0.25, 0.5, 1.0, 1.5, 2.0]
+NEAR_DEATH_S = 3.0
+STACK_PX = 8.0
+PER_CATEGORY = 3
+ORDER_TIE_PX = 2.0
+OBSCURING = {"killer_wail_5.1", "big_bubbler"}
+
+
+def main() -> int:
+    """Query lamps at every special and write the validation table."""
+    args = _parse_args()
+    rows: list[dict[str, Any]] = []
+    datasets: dict[str, ReviewTimelineDataset] = {}
+    for import_dir in args.imports:
+        ds = ReviewTimelineDataset.model_validate_json(
+            (import_dir / "review_timeline.json").read_text("utf-8")
+        )
+        rid = ds.source_recording_id or import_dir.name
+        datasets[rid] = ds
+        rows += recording_rows(ds, rid, args.window)
+    sweep = {str(w): _sweep(datasets, w) for w in WINDOWS_S}
+    sample = stratified_sample(rows)
+    args.out.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "window_s": args.window,
+        "sweep": sweep,
+        "sample": sample,
+        "specials": rows,
+    }
+    (args.out / "sync.json").write_text(json.dumps(payload, indent=2), "utf-8")
+    (args.out / "sync.md").write_text(render(rows, sweep, sample, args.window), "utf-8")
+    if args.sheets:
+        write_sheets(datasets, rows, sample, args.out / "sheets")
+    print(json.dumps(sweep, indent=2))
+    return 0
+
+
+def recording_rows(
+    ds: ReviewTimelineDataset, rid: str, window: float
+) -> list[dict[str, Any]]:
+    """One validation row per accepted special event."""
+    axis = ds.axis_calibration
+    if axis is None:
+        return []
+    spp = abs(axis.slope) / SCREEN_WIDTH
+    lamps = lamp_states(ds)
+    deaths = [
+        (m.player_slot_id, m.x_norm * SCREEN_WIDTH)
+        for m in ds.match_history_events
+        if m.kind == "death" and m.player_slot_id in ROW_SLOTS
+    ]
+    rows = []
+    for event in ds.special_events:
+        if event.special_id == "unknown":
+            continue
+        g = event.x_norm * SCREEN_WIDTH
+        states = {s: slot_state(lamps.get(s, []), g, window / spp) for s in SLOTS}
+        row = {
+            "recording": rid,
+            "special_id": event.special_id,
+            "slot": event.slot_id,
+            "glyph_x": round(g, 1),
+            "elapsed": round(event.elapsed_estimate, 2),
+            "slots": states,
+            "top_alive": _count(states, "top"),
+            "bottom_alive": _count(states, "bottom"),
+            "user_alive": states[event.slot_id]["state"],
+            "nearest_transition_s": _nearest(states, spp),
+            "categories": categories(
+                event.special_id, event.elapsed_estimate, g, deaths, spp
+            ),
+            "order_checks": order_checks(g, deaths, spp),
+        }
+        rows.append(row)
+    return rows
+
+
+def order_checks(
+    g: float, deaths: list[tuple[str, float]], spp: float
+) -> list[dict[str, Any]]:
+    """Lane-order truth for slots with a death glyph within ``NEAR_DEATH_S``.
+
+    A death glyph before the special means that slot is dead at the special
+    (death states last ~7 s); one after means it is still alive. Glyphs within
+    ``ORDER_TIE_PX`` of the special are ``ambiguous`` (glyph localisation).
+    """
+    checks = []
+    for slot, x in deaths:
+        dt = (x - g) * spp
+        if abs(dt) > NEAR_DEATH_S:
+            continue
+        if abs(x - g) <= ORDER_TIE_PX:
+            expected = "ambiguous"
+        else:
+            expected = "dead" if x < g else "alive"
+        checks.append({"slot": slot, "death_dt_s": round(dt, 2), "expected": expected})
+    return checks
+
+
+def slot_state(
+    seq: list[tuple[float, str]], g: float, window_px: float
+) -> dict[str, Any]:
+    """Lamp state at ``g`` with its reason and nearest transition distance (px)."""
+    known = [(x, s) for x, s in seq if s != "unknown"]
+    before = [p for p in known if p[0] <= g and g - p[0] <= SEARCH_PX]
+    after = [p for p in known if p[0] > g and p[0] - g <= SEARCH_PX]
+    transitions = [
+        (a[0], b[0]) for a, b in zip(known, known[1:], strict=False) if a[1] != b[1]
+    ]
+    dist = min((_gap(t, g) for t in transitions), default=None)
+    out: dict[str, Any] = {"transition_px": None if dist is None else round(dist, 1)}
+    if not before or not after:
+        return out | {"state": "unknown", "reason": "no_lamp_frames"}
+    prev, nxt = before[-1][1], after[0][1]
+    if prev != nxt or (dist is not None and dist <= window_px):
+        return out | {"state": "unknown", "reason": "near_roster_transition"}
+    return out | {"state": prev, "reason": None}
+
+
+def _gap(bracket: tuple[float, float], g: float) -> float:
+    a, b = bracket
+    return 0.0 if a < g <= b else min(abs(g - a), abs(g - b))
+
+
+def _count(states: dict[str, dict[str, Any]], team: str) -> int | None:
+    team_states = [v["state"] for k, v in states.items() if k.startswith(team)]
+    if "unknown" in team_states:
+        return None
+    return sum(s == "alive" for s in team_states)
+
+
+def _nearest(states: dict[str, dict[str, Any]], spp: float) -> float | None:
+    dists = [
+        v["transition_px"] for v in states.values() if v["transition_px"] is not None
+    ]
+    return round(min(dists) * spp, 2) if dists else None
+
+
+def categories(
+    special_id: str,
+    elapsed: float,
+    g: float,
+    deaths: list[tuple[str, float]],
+    spp: float,
+) -> list[str]:
+    """Stratification tags for manual review (match-forward death offsets)."""
+    offsets = [(x - g) * spp for _, x in deaths]
+    near = [d for d in offsets if abs(d) <= NEAR_DEATH_S]
+    tags = []
+    if not near:
+        tags.append("far_from_death")
+    if any(0 < d <= NEAR_DEATH_S for d in offsets):
+        tags.append("before_death")
+    if any(-NEAR_DEATH_S <= d < 0 for d in offsets):
+        tags.append("after_death")
+    if any(abs(x - g) <= STACK_PX for _, x in deaths):
+        tags.append("stacked_with_death")
+    if len(near) >= 2:
+        tags.append("simultaneous_deaths")
+    if special_id in OBSCURING and near:
+        tags.append("obscuring_special_near_death")
+    if elapsed < 0:
+        tags.append("overtime")
+    return tags
+
+
+def _sweep(datasets: dict[str, ReviewTimelineDataset], window: float) -> dict[str, Any]:
+    rows = [r for rid, ds in datasets.items() for r in recording_rows(ds, rid, window)]
+    states = Counter(v["state"] for r in rows for v in r["slots"].values())
+    reasons = Counter(
+        v["reason"] for r in rows for v in r["slots"].values() if v["reason"]
+    )
+    return {
+        "specials": len(rows),
+        "slot_states": dict(states),
+        "unknown_reasons": dict(reasons),
+        "fully_known": sum(
+            r["top_alive"] is not None and r["bottom_alive"] is not None for r in rows
+        ),
+        "user_dead": sum(r["user_alive"] == "dead" for r in rows),
+        "lane_order": _order_summary(rows),
+    }
+
+
+def _order_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Lamp state at the special vs lane-order truth (non-ambiguous checks)."""
+    counts: Counter[str] = Counter()
+    wrong = []
+    for r in rows:
+        for c in r["order_checks"]:
+            if c["expected"] == "ambiguous":
+                counts["ambiguous"] += 1
+                continue
+            lamp = r["slots"][c["slot"]]["state"]
+            if lamp == "unknown":
+                counts["lamp_unknown"] += 1
+            elif lamp == c["expected"]:
+                counts["agree"] += 1
+            else:
+                counts["disagree"] += 1
+                wrong.append(f"{_key(r)} {c['slot']} death_dt {c['death_dt_s']}")
+    return dict(counts) | {"disagreements": wrong}
+
+
+def stratified_sample(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Up to ``PER_CATEGORY`` specials per tag, spread over recordings."""
+    chosen: dict[str, str] = {}
+    tags = sorted({t for r in rows for t in r["categories"]})
+    for tag in tags:
+        pool = [r for r in rows if tag in r["categories"]]
+        pool.sort(
+            key=lambda r: (
+                sum(_key(r) == k for k in chosen),
+                r["recording"],
+                r["glyph_x"],
+            )
+        )
+        picked = 0
+        for r in _round_robin(pool):
+            if picked == PER_CATEGORY:
+                break
+            if _key(r) not in chosen:
+                chosen[_key(r)] = tag
+                picked += 1
+    return [{"key": k, "category": t} for k, t in chosen.items()]
+
+
+def _round_robin(pool: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_rec: dict[str, list[dict[str, Any]]] = {}
+    for r in pool:
+        by_rec.setdefault(r["recording"], []).append(r)
+    out = []
+    while any(by_rec.values()):
+        for items in by_rec.values():
+            if items:
+                out.append(items.pop(len(items) // 2))
+    return out
+
+
+def _key(r: dict[str, Any]) -> str:
+    return f"{r['recording']}:{r['slot']}:{r['special_id']}@{r['glyph_x']:.0f}"
+
+
+def render(
+    rows: list[dict[str, Any]],
+    sweep: dict[str, Any],
+    sample: list[dict[str, Any]],
+    window: float,
+) -> str:
+    """Markdown: window sweep, sample list and the full validation table."""
+    lines = [
+        "# Review special <-> roster synchronisation",
+        "",
+        "## Reliability-window sweep",
+        "",
+        "Lane order: lamp state at the special vs the order of that slot's death",
+        "glyph and the special glyph (death within 3 s; ties within 2 px skipped).",
+        "",
+        "| X (s) | Slot states alive / dead / unknown | Unknown reasons "
+        "| Specials with both counts known | User slot dead "
+        "| Lane order agree / disagree / lamp unknown |",
+        "|---|---|---|---|---|---|",
+    ]
+    for w, s in sweep.items():
+        st, lo = s["slot_states"], s["lane_order"]
+        lines.append(
+            f"| {w} | {st.get('alive', 0)} / {st.get('dead', 0)} "
+            f"/ {st.get('unknown', 0)} | {s['unknown_reasons']} "
+            f"| {s['fully_known']}/{s['specials']} | {s['user_dead']} "
+            f"| {lo.get('agree', 0)} / {lo.get('disagree', 0)} "
+            f"/ {lo.get('lamp_unknown', 0)} |"
+        )
+    lines += ["", "Lane-order disagreements per X:", ""]
+    lines += [f"- X={w}: {s['lane_order']['disagreements']}" for w, s in sweep.items()]
+    sampled = {s["key"]: s["category"] for s in sample}
+    lines += [
+        "",
+        f"## Validation table (reporting window X = {window} s, not calibrated)",
+        "",
+        "Slot cells: A alive, D dead, ? unknown (t = near transition, n = no frames).",
+        "",
+        "| Special | Clock | Slot | top_1-4 | bottom_1-4 | Top alive | Bottom alive "
+        "| Nearest transition (s) | Categories | Sample |",
+        "|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        cells = {k: _cell(v) for k, v in r["slots"].items()}
+        top = "".join(cells[f"top_{i}"] for i in range(1, 5))
+        bottom = "".join(cells[f"bottom_{i}"] for i in range(1, 5))
+        lines.append(
+            f"| {r['recording']} {r['special_id']}@{r['glyph_x']:.0f} | {r['elapsed']} "
+            f"| {r['slot']} | {top} | {bottom} | {_na(r['top_alive'])} "
+            f"| {_na(r['bottom_alive'])} | {_na(r['nearest_transition_s'])} "
+            f"| {', '.join(r['categories'])} | {sampled.get(_key(r), '')} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def _cell(v: dict[str, Any]) -> str:
+    if v["state"] == "alive":
+        return "A"
+    if v["state"] == "dead":
+        return "D"
+    return "?t" if v["reason"] == "near_roster_transition" else "?n"
+
+
+def _na(value: object) -> str:
+    return "-" if value is None else str(value)
+
+
+def write_sheets(
+    datasets: dict[str, ReviewTimelineDataset],
+    rows: list[dict[str, Any]],
+    sample: list[dict[str, Any]],
+    out: Path,
+) -> None:
+    """Roster crops at the frames just before and after each sampled special."""
+    config = load_config(default_config_path()).review
+    out.mkdir(parents=True, exist_ok=True)
+    by_key = {_key(r): r for r in rows}
+    for number, item in enumerate(sample, start=1):
+        r = by_key[item["key"]]
+        ds = datasets[r["recording"]]
+        tiles = []
+        for sample_frame in _bracketing_frames(ds, r["glyph_x"]):
+            dx = (sample_frame.cursor.x or 0) - r["glyph_x"]
+            tiles.append(_frame_tile(sample_frame, dx, config))
+        if not tiles:
+            continue
+        header = (
+            f"S{number:02d} {item['category']} | {r['recording']} {r['slot']} "
+            f"{r['special_id']} clock {r['elapsed']} "
+            f"| computed top {_na(r['top_alive'])} bottom {_na(r['bottom_alive'])}"
+        )
+        width = max(t.shape[1] for t in tiles)
+        tiles = [
+            cv2.copyMakeBorder(t, 0, 6, 0, width - t.shape[1], cv2.BORDER_CONSTANT)
+            for t in tiles
+        ]
+        sheet = np.vstack([_bar(header, width), *tiles])
+        cv2.imwrite(str(out / f"S{number:02d}_{r['recording']}_{r['slot']}.png"), sheet)
+
+
+def _bracketing_frames(ds: ReviewTimelineDataset, g: float) -> list[ReviewTimelineSample]:
+    frames: dict[float, ReviewTimelineSample] = {}
+    for s in ds.samples:
+        if s.cursor.x is not None and s.clock_status != "implausible":
+            frames.setdefault(float(s.cursor.x), s)
+    before = sorted(x for x in frames if x <= g)[-2:]
+    after = sorted(x for x in frames if x > g)[:2]
+    return [frames[x] for x in before + after]
+
+
+def _frame_tile(sample: ReviewTimelineSample, dx: float, config: Any) -> np.ndarray:
+    image = cv2.imread(sample.image_path)
+    h, w = image.shape[:2]
+    x = int(sample.cursor.x or 0)
+    crops = []
+    for band in (config.roster_top_band, config.roster_bottom_band):
+        crop = image[
+            int(h * band[0]) : int(h * band[1]), max(0, x - 140) : min(w, x + 140)
+        ]
+        crops.append(
+            cv2.resize(crop, None, fx=1.4, fy=1.4, interpolation=cv2.INTER_NEAREST)
+        )
+    width = max(c.shape[1] for c in crops)
+    crops = [
+        cv2.copyMakeBorder(c, 0, 0, 0, width - c.shape[1], cv2.BORDER_CONSTANT)
+        for c in crops
+    ]
+    label = f"dx {dx:+.0f} px  clock {sample.elapsed_seconds}  (top row, then bottom row)"
+    return np.vstack([_bar(label, width), crops[0], crops[1]])
+
+
+def _bar(text: str, width: int) -> np.ndarray:
+    bar = np.zeros((24, max(width, 10), 3), np.uint8)
+    cv2.putText(bar, text, (4, 17), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+    return bar
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("imports", type=Path, nargs="+")
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--window",
+        type=float,
+        required=True,
+        help="Reporting window X (s) for the table and sheets; not a calibrated value",
+    )
+    parser.add_argument("--sheets", action="store_true", help="Write manual-review crops")
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+

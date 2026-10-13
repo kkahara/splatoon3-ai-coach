@@ -1,4 +1,4 @@
-"""Stripe Checkout for one analysis. Card payments only."""
+"""Stripe Checkout for one analysis. Payment methods come from the Stripe Dashboard."""
 
 from __future__ import annotations
 
@@ -7,10 +7,20 @@ from datetime import datetime
 from typing import Protocol
 
 _PRODUCT = "Splatoon 3 match analysis"
+# Automated cloud coaching, not a live person. Required because Managed Payments is on.
+_TAX_CODE = "txcd_10105001"
 
 
 class CheckoutSignatureError(Exception):
     """The webhook signature does not match the configured secret."""
+
+
+class CheckoutRequestError(Exception):
+    """Stripe refused to open Checkout. ``message`` is safe to show."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
 
 
 @dataclass(frozen=True)
@@ -78,26 +88,29 @@ class StripeCheckout:
         """Open one card session that expires with the site's payment lifetime."""
         stripe = _stripe()
         stripe.api_key = self.secret_key
-        created = stripe.checkout.Session.create(
-            mode="payment",
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "quantity": 1,
-                    "price_data": {
-                        "currency": currency,
-                        "unit_amount": price_cents,
-                        "product_data": {"name": _PRODUCT},
-                    },
-                }
-            ],
-            success_url=success_url,
-            cancel_url=cancel_url,
-            expires_at=int(expires_at.timestamp()),
-            client_reference_id=submission_id,
-            metadata={"submission_id": submission_id},
-            idempotency_key=idempotency_key,
-        )
+        try:
+            created = stripe.checkout.Session.create(
+                mode="payment",
+                line_items=[
+                    {
+                        "quantity": 1,
+                        "price_data": {
+                            "currency": currency,
+                            "unit_amount": price_cents,
+                            "product_data": {"name": _PRODUCT, "tax_code": _TAX_CODE},
+                        },
+                    }
+                ],
+                success_url=success_url,
+                cancel_url=cancel_url,
+                expires_at=int(expires_at.timestamp()),
+                client_reference_id=submission_id,
+                metadata={"submission_id": submission_id},
+                idempotency_key=idempotency_key,
+            )
+        except stripe.error.StripeError as exc:
+            message = getattr(exc, "user_message", None) or "Checkout could not be opened."
+            raise CheckoutRequestError(str(message)) from exc
         return _session(created)
 
     def retrieve_session(self, session_id: str) -> CheckoutSession:

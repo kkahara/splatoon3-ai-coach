@@ -88,6 +88,18 @@ _SCHEMA = (
     CREATE INDEX IF NOT EXISTS price_events_version
         ON price_events (pricing_version, kind)
     """,
+    """
+    CREATE TABLE IF NOT EXISTS account_upload_limit (
+        id boolean PRIMARY KEY DEFAULT true CHECK (id),
+        account_uploads_per_hour integer NOT NULL
+            CHECK (account_uploads_per_hour BETWEEN 1 AND 100)
+    )
+    """,
+    """
+    INSERT INTO account_upload_limit (id, account_uploads_per_hour)
+    VALUES (true, 5)
+    ON CONFLICT (id) DO NOTHING
+    """,
 )
 _QUEUE = """
     UPDATE submission_gates
@@ -163,7 +175,41 @@ class PaymentStore:
     def clear(self) -> None:
         """Delete payment rows. Used by tests, not by the public site."""
         with self._conn() as conn:
-            conn.execute("TRUNCATE price_events, submission_gates, analysis_price")
+            conn.execute(
+                """
+                TRUNCATE price_events, submission_gates, analysis_price,
+                    account_upload_limit
+                """
+            )
+
+    def account_upload_limit(self) -> int:
+        """Logged-in submissions accepted per hour. Five until an admin saves one."""
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT account_uploads_per_hour
+                FROM account_upload_limit WHERE id = true
+                """
+            ).fetchone()
+        if row is None:
+            return 5
+        return int(row["account_uploads_per_hour"])
+
+    def set_account_upload_limit(self, per_hour: int) -> int:
+        """Save how many logged-in submissions one account may start per hour."""
+        if per_hour < 1 or per_hour > 100:
+            raise ValueError("account upload limit must be from 1 to 100")
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO account_upload_limit (id, account_uploads_per_hour)
+                VALUES (true, %s)
+                ON CONFLICT (id) DO UPDATE
+                    SET account_uploads_per_hour = EXCLUDED.account_uploads_per_hour
+                """,
+                (per_hour,),
+            )
+        return per_hour
 
     def current_price(self) -> AnalysisPrice | None:
         """The live price, or None until an administrator saves one."""
@@ -405,6 +451,26 @@ class PaymentStore:
                 (submission_id, attempt),
             ).fetchone()
         return current is not None and current["checkout_session_id"] == session_id
+
+    def abandon_checkout_attempt(self, submission_id: str, attempt: int) -> None:
+        """Drop a claimed attempt that never received a Checkout session.
+
+        The next click then uses a new idempotency key. Stripe keeps the
+        rejected request under the old key.
+        """
+        with self._conn() as conn:
+            conn.execute(
+                """
+                UPDATE submission_gates
+                SET checkout_attempt = checkout_attempt + 1
+                WHERE submission_id = %s
+                  AND checkout_attempt = %s
+                  AND payment_state = 'unpaid'
+                  AND checkout_session_id IS NULL
+                  AND status = 'received'
+                """,
+                (submission_id, attempt),
+            )
 
     def claim_unpaid_expiry(self, submission_id: str, now: datetime) -> bool:
         """Expire one unpaid gate. A paid row updates nothing, so payment wins."""

@@ -7,6 +7,8 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
+from loguru import logger
+
 from splatoon3_ai_coach.config.paths import PROJECT_ROOT, default_config_path
 
 _MIB = 1024 * 1024
@@ -14,6 +16,24 @@ _MIB = 1024 * 1024
 
 def _flag(name: str) -> bool:
     return os.environ.get(name, "").strip() == "1"
+
+
+_legacy_capacity_warned = False
+
+
+def _worker_capacity() -> int:
+    """``PUBLIC_WORKER_CAPACITY``, else the deprecated ``PUBLIC_MAX_CONCURRENT``, else 1."""
+    global _legacy_capacity_warned
+    value = os.environ.get("PUBLIC_WORKER_CAPACITY", "").strip()
+    if value:
+        return int(value)
+    legacy = os.environ.get("PUBLIC_MAX_CONCURRENT", "").strip()
+    if not legacy:
+        return 1
+    if not _legacy_capacity_warned:
+        _legacy_capacity_warned = True
+        logger.warning("PUBLIC_MAX_CONCURRENT is deprecated; set PUBLIC_WORKER_CAPACITY instead")
+    return int(legacy)
 
 
 def _load_env() -> None:
@@ -42,11 +62,14 @@ class PublicSettings:
     max_dimension: int = 3840
     submissions_per_hour: int = 6
     guest_submissions_per_hour: int = 2
-    account_submissions_per_hour: int = 2
+    account_submissions_per_hour: int = 5
     submission_window_seconds: int = 3600
     accounts_per_ip: int = 3
     max_queued: int = 20
-    max_concurrent: int = 1
+    # This worker's capacity, not a site-wide limit. Postgres overrides it per worker_key.
+    max_concurrent_jobs: int = 1
+    # Configuration identity a capacity is stored under. Not a process id; see worker_id.
+    worker_key: str = "default"
     retention_days: int = 30
     account_retention_days: int = 365
     database_url: str = ""
@@ -113,14 +136,15 @@ class PublicSettings:
                 os.environ.get("PUBLIC_GUEST_VIDEO_PER_HOUR", "2")
             ),
             account_submissions_per_hour=int(
-                os.environ.get("PUBLIC_ACCOUNT_VIDEO_PER_HOUR", "2")
+                os.environ.get("PUBLIC_ACCOUNT_VIDEO_PER_HOUR", "5")
             ),
             submission_window_seconds=window_seconds,
             accounts_per_ip=int(
                 os.environ.get("PUBLIC_ACCOUNTS_PER_IP", "50" if relaxed else "3")
             ),
             max_queued=int(os.environ.get("PUBLIC_MAX_QUEUED", "20")),
-            max_concurrent=int(os.environ.get("PUBLIC_MAX_CONCURRENT", "1")),
+            max_concurrent_jobs=_worker_capacity(),
+            worker_key=os.environ.get("PUBLIC_WORKER_KEY", "").strip() or "default",
             retention_days=int(os.environ.get("PUBLIC_RETENTION_DAYS", "30")),
             account_retention_days=int(os.environ.get("PUBLIC_ACCOUNT_RETENTION_DAYS", "365")),
             database_url=os.environ.get("PUBLIC_DATABASE_URL", "").strip(),

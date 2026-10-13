@@ -360,6 +360,7 @@ def _finished_token(client: TestClient) -> str:
     client.put(upload["url"], content=b"12345678", headers=upload["headers"])
     client.post(f"/api/submissions/{created['token']}/uploaded")
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     return created["token"]
 
 

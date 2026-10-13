@@ -7,6 +7,54 @@
 
 export const GAME_LANGUAGES = ["en", "ja"];
 
+const GAME_LANGUAGE_KEY = "s3-coach-game-language";
+
+/** Saved game-video language, or "" when nothing valid is stored. */
+export function rememberedGameLanguage(storage = globalThis.localStorage) {
+  try {
+    const value = storage?.getItem(GAME_LANGUAGE_KEY);
+    return GAME_LANGUAGES.includes(value) ? value : "";
+  } catch {
+    return "";
+  }
+}
+
+/** Keep the last chosen game-video language. Site locale is not stored here. */
+export function rememberGameLanguage(language, storage = globalThis.localStorage) {
+  if (!GAME_LANGUAGES.includes(language)) {
+    return;
+  }
+  try {
+    storage?.setItem(GAME_LANGUAGE_KEY, language);
+  } catch {
+    // Private browsing can reject storage. The current page still has the choice.
+  }
+}
+
+const REVIEW_CODE_LENGTH = 16;
+
+/** Letters and digits only, grouped as ``XXXX-XXXX-XXXX-XXXX``. */
+export function formatReviewCode(raw) {
+  const chars = String(raw || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, REVIEW_CODE_LENGTH);
+  return chars.replace(/(.{4})(?=.)/g, "$1-");
+}
+
+/** True when the masked code has all 16 characters. */
+export function reviewCodeComplete(value) {
+  return /^[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/.test(String(value || ""));
+}
+
+/** Language plus a video. A review code is optional and does not enable submit. */
+export function submitReady({ file, language }) {
+  if (!GAME_LANGUAGES.includes(language)) {
+    return false;
+  }
+  return Boolean(file);
+}
+
 /** First blocking problem as an i18n key, or null when the form may be sent. */
 export function submitError({ file, language, maxBytes, token }) {
   if (!file) {
@@ -54,7 +102,7 @@ export function centsFromDollars(text) {
 }
 
 /** POST /api/submissions body. Takes no site locale on purpose. */
-export function submissionBody({ token, file, language, account, notify, email, displayName }) {
+export function submissionBody({ token, file, language, account, notify, email }) {
   return {
     turnstile_token: token,
     filename: file.name,
@@ -62,7 +110,7 @@ export function submissionBody({ token, file, language, account, notify, email, 
     content_type: file.type || "video/mp4",
     language,
     email: account ? null : notify ? email : null,
-    notify: account ? false : notify,
-    display_name: displayName || null,
+    notify: Boolean(notify),
+    display_name: null,
   };
 }

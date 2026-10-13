@@ -35,6 +35,7 @@ LOGIN_REQUIRED = "Log in to continue."
 BAD_FEEDBACK = "Enter your feedback."
 BAD_FEEDBACK_LONG = "Feedback must be 2000 characters or fewer."
 PAYMENT_UNAVAILABLE = "Paid analysis is not available yet."
+WORKER_CAPACITY_UNAVAILABLE = "Worker capacity can only be saved when the database is configured."
 PAYMENT_WINDOW = "The payment window for this submission has closed."
 PAYMENT_NOT_REQUIRED = "This submission does not require payment."
 MAIL_FAILED = (

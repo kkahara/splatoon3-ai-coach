@@ -227,6 +227,37 @@ def _admin_session(accounts: AccountStore) -> str:
     return session
 
 
+def test_admin_can_change_the_account_upload_limit(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    accounts = AccountStore(payments.database_url)
+    accounts.ensure_schema()
+    accounts.clear()
+    client = _client(tmp_path, payments, FakeCheckout(), accounts=accounts)
+    client.cookies.set(SESSION_COOKIE, _admin_session(accounts))
+    current = client.get("/api/admin/price")
+    assert current.status_code == 200
+    assert current.json()["account_uploads_per_hour"] == 5
+    saved = client.put("/api/admin/upload-limit", json={"account_uploads_per_hour": 8})
+    assert saved.status_code == 200
+    assert saved.json() == {"account_uploads_per_hour": 8}
+    assert payments.account_upload_limit() == 8
+    priced = client.put("/api/admin/price", json={"price_cents": 200})
+    assert priced.status_code == 200
+    assert priced.json()["pricing_version"] == 1
+    assert priced.json()["account_uploads_per_hour"] == 8
+    rejected = client.put("/api/admin/upload-limit", json={"account_uploads_per_hour": 0})
+    assert rejected.status_code == 422
+    for value in (8.5, 8.0, "8", "nope", 101, True):
+        bad = client.put(
+            "/api/admin/upload-limit",
+            json={"account_uploads_per_hour": value},
+        )
+        assert bad.status_code == 422
+    assert payments.account_upload_limit() == 8
+    accounts.clear()
+
+
 def test_guest_is_refused_until_a_price_exists(
     tmp_path: Path, payments: PaymentStore
 ) -> None:
@@ -629,6 +660,7 @@ def test_processing_failure_is_an_allowlisted_funnel_event(
     client.post(f"/api/submissions/{token}/checkout")
     _webhook(client, _event(checkout.created[0]))
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     failed = [row for row in payments.event_counts() if row.kind == "analysis_failed"]
     assert len(failed) == 1
     assert failed[0].price_cents == 199

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { AccountBar } from "../AccountBar.jsx";
 import {
   loadAccount,
   loadConfig,
   loadOwnedSubmission,
   loadSubmission,
-  logoutAccount,
   openCheckout,
   sendFeedback,
   shareOwnedReview,
@@ -102,9 +102,10 @@ export function ReviewPage() {
 
   return (
     <main className="sheet">
-      <ResultNav account={account} onChange={setAccount} />
+      <AccountBar account={account} onChange={setAccount} />
       <p className="brand">{t("brand")}</p>
       <h1>{t(headingKey(view))}</h1>
+      {view?.notice_pending ? <p className="note">{t("review.notice_pending")}</p> : null}
       <p>{t("review.keep_link")}</p>
       <div className="link-row">
         <input readOnly value={window.location.href} aria-label={t("review.private_link")} />
@@ -164,34 +165,6 @@ export function ReviewPage() {
         <Link to="/">{t("review.submit_another")}</Link>
       </p>
     </main>
-  );
-}
-
-function ResultNav({ account, onChange }) {
-  const navigate = useNavigate();
-  const t = useT();
-
-  async function logout() {
-    await logoutAccount();
-    if (onChange) {
-      onChange(null);
-    }
-    navigate("/");
-  }
-
-  return (
-    <header className="top">
-      <nav>
-        <Link to="/">{t("review.submit_another")}</Link>
-        {account ? (
-          <button type="button" className="linkish" onClick={logout}>
-            {t("account.log_out")}
-          </button>
-        ) : (
-          <Link to="/login">{t("common.log_in")}</Link>
-        )}
-      </nav>
-    </header>
   );
 }
 

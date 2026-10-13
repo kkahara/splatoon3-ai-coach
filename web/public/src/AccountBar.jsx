@@ -1,9 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logoutAccount } from "./api.js";
 import { useT } from "./i18n/LocaleContext.jsx";
 
 export function AccountBar({ account, onChange }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const t = useT();
 
   async function logout() {
@@ -17,6 +18,9 @@ export function AccountBar({ account, onChange }) {
   return (
     <header className="top">
       <nav>
+        {pathname === "/" ? null : (
+          <Link to="/">{t("coaching.submit_video")}</Link>
+        )}
         {account ? (
           <>
             <Link to="/coaching">{t("account.past_coaching")}</Link>

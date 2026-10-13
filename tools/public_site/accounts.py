@@ -27,6 +27,7 @@ from public_site.errors import (
     UNVERIFIED,
     RequestRejected,
 )
+from public_site.guest_notices import GUEST_SCHEMA
 from public_site.store import parse_utc
 from public_site.tokens import hash_token, new_token
 
@@ -54,6 +55,10 @@ _SCHEMA = (
     """,
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at timestamptz",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at timestamptz",
+    """
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_by_email boolean
+        NOT NULL DEFAULT true
+    """,
     "CREATE INDEX IF NOT EXISTS users_signup_ip ON users (signup_ip_hash)",
     """
     CREATE TABLE IF NOT EXISTS sessions (
@@ -95,6 +100,7 @@ _SCHEMA = (
         created_at timestamptz NOT NULL
     )
     """,
+    *GUEST_SCHEMA,
 )
 
 
@@ -107,6 +113,7 @@ class Account:
     name: str
     verified: bool
     role: str = "user"
+    notify_by_email: bool = True
 
 
 @dataclass(frozen=True)
@@ -134,7 +141,12 @@ class AccountStore:
     def clear(self) -> None:
         """Delete account rows. Used by tests, not by the public site."""
         with self._conn() as conn:
-            conn.execute("TRUNCATE feedback, users CASCADE")
+            conn.execute(
+                """
+                TRUNCATE guest_email_challenges, guest_notice_requests,
+                    guest_verified_emails, guest_notice_browsers, feedback, users CASCADE
+                """
+            )
 
     def register(
         self,
@@ -242,7 +254,7 @@ class AccountStore:
             row = conn.execute(
                 """
                 SELECT users.id, users.email, users.name, users.verified_at,
-                       users.role, users.last_seen_at
+                       users.role, users.last_seen_at, users.notify_by_email
                 FROM sessions
                 JOIN users ON users.id = sessions.user_id
                 WHERE sessions.token_hash = %s AND sessions.expires_at > %s
@@ -364,6 +376,14 @@ class AccountStore:
                 (str(uuid.uuid4()), submission_id, user_id, text, now),
             )
         logger.info("feedback stored for submission {}", submission_id)
+
+    def set_notice_preference(self, user_id: str, enabled: bool) -> None:
+        """Save whether this account wants email notices by default."""
+        with self._conn() as conn:
+            conn.execute(
+                "UPDATE users SET notify_by_email = %s WHERE id = %s",
+                (enabled, user_id),
+            )
 
     def _conn(self) -> psycopg.Connection:
         return psycopg.connect(self.database_url, row_factory=dict_row)
@@ -519,6 +539,7 @@ def _account(row: dict) -> Account:
         name=row["name"],
         verified=row["verified_at"] is not None,
         role=str(row.get("role") or "user"),
+        notify_by_email=bool(row.get("notify_by_email", True)),
     )
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import subprocess
 import uuid
 from collections.abc import Callable
@@ -28,7 +29,7 @@ from public_site.errors import (
     UPLOAD_MISSING,
     UPLOAD_UNFINISHED,
 )
-from public_site.frames import extract_frames, ffmpeg_argv, frame_seek
+from public_site.frames import extract_frames, ffmpeg_argv, frame_seek, moment_seek
 from public_site.media_probe import ProbeFacts, ProbeRejected, interpret_probe
 from public_site.models import Submission
 from public_site.results import load_result
@@ -42,6 +43,7 @@ from typer.testing import CliRunner
 
 from splatoon3_ai_coach.cli.app import app as cli_app
 from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
+from splatoon3_ai_coach.coach.artifacts import CoachingIndexEntry
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
 from splatoon3_ai_coach.config.paths import default_config_path
 
@@ -162,6 +164,7 @@ def test_site_locale_never_selects_the_vision_language(
     client.post(f"/api/submissions/{token}/uploaded")
     assert client.get(f"/api/submissions/{token}?locale={site_locale}").status_code == 200
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     analyze = next(argv for argv in calls if "analyze" in argv)
     assert analyze[analyze.index("--language") + 1] == game_language
 
@@ -292,6 +295,7 @@ def test_public_view_hides_internal_fields(tmp_path: Path) -> None:
     assert queued.json()["status"] == "queued"
     assert queued.json()["step"] == "queued"
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     response = client.get(f"/api/submissions/{token}")
     assert response.status_code == 200
     body = response.json()
@@ -373,6 +377,7 @@ def test_analyze_failure_skips_later_stages(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     assert stored.status == "failed"
     assert stored.error == ANALYSIS_FAILED
@@ -393,6 +398,7 @@ def test_llm_failure_still_completes_when_inputs_exist(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     body = client.get(f"/api/submissions/{token}").json()
     assert body["status"] == "complete"
     assert body["result"]["moments"][0]["statements"] == [STATEMENT]
@@ -497,6 +503,7 @@ def test_complete_deletes_the_source_video_outside_dev_mode(tmp_path: Path) -> N
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     video = client.app.state.store.get_video(stored.id)
     assert stored.status == "complete"
@@ -513,6 +520,7 @@ def test_dev_mode_keeps_the_source_video(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     video = client.app.state.store.get_video(stored.id)
     assert video.object_key.endswith("source.mp4")
@@ -528,6 +536,7 @@ def test_failed_analysis_keeps_the_source_video(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     video = client.app.state.store.get_video(stored.id)
     assert stored.status == "failed"
@@ -547,6 +556,7 @@ def test_no_deaths_completes_with_an_empty_outcome(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     assert stored.status == "complete"
     assert stored.outcome == "no_deaths"
@@ -566,6 +576,7 @@ def test_coached_submission_records_coached_outcome(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     assert stored.status == "complete"
     assert stored.outcome == "coached"
@@ -580,6 +591,7 @@ def test_coach_inputs_crash_stays_coaching_failed(tmp_path: Path) -> None:
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     client.app.state.worker.pump()
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     assert stored.error == COACHING_FAILED
 
@@ -603,6 +615,7 @@ def test_failed_video_delete_keeps_the_review(tmp_path: Path) -> None:
     try:
         client.post(f"/api/submissions/{token}/uploaded")
         assert app.state.worker.pump() is True
+        app.state.worker.join()
     finally:
         logger.remove(sink)
     stored = app.state.store.list_submissions()[0]
@@ -699,6 +712,7 @@ def test_worker_top_level_telemetry_is_serial_and_frames_finish_first(
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
 
     worker_events = telemetry.events[telemetry.events.index("started") :]
     assert worker_events == [
@@ -756,7 +770,7 @@ def test_dev_mode_keeps_regular_upload_limits(monkeypatch, tmp_path: Path) -> No
     assert settings.max_video_bytes == 750 * 1024 * 1024
     assert settings.submissions_per_hour == 6
     assert settings.guest_submissions_per_hour == 2
-    assert settings.account_submissions_per_hour == 2
+    assert settings.account_submissions_per_hour == 5
     assert settings.submission_window_seconds == 3600
     assert settings.accounts_per_ip == 50
     monkeypatch.delenv("PUBLIC_DEV_MODE", raising=False)
@@ -764,7 +778,7 @@ def test_dev_mode_keeps_regular_upload_limits(monkeypatch, tmp_path: Path) -> No
     assert production.max_video_bytes == 750 * 1024 * 1024
     assert production.submissions_per_hour == 6
     assert production.guest_submissions_per_hour == 2
-    assert production.account_submissions_per_hour == 2
+    assert production.account_submissions_per_hour == 5
     assert production.submission_window_seconds == 3600
     assert production.accounts_per_ip == 3
 
@@ -889,6 +903,79 @@ def test_frame_seek_clamps_a_moment_near_the_start(tmp_path: Path) -> None:
     assert direct[direct.index("-ss") + 1] == seek
 
 
+def test_death_frame_uses_the_latest_cue_before_the_death(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    death = 80.0
+    both = _indexed_death(analysis, "both", death)
+    _write_cues(analysis, both, low_ink=[74.0], special=[77.0])
+    assert moment_seek(analysis, both) == 77.0
+    _write_cues(analysis, both, low_ink=[77.0], special=[74.0])
+    assert moment_seek(analysis, both) == 77.0
+    ink = _indexed_death(analysis, "ink", death)
+    _write_cues(analysis, ink, low_ink=[74.0], special=[])
+    assert moment_seek(analysis, ink) == 74.0
+    gauge = _indexed_death(analysis, "gauge", death)
+    _write_cues(analysis, gauge, low_ink=[], special=[77.0])
+    assert moment_seek(analysis, gauge) == 77.0
+    quiet = _indexed_death(analysis, "quiet", death)
+    _write_cues(analysis, quiet, low_ink=[], special=[])
+    assert moment_seek(analysis, quiet) == 79.5
+    late = _indexed_death(analysis, "late", death)
+    _write_cues(analysis, late, low_ink=[80.0, 81.0], special=[80.0])
+    assert moment_seek(analysis, late) == 79.5
+    invalid = _indexed_death(analysis, "invalid", death)
+    _write_special(analysis, invalid, video_time=77.0, coaching_valid=False)
+    assert moment_seek(analysis, invalid) == 79.5
+    other = CoachingIndexEntry.model_validate(
+        index_entry("splat_80.0", video_time=death, rank=1, candidate_type="splat")
+    )
+    _write_cues(analysis, other, low_ink=[77.0], special=[76.0])
+    assert moment_seek(analysis, other) == 79.5
+
+
+def test_death_frame_lookback_includes_the_eighth_second(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    death = 80.0
+    edge = death - 8.0
+    older = math.nextafter(edge, 0.0)
+    on_edge = _indexed_death(analysis, "edge", death)
+    _write_cues(analysis, on_edge, low_ink=[edge], special=[])
+    assert moment_seek(analysis, on_edge) == edge
+    just_older = _indexed_death(analysis, "older", death)
+    _write_cues(analysis, just_older, low_ink=[older], special=[])
+    assert moment_seek(analysis, just_older) == 79.5
+    gauge_edge = _indexed_death(analysis, "gauge_edge", death)
+    _write_cues(analysis, gauge_edge, low_ink=[], special=[edge])
+    assert moment_seek(analysis, gauge_edge) == edge
+    gauge_older = _indexed_death(analysis, "gauge_older", death)
+    _write_cues(analysis, gauge_older, low_ink=[], special=[older])
+    assert moment_seek(analysis, gauge_older) == 79.5
+
+
+def test_malformed_cue_file_keeps_the_half_second_still(tmp_path: Path) -> None:
+    video = tmp_path / "clip.mp4"
+    _sample_video(video)
+    analysis = tmp_path / "analysis"
+    death = 2.0
+    entry = _moment_entry("death_episode_2.0", death, 1)
+    _write_index(analysis, [entry])
+    (analysis / "vision_manifest.json").write_text("{", encoding="utf-8")
+    coach = analysis / "coach_inputs" / "death_episode_2.0.coach_input.json"
+    coach.write_text("{", encoding="utf-8")
+    seen: list[list[str]] = []
+
+    def run(argv: list[str]) -> int:
+        seen.append(argv)
+        completed = subprocess.run(argv, capture_output=True, check=False)
+        return int(completed.returncode)
+
+    extract_frames(analysis, video, run=run)
+    argv = seen[0]
+    assert argv[argv.index("-ss") + 1] == "1.500"
+    jpeg = analysis / "public_frames" / "death_episode_2.0.jpg"
+    assert jpeg.read_bytes()[:2] == b"\xff\xd8"
+
+
 def test_frame_urls_follow_result_moment_order(tmp_path: Path) -> None:
     video = _sample_video(tmp_path / "clip.mp4")
     early = _moment_entry("early_0.5", 0.5, 2)
@@ -922,6 +1009,7 @@ def test_failed_grab_still_completes_without_an_image(
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     stored = client.app.state.store.list_submissions()[0]
     video_row = client.app.state.store.get_video(stored.id)
     body = client.get(f"/api/submissions/{token}").json()
@@ -969,6 +1057,7 @@ def _finish_video(
     uploaded = client.post(f"/api/submissions/{token}/uploaded")
     assert uploaded.status_code == 200
     assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
     return client, token
 
 
@@ -998,6 +1087,71 @@ def _write_index(analysis: Path, entries: list[dict]) -> None:
 
 def _moment_entry(safe_id: str, video_time: float, rank: int) -> dict:
     return index_entry(safe_id, video_time=video_time, rank=rank)
+
+
+def _indexed_death(analysis: Path, safe_id: str, video_time: float) -> CoachingIndexEntry:
+    analysis.mkdir(parents=True, exist_ok=True)
+    return CoachingIndexEntry.model_validate(
+        index_entry(safe_id, video_time=video_time, rank=1)
+    )
+
+
+def _write_cues(
+    analysis: Path,
+    entry: CoachingIndexEntry,
+    *,
+    low_ink: list[float],
+    special: list[float],
+) -> None:
+    events = [
+        {"event_type": "low_ink", "start_time": start, "confidence": 1.0}
+        for start in low_ink
+    ]
+    (analysis / "vision_manifest.json").write_text(
+        json.dumps({"game_events": events}),
+        encoding="utf-8",
+    )
+    observations = [_ready_reading(time) for time in special]
+    _write_observations(analysis, entry, observations)
+
+
+def _write_special(
+    analysis: Path,
+    entry: CoachingIndexEntry,
+    *,
+    video_time: float,
+    coaching_valid: bool,
+) -> None:
+    (analysis / "vision_manifest.json").write_text(
+        json.dumps({"game_events": []}),
+        encoding="utf-8",
+    )
+    reading = _ready_reading(video_time)
+    reading["coaching_valid"] = coaching_valid
+    _write_observations(analysis, entry, [reading])
+
+
+def _ready_reading(video_time: float) -> dict:
+    return {
+        "video_time": video_time,
+        "visible": True,
+        "ready": True,
+        "coaching_valid": True,
+    }
+
+
+def _write_observations(
+    analysis: Path,
+    entry: CoachingIndexEntry,
+    observations: list[dict],
+) -> None:
+    folder = analysis / "coach_inputs"
+    folder.mkdir(parents=True, exist_ok=True)
+    document = {"primary_context": {"special": {"observations": observations}}}
+    (folder / entry.coach_input_json).write_text(
+        json.dumps(document),
+        encoding="utf-8",
+    )
 
 
 def _sample_video(path: Path) -> bytes:

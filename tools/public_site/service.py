@@ -31,6 +31,7 @@ from public_site.errors import (
     RequestRejected,
 )
 from public_site.frames import extract_frames, frame_path, missing_frames, ranked_entries
+from public_site.guest_notices import GuestNotices
 from public_site.limits import RateLimiter
 from public_site.localize import Translator, localize_result
 from public_site.media_probe import ProbeFacts, ProbeRejected, probe_file
@@ -46,12 +47,20 @@ from public_site.payments import FailureCategory, PaymentStore, PriceQuote, Subm
 from public_site.results import load_result
 from public_site.settings import PublicSettings
 from public_site.storage import LocalStorage, R2Storage
-from public_site.store import PublicStore, add_days, parse_utc, utc_now
-from public_site.stripe_checkout import CheckoutEvent, CheckoutGateway, CheckoutSession
+from public_site.store import PublicStore, add_days, copy_lifecycle, parse_utc, utc_now
+from public_site.stripe_checkout import (
+    CheckoutEvent,
+    CheckoutGateway,
+    CheckoutRequestError,
+    CheckoutSession,
+)
 from public_site.telemetry import TelemetryStore, best_effort, classify_error
 from public_site.tokens import hash_ip, hash_token, new_token
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_CLAIM_STALE = timedelta(minutes=2)
+_TERMINAL_NOTICES = frozenset({"ready", "no_moments", "failed"})
+_BURST_WINDOW = timedelta(hours=24)
 _TYPES = frozenset({"video/mp4", "video/quicktime"})
 _SUFFIXES = frozenset({".mp4", ".mov"})
 Probe = Callable[[Path], ProbeFacts]
@@ -81,6 +90,8 @@ class SubmissionService:
         self.storage = storage
         self.notices = notices
         self.accounts = accounts
+        database_url = getattr(accounts, "database_url", None)
+        self.guest = GuestNotices(database_url) if database_url else None
         self.translator = translator
         self.telemetry = telemetry
         self.payments = payments
@@ -121,7 +132,7 @@ class SubmissionService:
             raise RequestRejected(429, CAPACITY)
         cap = None if privileged else self.settings.max_video_bytes
         suffix, mime = _declared_file(filename, content_type, size_bytes, cap)
-        notice_email = _notice_email(email, notify)
+        notice_email = email if user_id else _notice_email(email, notify)
         name = _display_name(display_name)
         created, submission = self._persist(
             suffix=suffix,
@@ -167,7 +178,7 @@ class SubmissionService:
             own_limit = self.settings.guest_submissions_per_hour
         else:
             own_key = "user:" + hash_token(user_id)
-            own_limit = self.settings.account_submissions_per_hour
+            own_limit = self._account_upload_limit()
         checks = [(ip_key, self.settings.submissions_per_hour), (own_key, own_limit)]
         full = self.limiter.allow_all(checks, now)
         if full is None:
@@ -175,6 +186,12 @@ class SubmissionService:
         if full == own_key and user_id is not None:
             raise RequestRejected(429, ACCOUNT_RATE_LIMIT)
         raise RequestRejected(429, RATE_LIMIT)
+
+    def _account_upload_limit(self) -> int:
+        """Logged-in cap. The database value wins when payments are configured."""
+        if self.payments is None:
+            return self.settings.account_submissions_per_hour
+        return self.payments.account_upload_limit()
 
     def confirm(self, token: str) -> PublicSubmissionResponse:
         """Record the upload, then queue when payment is already satisfied."""
@@ -230,6 +247,7 @@ class SubmissionService:
             locale=locale,
             result=result,
             payment_state=self._payment_state(submission.id),
+            notice_pending=self._notice_pending(submission),
         )
 
     def moment_frame(self, token: str, index: int) -> Path:
@@ -249,6 +267,7 @@ class SubmissionService:
         self._release_unpaid(now)
         self._recover_ready()
         self._expire(now)
+        self.retry_notices(now)
 
     def _persist(
         self,
@@ -347,8 +366,8 @@ class SubmissionService:
         submission.step = "queued"
         submission.updated_at = utc_now()
         self.store.save_video(video)
-        self.notices.send(submission, "received", token)
         self.store.save_submission(submission)
+        self.deliver_notice(submission, "received")
         if self.telemetry is not None:
             best_effort(
                 "queued",
@@ -374,6 +393,7 @@ class SubmissionService:
         submission.error = detail
         submission.updated_at = utc_now()
         self.store.save_video(video)
+        self._save_lifecycle(submission)
         self.note_terminal(submission, "failed")
         if self.telemetry is not None:
             code, diagnostic = classify_error(detail)
@@ -397,12 +417,172 @@ class SubmissionService:
         self._price_event(submission_id, "analysis_failed", category)
 
     def note_terminal(self, submission: Submission, kind: str) -> None:
-        """Send a ready or failed notice when a sealed token still exists."""
-        token = self.notices.read_sealed(submission.id)
-        if token:
-            self.notices.send(submission, kind, token)
-            self.notices.clear_sealed(submission.id)
-        self.store.save_submission(submission)
+        """Send a ready or failed notice for a status the caller already saved.
+
+        This does not write ``submission``: another thread may have changed
+        notice fields since the caller loaded it. A failed send keeps the
+        sealed token.
+        """
+        self.deliver_notice(submission, kind)
+
+    def _save_lifecycle(self, submission: Submission) -> None:
+        """Save status fields without overwriting notice fields written elsewhere."""
+        self.store.update(submission.id, lambda current: copy_lifecycle(submission, current))
+
+    def arrange_guest_notice(
+        self,
+        created: CreateSubmissionResponse,
+        email: str,
+        browser_cookie: str,
+        now: datetime | None = None,
+    ) -> tuple[bool, str | None]:
+        """Bind a guest notice request. Returns pending, and a cookie when new."""
+        if self.guest is None:
+            return False, None
+        moment = now or datetime.now(UTC)
+        submission = self.store.get_by_hash(hash_token(created.token))
+        if submission is None:
+            return False, None
+        self.notices.seal(submission.id, created.token)
+        browser_id, fresh = self.guest.open_browser(browser_cookie or None, moment)
+        if self.guest.is_verified(browser_id, email):
+            self._enable_notice(submission, email)
+            self.guest.remember_verified(browser_id, email, moment)
+            return False, fresh
+        self.guest.add_request(browser_id, submission.id, email, moment)
+        self._maybe_confirm(browser_id, email, submission.id, moment)
+        return True, fresh
+
+    def confirm_guest_notice(self, token: str, now: datetime | None = None) -> bool:
+        """Verify one address for the browser that requested it, then enable notices."""
+        if self.guest is None:
+            return False
+        moment = now or datetime.now(UTC)
+        found = self.guest.consume(token, moment)
+        if found is None:
+            return False
+        browser_id, email = found
+        since = moment - _BURST_WINDOW
+        for submission_id in self.guest.pending_ids(browser_id, email, since):
+            self._confirm_request(submission_id, email, moment)
+        return True
+
+    def deliver_notice(self, submission: Submission, kind: str) -> None:
+        """Move one notice unsent → claimed → sent. A stale claim can be retried."""
+        current = self.store.get(submission.id)
+        if current is None or kind in current.notices_sent:
+            return
+        if not current.notify or not current.email:
+            return
+        token = self.notices.read_sealed(current.id)
+        if not token or not self._claim_notice(current, kind):
+            return
+        try:
+            self.notices.deliver(current, kind, token)
+        except Exception as exc:
+            logger.warning(
+                "notice {} failed for submission {} ({})",
+                kind,
+                current.id,
+                type(exc).__name__,
+            )
+            return
+        self._mark_notice_sent(current.id, kind)
+
+    def retry_notices(self, now: datetime) -> None:
+        """Retry claims that were left behind by a failed send."""
+        for submission in self.store.list_submissions():
+            for kind in list(submission.notice_claims):
+                if kind in submission.notices_sent:
+                    continue
+                stamp = submission.notice_claims.get(kind)
+                if stamp and parse_utc(stamp) > now - _CLAIM_STALE:
+                    continue
+                self.deliver_notice(submission, kind)
+
+    def _maybe_confirm(self, browser_id: str, email: str, submission_id: str, now: datetime) -> None:
+        if self.guest is None:
+            return
+        started = self.guest.begin_challenge(browser_id, email, submission_id, now)
+        if started is None:
+            return
+        challenge_id, token = started
+        url = f"{self.settings.public_base_url}/confirm-notices/{token}"
+        try:
+            self.notices.send_confirm(email, url)
+        except Exception as exc:
+            self.guest.drop_challenge(challenge_id)
+            logger.warning(
+                "notice confirmation failed for submission {} ({})",
+                submission_id,
+                type(exc).__name__,
+            )
+
+    def _confirm_request(self, submission_id: str, email: str, now: datetime) -> None:
+        if self.guest is None:
+            return
+        submission = self.store.get(submission_id)
+        if submission is None or submission.email is not None or submission.notify:
+            return
+        self._enable_notice(submission, email)
+        self.guest.mark_confirmed(submission_id, now)
+        self._release_due_notices(submission)
+
+    def _enable_notice(self, submission: Submission, email: str) -> None:
+        submission.email = email
+        submission.notify = True
+        submission.updated_at = utc_now()
+
+        def enable(current: Submission) -> None:
+            current.email = email
+            current.notify = True
+            current.updated_at = submission.updated_at
+
+        self.store.update(submission.id, enable)
+
+    def _release_due_notices(self, submission: Submission) -> None:
+        if submission.status == "complete":
+            kind = "no_moments" if submission.outcome == "no_deaths" else "ready"
+            self.deliver_notice(submission, kind)
+            return
+        if submission.status == "failed":
+            self.deliver_notice(submission, "failed")
+            return
+        if submission.status in {"queued", "processing"}:
+            self.deliver_notice(submission, "received")
+
+    def _claim_notice(self, submission: Submission, kind: str) -> bool:
+        won: list[bool] = []
+
+        def claim(current: Submission) -> None:
+            if kind in current.notices_sent:
+                return
+            claimed = current.notice_claims.get(kind)
+            if claimed and parse_utc(claimed) > datetime.now(UTC) - _CLAIM_STALE:
+                return
+            current.notice_claims[kind] = utc_now()
+            current.updated_at = utc_now()
+            won.append(True)
+
+        self.store.update(submission.id, claim)
+        return bool(won)
+
+    def _mark_notice_sent(self, submission_id: str, kind: str) -> None:
+        def mark(current: Submission) -> None:
+            if kind not in current.notices_sent:
+                current.notices_sent.append(kind)
+            current.notice_claims.pop(kind, None)
+            current.updated_at = utc_now()
+
+        if self.store.update(submission_id, mark) is None:
+            return
+        if kind in _TERMINAL_NOTICES:
+            self.notices.clear_sealed(submission_id)
+
+    def _notice_pending(self, submission: Submission) -> bool:
+        if self.guest is None or submission.notify or submission.email:
+            return False
+        return self.guest.has_open_request(submission.id)
 
     def release_source_video(self, submission: Submission) -> None:
         """Delete the source video after a completed review is stored.
@@ -516,6 +696,7 @@ class SubmissionService:
         submission.status = "failed"
         submission.error = UPLOAD_UNFINISHED
         submission.updated_at = utc_now()
+        self._save_lifecycle(submission)
         self.note_terminal(submission, "failed")
         if self.telemetry is not None:
             code, diagnostic = classify_error(UPLOAD_UNFINISHED)
@@ -712,7 +893,20 @@ class SubmissionService:
         if attempt is None:
             raise RequestRejected(409, PAYMENT_WINDOW)
         self._require_stripe_lifetime(gate)
-        created = self.checkout.create_session(
+        try:
+            created = self._create_checkout_session(submission, token, gate, attempt)
+        except CheckoutRequestError as exc:
+            self.payments.abandon_checkout_attempt(submission.id, attempt)
+            raise RequestRejected(502, exc.message) from exc
+        if not self.payments.attach_session(submission.id, attempt, created.id, created.url or ""):
+            raise RequestRejected(409, PAYMENT_WINDOW)
+        return {"url": created.url, "paid": False, "pending": False}
+
+    def _create_checkout_session(
+        self, submission: Submission, token: str, gate: SubmissionGate, attempt: int
+    ) -> CheckoutSession:
+        """Ask Stripe for one session. The idempotency key is the attempt number."""
+        return self.checkout.create_session(
             submission_id=submission.id,
             price_cents=gate.price_cents,
             currency=gate.currency,
@@ -721,9 +915,6 @@ class SubmissionService:
             cancel_url=f"{self.settings.public_base_url}/review/{token}",
             idempotency_key=f"{submission.id}:{attempt}",
         )
-        if not self.payments.attach_session(submission.id, attempt, created.id, created.url or ""):
-            raise RequestRejected(409, PAYMENT_WINDOW)
-        return {"url": created.url, "paid": False, "pending": False}
 
     def _require_open_window(self, gate: SubmissionGate) -> None:
         if gate.status == "expired" or gate.expires_at <= datetime.now(UTC):

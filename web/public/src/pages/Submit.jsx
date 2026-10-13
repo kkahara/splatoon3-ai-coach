@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import {
@@ -12,7 +12,16 @@ import {
 } from "../api.js";
 import heroBanner from "../assets/splatoon3-ai-coach-banner.jpg";
 import { useT } from "../i18n/LocaleContext.jsx";
-import { submissionBody, submitButtonLabel, submitError } from "./submitForm.js";
+import {
+  formatReviewCode,
+  rememberedGameLanguage,
+  rememberGameLanguage,
+  reviewCodeComplete,
+  submissionBody,
+  submitButtonLabel,
+  submitError,
+  submitReady,
+} from "./submitForm.js";
 
 const REGULAR_MAX_BYTES = 750 * 1024 * 1024;
 
@@ -31,31 +40,50 @@ export function SubmitPage() {
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
   // No browser-locale default: it selects HUD templates and must match the video.
-  const [language, setLanguage] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [language, setLanguage] = useState(rememberedGameLanguage);
+  const [reviewCode, setReviewCode] = useState("");
+  const fileInput = useRef(null);
   const [account, setAccount] = useState(null);
   const [notify, setNotify] = useState(false);
+  const [notifyTouched, setNotifyTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const sessionKey = account ? `${account.role}:${account.email}` : "";
+
   useEffect(() => {
-    loadConfig()
-      .then((next) => {
-        setConfig(next);
-        recordPageView().catch(() => {});
-      })
-      .catch((exc) => setError(exc.message));
+    recordPageView().catch(() => {});
     loadAccount()
-      .then((next) => {
-        setAccount(next);
-        if (next?.name) {
-          setDisplayName((current) => current || next.name);
-        }
-      })
+      .then(setAccount)
       .catch((exc) => setError(exc.message));
   }, []);
+
+  useEffect(() => {
+    // The priced label depends on the session: an admin is not charged.
+    let current = true;
+    loadConfig()
+      .then((next) => {
+        if (current) {
+          setConfig(next);
+        }
+      })
+      .catch((exc) => {
+        if (current) {
+          setError(exc.message);
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [sessionKey]);
+
+  useEffect(() => {
+    if (account && !notifyTouched) {
+      setNotify(Boolean(account.notify_by_email));
+    }
+  }, [account, notifyTouched]);
 
   useEffect(() => {
     if (!config?.turnstile_site_key) {
@@ -75,11 +103,23 @@ export function SubmitPage() {
     };
     document.body.appendChild(script);
     return () => script.remove();
-  }, [config]);
+  }, [config?.turnstile_site_key]);
+
+  function clearFile() {
+    setFile(null);
+    setError("");
+    if (fileInput.current) {
+      fileInput.current.value = "";
+    }
+  }
 
   async function onSubmit(event) {
     event.preventDefault();
     setError("");
+    if (!file && reviewCodeComplete(reviewCode)) {
+      setError(t("submit.review_code_unavailable"));
+      return;
+    }
     const token = config?.dev_mode ? "dev" : turnstileToken;
     const maxBytes = config && config.max_video_bytes == null ? null : config?.max_video_bytes;
     const problem = submitError({ file, language, maxBytes, token });
@@ -96,7 +136,7 @@ export function SubmitPage() {
     setBusy(true);
     try {
       const created = await createSubmission(
-        submissionBody({ token, file, language, account, notify, email, displayName }),
+        submissionBody({ token, file, language, account, notify, email }),
       );
       await uploadVideo(created.upload, file);
       await markUploaded(created.token);
@@ -125,15 +165,54 @@ export function SubmitPage() {
       <form onSubmit={onSubmit}>
         <label>
           {videoLabel(config, t)}
+          <span className="file-row">
+            <input
+              ref={fileInput}
+              type="file"
+              accept=".mp4,.mov,video/mp4,video/quicktime"
+              onChange={(event) => {
+                const next = event.target.files?.[0] || null;
+                setFile(next);
+                if (next) {
+                  setReviewCode("");
+                }
+                setError("");
+              }}
+            />
+            {file ? (
+              <button type="button" className="file-cancel" onClick={clearFile}>
+                {t("submit.cancel_file")}
+              </button>
+            ) : null}
+          </span>
+        </label>
+        <label>
+          {t("submit.review_code")}
           <input
-            type="file"
-            accept=".mp4,.mov,video/mp4,video/quicktime"
-            onChange={(event) => setFile(event.target.files?.[0] || null)}
+            value={reviewCode}
+            placeholder="XXXX-XXXX-XXXX-XXXX"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={19}
+            disabled
+            onChange={(event) => {
+              setReviewCode(formatReviewCode(event.target.value));
+              setError("");
+            }}
           />
         </label>
         <label>
           {t("submit.system_language")}
-          <select value={language} onChange={(event) => setLanguage(event.target.value)} required>
+          <select
+            value={language}
+            onChange={(event) => {
+              const next = event.target.value;
+              setLanguage(next);
+              rememberGameLanguage(next);
+            }}
+            required
+          >
             <option value="" disabled>
               {t("submit.choose_language")}
             </option>
@@ -141,25 +220,17 @@ export function SubmitPage() {
             <option value="ja">日本語</option>
           </select>
         </label>
-        <label>
-          {t("submit.display_name")}
+        <label className="check">
           <input
-            value={displayName}
-            maxLength={40}
-            onChange={(event) => setDisplayName(event.target.value)}
-            placeholder={t("submit.optional")}
+            type="checkbox"
+            checked={notify}
+            onChange={(event) => {
+              setNotifyTouched(true);
+              setNotify(event.target.checked);
+            }}
           />
+          {t("submit.notify")}
         </label>
-        {account ? null : (
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={notify}
-              onChange={(event) => setNotify(event.target.checked)}
-            />
-            {t("submit.notify")}
-          </label>
-        )}
         {!account && notify ? (
           <label>
             {t("common.email")}
@@ -181,7 +252,11 @@ export function SubmitPage() {
         ) : null}
         <button
           type="submit"
-          disabled={busy || (config?.payment_required && config.price_cents == null)}
+          disabled={
+            busy
+            || (config?.payment_required && config.price_cents == null)
+            || !submitReady({ file, language, reviewCode })
+          }
         >
           {busy ? t("submit.submitting") : submitButtonLabel(t, config)}
         </button>

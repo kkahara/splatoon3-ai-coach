@@ -1,6 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { centsFromDollars, formatUsd, submissionBody, submitButtonLabel, submitError } from "./submitForm.js";
+import {
+  centsFromDollars,
+  formatReviewCode,
+  formatUsd,
+  rememberedGameLanguage,
+  rememberGameLanguage,
+  reviewCodeComplete,
+  submissionBody,
+  submitButtonLabel,
+  submitError,
+  submitReady,
+} from "./submitForm.js";
 
 const file = { name: "match.mov", size: 10, type: "video/quicktime" };
 const ready = { file, maxBytes: 100, token: "ok" };
@@ -42,13 +53,96 @@ for (const [siteLocale, gameLanguage] of [
       account: null,
       notify: false,
       email: "",
-      displayName: "",
       locale: siteLocale,
     });
     assert.equal(body.language, gameLanguage);
+    assert.equal(body.display_name, null);
     assert.equal("locale" in body, false);
   });
 }
+
+test("a chosen game language is remembered", () => {
+  const stored = new Map();
+  const storage = {
+    getItem: (key) => (stored.has(key) ? stored.get(key) : null),
+    setItem: (key, value) => stored.set(key, value),
+  };
+  assert.equal(rememberedGameLanguage(storage), "");
+  rememberGameLanguage("ja", storage);
+  assert.equal(rememberedGameLanguage(storage), "ja");
+  rememberGameLanguage("fr", storage);
+  assert.equal(rememberedGameLanguage(storage), "ja");
+  rememberGameLanguage("en", storage);
+  assert.equal(rememberedGameLanguage(storage), "en");
+});
+
+test("a logged-in submission follows the checkbox and omits the address", () => {
+  const account = { email: "rin@example.com" };
+  const on = submissionBody({
+    token: "ok",
+    file,
+    language: "en",
+    account,
+    notify: true,
+    email: "other@example.com",
+  });
+  assert.equal(on.notify, true);
+  assert.equal(on.email, null);
+  const off = submissionBody({
+    token: "ok",
+    file,
+    language: "en",
+    account,
+    notify: false,
+    email: "other@example.com",
+  });
+  assert.equal(off.notify, false);
+  assert.equal(off.email, null);
+});
+
+test("a guest sends an address only when notices are requested", () => {
+  const on = submissionBody({
+    token: "ok",
+    file,
+    language: "en",
+    account: null,
+    notify: true,
+    email: "player@example.com",
+  });
+  assert.equal(on.notify, true);
+  assert.equal(on.email, "player@example.com");
+  const off = submissionBody({
+    token: "ok",
+    file,
+    language: "en",
+    account: null,
+    notify: false,
+    email: "player@example.com",
+  });
+  assert.equal(off.notify, false);
+  assert.equal(off.email, null);
+});
+
+test("a review code is masked as four groups of four", () => {
+  assert.equal(formatReviewCode("ab"), "AB");
+  assert.equal(formatReviewCode("abcd1234efgh5678"), "ABCD-1234-EFGH-5678");
+  assert.equal(formatReviewCode("abcd-1234-efgh-5678"), "ABCD-1234-EFGH-5678");
+  assert.equal(formatReviewCode("abcd 1234 efgh 5678!!extra"), "ABCD-1234-EFGH-5678");
+  assert.equal(reviewCodeComplete("ABCD-1234-EFGH-5678"), true);
+  assert.equal(reviewCodeComplete("ABCD-1234-EFGH-567"), false);
+  assert.equal(reviewCodeComplete(""), false);
+});
+
+test("the submit button waits for a language and a video", () => {
+  assert.equal(submitReady({ file, language: "", reviewCode: "" }), false);
+  assert.equal(submitReady({ file: null, language: "en", reviewCode: "" }), false);
+  assert.equal(submitReady({ file: null, language: "en", reviewCode: "ABCD-1234" }), false);
+  assert.equal(submitReady({ file, language: "ja", reviewCode: "" }), true);
+  assert.equal(
+    submitReady({ file: null, language: "en", reviewCode: "ABCD-1234-EFGH-5678" }),
+    false,
+  );
+});
 
 test("a priced submit button shows the amount before upload", () => {
   const t = (key, params) => (params?.price ? `${key}:${params.price}` : key);

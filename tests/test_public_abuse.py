@@ -149,7 +149,7 @@ def _rejected_detail(client: TestClient, ip: str, user_id: str | None) -> str:
 
 
 def test_accounts_and_guests_share_the_network_cap(tmp_path: Path) -> None:
-    client = _client(tmp_path)
+    client = _client(tmp_path, account_submissions_per_hour=2)
     ip = "203.0.113.7"
     for _ in range(2):
         _service_create(client, ip, "account-a")

@@ -21,7 +21,7 @@ from public_site.frames import extract_frames
 from public_site.models import CoachingOutcome, Submission
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
-from public_site.store import PublicStore, utc_now
+from public_site.store import PublicStore, copy_lifecycle, utc_now
 from public_site.telemetry import CoachingOutcome as TelemetryOutcome
 from public_site.telemetry import (
     Diagnostic,
@@ -33,6 +33,7 @@ from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
 from splatoon3_ai_coach.coach.artifacts import coaching_index_path
 
 Command = Callable[[list[str]], int]
+Capacity = Callable[[], int]
 
 
 def cli_launch() -> list[str]:
@@ -91,7 +92,11 @@ def subprocess_run(argv: list[str]) -> int:
 
 
 class PublicWorker:
-    """One analysis at a time. The lease fields are an audit marker, not a resume cursor."""
+    """Runs up to this worker's capacity of analyses at once.
+
+    Capacity belongs to this worker (``worker_key``), not to the whole site.
+    The lease fields are an audit marker, not a resume cursor.
+    """
 
     def __init__(
         self,
@@ -101,21 +106,40 @@ class PublicWorker:
         *,
         run_command: Command = subprocess_run,
         start_thread: bool = True,
+        capacity: Capacity | None = None,
     ) -> None:
         self.settings = settings
         self.store = store
         self.service = service
         self.telemetry = service.telemetry
         self.worker_id = settings.worker_id
+        self.worker_key = settings.worker_key
         self._run = run_command
+        self._capacity = capacity or (lambda: settings.max_concurrent_jobs)
         self._wake = threading.Event()
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
+        self._jobs: dict[str, threading.Thread] = {}
+        self._jobs_lock = threading.Lock()
         self._stage_seconds: dict[str, dict[str, float]] = {}
         self.recover()
         if start_thread:
             self._thread = threading.Thread(target=self._loop, name="public-submissions", daemon=True)
             self._thread.start()
+
+    @property
+    def active_jobs(self) -> int:
+        """Analyses this worker is running now."""
+        with self._jobs_lock:
+            return len(self._jobs)
+
+    def capacity(self) -> int:
+        """This worker's current capacity, read fresh for every claim."""
+        try:
+            return max(1, int(self._capacity()))
+        except Exception:
+            logger.exception("worker capacity read failed; using the configured value")
+            return max(1, self.settings.max_concurrent_jobs)
 
     def wake(self) -> None:
         """Ask the loop to look for queued submissions."""
@@ -126,8 +150,26 @@ class PublicWorker:
         self._stop.set()
         self._wake.set()
 
+    def join(self, timeout: float | None = None) -> None:
+        """Wait until every job thread started so far has finished."""
+        while True:
+            with self._jobs_lock:
+                threads = list(self._jobs.values())
+            if not threads:
+                return
+            for thread in threads:
+                thread.join(timeout)
+                if timeout is not None and thread.is_alive():
+                    return
+
     def recover(self) -> list[Submission]:
-        """Fail in-flight work. Queued submissions stay queued."""
+        """Fail in-flight work. Queued submissions stay queued.
+
+        Assumes this is the only worker, so every validating or processing
+        record is an orphan of an earlier run whatever ``worker_id`` it has.
+        Before a second worker exists, replace this with lease or heartbeat
+        based recovery; a capacity row is not evidence that a worker is alive.
+        """
         failed = self.store.fail_in_flight(INTERRUPTED, utc_now())
         for submission in failed:
             self._capture_terminal(submission)
@@ -142,31 +184,64 @@ class PublicWorker:
         return failed
 
     def tick(self) -> bool:
-        """Expire old work, then run at most one queued submission."""
+        """Expire old work, then start queued submissions into free slots."""
         self.service.maintain(datetime.now(UTC))
         return self.pump()
 
     def pump(self) -> bool:
-        """Start the oldest queued submission when a slot is free."""
-        if self.store.count_status("processing") >= self.settings.max_concurrent:
-            return False
-        submission = self.store.oldest_queued()
-        if submission is None:
-            return False
-        self._own(submission)
-        self._execute(submission)
-        return True
+        """Claim queued submissions while ``active_jobs < capacity``. Does not wait for them.
 
-    def _own(self, submission: Submission) -> None:
-        submission.status = "processing"
-        submission.step = "analyzing"
-        submission.worker_id = self.worker_id
-        submission.processing_started_at = utc_now()
-        submission.updated_at = submission.processing_started_at
-        self.store.save_submission(submission)
-        self._stage_seconds[submission.id] = {}
-        if self.telemetry is not None:
-            best_effort("started", self.telemetry.started, submission.id)
+        Lowering capacity never stops a running job; claims resume once the
+        active count is below the new value.
+        """
+        started = False
+        while not self._stop.is_set():
+            with self._jobs_lock:
+                if len(self._jobs) >= self.capacity():
+                    break
+                submission = self.store.claim_oldest_queued(self.worker_id, utc_now())
+                if submission is None:
+                    break
+                self._stage_seconds[submission.id] = {}
+                thread = threading.Thread(
+                    target=self._run_job,
+                    args=(submission,),
+                    name=f"public-job-{submission.id[:8]}",
+                    daemon=True,
+                )
+                self._jobs[submission.id] = thread
+                thread.start()
+            started = True
+        return started
+
+    def _run_job(self, submission: Submission) -> None:
+        """Run one claimed submission. The slot is released on every path."""
+        try:
+            if self.telemetry is not None:
+                best_effort("started", self.telemetry.started, submission.id)
+            self._execute(submission)
+        except Exception:
+            logger.exception("public job failed unexpectedly for submission {}", submission.id)
+            self._fail_unexpected(submission)
+        finally:
+            self._stage_seconds.pop(submission.id, None)
+            with self._jobs_lock:
+                self._jobs.pop(submission.id, None)
+            self._wake.set()
+
+    def _fail_unexpected(self, submission: Submission) -> None:
+        """Fail a job that raised, unless it already reached a terminal status."""
+        try:
+            current = self.store.get(submission.id)
+            if current is None or current.status != "processing":
+                return
+            self._fail(current, ANALYSIS_FAILED, stage=None, diagnostic=Diagnostic.UNKNOWN)
+        except Exception:
+            logger.exception("could not record the failure of submission {}", submission.id)
+
+    def _save(self, submission: Submission) -> None:
+        """Write this job's status fields without overwriting notice fields."""
+        self.store.update(submission.id, lambda current: copy_lifecycle(submission, current))
 
     def _execute(self, submission: Submission) -> None:
         video = self.store.get_video(submission.id)
@@ -181,7 +256,7 @@ class PublicWorker:
         analysis = self.settings.root / "analysis" / submission.id
         analysis.mkdir(parents=True, exist_ok=True)
         submission.analysis_dir = str(analysis)
-        self.store.save_submission(submission)
+        self._save(submission)
         dest = analysis / Path(video.object_key).name
         try:
             path, temporary = self.service.storage.local_file(video.object_key, dest)
@@ -208,7 +283,7 @@ class PublicWorker:
         self._capture_trace(submission, analysis)
         submission.step = "coaching"
         submission.updated_at = utc_now()
-        self.store.save_submission(submission)
+        self._save(submission)
         inputs = coach_argv(self.settings, analysis, "coach-inputs")
         code = self._stage(submission, Stage.COACH_INPUTS, inputs)
         if code == NO_COACHING_UNITS_EXIT_CODE:
@@ -252,7 +327,7 @@ class PublicWorker:
         submission.error = None
         submission.outcome = outcome
         submission.updated_at = utc_now()
-        self.store.save_submission(submission)
+        self._save(submission)
         if self.telemetry is not None:
             best_effort(
                 "completed",
@@ -331,7 +406,7 @@ class PublicWorker:
         submission.status = "failed"
         submission.error = detail
         submission.updated_at = utc_now()
-        self.store.save_submission(submission)
+        self._save(submission)
         self._capture_terminal(submission)
         if self.telemetry is not None:
             code, default_diagnostic = classify_error(detail)

@@ -136,6 +136,24 @@ export async function logoutAccount() {
   return read(response, "Log out did not finish.");
 }
 
+export async function confirmNotices(token) {
+  const response = await fetch("/api/notices/confirm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  return read(response, "This link is no longer valid.");
+}
+
+export async function saveNoticePreference(enabled) {
+  const response = await fetch("/api/me/notice-preference", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  return read(response, "The coaching site is unavailable.");
+}
+
 export async function loadHistory() {
   const response = await fetch("/api/me/submissions");
   return read(response, "Past coaching is unavailable.");
@@ -265,6 +283,29 @@ export async function saveAdminPrice(priceCents) {
     body: JSON.stringify({ price_cents: priceCents }),
   });
   return read(response, "The analysis price was not saved.");
+}
+
+export async function saveAdminUploadLimit(perHour) {
+  const response = await fetch("/api/admin/upload-limit", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ account_uploads_per_hour: perHour }),
+  });
+  return read(response, "The upload limit was not saved.");
+}
+
+export async function loadAdminWorkerCapacity() {
+  const response = await fetch("/api/admin/worker-capacity");
+  return read(response, "Worker capacity is unavailable.");
+}
+
+export async function saveAdminWorkerCapacity(maxConcurrentJobs) {
+  const response = await fetch("/api/admin/worker-capacity", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ max_concurrent_jobs: maxConcurrentJobs }),
+  });
+  return read(response, "Worker capacity was not saved.");
 }
 
 export async function loadAdminRequests(options = {}) {

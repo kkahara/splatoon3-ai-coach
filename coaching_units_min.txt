@@ -1,0 +1,736 @@
+### tools/reports/coaching_units.py
+import argparse
+import csv
+import io
+import json
+import random
+import re
+import statistics
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+from importance_report import MANIFEST_NAME, PROJECT_ROOT, _score, find_analyses
+from loguru import logger
+from ranking_episodes import Candidate, candidates, episodes, primary, select
+from splatoon3_ai_coach.coach.coach import serialize_llm_view_user_prompt
+from splatoon3_ai_coach.coach.llm_view import build_coach_llm_view
+from splatoon3_ai_coach.coach.prompts import load_system_prompt
+from splatoon3_ai_coach.config import default_config_path, load_config
+from splatoon3_ai_coach.config.models import AppConfig
+POLICIES = ('deaths', 'episode', 'episode_by_factor')
+GAP_SWEEP = (10.0, 15.0, 20.0, 25.0)
+STABILITY_TOLERANCE_SECONDS = 1.5
+RATING_SEED = 20261007
+OBSERVATIONS_HEADER = '\n\nOther scoring deaths in this unit (their existing CoachLlmView JSON, verbatim, one per line):\n'
+DEFERRED_SETTINGS = {'model': 'deferred', 'temperature': 0, 'budget_calls_per_match': 3, 'validation': 'claim_validation.validate_assessment', 'unsupported_claim_metric': 'validator rule hits', 'storage': 'coach_experiments/ with experiment: true', 'llm_calls_made': 0}
+RATING_COLUMNS = ('usefulness_1to5', 'redundancy_1to5', 'anchor_shows_situation_1to5', 'missing_context_1to5', 'supported_yes_no', 'notes')
+REPORT_DIR = PROJECT_ROOT / 'analysis' / 'importance_report'
+@dataclass(frozen=True)
+class Obs:
+ match: int
+ cid: int
+ t: int
+ score: int
+ factors: int
+ observed: int = frozenset()
+ prev_death_t: int = None
+ selected: int = False
+ prompt: int = ''
+ body: int = ''
+ coachable: int = frozenset()
+ templates: int = frozenset()
+ statements: int = ()
+ special: int = None
+ map_status: int = None
+ @property
+ def key(self):
+  return f'{self.match}|{self.cid}'
+@dataclass
+class MatchData:
+ name: int
+ identity: int
+ deaths: int
+ engagements: int = field(default_factory=list)
+ low_ink: int = field(default_factory=list)
+ death_intervals: int = field(default_factory=list)
+def load_root(root, config):
+ seen = set()
+ matches = []
+ for folder in find_analyses(root):
+  manifest = json.loads((folder / MANIFEST_NAME).read_text(encoding='utf-8'))
+  identity = str(manifest['analysis']['video_identity'])
+  if identity in seen:
+   continue
+  seen.add(identity)
+  matches.append(_load_match(folder, root, identity, manifest, config))
+ return matches
+def _load_match(folder, root, identity, manifest, config):
+ _, scoring = _score(folder, config)
+ name = str(folder.relative_to(root))
+ thresholds = config.coach.death_factor_thresholds
+ deaths = []
+ for unit in scoring.units:
+  coach_input = scoring.coach_inputs[unit.candidate_id]
+  view = build_coach_llm_view(coach_input, unit, thresholds)
+  deaths.append(observation(name, unit, coach_input, view))
+ scenarios = json.loads((folder / 'scenarios.json').read_text(encoding='utf-8'))
+ rows = scenarios if isinstance(scenarios, list) else scenarios.get('scenarios', [])
+ return MatchData(name=name, identity=identity, deaths=deaths, engagements=[r for r in rows if r['scenario_type'] == 'engagement'], low_ink=[(float(e['start_time']), float(e.get('end_time') or e['start_time'])) for e in manifest.get('game_events') or () if e.get('event_type') == 'low_ink'], death_intervals=[(float(r['start_time']), float(r['end_time'])) for r in rows if r['scenario_type'] == 'death_episode'])
+def observation(name, unit, coach_input, view):
+ payload = view.model_dump(mode='json')
+ timeline = coach_input.primary_context.timeline
+ gap = timeline.time_since_previous_death if timeline else None
+ t = float(unit.video_time)
+ map_block = (payload.get('map') or {}).get('map_check_before_death')
+ basis = list(payload.get('claim_basis') or ())
+ return Obs(match=name, cid=unit.candidate_id, t=t, score=float(unit.importance_score), factors=frozenset((f.factor_id for f in unit.factors if f.contribution > 0)), observed=frozenset((f.factor_id for f in unit.factors if f.active)), prev_death_t=None if gap is None else round(t - float(gap), 3), selected=bool(unit.selected_for_llm), prompt=serialize_llm_view_user_prompt(view), body=json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(',', ':')), coachable=frozenset((e['claim_id'] for e in basis if e.get('coachable'))), templates=frozenset((r for e in basis for r in e.get('rec_template_ids') or ())), statements=tuple((f.statement_player for f in unit.factors if f.active and f.statement_player)), special=(payload.get('special') or {}).get('state_at_anchor'), map_status=map_block.get('status') if isinstance(map_block, dict) else None)
+def pool(match, policy, gap, modifiers):
+ return candidates(match, policy, gap, modifiers)
+def by_factor(scoring, modifiers):
+ groups = {}
+ for death in scoring:
+  groups.setdefault(primary(death, modifiers), []).append(death)
+ return [Candidate(members) for members in groups.values()]
+def multi_scoring_episodes(match, gap):
+ return [g for g in episodes(match, gap) if sum((d.score > 0 for d in g)) >= 2]
+def unit_prompt(unit):
+ lead = unit.lead
+ others = sorted((d for d in unit.members if d is not lead), key=lambda d: d.t)
+ if not others:
+  return lead.prompt
+ return lead.prompt + OBSERVATIONS_HEADER + '\n'.join((d.body for d in others))
+def zero_score_members(units):
+ return [d for u in units if u.score > 0 or len(u.members) > 1 for d in u.members if d.score <= 0]
+def references(match):
+ by_t = {round(d.t, 3): d for d in match.deaths}
+ pairs = []
+ for death in match.deaths:
+  if death.score <= 0 or death.prev_death_t is None:
+   continue
+  prev = by_t.get(death.prev_death_t)
+  if prev is not None and prev.score <= 0:
+   pairs.append((death, prev))
+ return pairs
+def _episode_index(match, gap):
+ return {d.cid: i for i, group in enumerate(episodes(match, gap)) for d in group}
+def _signature(unit, modifiers):
+ return frozenset((primary(d, modifiers) for d in unit.members))
+def redundant_units(match, picks, gap, modifiers):
+ index = _episode_index(match, gap)
+ flagged = []
+ for i, unit in enumerate(picks):
+  templates = frozenset().union(*(d.templates for d in unit.members))
+  for earlier in picks[:i]:
+   same_episode = index[earlier.lead.cid] == index[unit.lead.cid]
+   shared = _signature(unit, modifiers) & _signature(earlier, modifiers)
+   earlier_templates = frozenset().union(*(d.templates for d in earlier.members))
+   if same_episode and shared or (templates and templates == earlier_templates):
+    flagged.append(unit)
+    break
+ return flagged
+def _unit_context(unit):
+ claims = frozenset().union(*(d.coachable for d in unit.members))
+ return (len(claims), len(claims - unit.lead.coachable), len(unit.members) - 1)
+def policy_metrics(matches, policy, gap, top, modifiers):
+ pools = {m.name: pool(m, policy, gap, modifiers) for m in matches}
+ picks = {name: select(units, top) for name, units in pools.items()}
+ positive = {d.key for m in matches for d in m.deaths if d.score > 0}
+ in_pool = {d.key for units in pools.values() for u in units for d in u.members}
+ selected = [u for units in picks.values() for u in units]
+ in_selected = {d.key for u in selected for d in u.members}
+ context = [_unit_context(u) for u in selected]
+ prompts = [len(unit_prompt(u)) for u in selected]
+ by_name = {m.name: m for m in matches}
+ return {'policy': policy, 'pool_units': sum((len(v) for v in pools.values())), 'selected_units': len(selected), 'matches_covered': sum((1 for v in picks.values() if v)), 'positive_total': len(positive), 'positive_as_observations': len(positive & in_pool), 'positive_in_selected': len(positive & in_selected), 'zero_promoted': len(zero_score_members((u for units in pools.values() for u in units))), 'redundant_units': sum((len(redundant_units(by_name[n], v, gap, modifiers)) for n, v in picks.items())), 'distinct_opportunities': sum((len({primary(d, modifiers) for u in v for d in u.members} - {frozenset()}) for v in picks.values())), 'context_claims_per_unit': _mean([c[0] for c in context]), 'claims_lost_lead_only': sum((c[1] for c in context)), 'anchors_lost_lead_only': sum((c[2] for c in context)), 'prompt_chars_total': sum(prompts), 'prompt_chars_per_unit': _mean(prompts), 'max_calls_per_match': max((len(v) for v in picks.values()), default=0)}
+def _mean(values):
+ return round(statistics.fmean(values), 2) if values else 0.0
+def gap_sweep(matches, top, modifiers):
+ rows = []
+ for gap in GAP_SWEEP:
+  groups = [g for m in matches for g in episodes(m, gap)]
+  multi = [g for g in groups if len(g) >= 2]
+  row = {'gap': gap, 'episodes_multi_death': len(multi), 'episodes_multi_scoring': sum((1 for g in multi if sum((d.score > 0 for d in g)) >= 2)), 'longest_span': max((g[-1].t - g[0].t for g in multi), default=0.0)}
+  for policy in POLICIES:
+   row[policy] = sum((len(select(pool(m, policy, gap, modifiers), top)) for m in matches))
+  rows.append(row)
+ return rows
+def _selected_times(matches, policy, gap, top, modifiers):
+ out = {}
+ for m in matches:
+  picks = select(pool(m, policy, gap, modifiers), top)
+  out[m.identity] = sorted((d.t for u in picks for d in u.members))
+ return out
+def jaccard_by_time(left, right, tolerance):
+ shared = sorted(set(left) & set(right))
+ union = inter = 0
+ for identity in shared:
+  a, b = (list(left[identity]), list(right[identity]))
+  hits = 0
+  for t in a:
+   near = [x for x in b if abs(x - t) <= tolerance]
+   if near:
+    b.remove(min(near, key=lambda x: abs(x - t)))
+    hits += 1
+  inter += hits
+  union += len(left[identity]) + len(right[identity]) - hits
+ return round(inter / union, 3) if union else None
+def stability(roots, pairs, top, gap, modifiers):
+ rows = []
+ for a, b in pairs:
+  if a not in roots or b not in roots:
+   continue
+  row = {'pair': f'{a} vs {b}'}
+  shared = {m.identity for m in roots[a]} & {m.identity for m in roots[b]}
+  row['shared_matches'] = len(shared)
+  for policy in POLICIES:
+   left = _selected_times(roots[a], policy, gap, top, modifiers)
+   right = _selected_times(roots[b], policy, gap, top, modifiers)
+   row[policy] = jaccard_by_time(left, right, STABILITY_TOLERANCE_SECONDS)
+  rows.append(row)
+ return rows
+def _slug(name):
+ return re.sub('[^A-Za-z0-9]+', '_', name).strip('_')[:48]
+def deferred_arms(scoring, modifiers):
+ return {'individual': [Candidate([d]) for d in scoring], 'episode': [Candidate(list(scoring))], 'episode_by_factor': by_factor(scoring, modifiers)}
+def deferred_inputs(matches, gap, modifiers, system_prompt):
+ files = {'system_prompt.txt': system_prompt}
+ episodes_meta = []
+ for match in matches:
+  for i, group in enumerate(multi_scoring_episodes(match, gap), start=1):
+   scoring = [d for d in group if d.score > 0]
+   slug = f'{_slug(match.name)}__ep{i}'
+   arms_meta = {}
+   for arm, units in deferred_arms(scoring, modifiers).items():
+    arms_meta[arm] = []
+    for j, unit in enumerate(sorted(units, key=lambda u: u.lead.t), start=1):
+     path = f'{slug}/{arm}/call_{j}.user_prompt.txt'
+     files[path] = unit_prompt(unit)
+     arms_meta[arm].append({'file': path, 'chars': len(files[path]), 'lead': unit.lead.cid, 'members': [d.cid for d in sorted(unit.members, key=lambda d: d.t)]})
+   episodes_meta.append({'match': match.name, 'episode': slug, 'arms': arms_meta})
+ manifest = {'settings': DEFERRED_SETTINGS, 'system_prompt_chars': len(system_prompt), 'episodes': episodes_meta}
+ files['manifest.json'] = json.dumps(manifest, indent=1, sort_keys=True) + '\n'
+ return files
+def write_files(out_dir, files):
+ if out_dir.is_dir():
+  for path in sorted(out_dir.rglob('*'), reverse=True):
+   path.unlink() if path.is_file() else path.rmdir()
+ for rel, text in sorted(files.items()):
+  path = out_dir / rel
+  path.parent.mkdir(parents=True, exist_ok=True)
+  path.write_text(text, encoding='utf-8')
+def rating_units(matches, gap, top, modifiers):
+ units = {}
+ for policy in POLICIES:
+  for match in matches:
+   for unit in select(pool(match, policy, gap, modifiers), top):
+    key = tuple(sorted((d.key for d in unit.members)))
+    entry = units.setdefault(key, {'unit': unit, 'policies': []})
+    entry['policies'].append(policy)
+ return units
+def _evidence_text(unit):
+ return ' || '.join((f'{d.t:.1f}s: ' + (' '.join(d.statements) or '(no factor statement)') for d in sorted(unit.members, key=lambda d: d.t)))
+def rating_sheet(matches, gap, top, modifiers, seed=RATING_SEED):
+ units = rating_units(matches, gap, top, modifiers)
+ keys = sorted(units)
+ random.Random(seed).shuffle(keys)
+ sheet, key = (io.StringIO(), io.StringIO())
+ sheet_w = csv.writer(sheet, lineterminator='\n')
+ key_w = csv.writer(key, lineterminator='\n')
+ sheet_w.writerow(('unit_id', 'match', 'anchors', 'evidence', *RATING_COLUMNS))
+ key_w.writerow(('unit_id', 'match', 'members', 'lead', 'policies'))
+ for n, members in enumerate(keys, start=1):
+  unit = units[members]['unit']
+  unit_id = f'unit_{n:03d}'
+  anchors = '; '.join((f'{d.t:.1f}s' for d in sorted(unit.members, key=lambda d: d.t)))
+  sheet_w.writerow((unit_id, unit.lead.match, anchors, _evidence_text(unit), *[''] * 6))
+  key_w.writerow((unit_id, unit.lead.match, ';'.join((d.cid for d in unit.members)), unit.lead.cid, ';'.join(units[members]['policies'])))
+ return (sheet.getvalue(), key.getvalue())
+def main():
+ from coaching_units_sections import build_report
+ parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+ parser.add_argument('--root', type=Path, default=PROJECT_ROOT / 'analysis/_rescore_v2')
+ parser.add_argument('--stability-roots', nargs='*', default=['analysis/_rescore_v2_1hz', 'analysis/_rescore_1hz_even', 'analysis/_rescore_1hz_odd'])
+ parser.add_argument('--config', type=Path, default=default_config_path())
+ parser.add_argument('--out-dir', type=Path, default=REPORT_DIR)
+ args = parser.parse_args()
+ config = load_config(args.config)
+ coach = config.coach
+ gap = coach.death_factor_thresholds.redeath_max_gap_seconds
+ modifiers = frozenset(coach.death_modifier_factors)
+ top = coach.max_llm_units
+ matches = load_root(args.root.resolve(), config)
+ roots = {args.root.name: matches}
+ for extra in args.stability_roots:
+  path = (PROJECT_ROOT / extra).resolve()
+  if path.is_dir():
+   roots[path.name] = load_root(path, config)
+ system_prompt = load_system_prompt(roster_evidence=coach.roster_evidence)
+ deferred = deferred_inputs(matches, gap, modifiers, system_prompt)
+ sheet, key = rating_sheet(matches, gap, top, modifiers)
+ out = args.out_dir
+ write_files(out / 'coaching_units_deferred', deferred)
+ (out / 'coaching_units_rating_sheet.csv').write_text(sheet, encoding='utf-8')
+ (out / 'coaching_units_rating_key.csv').write_text(key, encoding='utf-8')
+ report = build_report(matches, roots, config, deferred, sheet)
+ (out / 'coaching_units.md').write_text(report, encoding='utf-8')
+ logger.info('Wrote {}', out / 'coaching_units.md')
+if __name__ == '__main__':
+ main()
+### tools/reports/coaching_units_sections.py
+import json
+import statistics
+from collections.abc import Sequence
+from typing import Any
+from coaching_units import DEFERRED_SETTINGS, POLICIES, STABILITY_TOLERANCE_SECONDS, MatchData, gap_sweep, multi_scoring_episodes, policy_metrics, pool, redundant_units, references, select, stability
+from splatoon3_ai_coach.config.models import AppConfig
+HUMAN_MISSING = '**Human-rated usefulness: missing data — rating sheet has not yet been completed.**'
+MODEL_MISSING = '**Model effects: missing data — Experiment D inputs are built, but no LLM call has been made.**'
+STABILITY_PAIRS = (('_rescore_v2', '_rescore_v2_1hz'), ('_rescore_1hz_even', '_rescore_1hz_odd'))
+SHORT = {'death_quick_redeath': 're-death', 'death_own_splat_before': 'own-splat', 'death_final_30s': 'final30', 'death_first_30s': 'first30', 'death_map_overlay_before_false': 'no-map'}
+def _short(factors):
+ return '/'.join(sorted((SHORT.get(f, f) for f in factors))) or '–'
+def _member(d):
+ return f'{d.t:.1f}s {_short(d.factors)} = {d.score:g}'
+def build_report(matches, roots, config, deferred, sheet):
+ coach = config.coach
+ gap = coach.death_factor_thresholds.redeath_max_gap_seconds
+ modifiers = frozenset(coach.death_modifier_factors)
+ top = coach.max_llm_units
+ metrics = [policy_metrics(matches, p, gap, top, modifiers) for p in POLICIES]
+ parts = [header(matches, metrics[0], gap, top), experiment_a(matches), experiment_b(matches, gap), experiment_c(matches, roots, metrics, gap, top, modifiers), experiment_d(deferred), experiment_e(), rubric(sheet), examples(matches, gap, top, modifiers), complexity(), recommendation(metrics, matches, gap)]
+ return '\n'.join((line for part in parts for line in part)) + '\n'
+def header(matches, base, gap, top):
+ return ['# Coaching units: deaths, episodes, episode-by-factor (research only)', '', 'Research artifact for Assignment 4. Nothing here changes production: scores, factors, CoachInputs, views and prompts come from production code; grouping exists only in `tools/reports/coaching_units.py`.', '', HUMAN_MISSING, '', MODEL_MISSING, '', f'- Matches (unique source videos): {len(matches)}', f"- Deaths: {sum((len(m.deaths) for m in matches))}; positive-scoring: {base['positive_total']}", f'- Budget: top {top} positive-score units per match (`coach.max_llm_units`); episode link gap: {gap:g}s (`redeath_max_gap_seconds`)', '- Roster capability off (`coach.roster_evidence=false`), current weights.', '- Reproduce: `python tools/reports/coaching_units.py --root analysis/_rescore_v2`', '']
+def _engagement_stats(matches):
+ rows = [e for m in matches for e in m.engagements]
+ durations = [float(e['end_time']) - float(e['start_time']) for e in rows]
+ splats = [int((e.get('context') or {}).get('splat_count') or 0) for e in rows]
+ linked = sum((1 for e in rows if (e.get('context') or {}).get('following_death_id')))
+ return {'count': len(rows), 'median_duration': statistics.median(durations) if durations else 0.0, 'single_splat': sum((1 for s in splats if s <= 1)), 'linked_to_death': linked}
+def _overlaps(a, b):
+ return a[0] <= b[1] and b[0] <= a[1]
+def _low_ink_stats(matches):
+ total = free = 0
+ for m in matches:
+  for interval in m.low_ink:
+   total += 1
+   if not any((_overlaps(interval, d) for d in m.death_intervals)):
+    free += 1
+ return {'count': total, 'without_death': free}
+def experiment_a(matches):
+ eng, ink = (_engagement_stats(matches), _low_ink_stats(matches))
+ return ['## Experiment A: candidate units', '', '| unit | definition | evaluable with existing data? |', '| --- | --- | --- |', '| Individual death | One `DEATH_EPISODE` scenario = one CoachInput = one LLM call (production). | Yes |', '| Death episode | Consecutive deaths each within the link gap of the previous (transitive, unbounded span); one unit per episode holding its positive-scoring deaths, ranked by its best member. | Yes |', '| Episode-by-factor | Within an episode, positive deaths sharing a primary (non-modifier) factor set form one unit; different sets stay separate. | Yes |', '| Engagement | Existing `ENGAGEMENT` scenario (owns own SPLAT events). | Counted only: see below |', '| Non-death opportunity | A coachable situation without a death. | No: requires new definitions |', '', f"**Engagement.** {eng['count']} engagements; median duration {eng['median_duration']:g}s; {eng['single_splat']} hold a single splat; {eng['linked_to_death']} link to a following death. An engagement owns only the player's own splats: there are no fight boundaries, opponents, damage or positions, and no importance factors are defined for it. It cannot be ranked or coached without new detection, so it is excluded from Experiments C and D.", '', f"**Non-death opportunity.** {ink['count']} LOW_INK intervals, {ink['without_death']} not overlapping any death episode (the closed-interval rule of `analysis/low_ink_context.py`). These are facts, but there is no importance contract for them, and the other candidates (held special, long gaps without a map check) fall under undetermined topics (special usage) or need map coverage this corpus lacks. Feasibility count only; requires a new evidence and claim definition before any test.", '']
+def _contradictions(group):
+ scoring = [d for d in group if d.score > 0]
+ notes = []
+ for label, attr in (('special', 'special'), ('map', 'map_status')):
+  states = {getattr(d, attr) for d in scoring}
+  if len(states) > 1:
+   notes.append(f'{label} differs: ' + ', '.join((f'{d.t:.1f}s={getattr(d, attr)}' for d in scoring)))
+ return notes
+def experiment_b(matches, gap):
+ lines = ['## Experiment B: grouping semantics', '', f'Episodes with two or more positive-scoring deaths (link gap {gap:g}s):', '', '| match | members (time factors = score) | distinct primary sets | span | member disagreement |', '| --- | --- | ---: | ---: | --- |']
+ for m in matches:
+  for group in multi_scoring_episodes(m, gap):
+   scoring = [d for d in group if d.score > 0]
+   distinct = len({d.factors - {'death_final_30s', 'death_first_30s'} for d in scoring})
+   lines.append(f"| {m.name[:36]} | {'; '.join((_member(d) for d in group))} | {distinct} | {group[-1].t - group[0].t:.1f}s | {'; '.join(_contradictions(group)) or 'none'} |")
+ refs = [(m, d, p) for m in matches for d, p in references(m)]
+ lines += ['', *_semantics_answers(gap, len(refs), _episode_examples(matches, gap)), '']
+ lines += ['Zero-score deaths referenced as the previous death (reference only, never a member):', '']
+ lines += [f'- {m.name[:36]}: {d.t:.1f}s (score {d.score:g}) references {p.t:.1f}s (score 0)' for m, d, p in refs] or ['- none']
+ lines.append('')
+ return lines
+def _label(match, group):
+ scoring = [d for d in group if d.score > 0]
+ return f"{match.name[:36]} ({', '.join((_member(d) for d in scoring))})"
+def _primary_sets(group):
+ clock = {'death_final_30s', 'death_first_30s'}
+ return {d.factors - clock for d in group if d.score > 0}
+def _episode_examples(matches, gap):
+ found = [(m, g) for m in matches for g in multi_scoring_episodes(m, gap)]
+ longest = max(found, key=lambda mg: mg[1][-1].t - mg[1][0].t, default=None)
+ mixed = [_label(m, g) for m, g in found if len(_primary_sets(g)) > 1]
+ same = [_label(m, g) for m, g in found if len(_primary_sets(g)) == 1]
+ span = f'{longest[0].name[:36]} links {len(longest[1])} deaths across {longest[1][-1].t - longest[1][0].t:.1f}s' if longest else 'no multi-death episode exists'
+ return {'span': span, 'mixed': '; '.join(mixed) or 'none in this corpus', 'same': '; '.join(same) or 'none in this corpus'}
+def _semantics_answers(gap, n_refs, ex):
+ return [f"- **What links two deaths.** Only video-time proximity: death B joins A's episode when B - A <= {gap:g}s. This is the same threshold as `death_quick_redeath`, so every later member of an episode carries the re-death factor by construction. An episode is therefore a re-death chain, not independent evidence that the deaths are one situation.", f"- **Transitive links.** Chaining is unbounded: {ex['span']}, although first and last are further apart than the gap. A span cap would be a new policy; the report only measures spans.", f"- **Many opportunities in one episode.** Yes, when members carry different primary factors and coachable claims: {ex['mixed']}.", f"- **One opportunity across deaths.** Yes, when members repeat the same primary factor and recommendation template: {ex['same']}.", '- **Contradictory evidence.** Members can disagree (special `not_ready` at one death, `not_observed` at the next). Each claim is true only at its own anchor; a grouped unit must keep per-member values and never merge them into one state.', "- **Boundary uncertainty.** Membership is sensitive to the gap (see the sweep in Experiment C). Uncertainty should be represented by keeping each member's own anchor and gap value, not by a confidence on the group.", f'- **Zero-score references.** {n_refs} positive deaths reference a zero-score previous death through `time_since_previous_death`. The reference is preserved as a value on the positive death; the zero-score death never becomes a member, factor, claim or observation.']
+def _metric_rows(metrics):
+ rows = (('Units in research pool', 'pool_units'), ('Units selected (budget)', 'selected_units'), ('Matches covered', 'matches_covered'), ('Positive deaths retained as observations', 'positive_as_observations'), ('Positive deaths inside selected units', 'positive_in_selected'), ('Zero-score deaths promoted', 'zero_promoted'), ('Redundant selected units', 'redundant_units'), ('Distinct opportunities (primary factor sets)', 'distinct_opportunities'), ('Coachable claims per selected unit', 'context_claims_per_unit'), ("Claims lost if only the lead's view were sent", 'claims_lost_lead_only'), ("Anchors lost if only the lead's anchor were shown", 'anchors_lost_lead_only'), ('Prompt characters, all selected units', 'prompt_chars_total'), ('Prompt characters per selected unit', 'prompt_chars_per_unit'), ('Max calls per match', 'max_calls_per_match'))
+ total = metrics[0]['positive_total']
+ out = []
+ for label, key in rows:
+  cells = []
+  for m in metrics:
+   value = m[key]
+   cells.append(f'{value} / {total}' if key.startswith('positive_') else str(value))
+  out.append(f'| {label} | ' + ' | '.join(cells) + ' |')
+ out.append('| Human-rated usefulness | ' + ' | '.join(['missing data'] * 3) + ' |')
+ return out
+def experiment_c(matches, roots, metrics, gap, top, modifiers):
+ lines = ['## Experiment C: selection and ranking (measured)', '', '| metric | ' + ' | '.join((f'`{p}`' for p in POLICIES)) + ' |', '| --- | ---: | ---: | ---: |', *_metric_rows(metrics), '', '- Observations: every positive death stays in exactly one pool unit under every policy, whatever the budget selects. Fewer deaths inside selected units is a budget effect, not grouping losing deaths.', '- Redundant = a later pick in the same match that shares an episode and a primary factor set with an earlier pick, or repeats its non-empty recommendation-template set.', "- Grouped prompt size = lead's user prompt plus other members' view JSON appended verbatim (Experiment D construction).", '- Map evidence: no death in this corpus has a map-coverage status, so `death_map_overlay_before_false` never scores here.', '', f'### Link-gap sensitivity (research only; production stays {gap:g}s)', '', '| gap | multi-death episodes | multi-scoring episodes | longest span | ' + ' | '.join(POLICIES) + ' |', '| ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+ for row in gap_sweep(matches, top, modifiers):
+  lines.append(f"| {row['gap']:g}s | {row['episodes_multi_death']} | {row['episodes_multi_scoring']} | {row['longest_span']:.1f}s | " + ' | '.join((str(row[p]) for p in POLICIES)) + ' |')
+ lines += ['', *_stability_lines(roots, top, gap, modifiers), '']
+ return lines
+def _stability_lines(roots, top, gap, modifiers):
+ rows = stability(roots, STABILITY_PAIRS, top, gap, modifiers)
+ lines = ['### Ranking stability', '', f'Jaccard overlap of selected deaths between re-analyses of the same videos (deaths matched by video identity and time within {STABILITY_TOLERANCE_SECONDS:g}s).', '', '| pair | shared matches | ' + ' | '.join(POLICIES) + ' |', '| --- | ---: | ---: | ---: | ---: |']
+ lines += [f"| {r['pair']} | {r['shared_matches']} | " + ' | '.join((str(r[p]) for p in POLICIES)) + ' |' for r in rows] or ['| (stability roots not present) | | | | |']
+ lines += ['', 'Identical selections across re-analyses mean the policies are equally stable on this corpus; the test does not discriminate between them.']
+ return lines
+def experiment_d(deferred):
+ manifest = json.loads(deferred['manifest.json'])
+ lines = ['## Experiment D: LLM efficiency (inputs built, NO calls)', '', MODEL_MISSING, '', '| field | value |', '| --- | --- |', *[f'| {k} | {v} |' for k, v in DEFERRED_SETTINGS.items()], '| inputs | `analysis/importance_report/coaching_units_deferred/` |', '', f"Grouped arms append the other members' existing CoachLlmView JSON verbatim after the lead's user prompt, so no evidence is re-worded: a later difference between arms is attributable to grouping and context, not wording. System prompt: {manifest['system_prompt_chars']} characters, identical in every arm and sent once per call.", '', "Scope: every arm contains only the episode's positive-scoring deaths; zero-score members are references, not evidence, and are excluded. Experiment D therefore tests how to package multiple positive-scoring deaths, not how an episode's complete temporal context affects coaching.", '', 'Cells: calls / user-prompt characters / total input characters (user prompts plus one system prompt per call).', '', '| episode | individual | episode | episode-by-factor |', '| --- | --- | --- | --- |']
+ system = manifest['system_prompt_chars']
+ for ep in manifest['episodes']:
+  cells = []
+  for arm in ('individual', 'episode', 'episode_by_factor'):
+   calls = ep['arms'][arm]
+   user = sum((c['chars'] for c in calls))
+   cells.append(f'{len(calls)} / {user} / {user + system * len(calls)}')
+  lines.append(f"| {ep['episode']} | " + ' | '.join(cells) + ' |')
+ lines += ['', f"Smallest run that resolves model effects: these {len(manifest['episodes'])} episodes x 3 arms, one model, temperature 0, outputs validated with `validate_assessment`, rule hits as the unsupported-claim metric, records saved under `coach_experiments/` with `experiment: true`, then the same blind rating.", '']
+ return lines
+def experiment_e():
+ return ['## Experiment E: presentation implications', '', '| layer | individual death (today) | death episode / episode-by-factor |', '| --- | --- | --- |', '| CoachInput | One primary `DEATH_EPISODE` + relations | No home: one primary scenario per CoachInput; members would need a new list (Scenario ownership stays frozen) |', '| CoachLlmView | One `unit`, one `claim_basis`, one anchor | Needs per-member blocks (the research composer appends them verbatim) |', '| LLM output | `claims[]` by `claim_id` | `claims[]` cannot say which death a claim belongs to; needs member attribution |', '| CoachingMoment | One `video_time`, marks for one death lifecycle | One anchor cannot show two deaths; needs multi-anchor marks |', "| Public timestamps | Seek to the death | Which death to seek to is undefined; members' evidence would be hidden behind the lead |", '| Human review | One clip, one judgment | Reviewer must watch a span; judgment mixes members |', '', 'Required schema changes before any multi-death moment: a member list with per-member anchors and values; per-member `claim_basis`; claim-to-member attribution in the output and validator; multi-anchor marks and seek targets in `CoachingMoment` / `tools/public_site/results.py`; a `LLM_VIEW_SCHEMA_VERSION` and `COACH_EVIDENCE_VERSION` bump with staleness handling for existing artifacts.', '', "**Can one moment faithfully show several deaths?** Not with the current schema: a single anchor and unattributed claims would present one death's evidence as if it described the group (the lead-only loss in Experiment C). Faithful display needs the schema changes above.", '']
+def rubric(sheet):
+ rows = max(sheet.count('\n') - 1, 0)
+ return ['## Human review rubric', '', HUMAN_MISSING, '', f'- Sheet: `coaching_units_rating_sheet.csv` ({rows} units, anonymous IDs `unit_001`..., seeded shuffled order). It shows match, anchors and the deterministic factor statements only; it never names the policy, model or experiment arm. `coaching_units_rating_key.csv` unblinds it.', '- Units selected by more than one policy appear once. The anchor count can hint at grouping; rate the content, not the count.', '- Score each unit 1-5 (5 best) on: usefulness to the player; redundancy with other units of the same match (5 = not redundant); whether the anchor(s) show the situation; missing context (5 = nothing missing); plus supported yes/no (every statement backed by the evidence shown).', '- No recommendation is calculated from human usefulness until the sheet is completed.', '']
+def _redundancy_examples(matches, policy, gap, top, modifiers):
+ out = []
+ for m in matches:
+  picks = select(pool(m, policy, gap, modifiers), top)
+  for unit in redundant_units(m, picks, gap, modifiers):
+   out.append(f"{m.name[:36]} {' + '.join((_member(d) for d in unit.members))}")
+ return out
+def examples(matches, gap, top, modifiers):
+ ex = _episode_examples(matches, gap)
+ redundant = _redundancy_examples(matches, 'deaths', gap, top, modifiers)
+ return ['## Successes and failures', '', f"- **Individual death succeeds** when deaths are isolated (most of the corpus: every positive death outside the multi-scoring episodes), and when an episode mixes opportunities, since each keeps its own anchor and claims ({ex['mixed']}).", '- **Individual death fails** by spending budget on repeats: ' + ('; '.join(redundant) or 'no redundant picks in this corpus') + '.', f"- **Death episode succeeds** on repeated re-death chains, where one unit covers the repeat ({ex['same']}).", "- **Death episode fails** on mixed episodes: distinct opportunities share one unit, and under today's single-anchor moment the members' anchors and claims would be hidden behind the lead (Experiment C, claims and anchors lost). The research composer keeps them only by appending member views, which no production schema can present.", '- **Episode-by-factor succeeds** on both patterns: repeats merge, mixed factors stay separate.', '- **Episode-by-factor fails** because the split depends on the factor catalog: the re-death factor is itself the episode link, so later members always differ from a non-re-death first member, and a weight or catalog change silently changes the units.', '- **Engagement** never succeeds as a unit with current evidence (single own splats, no fight boundaries).', '']
+def complexity():
+ return ['## Implementation complexity and migration risk', '', '| option | complexity | migration risk |', '| --- | --- | --- |', '| Retain individual death | None | None |', '| Episode or episode-by-factor as the LLM unit | High: the 1:1 chain unit = scenario = CoachInput = LLM prompt = VMV block = public moment (`coach/llm_view.py`, `coach/vmv.py`, `tools/public_site/results.py`) must carry members; validator needs claim attribution | High: artifact and view versions bump, every analysis goes stale, public pages and translation caches change shape |', "| Selection-only de-duplication (keep death units, skip a pick that repeats an earlier pick's episode and factor) | Low: ranking only | Medium: changes which deaths are coached; a selection-policy change that needs its own decision |", '']
+def recommendation(metrics, matches, gap):
+ by = {m['policy']: m for m in metrics}
+ d, e, f = (by['deaths'], by['episode'], by['episode_by_factor'])
+ n_multi = sum((len(multi_scoring_episodes(m, gap)) for m in matches))
+ return ['## Recommendation', '', '**Retain the individual death as the production unit.** Supported by the measurements above; model and human evidence are still missing.', '', f"- Grouping changes units only in {n_multi} episodes. In the matches holding them, the budget it frees selects other deaths instead ({e['positive_in_selected']} versus {d['positive_in_selected']} positive deaths inside selected units).", f"- Redundant picks: {d['redundant_units']} (deaths) versus {e['redundant_units']} (episode) and {f['redundant_units']} (episode-by-factor). This is the only deterministic gain from grouping.", f"- Episode grouping costs {e['anchors_lost_lead_only']} anchors and {e['claims_lost_lead_only']} claims under a single-anchor moment, and {e['prompt_chars_per_unit']} versus {d['prompt_chars_per_unit']} prompt characters per unit. Episode-by-factor costs {f['anchors_lost_lead_only']} anchors and {f['claims_lost_lead_only']} claims.", '- Matches covered, positive observations retained and zero-score exclusion are identical across policies; stability does not discriminate.', '- The episode link is the re-death factor, so grouping re-encodes an existing factor rather than adding evidence.', '', '**Do not replace** the unit: no measured benefit justifies the schema changes in Experiment E. **Supplement candidate:** episode-by-factor (or the equivalent selection-only de-duplication) is the lowest-risk option to test next, because it removes repeats without merging distinct opportunities.', '', 'Not yet decidable, and the smallest experiment for each:', '', f'- Model effects: {MODEL_MISSING} Run the Experiment D inputs (one model, temperature 0) and compare validator rule hits and redundant recommendations per call.', f'- Usefulness: {HUMAN_MISSING} Complete the blind sheet; then compare mean usefulness and redundancy by policy using the key.', '']
+### tests/test_coaching_units_report.py
+import csv
+import io
+import json
+from pathlib import Path
+import pytest
+from coaching_units import OBSERVATIONS_HEADER, POLICIES, MatchData, Obs, deferred_inputs, multi_scoring_episodes, policy_metrics, pool, rating_sheet, redundant_units, references, select, unit_prompt, write_files, zero_score_members
+from coaching_units_sections import _engagement_stats, _low_ink_stats, experiment_d
+from ranking_episodes import Candidate, episodes
+from splatoon3_ai_coach.coach import llm_client
+GAP = 20.0
+MODS = frozenset({'death_first_30s'})
+REDEATH = 'death_quick_redeath'
+OWN = 'death_own_splat_before'
+FINAL = 'death_final_30s'
+def _obs(t, factors=frozenset(), *, prev=None, templates=frozenset(), match='m1'):
+ weights = {REDEATH: 3.0, OWN: 2.0, FINAL: 1.0}
+ body = json.dumps({'death_time_video': t}, sort_keys=True, separators=(',', ':'))
+ return Obs(match=match, cid=f'death_episode:{t:.3f}', t=t, score=sum((weights[f] for f in factors)), factors=frozenset(factors), prev_death_t=prev, prompt='PREAMBLE ' + body, body=body, coachable=frozenset(factors), templates=frozenset(templates), statements=tuple(sorted(factors)))
+def _match(*deaths, name='m1'):
+ return MatchData(name=name, identity=f'id-{name}', deaths=list(deaths))
+def _mixed_episode():
+ return _match(_obs(100.0), _obs(112.0, {OWN}, prev=100.0), _obs(125.0, {REDEATH}, prev=112.0, templates={'rec_redeath_reset'}))
+def _chain():
+ rec = {'rec_redeath_reset'}
+ return _match(_obs(200.0, {REDEATH}, prev=185.0, templates=rec), _obs(215.0, {REDEATH}, prev=200.0, templates=rec), _obs(230.0, {REDEATH, FINAL}, prev=215.0, templates=rec), name='m2')
+def test_links_are_transitive_with_unbounded_span():
+ match = _match(*(_obs(t) for t in (0.0, 15.0, 30.0, 45.0)))
+ group, = episodes(match, GAP)
+ assert [d.t for d in group] == [0.0, 15.0, 30.0, 45.0]
+ assert group[-1].t - group[0].t > GAP
+def test_zero_score_death_may_be_referenced_as_previous_death():
+ match = _mixed_episode()
+ pairs = references(match)
+ assert [(d.t, p.t) for d, p in pairs] == [(112.0, 100.0)]
+ assert match.deaths[1].prev_death_t == 100.0
+@pytest.mark.parametrize('policy', POLICIES)
+def test_zero_score_death_is_never_a_member_or_observation(policy):
+ match = _mixed_episode()
+ units = pool(match, policy, GAP, MODS)
+ assert zero_score_members(units) == []
+ scoring_members = {d.cid for u in units if u.score > 0 for d in u.members}
+ assert 'death_episode:100.000' not in scoring_members
+ for unit in select(units, 3):
+  assert '100.0' not in unit_prompt(unit)
+def test_zero_score_guard_detects_a_promoted_member():
+ zero, positive = (_obs(100.0), _obs(112.0, {OWN}))
+ assert zero_score_members([Candidate([zero, positive])]) == [zero]
+@pytest.mark.parametrize('policy', POLICIES)
+def test_positive_deaths_are_observations_regardless_of_budget(policy):
+ matches = [_mixed_episode(), _chain()]
+ metrics = policy_metrics(matches, policy, GAP, 1, MODS)
+ assert metrics['positive_total'] == 5
+ assert metrics['positive_as_observations'] == 5
+ assert metrics['positive_in_selected'] <= metrics['positive_as_observations']
+ assert metrics['zero_promoted'] == 0
+def test_budget_effect_is_reported_separately_from_observations():
+ metrics = policy_metrics([_chain()], 'deaths', GAP, 1, MODS)
+ assert metrics['positive_as_observations'] == 3
+ assert metrics['positive_in_selected'] == 1
+def test_episode_by_factor_splits_by_primary_factor_set():
+ mixed = pool(_mixed_episode(), 'episode_by_factor', GAP, MODS)
+ assert sorted((len(u.members) for u in mixed if u.score > 0)) == [1, 1]
+ chain = pool(_chain(), 'episode_by_factor', GAP, MODS)
+ assert [len(u.members) for u in chain if u.score > 0] == [2, 1]
+ episode = pool(_chain(), 'episode', GAP, MODS)
+ assert [len(u.members) for u in episode if u.score > 0] == [3]
+def test_redundancy_and_distinct_opportunity_arithmetic():
+ chain = _chain()
+ picks = select(pool(chain, 'deaths', GAP, MODS), 3)
+ assert len(redundant_units(chain, picks, GAP, MODS)) == 2
+ metrics = policy_metrics([chain, _mixed_episode()], 'deaths', GAP, 3, MODS)
+ assert metrics['distinct_opportunities'] == 4
+ assert metrics['anchors_lost_lead_only'] == 0
+ grouped = policy_metrics([chain], 'episode', GAP, 3, MODS)
+ assert grouped['anchors_lost_lead_only'] == 2
+ assert grouped['redundant_units'] == 0
+def test_grouped_prompt_appends_member_views_verbatim():
+ unit = Candidate(list(_chain().deaths))
+ text = unit_prompt(unit)
+ assert text.startswith(unit.lead.prompt + OBSERVATIONS_HEADER)
+ for member in unit.members:
+  if member is not unit.lead:
+   assert member.body in text
+ assert unit_prompt(Candidate([unit.lead])) == unit.lead.prompt
+def test_deferred_inputs_cover_three_arms_and_are_byte_identical(tmp_path):
+ matches = [_mixed_episode(), _chain()]
+ first = deferred_inputs(matches, GAP, MODS, 'SYSTEM')
+ assert first == deferred_inputs(matches, GAP, MODS, 'SYSTEM')
+ manifest = json.loads(first['manifest.json'])
+ assert manifest['settings']['llm_calls_made'] == 0
+ assert manifest['settings']['temperature'] == 0
+ assert len(manifest['episodes']) == sum((len(multi_scoring_episodes(m, GAP)) for m in matches))
+ for episode in manifest['episodes']:
+  assert set(episode['arms']) == {'individual', 'episode', 'episode_by_factor'}
+ write_files(tmp_path / 'a', first)
+ write_files(tmp_path / 'b', first)
+ for rel in first:
+  assert (tmp_path / 'a' / rel).read_bytes() == (tmp_path / 'b' / rel).read_bytes()
+def test_deferred_arms_exclude_zero_score_members_and_report_says_so():
+ files = deferred_inputs([_mixed_episode()], GAP, MODS, 'SYSTEM')
+ zero_body = '"death_time_video":100.0'
+ assert files
+ assert not any((zero_body in text for text in files.values()))
+ section = '\n'.join(experiment_d(files))
+ assert "only the episode's positive-scoring deaths" in section
+ assert "not how an episode's complete temporal context" in section
+def test_no_llm_provider_is_constructed(monkeypatch):
+ def refuse(*_args, **_kwargs):
+  raise AssertionError('an LLM provider was constructed')
+ for provider in (llm_client.OllamaProvider, llm_client.OpenAICompatibleProvider, llm_client.CursorProvider):
+  monkeypatch.setattr(provider, '__init__', refuse)
+ matches = [_mixed_episode(), _chain()]
+ deferred_inputs(matches, GAP, MODS, 'SYSTEM')
+ rating_sheet(matches, GAP, 3, MODS)
+def test_engagement_and_low_ink_feasibility_counts():
+ match = _match(_obs(100.0))
+ match.engagements = [{'start_time': 50.0, 'end_time': 50.0, 'context': {'splat_count': 1}}, {'start_time': 90.0, 'end_time': 96.0, 'context': {'splat_count': 2, 'following_death_id': 'death:100.000'}}]
+ match.death_intervals = [(100.0, 108.5)]
+ match.low_ink = [(40.0, 45.0), (98.0, 101.0), (108.5, 110.0)]
+ eng = _engagement_stats([match])
+ assert eng == {'count': 2, 'median_duration': 3.0, 'single_splat': 1, 'linked_to_death': 1}
+ assert _low_ink_stats([match]) == {'count': 3, 'without_death': 1}
+def test_rating_sheet_is_blind_and_stable():
+ matches = [_mixed_episode(), _chain()]
+ sheet, key = rating_sheet(matches, GAP, 3, MODS)
+ assert (sheet, key) == rating_sheet(matches, GAP, 3, MODS)
+ rows = list(csv.DictReader(io.StringIO(sheet)))
+ expected_ids = [f'unit_{n:03d}' for n in range(1, len(rows) + 1)]
+ assert [r['unit_id'] for r in rows] == expected_ids
+ lowered = sheet.lower()
+ for leak in ('individual', 'episode_by_factor', 'policy', 'model', 'arm', 'deaths,'):
+  assert leak not in lowered
+ key_rows = list(csv.DictReader(io.StringIO(key)))
+ assert {r['unit_id'] for r in key_rows} == {r['unit_id'] for r in rows}
+ assert all((r['policies'] for r in key_rows))
+### tools/reports/ranking_episodes.py
+import argparse
+from collections import Counter
+from dataclasses import dataclass
+from pathlib import Path
+from importance_report import PROJECT_ROOT
+from loguru import logger
+from ranking_competition import Death, Match, load_matches
+from splatoon3_ai_coach.config import default_config_path, load_config
+from splatoon3_ai_coach.config.models import AppConfig
+SHORT = {'death_quick_redeath': 're-death', 'death_while_outnumbered': 'outnumbered', 'death_while_ahead_in_numbers': 'ahead', 'death_final_30s': 'final30', 'death_first_30s': 'first30'}
+POLICIES = ('deaths', 'episode', 'episode_by_factor')
+@dataclass
+class Candidate:
+ members: int
+ @property
+ def lead(self):
+  return min(self.members, key=lambda d: (-d.score, d.t, d.cid))
+ @property
+ def score(self):
+  return self.lead.score
+ def label(self, modifiers):
+  return ' + '.join((f'{d.t:.0f}s {_short(d.factors, modifiers)}' for d in sorted(self.members, key=lambda d: d.t)))
+def _short(factors, modifiers):
+ primary = sorted((SHORT.get(f, f) for f in factors if f not in modifiers))
+ extra = sorted((SHORT.get(f, f) for f in factors if f in modifiers))
+ return '/'.join(primary) + (f" (+{'/'.join(extra)})" if extra else '') or '–'
+def primary(death, modifiers):
+ return frozenset((f for f in death.factors if f not in modifiers))
+def episodes(match, gap):
+ groups = []
+ for death in sorted(match.deaths, key=lambda d: d.t):
+  if groups and death.t - groups[-1][-1].t <= gap:
+   groups[-1].append(death)
+  else:
+   groups.append([death])
+ return groups
+def candidates(match, policy, gap, modifiers):
+ if policy == 'deaths':
+  return [Candidate([d]) for d in match.deaths]
+ out = []
+ for group in episodes(match, gap):
+  scoring = [d for d in group if d.score > 0]
+  if not scoring:
+   out.extend((Candidate([d]) for d in group))
+  elif policy == 'episode':
+   out.append(Candidate(scoring))
+  else:
+   by_factor = {}
+   for death in scoring:
+    by_factor.setdefault(primary(death, modifiers), []).append(death)
+   out.extend((Candidate(members) for members in by_factor.values()))
+ return out
+def select(pool, top):
+ ranked = sorted(pool, key=lambda c: (-c.score, c.lead.t, c.lead.cid))
+ return [c for c in ranked if c.score > 0][:top]
+def summary_section(matches, picks):
+ lines = ['## 1. Summary', '', '| policy | units | deaths inside units | matches with a unit | units per match |', '| --- | ---: | ---: | ---: | --- |']
+ for policy in POLICIES:
+  chosen = picks[policy]
+  dist = Counter((len(chosen[m.name]) for m in matches))
+  lines.append(f'| `{policy}` | {sum((len(v) for v in chosen.values()))} | {sum((len(c.members) for v in chosen.values() for c in v))} | {sum((1 for v in chosen.values() if v))} | ' + '; '.join((f'{n}: {k}' for n, k in sorted(dist.items()))) + ' |')
+ lines.append('')
+ return lines
+def episode_section(matches, gap, modifiers):
+ lines = ['## 2. Episodes with more than one scoring death', '', f'Episode = consecutive deaths each within {gap:g}s of the previous one. Primary factors exclude the clock modifiers.', '', '| match | deaths in episode (time: factors = score) | distinct primary factor sets | selected today |', '| --- | --- | ---: | ---: |']
+ for match in matches:
+  for group in episodes(match, gap):
+   scoring = [d for d in group if d.score > 0]
+   if len(scoring) < 2:
+    continue
+   members = '; '.join((f'{d.t:.0f}s: {_short(d.factors, modifiers)} = {d.score:g}' for d in group))
+   distinct = len({primary(d, modifiers) for d in scoring})
+   lines.append(f'| {match.name[:36]} | {members} | {distinct} | {sum((d.selected for d in group))} |')
+ lines.append('')
+ return lines
+def diff_section(matches, picks, modifiers):
+ lines = ['## 3. Matches where the policies differ', '']
+ for match in matches:
+  views = {policy: [c.label(modifiers) for c in picks[policy][match.name]] for policy in POLICIES}
+  if len({tuple(v) for v in views.values()}) == 1:
+   continue
+  lines.append(f'**{match.name}**')
+  lines.append('')
+  for policy in POLICIES:
+   units = views[policy]
+   shown = '; '.join((f'[{u}]' for u in units)) if units else 'none'
+   lines.append(f'- `{policy}` ({len(units)}): {shown}')
+  lines.append('')
+ return lines
+def build(matches, config):
+ coach = config.coach
+ gap = coach.death_factor_thresholds.redeath_max_gap_seconds
+ modifiers = frozenset(coach.death_modifier_factors)
+ picks = {policy: {m.name: select(candidates(m, policy, gap, modifiers), coach.max_llm_units) for m in matches} for policy in POLICIES}
+ header = ['# Selection unit: deaths versus episodes', '', f'Describes alternatives only; production selects deaths. Scores are the production scores; the top {coach.max_llm_units} positive-score candidates are selected under every policy. A grouped candidate is ranked by its best member and lists every scoring death it contains.', '', '> **Research conclusion (not yet implemented).** Intended future selection policy: one coaching unit per 20-second-linked death episode, ranked by its best-scoring death, with every scoring death in that episode retained as an observation inside the unit. Blocked on redesigning the 1:1 chain unit = scenario = CoachInput = LLM prompt = VMV block = public-site moment (`coach/llm_view.py`, `coach/vmv.py`, `tools/public_site/results.py`) to present multiple death episodes as one unit. Do not implement until that presentation design is decided separately.', '', '> **Superseded by `coaching_units.md`** (`tools/reports/coaching_units.py`), which re-measures these policies under current scoring and recommends retaining the individual death as the unit.', '']
+ return '\n'.join(header + summary_section(matches, picks) + episode_section(matches, gap, modifiers) + diff_section(matches, picks, modifiers))
+def main():
+ parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+ parser.add_argument('--root', type=Path, default=PROJECT_ROOT / 'analysis' / '_rescore_v2')
+ parser.add_argument('--config', type=Path, default=default_config_path())
+ parser.add_argument('--out', type=Path, default=PROJECT_ROOT / 'analysis' / 'importance_report' / 'episodes.md')
+ args = parser.parse_args()
+ config = load_config(args.config)
+ matches = load_matches(args.root.resolve(), config)
+ args.out.parent.mkdir(parents=True, exist_ok=True)
+ args.out.write_text(build(matches, config) + '\n', encoding='utf-8')
+ logger.info('Wrote {}', args.out)
+if __name__ == '__main__':
+ main()
+### tools/README.md
+# tools/
+Developer tooling that lives **outside** the installable `splatoon3_ai_coach`
+package. Nothing in `src/` may import from `tools/` except the CLI commands that
+launch the web apps below.
+Run scripts from the repository root with the project virtualenv:
+```bash
+.venv/bin/python tools/<folder>/<script>.py --help
+```
+Most scripts read local analysis output under `analysis/` (gitignored), so they
+need you to have run `s3-coach analyze` on your own recordings first.
+## Layout
+| Folder | What it holds | Maintained? |
+|--------|---------------|-------------|
+| `calibration/` | Interactive/offline helpers for drawing and checking ROIs, stage masks, and colors | Yes |
+| `diagnostics/` | Validators and diagnostics run against analysis artifacts | Yes |
+| `reports/` | Death-importance ranking reports over a library of analyzed matches | Yes |
+| `studies/` | One-off research scripts that informed a design decision | **No** (see below) |
+| `vision_manifest_viewer/` | Read-only HTML viewer for `vision_manifest.json` (`s3-coach vision-view`) | Yes |
+| `vmv_site/` | Local analysis platform API (`s3-coach vmv-site`) | Yes |
+| `public_site/` | Public coaching submission site (`s3-coach public-site`) | Yes |
+The three web packages stay at the top level because the CLI imports them by
+putting `tools/` on `sys.path`.
+### calibration/
+| Script | Purpose |
+|--------|---------|
+| `roi_calibrate.py` | Interactive ROI calibration for normalized `[x1,y1,x2,y2]` boxes (shared helpers used by the other calibration scripts) |
+| `roi_visualize.py` | Draw normalized ROI boxes on an image or video frame |
+| `score_roi_calibrate.py` | Calibrate Splat Zones score digit ROIs |
+| `stage_mask_calibrate.py` | Interactive playable-stage polygon calibration |
+| `stage_mask_ab_compare.py` | A/B paint %: stage polygon mask vs ROI-union fallback |
+| `map_ink_roi_preview.py` | Preview stage-map ROI coverage on a frame |
+| `map_ink_color_audit.py` | Offline map ink color audit |
+| `team_color_probe.py` | Print the team color probe for a `vision_manifest.json` |
+| `review_special_icon_harvest.py` | Crop Review event-lane icon candidates with source and player-slot metadata |
+### diagnostics/
+| Script | Purpose |
+|--------|---------|
+| `validate_review_timeline.py` | Deterministic GO/NO-GO quality gate for a Review timeline artifact |
+| `map_ink_geometry_validate.py` | Multi-frame map ink geometry validation (needs local paint-map references) |
+| `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
+| `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
+| `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
+### reports/
+`importance_report.py` provides shared loaders used by the `ranking_*.py`
+scripts, so keep these together.
+| Script | Purpose |
+|--------|---------|
+| `importance_report.py` | Re-score every analyzed match and compare with its last ranking |
+| `ranking_competition.py` | Competition among death candidates in the importance ranking |
+| `ranking_cases.py` | Per-death case analysis of the importance factors |
+| `ranking_episodes.py` | Deaths versus coaching episodes as the selection unit |
+| `coaching_units.py` | Research comparison of coaching units (deaths, episodes, episode-by-factor; engagement and non-death feasibility); writes `coaching_units.md`, a blind rating sheet with a separate key, and the deferred Experiment D inputs (never calls a model). Sections live in `coaching_units_sections.py` |
+### studies/
+Research scripts kept so past findings stay reproducible. They are **not
+maintained**: they may hardcode analysis folder names, expect specific local
+recordings, or describe a stage of work that has since shipped. Do not import
+them from new code. If a study's logic becomes part of the product, move it into
+`src/` with tests instead of extending the script.
+Studies cover Splat Zones / Clam Blitz score reading and trajectories, zone
+control, special activation, the Review-feature survey (Phase 0), and score
+fusion validation.
+## Adding a tool
+- Put it in the folder that matches its purpose; prefer `diagnostics/` for
+  anything that checks an artifact and can fail.
+- Resolve the repository root with
+  `from splatoon3_ai_coach.config.paths import PROJECT_ROOT` rather than
+  counting `Path(__file__).parents`.
+- Use `argparse` (or Typer) so `--help` works without local data.
+- If tests import it, the folder must be listed in `pythonpath` under
+  `[tool.pytest.ini_options]` in `pyproject.toml` (all four folders already are).

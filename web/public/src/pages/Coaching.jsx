@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
-import { loadAccount, loadHistory } from "../api.js";
+import { loadAccount, loadHistory, saveNoticePreference } from "../api.js";
 import { useLocale, useT } from "../i18n/LocaleContext.jsx";
 
 export function CoachingPage() {
@@ -43,10 +43,32 @@ export function CoachingPage() {
 
   const message = needsLogin ? t("coaching.login_needed") : error;
 
+  async function onPreference(enabled) {
+    setError("");
+    try {
+      const saved = await saveNoticePreference(enabled);
+      setAccount((current) =>
+        current ? { ...current, notify_by_email: saved.notify_by_email } : current,
+      );
+    } catch (exc) {
+      setError(exc.message);
+    }
+  }
+
   return (
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
       <h1>{t("coaching.title")}</h1>
+      {account ? (
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={Boolean(account.notify_by_email)}
+            onChange={(event) => onPreference(event.target.checked)}
+          />
+          {t("coaching.notice_default")}
+        </label>
+      ) : null}
       {message ? <p className="error">{message}</p> : null}
       {items === null ? <p>{t("coaching.loading")}</p> : null}
       {items?.length === 0 && !message ? <p>{t("coaching.empty")}</p> : null}

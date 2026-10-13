@@ -14,6 +14,7 @@ import { AdminRequestsPage } from "./pages/AdminRequests.jsx";
 import { AdminUserDetailPage } from "./pages/AdminUserDetail.jsx";
 import { AdminUsersPage } from "./pages/AdminUsers.jsx";
 import { CoachingPage } from "./pages/Coaching.jsx";
+import { ConfirmNoticesPage } from "./pages/ConfirmNotices.jsx";
 import { ForgotPage } from "./pages/Forgot.jsx";
 import { LoginPage } from "./pages/Login.jsx";
 import { RegisterPage } from "./pages/Register.jsx";
@@ -40,6 +41,7 @@ function AppRoutes() {
       <Route path="/forgot" element={<ForgotPage />} />
       <Route path="/reset/:token" element={<ResetPage />} />
       <Route path="/verify/:token" element={<VerifyPage />} />
+      <Route path="/confirm-notices/:token" element={<ConfirmNoticesPage />} />
       <Route path="/coaching" element={<CoachingPage />} />
       <Route path="/coaching/:id" element={<ReviewPage />} />
       <Route path="/review/:token" element={<ReviewPage />} />

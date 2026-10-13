@@ -28,6 +28,7 @@ ACCOUNT_SUBJECTS = {
     "verify": "Confirm your Splatoon 3 coaching account",
     "reset": "Reset your Splatoon 3 coaching password",
 }
+CONFIRM_SUBJECT = "Confirm notices for your Splatoon 3 review"
 
 
 class NoticeSender:
@@ -58,20 +59,39 @@ class NoticeSender:
         """Drop the sealed token after the terminal notice or on expiry."""
         self._secret(submission_id).unlink(missing_ok=True)
 
+    def deliver(self, submission: Submission, kind: str, token: str) -> None:
+        """Write one notice. The caller records sent only after this returns.
+
+        Raises when the provider rejects the message so a claim can be retried.
+        """
+        subject = SUBJECTS[kind]
+        review_url = f"{self.settings.public_base_url}/review/{token}"
+        body = _body(kind, review_url)
+        if self.settings.smtp_host:
+            _smtp(self.settings, submission.email or "", subject, body)
+        else:
+            self._write_outbox(submission.id, kind, submission.email or "", subject, body)
+        logger.info("notice {} sent for submission {}", kind, submission.id)
+
     def send(self, submission: Submission, kind: str, token: str) -> None:
-        """Send one notice. Repeated kinds for the same submission are skipped."""
+        """Send one notice and mark it on the in-memory submission."""
         if not submission.notify or not submission.email:
             return
         if kind in submission.notices_sent:
             return
-        subject = SUBJECTS[kind]
-        body = _body(kind, f"{self.settings.public_base_url}/review/{token}")
-        if self.settings.smtp_host:
-            _smtp(self.settings, submission.email, subject, body)
-        else:
-            self._write_outbox(submission.id, kind, submission.email, subject, body)
+        self.deliver(submission, kind, token)
         submission.notices_sent.append(kind)
-        logger.info("notice {} sent for submission {}", kind, submission.id)
+
+    def send_confirm(self, email: str, url: str) -> None:
+        """Mail a confirmation link. The body has no review URL."""
+        body = f"Confirm this address to receive a notice when your review is ready.\n\n{url}\n"
+        if self.settings.smtp_host:
+            _smtp(self.settings, email, CONFIRM_SUBJECT, body)
+        else:
+            name = f"confirm.{uuid.uuid4().hex}.txt"
+            text = f"To: {email}\nSubject: {CONFIRM_SUBJECT}\n\n{body}"
+            (self.outbox / name).write_text(text, encoding="utf-8")
+        logger.info("notice confirmation sent")
 
     def send_account(self, email: str, kind: str, url: str) -> None:
         """Send a verify or reset link. The raw token stays in the message body."""

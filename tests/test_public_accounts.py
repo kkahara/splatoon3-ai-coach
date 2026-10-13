@@ -230,7 +230,7 @@ def test_logged_in_submit_hides_guest_email_and_keeps_a_year(
     assert created.status_code == 200, created.text
     stored = client.app.state.store.list_submissions()[0]
     assert stored.email == "rin@example.com"
-    assert stored.notify is True
+    assert stored.notify is False
     assert stored.display_name == "Rin"
     assert stored.user_id
     created_at = parse_utc(stored.created_at)

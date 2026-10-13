@@ -68,6 +68,8 @@ class Submission(BaseModel):
     error: str | None = None
     outcome: CoachingOutcome | None = None
     notices_sent: list[str] = Field(default_factory=list)
+    # kind -> claimed-at stamp. A claim is not delivery; a stale claim can retry.
+    notice_claims: dict[str, str] = Field(default_factory=dict)
 
 
 class VideoInput(BaseModel):
@@ -110,6 +112,7 @@ class CreateSubmissionResponse(BaseModel):
     upload: PresignedUpload
     price_cents: int | None = None
     payment_required: bool = False
+    notice_pending: bool = False
 
 
 class LifecycleMark(BaseModel):
@@ -176,6 +179,7 @@ class PublicSubmissionResponse(BaseModel):
     locale: DisplayLocale = "en"
     result: PublicSubmissionResult | None = None
     payment_state: Literal["not_required", "unpaid", "checkout_created", "paid"] | None = None
+    notice_pending: bool = False
 
 
 class HistoryItem(BaseModel):

@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from public_site.accounts import Account, AccountStore, account_email
 from public_site.errors import (
     ACCOUNTS_UNAVAILABLE,
+    BAD_LINK,
     LOGIN_REQUIRED,
     PAYMENT_UNAVAILABLE,
+    WORKER_CAPACITY_UNAVAILABLE,
     RequestRejected,
 )
 from public_site.localize import Translator, build_translator
@@ -35,9 +38,12 @@ from public_site.telemetry import TelemetryStore
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
 from public_site.worker import Command, PublicWorker, subprocess_run
+from public_site.worker_capacity import MAX_CAPACITY, MIN_CAPACITY, WorkerCapacityStore
 
 SESSION_COOKIE = "s3_session"
+NOTICE_COOKIE = "notice_browser"
 _SESSION_MAX_AGE = 30 * 24 * 60 * 60
+_NOTICE_MAX_AGE = 365 * 24 * 60 * 60
 
 
 class CreateBody(BaseModel):
@@ -99,6 +105,38 @@ class PriceBody(BaseModel):
     price_cents: int = Field(ge=0, le=100_000)
 
 
+class UploadLimitBody(BaseModel):
+    """How many logged-in submissions one account may start per hour."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    account_uploads_per_hour: int = Field(ge=1, le=100)
+
+    @field_validator("account_uploads_per_hour", mode="before")
+    @classmethod
+    def require_whole_number(cls, value: object) -> object:
+        """Reject decimals, booleans, and strings. Only a JSON integer is valid."""
+        if type(value) is not int:
+            raise ValueError("account uploads per hour must be a whole number")
+        return value
+
+
+class WorkerCapacityBody(BaseModel):
+    """How many analyses this worker may run at once. Per worker, not site-wide."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    max_concurrent_jobs: int = Field(ge=MIN_CAPACITY, le=MAX_CAPACITY)
+
+    @field_validator("max_concurrent_jobs", mode="before")
+    @classmethod
+    def require_whole_number(cls, value: object) -> object:
+        """Reject decimals, booleans, and strings. Only a JSON integer is valid."""
+        if type(value) is not int:
+            raise ValueError("worker capacity must be a whole number")
+        return value
+
+
 class TokenBody(BaseModel):
     """A verify or reset token from an email link."""
 
@@ -106,6 +144,14 @@ class TokenBody(BaseModel):
 
     token: str = ""
     password: str = ""
+
+
+class NoticePreferenceBody(BaseModel):
+    """Saved default for account email notices. One submission can still differ."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    enabled: bool
 
 
 def create_app(
@@ -123,6 +169,7 @@ def create_app(
     telemetry: TelemetryStore | None = None,
     payments: PaymentStore | None = None,
     checkout: CheckoutGateway | None = None,
+    capacities: WorkerCapacityStore | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
@@ -138,6 +185,9 @@ def create_app(
     if payments is None and settings.database_url:
         payments = PaymentStore(settings.database_url)
         payments.ensure_schema()
+    if capacities is None and settings.database_url:
+        capacities = WorkerCapacityStore(settings.database_url)
+        capacities.ensure_schema()
     if checkout is None and settings.stripe_secret_key:
         checkout = StripeCheckout(settings.stripe_secret_key)
     if translator is None:
@@ -162,6 +212,7 @@ def create_app(
         service,
         run_command=run_command or subprocess_run,
         start_thread=start_worker,
+        capacity=_capacity_reader(settings, capacities),
     )
     app = FastAPI(title="Splatoon 3 AI Coach")
     app.state.settings = settings
@@ -171,7 +222,9 @@ def create_app(
     app.state.accounts = accounts
     app.state.telemetry = telemetry
     app.state.payments = payments
+    app.state.capacities = capacities
     _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout)
+    _worker_capacity_routes(app, settings, worker, accounts, capacities)
     from public_site.admin import register_admin_routes
 
     register_admin_routes(
@@ -184,6 +237,42 @@ def create_app(
     )
     _mount_ui(app, settings, service)
     return app
+
+
+def _capacity_reader(
+    settings: PublicSettings, capacities: WorkerCapacityStore | None
+) -> Callable[[], int] | None:
+    """This worker's capacity: its saved row, else the environment value."""
+    if capacities is None:
+        return None
+    return lambda: capacities.capacity(settings.worker_key, settings.max_concurrent_jobs)
+
+
+def _worker_capacity_routes(app, settings, worker, accounts, capacities) -> None:
+    """Admin control for this worker's capacity. Not part of pricing."""
+
+    def payload() -> dict:
+        return {
+            "worker_key": settings.worker_key,
+            "max_concurrent_jobs": worker.capacity(),
+            "active_jobs": worker.active_jobs,
+            "min": MIN_CAPACITY,
+            "max": MAX_CAPACITY,
+        }
+
+    @app.get("/api/admin/worker-capacity")
+    def get_worker_capacity(request: Request) -> dict:
+        _required_admin(request, accounts)
+        return payload()
+
+    @app.put("/api/admin/worker-capacity")
+    def put_worker_capacity(body: WorkerCapacityBody, request: Request) -> dict:
+        _required_admin(request, accounts)
+        if capacities is None:
+            raise HTTPException(status_code=503, detail=WORKER_CAPACITY_UNAVAILABLE)
+        capacities.set_capacity(settings.worker_key, body.max_concurrent_jobs)
+        worker.wake()
+        return payload()
 
 
 def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
@@ -212,20 +301,25 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         return {"recorded": payments is not None}
 
     @app.post("/api/submissions")
-    def post_submission(body: CreateBody, request: Request) -> dict:
+    def post_submission(body: CreateBody, request: Request) -> JSONResponse:
         user = _current_user(request, accounts)
         email = body.email
         notify = body.notify
         display_name = body.display_name
         user_id = None
         retention = None
-        if user is not None:
-            email = user.email
-            notify = True
-            display_name = _chosen_name(body.display_name, user.name)
-            user_id = user.id
-            retention = settings.account_retention_days
+        guest_email = None
         try:
+            if user is not None:
+                email = user.email
+                notify = body.notify
+                display_name = _chosen_name(body.display_name, user.name)
+                user_id = user.id
+                retention = settings.account_retention_days
+            elif accounts is not None and body.notify:
+                guest_email = account_email(body.email or "")
+                email = None
+                notify = False
             created = service.create(
                 turnstile_token=body.turnstile_token,
                 filename=body.filename,
@@ -240,9 +334,25 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
                 user_id=user_id,
                 retention_days=retention,
             )
+            browser_token = None
+            if guest_email is not None:
+                created.notice_pending, browser_token = service.arrange_guest_notice(
+                    created,
+                    guest_email,
+                    request.cookies.get(NOTICE_COOKIE, ""),
+                )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
-        return created.model_dump()
+        response = JSONResponse(created.model_dump())
+        if browser_token:
+            _notice_cookie(response, browser_token, settings)
+        return response
+
+    @app.post("/api/notices/confirm")
+    def post_notice_confirm(body: TokenBody) -> dict:
+        if not service.confirm_guest_notice(body.token):
+            raise HTTPException(status_code=400, detail=BAD_LINK)
+        return {"confirmed": True}
 
     _auth_routes(app, settings, service, accounts, notices)
 
@@ -282,8 +392,17 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
             "price_cents": price.price_cents,
             "currency": price.currency,
             "pricing_version": price.pricing_version,
+            "account_uploads_per_hour": payments.account_upload_limit(),
             "events": _event_rows(payments),
         }
+
+    @app.put("/api/admin/upload-limit")
+    def put_upload_limit(body: UploadLimitBody, request: Request) -> dict:
+        _required_admin(request, accounts)
+        if payments is None:
+            raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
+        saved = payments.set_account_upload_limit(body.account_uploads_per_hour)
+        return {"account_uploads_per_hour": saved}
 
     @app.get("/api/submissions/{token}")
     def get_submission(token: str, locale: DisplayLocale = "en") -> dict:
@@ -338,6 +457,7 @@ def _price_payload(payments: PaymentStore | None) -> dict:
         "price_cents": None if price is None else price.price_cents,
         "currency": None if price is None else price.currency,
         "pricing_version": None if price is None else price.pricing_version,
+        "account_uploads_per_hour": payments.account_upload_limit(),
         "events": _event_rows(payments),
     }
 
@@ -461,7 +581,19 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
     @app.get("/api/me")
     def get_me(request: Request) -> dict:
         user = _required_user(request, accounts)
-        return {"name": user.name, "email": user.email, "role": user.role}
+        return {
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "notify_by_email": user.notify_by_email,
+        }
+
+    @app.put("/api/me/notice-preference")
+    def put_notice_preference(body: NoticePreferenceBody, request: Request) -> dict:
+        store = _require_accounts(accounts)
+        user = _required_user(request, store)
+        store.set_notice_preference(user.id, body.enabled)
+        return {"notify_by_email": body.enabled}
 
     @app.get("/api/me/submissions")
     def get_mine(request: Request) -> list[dict]:
@@ -553,6 +685,19 @@ def _session_response(account: Account, token: str, settings: PublicSettings) ->
         path="/",
     )
     return response
+
+
+def _notice_cookie(response: JSONResponse, token: str, settings: PublicSettings) -> None:
+    """Bind later notice requests to this browser. Only the hash is stored."""
+    response.set_cookie(
+        NOTICE_COOKIE,
+        token,
+        httponly=True,
+        samesite="lax",
+        secure=settings.public_base_url.startswith("https://"),
+        max_age=_NOTICE_MAX_AGE,
+        path="/",
+    )
 
 
 def _chosen_name(given: str | None, account_name: str) -> str:
