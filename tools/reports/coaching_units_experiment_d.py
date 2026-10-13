@@ -16,7 +16,10 @@ the requested temperature unless ``--allow-unhonored-temperature`` is given.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
+import random
 import sys
 from collections import defaultdict
 from collections.abc import Sequence
@@ -24,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from coaching_units import OBSERVATIONS_HEADER
+from coaching_units import OBSERVATIONS_HEADER, RATING_COLUMNS, RATING_SEED
 from loguru import logger
 
 from splatoon3_ai_coach.coach.claim_basis import ClaimBasisEntry
@@ -152,7 +155,8 @@ def staleness(system: str, calls: Sequence[DCall], coach: CoachConfig) -> list[s
     missing = sorted(set().union(*(current_keys - k for k in entry_keys)))
     if missing:
         problems.append(
-            "claim_basis entries lack current fields " + ", ".join(missing)
+            "claim_basis entries lack current fields "
+            + ", ".join(missing)
             + " (views predate the current CoachLlmView)"
         )
     return problems
@@ -343,6 +347,59 @@ def summarize(records: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
+def _anchors(call_ids: Sequence[str]) -> str:
+    return "; ".join(f"{float(c.split(':', 1)[1]):.1f}s" for c in call_ids)
+
+
+def round2_sheet(
+    records: Sequence[dict[str, Any]], seed: int = RATING_SEED
+) -> tuple[str, str]:
+    """(blind sheet CSV, key CSV) of model outputs; the sheet never names an arm.
+
+    Shows what the public result page shows: assessment and recommendations.
+    """
+    rows = sorted((r for r in records if r.get("assessment")), key=lambda r: r["call_id"])
+    random.Random(seed).shuffle(rows)
+    sheet, key = io.StringIO(), io.StringIO()
+    sheet_w = csv.writer(sheet, lineterminator="\n")
+    key_w = csv.writer(key, lineterminator="\n")
+    sheet_w.writerow(
+        (
+            "output_id",
+            "match",
+            "anchors",
+            "assessment",
+            "recommendations",
+            *RATING_COLUMNS,
+        )
+    )
+    key_w.writerow(("output_id", "call_id", "episode", "arm", "lead", "members"))
+    for n, r in enumerate(rows, start=1):
+        output_id = f"output_{n:03d}"
+        a = r["assessment"]
+        sheet_w.writerow(
+            (
+                output_id,
+                r["match"],
+                _anchors(r["members"]),
+                a["assessment"].strip(),
+                " || ".join(s.strip() for s in a["recommendations"]),
+                *[""] * len(RATING_COLUMNS),
+            )
+        )
+        key_w.writerow(
+            (
+                output_id,
+                r["call_id"],
+                r["episode"],
+                r["arm"],
+                r["lead"],
+                ";".join(r["members"]),
+            )
+        )
+    return sheet.getvalue(), key.getvalue()
+
+
 def _violations(validation: dict[str, Any]) -> int:
     return (
         int(validation.get("hit_count", 0))
@@ -410,6 +467,24 @@ def _cmd_summary(args: argparse.Namespace, _coach: CoachConfig) -> int:
     return 0
 
 
+def _cmd_sheet(args: argparse.Namespace, _coach: CoachConfig) -> int:
+    sheet_path = args.out / "round2_rating_sheet.csv"
+    key_path = args.out / "round2_rating_key.csv"
+    if sheet_path.exists() or key_path.exists():
+        raise SystemExit(
+            f"{sheet_path.name} or {key_path.name} exists; never overwritten"
+        )
+    records = [
+        json.loads(p.read_text(encoding="utf-8"))
+        for p in sorted((args.out / "calls").glob("*.json"))
+    ]
+    sheet, key = round2_sheet(records)
+    sheet_path.write_text(sheet, encoding="utf-8")
+    key_path.write_text(key, encoding="utf-8")
+    sys.stdout.write(f"wrote {sheet_path} ({sheet.count(chr(10)) - 1} outputs)\n")
+    return 0
+
+
 def _default_model(provider: str, coach: CoachConfig) -> str:
     return {
         "ollama": coach.model,
@@ -422,7 +497,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
-        "command", nargs="?", default="plan", choices=("plan", "run", "summary")
+        "command",
+        nargs="?",
+        default="plan",
+        choices=("plan", "run", "summary", "sheet"),
     )
     parser.add_argument("--provider", choices=COACH_PROVIDERS, default="cursor")
     parser.add_argument("--model", default=None)
@@ -433,7 +511,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--config", type=Path, default=default_config_path())
     args = parser.parse_args(argv)
     coach = load_config(args.config).coach
-    command = {"plan": _cmd_plan, "run": _cmd_run, "summary": _cmd_summary}[args.command]
+    command = {
+        "plan": _cmd_plan,
+        "run": _cmd_run,
+        "summary": _cmd_summary,
+        "sheet": _cmd_sheet,
+    }[args.command]
     return command(args, coach)
 
 

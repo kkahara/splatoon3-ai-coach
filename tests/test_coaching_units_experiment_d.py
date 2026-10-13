@@ -186,6 +186,24 @@ def test_run_records_validates_and_refuses_second_run(
         xd.main(argv)
 
 
+def test_round2_sheet_is_blind_and_never_overwritten(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, current_system: str
+) -> None:
+    run = type("Run", (), {"provider": _Fake(), "label": "fake"})
+    monkeypatch.setattr(xd, "build_llm_runs", lambda **_kw: [run])
+    deferred, out = _deferred(tmp_path, current_system), tmp_path / "o"
+    common = ["--deferred", str(deferred), "--out", str(out)]
+    xd.main(["run", "--provider", "ollama", "--model", "fake", "--confirm", *common])
+    assert xd.main(["sheet", *common]) == 0
+    sheet = (out / "round2_rating_sheet.csv").read_text(encoding="utf-8")
+    key = (out / "round2_rating_key.csv").read_text(encoding="utf-8")
+    assert len(sheet.splitlines()) == 4 and "100.0s; 110.0s" in sheet
+    assert not any(arm in sheet for arm in xd.ARMS)
+    assert all(arm in key for arm in ("individual", "episode"))
+    with pytest.raises(SystemExit, match="never overwritten"):
+        xd.main(["sheet", *common])
+
+
 def test_member_only_reference_is_counted_separately() -> None:
     unresolved = [{"text": "primary_context.death.death_time_video = 110.0"}]
     members = [_view(110.0)]

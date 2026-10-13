@@ -1,0 +1,149 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1__individual__call_2",
+ "episode": "public_analysis_1828351988f0450cb9529e914840c8f2__ep1",
+ "match": "_public/analysis/1828351988f0450cb9529e914840c8f2",
+ "arm": "individual",
+ "lead": "death_episode:223.500",
+ "members": [
+  "death_episode:223.500"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "42cc250f14ebde0cd1164b18cd999e62f6e97045835fd49a7116396bcf344bd8"
+ },
+ "executed_at": "2026-10-13T23:17:41+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"Your previous death was 17.0 video seconds earlier. Back-to-back deaths keep you out of play for longer. This death happened with 0:03 remaining.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_quick_redeath\",\n      \"level\": \"A\",\n      \"sentence\": \"Your previous death was 17.0 video seconds earlier.\"\n    },\n    {\n      \"claim_id\": \"principle_redeath_out_of_play\",\n      \"level\": \"B\",\n      \"sentence\": \"Back-to-back deaths keep you out of play for longer.\"\n    },\n    {\n      \"claim_id\": \"death_final_30s\",\n      \"level\": \"A\",\n      \"sentence\": \"This death happened in the final 30 seconds (0:03 remaining).\"\n    }\n  ],\n  \"evidence_used\": [\n    \"durations.time_since_previous_death.value = 17.0\",\n    \"game_clock_samples[label=death].observation.seconds_remaining = 3\",\n    \"game_clock_samples[label=death].observation.display = \\\"0:03\\\"\"\n  ],\n  \"limitations\": [\n    \"The evidence does not identify why the death happened or support conclusions about positioning, teammate state, opponent location, or fight outcome.\"\n  ],\n  \"recommendations\": [\n    \"After being splatted, take a moment to reset before re-engaging.\"\n  ],\n  \"selected_claim_ids\": [\n    \"death_quick_redeath\",\n    \"principle_redeath_out_of_play\",\n    \"death_final_30s\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 17.0 video seconds earlier. Back-to-back deaths keep you out of play for longer. This death happened with 0:03 remaining.",
+  "evidence_used": [
+   "durations.time_since_previous_death.value = 17.0",
+   "game_clock_samples[label=death].observation.seconds_remaining = 3",
+   "game_clock_samples[label=death].observation.display = \"0:03\""
+  ],
+  "limitations": [
+   "The evidence does not identify why the death happened or support conclusions about positioning, teammate state, opponent location, or fight outcome."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "principle_redeath_out_of_play",
+   "death_final_30s"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 17.0 video seconds earlier."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   },
+   {
+    "claim_id": "death_final_30s",
+    "level": "A",
+    "sentence": "This death happened in the final 30 seconds (0:03 remaining)."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "durations.time_since_previous_death.value = 17.0",
+    "kind": "source_path_ref",
+    "path": "durations.time_since_previous_death.value",
+    "source_path": "durations.time_since_previous_death"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.seconds_remaining = 3",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].observation.seconds_remaining",
+    "source_path": "game_clock_samples[label=death].observation.seconds_remaining"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.display = \"0:03\"",
+    "kind": "unresolved",
+    "path": "game_clock_samples[label=death].observation.display",
+    "reason": "unknown_key"
+   }
+  ],
+  "unresolved_evidence_paths": [
+   {
+    "text": "game_clock_samples[label=death].observation.display = \"0:03\"",
+    "kind": "unresolved",
+    "path": "game_clock_samples[label=death].observation.display",
+    "reason": "unknown_key"
+   }
+  ],
+  "claim_rule_hits": [],
+  "integrity_hits": [
+   {
+    "rule": "R7",
+    "check": "value_mismatch",
+    "field": "evidence_used",
+    "text": "durations.time_since_previous_death.value = 17.0",
+    "view_value": "17.0s",
+    "counts_as_violation": true
+   }
+  ],
+  "blocked": false,
+  "validation_status": "contains_unverified_wording"
+ },
+ "member_only_references": []
+}
