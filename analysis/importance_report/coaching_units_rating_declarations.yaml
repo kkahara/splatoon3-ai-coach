@@ -1,0 +1,17 @@
+# Rater's own declarations for coaching_units_rating_sheet.csv (round 1:
+# deterministic statements), given after rating and before unblinding.
+# Scores in the sheet are kept as entered; analysis must read them with these
+# directions instead of the rubric's.
+sheet: coaching_units_rating_sheet.csv
+declared_on: 2026-10-13
+key_opened: false
+scale_directions:
+  usefulness_1to5: higher is more useful (as in the rubric)
+  anchor_shows_situation_1to5: higher shows the situation better (as in the rubric)
+  missing_context_1to5: higher means MORE context is missing (opposite of the rubric)
+  redundancy_1to5: higher means MORE redundant (opposite of the rubric)
+supported_yes_no: >-
+  Answered as "the evidence is enough to support coaching", not the rubric's
+  "every statement shown is backed by evidence".
+notes:
+  unit_003: note ends mid-sentence ("Also "); rater chose to leave it as is.
