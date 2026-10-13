@@ -1,0 +1,30 @@
+{
+  "octopus/blue_violet": {
+    "n": 68,
+    "median": 0.559,
+    "q25": 0.331,
+    "q75": 0.675,
+    "below_floor": 41
+  },
+  "octopus/other": {
+    "n": 190,
+    "median": 0.844,
+    "q25": 0.809,
+    "q75": 0.865,
+    "below_floor": 15
+  },
+  "squid/blue_violet": {
+    "n": 119,
+    "median": 0.618,
+    "q25": 0.279,
+    "q75": 0.671,
+    "below_floor": 59
+  },
+  "squid/other": {
+    "n": 236,
+    "median": 0.708,
+    "q25": 0.686,
+    "q75": 0.729,
+    "below_floor": 27
+  }
+}

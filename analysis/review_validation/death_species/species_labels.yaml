@@ -1,0 +1,240 @@
+# Operator labels: species of each slot's player for that match.
+# Values: squid | octopus | unclear. Leave null if no clear crop.
+23-43-31:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: octopus
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
+23-56-41:
+  top_1:
+    species: octopus
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: squid
+  bottom_1:
+    species: octopus
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: squid
+18-18-00:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: squid
+  bottom_1:
+    species: octopus
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: octopus
+  bottom_4:
+    species: squid
+18-25-16:
+  top_1:
+    species: octopus
+  top_2:
+    species: octopus
+  top_3:
+    species: octopus
+  top_4:
+    species: octopus
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: octopus
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
+20-33-31:
+  top_1:
+    species: squid
+  top_2:
+    species: octopus
+  top_3:
+    species: squid
+  top_4:
+    species: octopus
+  bottom_1:
+    species: octopus
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: squid
+22-20-42:
+  top_1:
+    species: squid
+  top_2:
+    species: octopus
+  top_3:
+    species: squid
+  top_4:
+    species: octopus
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
+22-31-53:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: squid
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: octopus
+  bottom_3:
+    species: octopus
+  bottom_4:
+    species: octopus
+22-37-47:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: octopus
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: octopus
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
+22-57-30:
+  top_1:
+    species: octopus
+  top_2:
+    species: octopus
+  top_3:
+    species: octopus
+  top_4:
+    species: octopus
+  bottom_1:
+    species: octopus
+  bottom_2:
+    species: octopus
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: squid
+17-42-59:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: octopus
+  top_4:
+    species: squid
+  bottom_1:
+    species: octopus
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
+19-47-46:
+  top_1:
+    species: squid
+  top_2:
+    species: octopus
+  top_3:
+    species: squid
+  top_4:
+    species: squid
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: octopus
+  bottom_4:
+    species: octopus
+19-59-26:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: squid
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
+20-17-32:
+  top_1:
+    species: octopus
+  top_2:
+    species: squid
+  top_3:
+    species: squid
+  top_4:
+    species: octopus
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: octopus
+  bottom_3:
+    species: octopus
+  bottom_4:
+    species: squid
+20-25-22:
+  top_1:
+    species: squid
+  top_2:
+    species: squid
+  top_3:
+    species: octopus
+  top_4:
+    species: squid
+  bottom_1:
+    species: squid
+  bottom_2:
+    species: squid
+  bottom_3:
+    species: squid
+  bottom_4:
+    species: octopus
