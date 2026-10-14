@@ -319,10 +319,12 @@ def run_calls(
     return failures
 
 
-def summarize(records: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+def summarize(
+    records: Sequence[dict[str, Any]], arms: Sequence[str] = ARMS
+) -> list[dict[str, Any]]:
     """Per-arm counts from saved records (rule hits = validator violations)."""
     rows = []
-    for arm in ARMS:
+    for arm in arms:
         recs = [r for r in records if r["arm"] == arm]
         ok = [r for r in recs if r.get("validation")]
         rows.append(
