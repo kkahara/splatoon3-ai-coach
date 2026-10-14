@@ -1,0 +1,12 @@
+# Experiment E rating sheet, sealed before the key was opened.
+sheet: rating_sheet.csv
+sealed_on: 2026-10-14
+key_opened: false
+rows_rated: 52
+scale_directions: >-
+  Read with the rater's Round 1 directions (higher missing_context = more
+  missing; higher redundancy = more redundant; supported_yes_no = enough to
+  support coaching), as in Experiment D Round 2. Not separately re-confirmed.
+notes_style: >-
+  Every row carries one or more of a small set of repeated note phrases; they
+  are read as the rater's per-row reason codes.
