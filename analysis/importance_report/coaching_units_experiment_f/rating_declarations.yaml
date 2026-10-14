@@ -1,0 +1,17 @@
+# Experiment F rating sheet (F reworded + E expanded, re-rated), sealed before
+# the key was opened.
+sheet: rating_sheet.csv
+sealed_on: 2026-10-14
+key_opened: false
+rows_rated: 52
+scale_directions: >-
+  Read with the rater's Round 1 directions (higher missing_context = more
+  missing; higher redundancy = more redundant; supported_yes_no = enough to
+  support coaching), as in Experiments D and E. Not separately re-confirmed.
+format_notes: >-
+  The rated file has a trailing unnamed empty column and capitalised Yes/No;
+  analysis ignores the column and compares yes/no case-insensitively. The
+  rater's file is not edited.
+blinding_limit: >-
+  The arms differ only in wording, so the wording itself is visible to the
+  rater; some notes quote it. The sheet does not name arms or experiments.
