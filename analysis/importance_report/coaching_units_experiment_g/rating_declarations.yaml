@@ -1,0 +1,17 @@
+# Experiment G rating sheet (G sharpened + F reworded, re-rated), sealed
+# before the key was opened.
+sheet: rating_sheet.csv
+sealed_on: 2026-10-14
+key_opened: false
+rows_rated: 52
+scale_directions: >-
+  Read with the rater's Round 1 directions (higher missing_context = more
+  missing; higher redundancy = more redundant; supported_yes_no = enough to
+  support coaching), as in Experiments D-F. Not separately re-confirmed.
+format_notes: >-
+  The rater removed the `match` column and used capitalised Yes/No; analysis
+  joins on output_id and compares yes/no case-insensitively. The rater's file
+  is not edited.
+blinding_limit: >-
+  The arms differ only in claim wording, which is visible to the rater. The
+  sheet does not name arms or experiments.
