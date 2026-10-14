@@ -1,0 +1,86 @@
+{
+ "arms": [
+  "sharpened"
+ ],
+ "calls": [
+  {
+   "arm": "sharpened",
+   "file": "sharpened/public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_176_500.user_prompt.txt",
+   "lead": "death_episode:176.500",
+   "match": "_public/analysis/014c50601b1541a6917ed6afb7714fbe"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500.user_prompt.txt",
+   "lead": "death_episode:188.500",
+   "match": "_public/analysis/014c50601b1541a6917ed6afb7714fbe"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/public_analysis_1828351988f0450cb9529e914840c8f2_death_episode_206_500.user_prompt.txt",
+   "lead": "death_episode:206.500",
+   "match": "_public/analysis/1828351988f0450cb9529e914840c8f2"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/public_analysis_1828351988f0450cb9529e914840c8f2_death_episode_223_500.user_prompt.txt",
+   "lead": "death_episode:223.500",
+   "match": "_public/analysis/1828351988f0450cb9529e914840c8f2"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/en_2026_09_21_23_13_21_death_episode_144_000.user_prompt.txt",
+   "lead": "death_episode:144.000",
+   "match": "en-2026-09-21 23-13-21"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/en_2026_09_21_23_13_21_death_episode_158_500.user_prompt.txt",
+   "lead": "death_episode:158.500",
+   "match": "en-2026-09-21 23-13-21"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/en_2026_09_21_23_13_21_death_episode_327_500.user_prompt.txt",
+   "lead": "death_episode:327.500",
+   "match": "en-2026-09-21 23-13-21"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/en_2026_09_21_23_13_21_death_episode_343_000.user_prompt.txt",
+   "lead": "death_episode:343.000",
+   "match": "en-2026-09-21 23-13-21"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_272_500.user_prompt.txt",
+   "lead": "death_episode:272.500",
+   "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_290_500.user_prompt.txt",
+   "lead": "death_episode:290.500",
+   "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_285_000.user_prompt.txt",
+   "lead": "death_episode:285.000",
+   "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_298_000.user_prompt.txt",
+   "lead": "death_episode:298.000",
+   "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39"
+  },
+  {
+   "arm": "sharpened",
+   "file": "sharpened/ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_313_500.user_prompt.txt",
+   "lead": "death_episode:313.500",
+   "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39"
+  }
+ ],
+ "repeats": 2
+}

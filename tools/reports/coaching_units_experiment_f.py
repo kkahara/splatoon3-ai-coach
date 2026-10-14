@@ -71,10 +71,12 @@ REWORDED_CLAIMS: tuple[cb.ClaimDefinition, ...] = (
 CATALOGS: dict[str, xe.Catalog] = {"reworded": (REWORDED_CLAIMS, REWORDED_TEMPLATES)}
 
 
-def plan_markdown(doc: dict[str, Any]) -> str:
+def plan_markdown(
+    doc: dict[str, Any], title: str = "Experiment F", arm: str = ARMS[0]
+) -> str:
     """Human-readable dry run with per-death recommendation coverage."""
     lines = [
-        "# Experiment F dry run (no LLM calls)",
+        f"# {title} dry run (no LLM calls)",
         "",
         f"- Provider / model: `{doc['provider']}` / `{doc['model']}`",
         f"- Temperature support: **{doc['temperature_support']}** "
@@ -83,23 +85,25 @@ def plan_markdown(doc: dict[str, Any]) -> str:
         + ("; ".join(doc["stale_inputs"]) if doc["stale_inputs"] else "none"),
         f"- Calls: {len(doc['calls'])}",
         "",
-        "| death | reworded templates |",
+        f"| death | {arm} templates |",
         "| --- | --- |",
         *[
-            f"| {r['death']} | {', '.join(r.get('reworded', [])) or '(none)'} |"
+            f"| {r['death']} | {', '.join(r.get(arm, [])) or '(none)'} |"
             for r in doc["coverage"]
         ],
     ]
     return "\n".join(lines) + "\n"
 
 
-def sheet_records(f_dir: Path, e_dir: Path) -> list[dict[str, Any]]:
-    """Experiment F records plus Experiment E's ``expanded`` records."""
-    f_records = xe._records(f_dir)
-    e_records = [r for r in xe._records(e_dir) if r.get("arm") == E_ARM]
-    if not f_records or not e_records:
-        raise SystemExit("sheet needs both Experiment F and Experiment E records")
-    return [*f_records, *e_records]
+def sheet_records(
+    new_dir: Path, old_dir: Path, old_arm: str = E_ARM
+) -> list[dict[str, Any]]:
+    """This experiment's records plus the previous experiment's ``old_arm`` ones."""
+    new_records = xe._records(new_dir)
+    old_records = [r for r in xe._records(old_dir) if r.get("arm") == old_arm]
+    if not new_records or not old_records:
+        raise SystemExit("sheet needs both this and the previous experiment's records")
+    return [*new_records, *old_records]
 
 
 def _cmd_build(args: argparse.Namespace, config: AppConfig) -> int:
