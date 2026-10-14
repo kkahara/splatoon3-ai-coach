@@ -77,6 +77,7 @@ rejects roster assertions (R2). The roster code stays in place.
 | R9 | "Unknown / not available" only when the view lacks the value | Badge |
 | R10 | Recommendations match a template grounded by an eligible claim | Badge |
 | R11 | No "nothing notable" while a coachable A/B claim is eligible | Badge |
+| R12 | No "video seconds" in player text (plain or game-clock seconds only) | Badge |
 | R13 | Decimal-safe sentence splitting; negation scoped to its clause | Mechanics |
 
 Only the `limitations` field and clause-scoped negations exempt R1–R6 hits;

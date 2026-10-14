@@ -12,6 +12,7 @@
   template grounded by an eligible ``claim_basis`` entry.
 * R11 missed supported claim — "nothing notable" while a coachable A/B
   claim is eligible (evidence conservatism must not become blindness).
+* R12 clock wording — "video seconds" never appears in player text.
 
 Every hit is an annotation; nothing here rewrites model text.
 """
@@ -54,6 +55,7 @@ _NEGATION = re.compile(r"(?i)\b(?:no|not|without|never)\b|n't\b")
 _FINAL = re.compile(r"(?i)\b(?:final|last|closing)\s+30\s*(?:seconds|s)\b")
 _FIRST = re.compile(r"(?i)\b(?:first|opening)\s+30\s*(?:seconds|s)\b")
 _WINDOWS = ((_FINAL, "death_final_30s"), (_FIRST, "death_first_30s"))
+_VIDEO_SECONDS = re.compile(r"(?i)\bvideo[-\s]+(?:seconds?|secs?)\b")
 _SNAKE = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+){2,}\b")
 _DOTTED = re.compile(r"\b[a-z_]+\[?\d*\]?(?:\.[a-z_]+\[?\d*\]?)+\b")
 _UNKNOWN = re.compile(
@@ -196,6 +198,15 @@ def internal_identifier_hits(assessment: Mapping[str, Any]) -> list[dict[str, An
     return hits
 
 
+def video_clock_wording_hits(assessment: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """R12: player text says plain or game-clock seconds, never video seconds."""
+    return [
+        _hit("R12", "video_seconds_wording", field, sentence)
+        for field, sentence in _texts(assessment, _PLAYER_FIELDS)
+        if _VIDEO_SECONDS.search(sentence)
+    ]
+
+
 def claim_reference_hits(
     assessment: Mapping[str, Any], view: Mapping[str, Any]
 ) -> list[dict[str, Any]]:
@@ -291,8 +302,8 @@ def missed_claim_hits(
 def claim_integrity_hits(
     assessment: Mapping[str, Any], view: Mapping[str, Any] | None
 ) -> list[dict[str, Any]]:
-    """R5, R7-R11 together; without a view only R8 can run."""
-    hits = internal_identifier_hits(assessment)
+    """R5, R7-R12 together; without a view only R8 and R12 can run."""
+    hits = [*internal_identifier_hits(assessment), *video_clock_wording_hits(assessment)]
     if view is None:
         return hits
     return [

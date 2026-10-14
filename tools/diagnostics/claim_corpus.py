@@ -46,6 +46,7 @@ _CATEGORIES = {
     "false_unknown_R9": lambda h: h["rule"] == "R9",
     "internal_id_R8": lambda h: h["rule"] == "R8",
     "missed_claim_R11": lambda h: h["rule"] == "R11",
+    "video_seconds_R12": lambda h: h["rule"] == "R12",
 }
 
 

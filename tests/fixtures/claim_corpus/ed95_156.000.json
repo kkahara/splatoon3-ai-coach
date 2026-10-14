@@ -1056,10 +1056,12 @@
  },
  "expected": {
   "rules": [
+   "R12",
    "R2"
   ],
   "coachable_claims": [
    "death_out_of_play"
   ]
- }
+ },
+ "note": "R12 added 2026-10-13: the saved output says 'video seconds' in player text; R12 (no 'video seconds' wording) now flags it."
 }

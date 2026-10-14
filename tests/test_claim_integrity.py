@@ -54,6 +54,19 @@ def test_r5_map_absence_needs_not_observed_and_never_recent() -> None:
     )
 
 
+def test_r12_video_seconds_never_in_player_text() -> None:
+    assert _checks(assessment="You were out of play for 9.0 seconds.") == set()
+    assert _checks(assessment="That was 14 game-clock seconds.") == set()
+    worded = "Your previous death was 18.0 video seconds earlier."
+    assert "R12:video_seconds_wording" in _checks(assessment=worded)
+    assert "R12:video_seconds_wording" in _checks(
+        recommendations=["Wait a few video-seconds before re-engaging."]
+    )
+    assert _checks(limitations=["Durations are in video seconds."]) == set()
+    no_view = claim_integrity_hits({"assessment": worded}, None)
+    assert {hit["rule"] for hit in no_view} == {"R12"}
+
+
 def test_r5_clock_window_needs_its_factor() -> None:
     assert _checks(assessment="This death came in the final 30 seconds.") == set()
     assert "R5:clock_window" in _checks(assessment="It was in the first 30 seconds.")

@@ -273,7 +273,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
     ClaimDefinition(
         claim_id=_F.DEATH_FINAL_30S.value,
         level=ClaimLevel.A,
-        frame="This death happened in the final 30 seconds ({display} remaining).",
+        frame="This death happened with only {display} left in the match.",
         evidence_paths=("clock.seconds_remaining",),
         eligible=_factor(_F.DEATH_FINAL_30S, _clock_values),
         coachable=True,
@@ -281,7 +281,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
     ClaimDefinition(
         claim_id=_F.DEATH_FIRST_30S.value,
         level=ClaimLevel.A,
-        frame="This death happened in the first 30 seconds ({display} remaining).",
+        frame="This death happened early in the match, with {display} left.",
         evidence_paths=("clock.seconds_remaining",),
         eligible=_factor(_F.DEATH_FIRST_30S, _clock_values),
         coachable=True,

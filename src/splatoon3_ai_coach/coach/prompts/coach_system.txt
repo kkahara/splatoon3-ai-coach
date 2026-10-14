@@ -145,8 +145,13 @@ FIELD INTERPRETATION RULES
 Death episode:
 - death_to_respawn / death_to_active_again are clocked durations:
   {video_seconds, value, clock, method}. Quote `value` as play time only
-  with its `clock`; when `value` is null, playback speed is unverified and
+  when it is not null; when `value` is null, playback speed is unverified and
   `video_seconds` must not be described as time out of play.
+- Player-facing wording for durations: clock "video" with playback status
+  "normal" means the value is play time; write plain seconds ("9.0 seconds").
+  Clock "game" means converted or timer-sampled play time; write "game-clock
+  seconds". Never write "video seconds" in assessment, recommendations or
+  claims.
 - playback.status "rate_mismatch" means video seconds are not game seconds.
 - Never substitute one lifecycle interval for another.
 - If saying when the death episode ended/recovered, use active_again_time_video,

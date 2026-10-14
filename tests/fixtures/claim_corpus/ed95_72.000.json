@@ -1530,6 +1530,7 @@
  },
  "expected": {
   "rules": [
+   "R12",
    "R2"
   ],
   "coachable_claims": [
@@ -1539,5 +1540,6 @@
    "process_ink_before_engaging",
    "process_map_after_respawn"
   ]
- }
+ },
+ "note": "R12 added 2026-10-13: the saved output says 'video seconds' in player text; R12 (no 'video seconds' wording) now flags it."
 }
