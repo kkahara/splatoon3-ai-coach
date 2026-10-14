@@ -104,3 +104,30 @@ pipeline (decode required) before the experiment.
 Score reading reliability (digit flips) is a vision issue; it stays frozen
 unless reopened as its own task. Precondition B keeps flipped readings out of
 the gate in the meantime.
+
+## Corpus broadening, round 1 (2026-10-14)
+
+24 gameplay recordings from `~/Movies` analyzed with the current pipeline and
+frozen config (sha `17cf9fa6…`) into `analysis/_sz_corpus_v1/` (local only,
+not committed). Language per recording from its intro screen (15 en, 9 ja);
+one Review capture in the list was skipped. All 24 resolved as Splat Zones.
+
+- 76 deaths in total; **5 in the final 30 seconds** (no factor misses: the
+  fused clock confirms exactly these 5). Many matches end by knockout before
+  the last 30 seconds.
+
+| match | death | T | ally | opponent | counts | category |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-06 22-37-08 | 296.0 | ~23 | 35 | 14 | stable | behind (-21): eligible |
+| 2026-07-06 22-37-08 | 312.5 (no return) | ~6 | 35 | 14 | stable | behind (-21): eligible |
+| 2026-09-20 16-09-34 | 286.5 | ~29 | 57 | 3 | stable | decided (-54): not eligible |
+| 2026-09-20 16-09-34 | 304.5 | ~11 | 57 | not observed at sample | - | unavailable |
+| en-2026-09-21 22-48-34 | 291.5 | ~30 | 22 (counting down) | 23 | stable | contested (+1): eligible |
+
+Combined with the 2 usable deaths in `_rescore_v2` (brinewater 288.5
+contested; mahi reef 302.5 behind -29), the usable Splat Zones final-30 set is
+7 deaths: 5 eligible, 1 decided, 1 unavailable. A clock-only vs clock+score
+comparison would differ on 2 units.
+
+At roughly 5 final-30 deaths per 24 Splat Zones matches, collecting about 10
+decided-band deaths would take on the order of a few hundred matches.

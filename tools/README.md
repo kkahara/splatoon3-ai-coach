@@ -83,6 +83,7 @@ request observed at five-minute resolution, not the last browser page view.
 | `map_ink_geometry_validate.py` | Multi-frame map ink geometry validation (needs local paint-map references) |
 | `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
 | `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
+| `final30_score_survey.py` | Read-only: Splat Zones score facts and counter stability at every final-30 death, with contexts rebuilt in memory (stored contexts may predate score context) |
 | `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
 
 ### reports/
