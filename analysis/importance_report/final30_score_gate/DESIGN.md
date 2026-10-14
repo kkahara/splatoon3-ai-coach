@@ -29,8 +29,9 @@ Inputs, all observed and already in the coaching layer: `ScoreFacts` at the
 `pre_death` sample (`ally_remaining`, `opponent_remaining`, penalties), the
 death game-clock sample `seconds_remaining` (T), and G's final-30 case.
 
-**Precondition A: mode.** `battle_mode_id == "splat_zones"`; otherwise score
-is unavailable (see open question 1).
+**Precondition A: mode.** `battle_mode_id == "splat_zones"`. Decided
+2026-10-14: outside Splat Zones the final-30 claim is **dropped** in the
+clock+score arm (score required, no clock-only fallback).
 
 **Precondition B: stable counts.** Splat Zones counters never increase. Use
 the `lookback`, `pre_death` and `at_anchor` samples already in
@@ -38,20 +39,22 @@ the `lookback`, `pre_death` and `at_anchor` samples already in
 any two of them, the score is treated as unavailable. Coaching-layer check
 only; no detector or fusion change.
 
-**Relevance rule.** gap = |ally_remaining - opponent_remaining| (use
-`*_work_remaining` when both penalties are observed). The death is
-score-relevant when the gap could still change in the time left:
+**Relevance rule (revised 2026-10-14: plain categories, no count-rate
+assumption).** gap = opponent_remaining - ally_remaining (positive = the
+player's team is ahead; `*_work_remaining` when both penalties are
+observed):
 
-    eligible  iff  gap < T
+| category | gap | eligible |
+| --- | --- | --- |
+| contested | abs(gap) <= 10 | yes |
+| behind | -30 <= gap < -10 | yes |
+| ahead | 10 < gap <= 30 | yes |
+| decided | abs(gap) > 30 | no |
 
-Reading: a team's counter falls by about one count per second of zone hold,
-so a gap of at least T cannot close before 0:00 (overtime aside). This
-covers "behind but recoverable", "contested" and "ahead but catchable"
-in one rule, and excludes decided states both ways. With T = 3 (the
-no-return deaths) only a near-tie qualifies.
-
-Assumption to confirm: about 1 count per second while holding, and overtime
-ignored. Both are game-mechanic assumptions, not observed evidence.
+The category is used for eligibility only; it is not shown as a judgment and
+the frozen G frames are unchanged. A first draft (`gap < seconds left`,
+assuming about one count per second of zone hold) was rejected in favour of
+categories that need no game-rate assumption.
 
 ## Feasibility audit (read-only)
 
@@ -75,8 +78,8 @@ memory; nothing written).
    | --- | --- | --- | --- | --- | --- |
    | en-2026-09-21 | 327.5 | ~30 | 16 (21) / 1 (15) | 8 (36) / 81 (1) | unavailable (unstable) |
    | en-2026-09-21 | 343.0 | ~14 | 16 (20) / 1 (9) | 8 (28) | unavailable (unstable) |
-   | brinewater triple_inkstrike | 288.5 | ~30 | 36 (40) | 32 (28) | gap 4 < T: eligible |
-   | mahi reef_slider | 302.5 | ~13 | 36 (37) | 7 (16) / 1 (3) | gap 29 >= T: not eligible (if 7) |
+   | brinewater triple_inkstrike | 288.5 | ~30 | 36 (40) | 32 (28) | contested (-4): eligible |
+   | mahi reef_slider | 302.5 | ~13 | 36 (37) | 7 (16) / 1 (3) | behind (-29): eligible if 7 is right |
    | mahi splattercolor_screen | 316.0 | ~5 | 23 (40) | 39 (6) / 1 (9) / 5 / 52 | unavailable (unstable) |
 
    The flips (16/1, 81/8, 39/1) look like a digit read problem that survives
@@ -88,19 +91,16 @@ memory; nothing written).
 
 A controlled "clock-only vs clock+score" experiment cannot be run
 meaningfully on the current corpus: the 13-death set has 2 Splat Zones
-final-30 deaths (both unstable), and the whole corpus has 1 clearly eligible
-and 1 clearly ineligible death. The gate would change eligibility for at most
-one or two units.
+final-30 deaths (both unstable), and the whole corpus has 2 Splat Zones
+final-30 deaths with usable counts (both eligible under the revised bands).
 
-## Open questions for the next decision
+## Next step (decided 2026-10-14): broaden the corpus first
 
-1. Non-Splat Zones final-30 deaths in the clock+score arm: drop the claim
-   (score required) or fall back to clock-only (score gates only when
-   available)?
-2. Corpus: the experiment needs Splat Zones final-30 deaths with stable
-   counts. That means analyzing more Splat Zones recordings with the current
-   pipeline (decode required), i.e. the "broaden the corpus" step moves ahead
-   of this experiment.
-3. Score reading reliability (digit flips) is a vision issue; it stays frozen
-   unless reopened as its own task. Precondition B keeps flipped readings out
-   of the gate in the meantime.
+The eligibility experiment needs Splat Zones final-30 deaths with stable
+counts, including some in the decided band, so both arms differ on enough
+units. That means analyzing more Splat Zones recordings with the current
+pipeline (decode required) before the experiment.
+
+Score reading reliability (digit flips) is a vision issue; it stays frozen
+unless reopened as its own task. Precondition B keeps flipped readings out of
+the gate in the meantime.
