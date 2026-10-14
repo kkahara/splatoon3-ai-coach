@@ -23,8 +23,8 @@ import argparse
 import json
 import re
 import sys
-from collections.abc import Iterator, Sequence
-from contextlib import contextmanager
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import AbstractContextManager, contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -97,33 +97,45 @@ EXPERIMENT_CLAIMS: tuple[cb.ClaimDefinition, ...] = (
 )
 
 
+Catalog = tuple[tuple[cb.ClaimDefinition, ...], tuple[cb.RecommendationTemplate, ...]]
+
+CATALOGS: dict[str, Catalog] = {
+    "current": ((), ()),
+    "expanded": (EXPERIMENT_CLAIMS, EXPERIMENT_TEMPLATES),
+}
+
+
 @contextmanager
-def expanded_catalog() -> Iterator[None]:
-    """Add the experiment claims and templates to the in-process catalog."""
+def patched_catalog(
+    claims: Sequence[cb.ClaimDefinition], templates: Sequence[cb.RecommendationTemplate]
+) -> Iterator[None]:
+    """Add claims and templates to the in-process catalog, then restore it."""
     saved = cb.CLAIM_DEFINITIONS
-    cb.CLAIM_DEFINITIONS = (*saved, *EXPERIMENT_CLAIMS)
-    for claim in EXPERIMENT_CLAIMS:
+    cb.CLAIM_DEFINITIONS = (*saved, *claims)
+    for claim in claims:
         cb.CLAIMS_BY_ID[claim.claim_id] = claim
-    for template in EXPERIMENT_TEMPLATES:
+    for template in templates:
         cb.RECOMMENDATION_TEMPLATES[template.template_id] = template
     try:
         yield
     finally:
         cb.CLAIM_DEFINITIONS = saved
-        for claim in EXPERIMENT_CLAIMS:
+        for claim in claims:
             cb.CLAIMS_BY_ID.pop(claim.claim_id, None)
-        for template in EXPERIMENT_TEMPLATES:
+        for template in templates:
             cb.RECOMMENDATION_TEMPLATES.pop(template.template_id, None)
 
 
-@contextmanager
-def arm_catalog(arm: str) -> Iterator[None]:
+def expanded_catalog() -> AbstractContextManager[None]:
+    """The production catalog plus the Experiment E claims and templates."""
+    return patched_catalog(EXPERIMENT_CLAIMS, EXPERIMENT_TEMPLATES)
+
+
+def arm_catalog(
+    arm: str, catalogs: Mapping[str, Catalog] = CATALOGS
+) -> AbstractContextManager[None]:
     """The catalog an arm builds and validates with."""
-    if arm == "expanded":
-        with expanded_catalog():
-            yield
-    else:
-        yield
+    return patched_catalog(*catalogs[arm])
 
 
 def death_units(deferred_dir: Path) -> list[tuple[str, str]]:
@@ -137,10 +149,13 @@ def _slug(match: str, lead: str) -> str:
 
 
 def arm_prompts(
-    config: AppConfig, root: Path, deaths: Sequence[tuple[str, str]], arm: str
+    config: AppConfig,
+    root: Path,
+    deaths: Sequence[tuple[str, str]],
+    catalog: AbstractContextManager[None],
 ) -> dict[tuple[str, str], str]:
-    """User prompt for each death, with views built under the arm's catalog."""
-    with arm_catalog(arm):
+    """User prompt for each death, with views built under ``catalog``."""
+    with catalog:
         matches = load_root(root, config)
     prompts = {(m.name, d.cid): d.prompt for m in matches for d in m.deaths}
     missing = [d for d in deaths if d not in prompts]
@@ -150,18 +165,22 @@ def arm_prompts(
 
 
 def build_files(
-    config: AppConfig, root: Path, deaths: Sequence[tuple[str, str]]
+    config: AppConfig,
+    root: Path,
+    deaths: Sequence[tuple[str, str]],
+    catalogs: Mapping[str, Catalog] = CATALOGS,
 ) -> dict[str, str]:
-    """Input files (relative path -> text) for both arms and the manifest."""
+    """Input files (relative path -> text) for every arm and the manifest."""
     system = load_system_prompt(roster_evidence=config.coach.roster_evidence)
     files = {"system_prompt.txt": system}
     entries = []
-    for arm in ARMS:
-        for (match, lead), prompt in arm_prompts(config, root, deaths, arm).items():
+    for arm in catalogs:
+        catalog = arm_catalog(arm, catalogs)
+        for (match, lead), prompt in arm_prompts(config, root, deaths, catalog).items():
             rel = f"{arm}/{_slug(match, lead)}.user_prompt.txt"
             files[rel] = prompt
             entries.append({"arm": arm, "match": match, "lead": lead, "file": rel})
-    manifest = {"arms": list(ARMS), "repeats": REPEATS, "calls": entries}
+    manifest = {"arms": list(catalogs), "repeats": REPEATS, "calls": entries}
     files["manifest.json"] = json.dumps(manifest, indent=1, sort_keys=True) + "\n"
     return files
 
@@ -204,7 +223,10 @@ def coverage(calls: Sequence[xd.DCall]) -> list[dict[str, Any]]:
 
 
 def plan_doc(
-    system: str, calls: Sequence[xd.DCall], coach: CoachConfig
+    system: str,
+    calls: Sequence[xd.DCall],
+    coach: CoachConfig,
+    arms: Sequence[str] = ARMS,
 ) -> dict[str, Any]:
     """Dry run: sizes, staleness against the current prompt, coverage."""
     doc = xd.plan_report(system, calls, coach, "cursor", coach.cursor_model)
@@ -214,7 +236,7 @@ def plan_doc(
             "calls": sum(1 for c in calls if c.arm == arm),
             "user_prompt_chars": sum(len(c.user_prompt) for c in calls if c.arm == arm),
         }
-        for arm in ARMS
+        for arm in arms
     ]
     doc["coverage"] = coverage(calls)
     return doc
@@ -244,17 +266,24 @@ def plan_markdown(doc: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _cmd_build(args: argparse.Namespace, config: AppConfig) -> int:
+def write_inputs(
+    args: argparse.Namespace, config: AppConfig, catalogs: Mapping[str, Catalog]
+) -> int:
+    """Write every arm's inputs under ``args.out / inputs``; never overwrites."""
     inputs = args.out / "inputs"
     if inputs.exists():
         raise SystemExit(f"{inputs} exists; never overwritten")
-    files = build_files(config, args.root, death_units(args.deferred))
+    files = build_files(config, args.root, death_units(args.deferred), catalogs)
     for rel, text in sorted(files.items()):
         path = inputs / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
-    logger.info("Experiment E inputs: {} files under {}", len(files), inputs)
+    logger.info("Experiment inputs: {} files under {}", len(files), inputs)
     return 0
+
+
+def _cmd_build(args: argparse.Namespace, config: AppConfig) -> int:
+    return write_inputs(args, config, CATALOGS)
 
 
 def _cmd_plan(args: argparse.Namespace, config: AppConfig) -> int:
@@ -268,6 +297,13 @@ def _cmd_plan(args: argparse.Namespace, config: AppConfig) -> int:
 
 
 def _cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
+    return run_arms(args, config, CATALOGS)
+
+
+def run_arms(
+    args: argparse.Namespace, config: AppConfig, catalogs: Mapping[str, Catalog]
+) -> int:
+    """Guarded, run-once calls; each arm runs and validates under its catalog."""
     coach = config.coach
     if not (args.confirm and args.model):
         raise SystemExit("run needs --model and --confirm (no default model)")
@@ -294,8 +330,8 @@ def _cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
         cursor_model_override=args.model,
     )[0].provider
     failures = 0
-    for arm in ARMS:
-        with arm_catalog(arm):
+    for arm in catalogs:
+        with arm_catalog(arm, catalogs):
             subset = [c for c in calls if c.arm == arm]
             failures += xd.run_calls(
                 system, subset, provider, args.provider, args.model, args.out
