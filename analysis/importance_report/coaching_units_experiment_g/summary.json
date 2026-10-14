@@ -1,0 +1,13 @@
+[
+ {
+  "arm": "sharpened",
+  "calls": 26,
+  "call_errors": 0,
+  "parse_errors": 0,
+  "blocked": 0,
+  "rule_hits": 2,
+  "unresolved_paths": 2,
+  "member_only_references": 0,
+  "recommendations": 33
+ }
+]

@@ -1,0 +1,134 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500__sharpened__call_1",
+ "episode": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500",
+ "match": "_public/analysis/014c50601b1541a6917ed6afb7714fbe",
+ "arm": "sharpened",
+ "lead": "death_episode:188.500",
+ "members": [
+  "death_episode:188.500"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "ec0cc9393d6520d9b08e6c86ddc118f2b8a2c695483d791c3cc08471ff72f593"
+ },
+ "executed_at": "2026-10-14T13:03:19+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"Your previous death was 12.0 seconds earlier. Back-to-back deaths keep you out of play for longer. This death happened with 0:07 left, and you were not back in play before the match clock reached 0:00.\",\"claims\":[{\"claim_id\":\"death_quick_redeath\",\"level\":\"A\",\"sentence\":\"Your previous death was 12.0 seconds earlier.\"},{\"claim_id\":\"principle_redeath_out_of_play\",\"level\":\"B\",\"sentence\":\"Back-to-back deaths keep you out of play for longer.\"},{\"claim_id\":\"process_final30_not_back_by_zero\",\"level\":\"B\",\"sentence\":\"You died with 0:07 left and were not back in play before the match clock reached 0:00.\"}],\"evidence_used\":[\"durations.time_since_previous_death = 12.0s\",\"primary_context.death_episode.death_to_active_again.value = 8.5s\",\"game_clock_samples[label=death].observation.seconds_remaining = 7\"],\"limitations\":[\"The available evidence does not identify why the death happened or assess positioning, teammate state, opponent location, or fight outcome.\"],\"recommendations\":[\"After being splatted, take a moment to reset before re-engaging.\",\"In the last 30 seconds, keep in mind that a respawn uses up part of the time left.\"],\"selected_claim_ids\":[\"death_quick_redeath\",\"principle_redeath_out_of_play\",\"process_final30_not_back_by_zero\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 12.0 seconds earlier. Back-to-back deaths keep you out of play for longer. This death happened with 0:07 left, and you were not back in play before the match clock reached 0:00.",
+  "evidence_used": [
+   "durations.time_since_previous_death = 12.0s",
+   "primary_context.death_episode.death_to_active_again.value = 8.5s",
+   "game_clock_samples[label=death].observation.seconds_remaining = 7"
+  ],
+  "limitations": [
+   "The available evidence does not identify why the death happened or assess positioning, teammate state, opponent location, or fight outcome."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging.",
+   "In the last 30 seconds, keep in mind that a respawn uses up part of the time left."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "principle_redeath_out_of_play",
+   "process_final30_not_back_by_zero"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 12.0 seconds earlier."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   },
+   {
+    "claim_id": "process_final30_not_back_by_zero",
+    "level": "B",
+    "sentence": "You died with 0:07 left and were not back in play before the match clock reached 0:00."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "durations.time_since_previous_death = 12.0s",
+    "kind": "source_path_ref",
+    "path": "durations.time_since_previous_death",
+    "source_path": "durations.time_since_previous_death"
+   },
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 8.5s",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.seconds_remaining = 7",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].observation.seconds_remaining",
+    "source_path": "game_clock_samples[label=death].observation.seconds_remaining"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "member_only_references": []
+}
