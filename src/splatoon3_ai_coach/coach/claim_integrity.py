@@ -13,6 +13,9 @@
 * R11 missed supported claim — "nothing notable" while a coachable A/B
   claim is eligible (evidence conservatism must not become blindness).
 * R12 clock wording — "video seconds" never appears in player text.
+* R14 assessment layout — ``assessment`` and ``claims`` say what the evidence
+  shows; advice belongs only in ``recommendations``. A sentence that repeats a
+  recommendation or gives advice there is a hit (it also escapes R10).
 
 Every hit is an annotation; nothing here rewrites model text.
 """
@@ -56,6 +59,17 @@ _FINAL = re.compile(r"(?i)\b(?:final|last|closing)\s+30\s*(?:seconds|s)\b")
 _FIRST = re.compile(r"(?i)\b(?:first|opening)\s+30\s*(?:seconds|s)\b")
 _WINDOWS = ((_FINAL, "death_final_30s"), (_FIRST, "death_first_30s"))
 _VIDEO_SECONDS = re.compile(r"(?i)\bvideo[-\s]+(?:seconds?|secs?)\b")
+_ADVICE_CUE = re.compile(
+    r"(?i)\b(?:should|try\s+to|make\s+sure|remember\s+to|need\s+to|must|consider)\b"
+)
+# Imperative at the start, optionally after one short lead-in clause
+# ("After a splat, decide ...", "In the last 30 seconds, keep in mind ...").
+_IMPERATIVE = re.compile(
+    r"(?i)^\s*(?:[^,]{0,60},\s*)?(?:check|review|use|watch|look|keep|glance|open"
+    r"|practice|focus|remember|try|avoid|take|decide|slow|reset|regroup|refill"
+    r"|weigh|wait|stay|think|plan|be)\b"
+)
+_WORDS = re.compile(r"\W+")
 _SNAKE = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+){2,}\b")
 _DOTTED = re.compile(r"\b[a-z_]+\[?\d*\]?(?:\.[a-z_]+\[?\d*\]?)+\b")
 _UNKNOWN = re.compile(
@@ -112,7 +126,7 @@ def _active_factors(view: Mapping[str, Any]) -> set[str]:
 
 
 def _special_claim(sentence: str) -> str | None:
-    """"ready" / "not_ready" when the sentence states the gauge state."""
+    """ "ready" / "not_ready" when the sentence states the gauge state."""
     if not _SPECIAL.search(sentence) or _GAUGE_UNSEEN.search(sentence):
         return None
     word = _READY_WORD.search(sentence)
@@ -207,6 +221,25 @@ def video_clock_wording_hits(assessment: Mapping[str, Any]) -> list[dict[str, An
     ]
 
 
+def _plain(text: str) -> str:
+    return _WORDS.sub(" ", text.lower()).strip()
+
+
+def assessment_layout_hits(assessment: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """R14: recommendation copies or advice inside ``assessment`` / ``claims``."""
+    recommendations = [
+        _plain(str(item)) for item in assessment.get("recommendations") or []
+    ]
+    hits: list[dict[str, Any]] = []
+    for field, sentence in _texts(assessment, ("assessment", "claims")):
+        plain = _plain(sentence)
+        if any(item and item in plain for item in recommendations):
+            hits.append(_hit("R14", "recommendation_repeated", field, sentence))
+        elif _ADVICE_CUE.search(sentence) or _IMPERATIVE.search(sentence):
+            hits.append(_hit("R14", "advice_in_assessment", field, sentence))
+    return hits
+
+
 def claim_reference_hits(
     assessment: Mapping[str, Any], view: Mapping[str, Any]
 ) -> list[dict[str, Any]]:
@@ -275,8 +308,13 @@ def recommendation_grounding_hits(
             hits.append(_hit("R10", "no_template", "recommendations", text))
         elif not grounded.intersection(matched):
             hits.append(
-                _hit("R10", "ungrounded_template", "recommendations", text,
-                     templates=matched)
+                _hit(
+                    "R10",
+                    "ungrounded_template",
+                    "recommendations",
+                    text,
+                    templates=matched,
+                )
             )
     return hits
 
@@ -302,8 +340,12 @@ def missed_claim_hits(
 def claim_integrity_hits(
     assessment: Mapping[str, Any], view: Mapping[str, Any] | None
 ) -> list[dict[str, Any]]:
-    """R5, R7-R12 together; without a view only R8 and R12 can run."""
-    hits = [*internal_identifier_hits(assessment), *video_clock_wording_hits(assessment)]
+    """R5, R7-R12 and R14 together; without a view only R8, R12 and R14 can run."""
+    hits = [
+        *internal_identifier_hits(assessment),
+        *video_clock_wording_hits(assessment),
+        *assessment_layout_hits(assessment),
+    ]
     if view is None:
         return hits
     return [

@@ -42,6 +42,15 @@ coaching claim is supported" in that case.
   `rec_frames`, include one recommendation from it. "No recommendation
   supported by the available evidence" is a successful outcome only when no
   entry carries `rec_frames`.
+
+Field layout (the page shows assessment, then recommendations below it):
+- assessment = what the evidence says about this moment: statements and
+  interpretations only.
+- recommendations = what the player could consider doing next time.
+- A recommendation appears only in recommendations. Never repeat or
+  paraphrase it in assessment or in claims[].sentence, and never put advice
+  there (no imperatives such as "take a moment" or "decide", no "should",
+  "try to", "remember to", "keep in mind").
 - Never write internal identifiers (claim ids, snake_case field names,
   dotted paths) in assessment, recommendations, or claim sentences. Use them
   only in evidence_used, selected_claim_ids and claims[].claim_id.
@@ -270,11 +279,11 @@ supports the claim.
 
 Output format — return ONLY a JSON object with these keys:
 {
-  "assessment": "player-facing text wording the selected claims",
-  "claims": [{"claim_id": "a claim_basis id", "level": "A", "sentence": "the sentence you used"}],
+  "assessment": "player-facing statements and interpretations; no advice",
+  "claims": [{"claim_id": "a claim_basis id", "level": "A", "sentence": "the assessment sentence you used"}],
   "evidence_used": ["cite CoachLlmView paths with values"],
   "limitations": ["what cannot be concluded from this evidence"],
-  "recommendations": ["optional; may be an empty list"],
+  "recommendations": ["the only place for advice; may be an empty list"],
   "selected_claim_ids": ["the claim_basis ids you chose, e.g. death_quick_redeath"]
 }
 

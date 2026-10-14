@@ -79,6 +79,7 @@ rejects roster assertions (R2). The roster code stays in place.
 | R11 | No "nothing notable" while a coachable A/B claim is eligible | Badge |
 | R12 | No "video seconds" in player text (plain or game-clock seconds only) | Badge |
 | R13 | Decimal-safe sentence splitting; negation scoped to its clause | Mechanics |
+| R14 | `assessment` / `claims[]` state evidence only; a sentence repeating a recommendation or giving advice belongs in `recommendations` | Badge |
 
 Only the `limitations` field and clause-scoped negations exempt R1–R6 hits;
 for the state families (R2, R3) a sentence declaring the state unknown is an

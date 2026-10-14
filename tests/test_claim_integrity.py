@@ -67,6 +67,39 @@ def test_r12_video_seconds_never_in_player_text() -> None:
     assert {hit["rule"] for hit in no_view} == {"R12"}
 
 
+def _r14(**fields: Any) -> set[str]:
+    return {check for check in _checks(**fields) if check.startswith("R14:")}
+
+
+def test_r14_recommendations_stay_out_of_the_assessment() -> None:
+    rec = "After being splatted, take a moment to reset before re-engaging."
+    facts = (
+        "Your previous death was 14.5 seconds earlier. Back-to-back deaths keep "
+        "you out of play for longer. In the last 30 seconds, time spent "
+        "respawning is a large share of the time left."
+    )
+    assert _r14(assessment=facts, recommendations=[rec]) == set()
+    assert _r14(recommendations=[rec]) == set()
+    repeated = f"{facts} {rec}"
+    assert "R14:recommendation_repeated" in _checks(
+        assessment=repeated, recommendations=[rec]
+    )
+    statement_rec = "In the last 30 seconds, a respawn uses up part of the time left."
+    assert "R14:recommendation_repeated" in _checks(
+        assessment=f"This death happened with 0:20 left. {statement_rec}",
+        recommendations=[statement_rec],
+    )
+    for advice in (
+        "Weigh whether a fight is worth the respawn time before committing.",
+        "After a splat, decide where you are going next before you move up.",
+        "In the last 30 seconds, remember that respawn time uses part of the time.",
+        "You should refill your ink first.",
+    ):
+        assert "R14:advice_in_assessment" in _checks(assessment=advice), advice
+    claim = [{"claim_id": "death_final_30s", "level": "A", "sentence": rec}]
+    assert "R14:recommendation_repeated" in _checks(claims=claim, recommendations=[rec])
+
+
 def test_r5_clock_window_needs_its_factor() -> None:
     assert _checks(assessment="This death came in the final 30 seconds.") == set()
     assert "R5:clock_window" in _checks(assessment="It was in the first 30 seconds.")

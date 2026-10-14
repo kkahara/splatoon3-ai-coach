@@ -102,6 +102,7 @@ scripts, so keep these together.
 | `coaching_units_experiment_e.py` | Experiment E: the Experiment D individual deaths under the production catalog vs the catalog plus two in-process experiment claims and templates (production code unchanged). `build` writes both arms' inputs, `plan` is a dry run with per-death recommendation coverage, `run` is guarded like D and repeats every call, then `summary` and `sheet` |
 | `coaching_units_experiment_f.py` | Experiment F: the two Experiment E claims reworded to quote only carried values (one `reworded` arm, same deaths, eligibility and evidence). Same commands as E; `sheet` mixes F's outputs with E's `expanded` outputs for blind re-rating |
 | `coaching_units_experiment_g.py` | Experiment G: F's catalog with the final-30 claim split into three computed facts (back with N s on the clock / not back before 0:00 / no return observed) and a new after-splat recommendation. Same commands; `sheet` mixes G's outputs with F's `reworded` outputs |
+| `assessment_layout_check.py` | Re-runs Experiment E's production-catalog calls with only the system prompt changed (assessment vs recommendations layout); `build` verifies user prompts are identical to E, `compare` re-validates both sides (R14) |
 
 ### studies/
 
