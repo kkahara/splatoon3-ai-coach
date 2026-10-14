@@ -1,0 +1,35 @@
+[
+ {
+  "arm": "individual",
+  "calls": 13,
+  "call_errors": 0,
+  "parse_errors": 0,
+  "blocked": 0,
+  "rule_hits": 6,
+  "unresolved_paths": 3,
+  "member_only_references": 0,
+  "recommendations": 9
+ },
+ {
+  "arm": "episode",
+  "calls": 6,
+  "call_errors": 0,
+  "parse_errors": 0,
+  "blocked": 0,
+  "rule_hits": 5,
+  "unresolved_paths": 1,
+  "member_only_references": 0,
+  "recommendations": 6
+ },
+ {
+  "arm": "episode_by_factor",
+  "calls": 11,
+  "call_errors": 0,
+  "parse_errors": 0,
+  "blocked": 0,
+  "rule_hits": 8,
+  "unresolved_paths": 2,
+  "member_only_references": 0,
+  "recommendations": 7
+ }
+]
