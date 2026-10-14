@@ -1,0 +1,9 @@
+# Round 2 (model outputs) rating sheet, sealed before either key was opened.
+sheet: round2_rating_sheet.csv
+sealed_on: 2026-10-13
+key_opened: false
+scale_directions: >-
+  Read with the rater's Round 1 directions (higher missing_context = more
+  missing; higher redundancy = more redundant; supported_yes_no = enough to
+  support coaching). Announced to the rater before rating; not separately
+  re-confirmed for Round 2.
