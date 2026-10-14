@@ -268,7 +268,23 @@ def resolve_evidence_reference(view: Mapping[str, Any], text: str) -> dict[str, 
     }
 
 
-_CITED_VALUE = re.compile(r"(?:=|:)\s*(.+?)\s*$")
+_CITED_VALUE = re.compile(r"^\s*[=:]\s*(.+?)\s*$")
+_VALUE_TAIL = re.compile(r"\s*(?:;|\s\().*$")
+_UNIT = re.compile(r"(?i)\s*(?:s|secs?|seconds?)$")
+_TOLERANCE = 0.05 + 1e-9
+
+
+def _cited_value(text: str, path: str) -> str | None:
+    """The value written right after ``path``, without trailing remarks."""
+    match = _CITED_VALUE.match(text[text.find(path) + len(path) :])
+    return None if match is None else _VALUE_TAIL.sub("", match.group(1))
+
+
+def _number(text: str) -> float | None:
+    try:
+        return float(_UNIT.sub("", text))
+    except ValueError:
+        return None
 
 
 def _resolved_value(view: Mapping[str, Any], resolution: Mapping[str, Any]) -> Any:
@@ -289,12 +305,15 @@ def _same(cited: str, actual: Any) -> bool:
         return text.lower() in ("null", "none")
     if isinstance(actual, bool):
         return text.lower() == str(actual).lower()
+    cited_number = _number(text)
     if isinstance(actual, int | float):
-        try:
-            return abs(float(text.rstrip("s")) - float(actual)) <= 0.05 + 1e-9
-        except ValueError:
-            return False
-    return text == str(actual)
+        return cited_number is not None and abs(cited_number - actual) <= _TOLERANCE
+    if text == str(actual):
+        return True
+    actual_number = _number(str(actual))
+    if cited_number is None or actual_number is None:
+        return False
+    return abs(cited_number - actual_number) <= _TOLERANCE
 
 
 def evidence_value_hits(
@@ -306,11 +325,11 @@ def evidence_value_hits(
         if resolution["kind"] == ReferenceKind.UNRESOLVED.value:
             continue
         text = str(resolution["text"])
-        cited = _CITED_VALUE.search(text[text.find(str(resolution["path"])) :])
+        cited = _cited_value(text, str(resolution["path"]))
         found, actual = _resolved_value(view, resolution)
         if cited is None or not found or isinstance(actual, dict | list):
             continue
-        if not _same(cited.group(1), actual):
+        if not _same(cited, actual):
             hits.append(
                 {
                     "rule": "R7",
@@ -352,13 +371,21 @@ def validate_assessment(
             causal.extend(causal_map_claim_hits(str(text), field=field))
     active = list((view or {}).get("importance", {}).get("active_factor_ids") or [])
     map_grounded = "rec_map_after_respawn" in grounded_templates(view or {})
-    recommendations = [] if map_grounded else unsupported_recommendation_hits(
-        assessment, active_factor_ids=active, annotations=annotations
+    recommendations = (
+        []
+        if map_grounded
+        else unsupported_recommendation_hits(
+            assessment, active_factor_ids=active, annotations=annotations
+        )
     )
-    resolutions = [
-        resolve_evidence_reference(view, str(item))
-        for item in assessment.get("evidence_used") or []
-    ] if view is not None else []
+    resolutions = (
+        [
+            resolve_evidence_reference(view, str(item))
+            for item in assessment.get("evidence_used") or []
+        ]
+        if view is not None
+        else []
+    )
     unresolved = [r for r in resolutions if r["kind"] == ReferenceKind.UNRESOLVED.value]
     family_hits = claim_rule_hits(assessment, view)
     blocking = blocking_hits(family_hits)

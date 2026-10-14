@@ -63,6 +63,13 @@ Research only; production catalog, prompts and config unchanged.
    identify what caused the death / whether a special was used"). Neither
    comes from the reworded templates; nothing was blocked.
 
+   Follow-up (R7 diagnosis): all 20 E/F `value_mismatch` hits were false
+   positives from the value parser (`=` inside `[label=death]`, `"14.5s"`
+   string values, a trailing unit word, trailing remarks). After the fix,
+   offline re-validation of every saved E/F record leaves only E's 2 real
+   `unknown_claim` hits (an invented `principle_final30_respawn_cost`).
+   Saved call records are not rewritten.
+
 ## Interpretation
 
 Removing the unsupported inference did not cost usefulness and helped where

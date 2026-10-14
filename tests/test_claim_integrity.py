@@ -95,6 +95,41 @@ def test_r7_cited_values_must_equal_the_view() -> None:
     assert checks == {"value_mismatch"}
 
 
+def _value_checks(view: dict[str, Any], cited: str) -> set[str]:
+    hits = validate_assessment({"assessment": "x", "evidence_used": [cited]}, view)
+    return {h["check"] for h in hits["integrity_hits"]}
+
+
+def test_r7_cited_value_formats_seen_in_model_output() -> None:
+    view = _view(
+        game_clock_samples=[
+            {"label": "death", "seconds_remaining": 29, "display": "0:29"}
+        ],
+        durations={"time_since_previous_death": {"value": "14.5s"}},
+        death={"death_to_active_again": {"value": 8.5}},
+    )
+    view["game_clock_samples"][0]["source_path"] = "game_clock_samples[label=death]"
+    matching = [
+        "game_clock_samples[label=death].seconds_remaining = 29",
+        'game_clock_samples[label=death].display = "0:29"',
+        "durations.time_since_previous_death.value = 14.5",
+        "death.death_to_active_again.value = 8.5 seconds",
+        "clock.seconds_remaining = 7 (source_path: game_clock_samples[label=death])",
+        'clock.seconds_remaining = 7; clock.display = "0:07"',
+    ]
+    for cited in matching:
+        assert _value_checks(view, cited) == set(), cited
+    wrong = [
+        "game_clock_samples[label=death].seconds_remaining = 28",
+        'game_clock_samples[label=death].display = "0:28"',
+        "durations.time_since_previous_death.value = 15.5",
+        "death.death_to_active_again.value = 9 seconds",
+        "clock.seconds_remaining = 8 (source_path: game_clock_samples[label=death])",
+    ]
+    for cited in wrong:
+        assert _value_checks(view, cited) == {"value_mismatch"}, cited
+
+
 def test_r8_no_internal_identifiers_in_player_text() -> None:
     assert _checks(assessment="Two deaths 18.0s apart.") == set()
     assert "R8:internal_identifier" in _checks(
