@@ -1,0 +1,262 @@
+{
+ "before_experiment_e": {
+  "outputs": 26,
+  "parsed": 26,
+  "layout_violations": 7,
+  "layout_checks": {
+   "recommendation_repeated": 7
+  },
+  "with_recommendation": 18,
+  "mean_selected_claims": 2.58,
+  "blocked": 0,
+  "outputs_with_other_badges": {
+   "R9": 1
+  }
+ },
+ "after_fix": {
+  "outputs": 26,
+  "parsed": 26,
+  "layout_violations": 0,
+  "layout_checks": {},
+  "with_recommendation": 18,
+  "mean_selected_claims": 2.54,
+  "blocked": 0,
+  "outputs_with_other_badges": {}
+ },
+ "per_output_after": [
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_144_000__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_144_000__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_158_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_158_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_327_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_327_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_343_000__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "en_2026_09_21_23_13_21_death_episode_343_000__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_272_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_272_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_290_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_290_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_285_000__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_285_000__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_298_000__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_298_000__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_313_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_313_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_176_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_176_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2_death_episode_206_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2_death_episode_206_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": false,
+   "selected_claims": 2,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2_death_episode_223_500__current__call_1",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  },
+  {
+   "call_id": "public_analysis_1828351988f0450cb9529e914840c8f2_death_episode_223_500__current__call_2",
+   "parsed": true,
+   "layout_checks": [],
+   "has_recommendation": true,
+   "selected_claims": 3,
+   "other_badge_rules": [],
+   "blocked": false
+  }
+ ]
+}
