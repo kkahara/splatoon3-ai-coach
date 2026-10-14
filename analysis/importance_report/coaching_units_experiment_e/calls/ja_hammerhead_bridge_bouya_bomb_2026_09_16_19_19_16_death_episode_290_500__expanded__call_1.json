@@ -1,0 +1,132 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_290_500__expanded__call_1",
+ "episode": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_290_500",
+ "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16",
+ "arm": "expanded",
+ "lead": "death_episode:290.500",
+ "members": [
+  "death_episode:290.500"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "ce47cfa31eb836a14f64c907f59cb18ebbb4cd79bf8ed88f3b18607e114c628f"
+ },
+ "executed_at": "2026-10-14T04:38:05+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"Your previous death was 18.0 seconds earlier, and you were out of play for 8.5 seconds after this death. Back-to-back deaths keep you out of play for longer. This death happened with only 0:28 left in the match; in the last 30 seconds, time spent respawning is a large share of the time left.\",\"claims\":[{\"claim_id\":\"death_quick_redeath\",\"level\":\"A\",\"sentence\":\"Your previous death was 18.0 seconds earlier.\"},{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 8.5 seconds after this death.\"},{\"claim_id\":\"process_final30_respawn_cost\",\"level\":\"B\",\"sentence\":\"In the last 30 seconds, time spent respawning is a large share of the time left.\"}],\"evidence_used\":[\"timeline.time_since_previous_death.value = 18.0\",\"death.death_to_active_again.value = 8.5\",\"game_clock_samples[label=death].observation.seconds_remaining = 28\"],\"limitations\":[\"The available evidence supports timing and respawn-cost coaching only.\"],\"recommendations\":[\"After being splatted, take a moment to reset before re-engaging.\",\"In the last 30 seconds, weigh whether a fight is worth the respawn time before committing.\"],\"selected_claim_ids\":[\"death_quick_redeath\",\"death_out_of_play\",\"process_final30_respawn_cost\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 18.0 seconds earlier, and you were out of play for 8.5 seconds after this death. Back-to-back deaths keep you out of play for longer. This death happened with only 0:28 left in the match; in the last 30 seconds, time spent respawning is a large share of the time left.",
+  "evidence_used": [
+   "timeline.time_since_previous_death.value = 18.0",
+   "death.death_to_active_again.value = 8.5",
+   "game_clock_samples[label=death].observation.seconds_remaining = 28"
+  ],
+  "limitations": [
+   "The available evidence supports timing and respawn-cost coaching only."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging.",
+   "In the last 30 seconds, weigh whether a fight is worth the respawn time before committing."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "death_out_of_play",
+   "process_final30_respawn_cost"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 18.0 seconds earlier."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   },
+   {
+    "claim_id": "process_final30_respawn_cost",
+    "level": "B",
+    "sentence": "In the last 30 seconds, time spent respawning is a large share of the time left."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "timeline.time_since_previous_death.value = 18.0",
+    "kind": "view_native",
+    "path": "timeline.time_since_previous_death.value"
+   },
+   {
+    "text": "death.death_to_active_again.value = 8.5",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.value"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.seconds_remaining = 28",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].observation.seconds_remaining",
+    "source_path": "game_clock_samples[label=death].observation.seconds_remaining"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "member_only_references": []
+}

@@ -1,0 +1,24 @@
+[
+ {
+  "arm": "current",
+  "calls": 26,
+  "call_errors": 0,
+  "parse_errors": 0,
+  "blocked": 0,
+  "rule_hits": 11,
+  "unresolved_paths": 3,
+  "member_only_references": 0,
+  "recommendations": 18
+ },
+ {
+  "arm": "expanded",
+  "calls": 26,
+  "call_errors": 0,
+  "parse_errors": 0,
+  "blocked": 0,
+  "rule_hits": 8,
+  "unresolved_paths": 4,
+  "member_only_references": 0,
+  "recommendations": 33
+ }
+]

@@ -1,0 +1,130 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500__expanded__call_1",
+ "episode": "public_analysis_014c50601b1541a6917ed6afb7714fbe_death_episode_188_500",
+ "match": "_public/analysis/014c50601b1541a6917ed6afb7714fbe",
+ "arm": "expanded",
+ "lead": "death_episode:188.500",
+ "members": [
+  "death_episode:188.500"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "774a586bab440d650d9836f9a6d8f689f6dd8708b8d83f00fdb382c7a59eff73"
+ },
+ "executed_at": "2026-10-14T04:36:12+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"Your previous death was 12.0 seconds earlier, and you were out of play for 8.5 seconds after this death. With only 0:07 left, that respawn time was a large share of the remaining match.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_quick_redeath\",\n      \"level\": \"A\",\n      \"sentence\": \"Your previous death was 12.0 seconds earlier.\"\n    },\n    {\n      \"claim_id\": \"death_out_of_play\",\n      \"level\": \"A\",\n      \"sentence\": \"You were out of play for 8.5 seconds after this death.\"\n    },\n    {\n      \"claim_id\": \"process_final30_respawn_cost\",\n      \"level\": \"B\",\n      \"sentence\": \"In the last 30 seconds, time spent respawning is a large share of the time left.\"\n    }\n  ],\n  \"evidence_used\": [\n    \"timeline.time_since_previous_death.value = 12.0\",\n    \"death.death_to_active_again.value = 8.5\",\n    \"clock.seconds_remaining = 7\"\n  ],\n  \"limitations\": [\n    \"The evidence does not establish why the death happened or assess positioning, teammate support, opponent location, or fight outcome.\"\n  ],\n  \"recommendations\": [\n    \"In the last 30 seconds, weigh whether a fight is worth the respawn time before committing.\"\n  ],\n  \"selected_claim_ids\": [\n    \"death_quick_redeath\",\n    \"death_out_of_play\",\n    \"process_final30_respawn_cost\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 12.0 seconds earlier, and you were out of play for 8.5 seconds after this death. With only 0:07 left, that respawn time was a large share of the remaining match.",
+  "evidence_used": [
+   "timeline.time_since_previous_death.value = 12.0",
+   "death.death_to_active_again.value = 8.5",
+   "clock.seconds_remaining = 7"
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened or assess positioning, teammate support, opponent location, or fight outcome."
+  ],
+  "recommendations": [
+   "In the last 30 seconds, weigh whether a fight is worth the respawn time before committing."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "death_out_of_play",
+   "process_final30_respawn_cost"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 12.0 seconds earlier."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   },
+   {
+    "claim_id": "process_final30_respawn_cost",
+    "level": "B",
+    "sentence": "In the last 30 seconds, time spent respawning is a large share of the time left."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "timeline.time_since_previous_death.value = 12.0",
+    "kind": "view_native",
+    "path": "timeline.time_since_previous_death.value"
+   },
+   {
+    "text": "death.death_to_active_again.value = 8.5",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.value"
+   },
+   {
+    "text": "clock.seconds_remaining = 7",
+    "kind": "view_native",
+    "path": "clock.seconds_remaining"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "member_only_references": []
+}

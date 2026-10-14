@@ -1,0 +1,152 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_298_000__current__call_1",
+ "episode": "ja_hammerhead_bridge_tenta_missle_2026_09_16_19_12_39_death_episode_298_000",
+ "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39",
+ "arm": "current",
+ "lead": "death_episode:298.000",
+ "members": [
+  "death_episode:298.000"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "7dbce82972e2348a5f16019bc44d22c6025cd478caa4a8db0ee518d5d63f39a7"
+ },
+ "executed_at": "2026-10-14T04:35:29+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"Your previous death was 13.0 seconds earlier, and you were out of play for 10.5 seconds after this death. This happened with 0:18 left in the match. Back-to-back deaths keep you out of play for longer.\",\"claims\":[{\"claim_id\":\"death_quick_redeath\",\"level\":\"A\",\"sentence\":\"Your previous death was 13.0 seconds earlier.\"},{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 10.5 seconds after this death.\"},{\"claim_id\":\"principle_redeath_out_of_play\",\"level\":\"B\",\"sentence\":\"Back-to-back deaths keep you out of play for longer.\"}],\"evidence_used\":[\"durations.time_since_previous_death = 13.0s\",\"death.death_to_active_again.value = 10.5s\",\"game_clock_samples[label=death].observation.seconds_remaining = 18\"],\"limitations\":[\"The cause of death, player positioning, teammate state, opponent location, and fight outcome are not observed.\",\"The special gauge was not ready, but special usage is not observed.\"],\"recommendations\":[\"After being splatted, take a moment to reset before re-engaging.\"],\"selected_claim_ids\":[\"death_quick_redeath\",\"death_out_of_play\",\"principle_redeath_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 13.0 seconds earlier, and you were out of play for 10.5 seconds after this death. This happened with 0:18 left in the match. Back-to-back deaths keep you out of play for longer.",
+  "evidence_used": [
+   "durations.time_since_previous_death = 13.0s",
+   "death.death_to_active_again.value = 10.5s",
+   "game_clock_samples[label=death].observation.seconds_remaining = 18"
+  ],
+  "limitations": [
+   "The cause of death, player positioning, teammate state, opponent location, and fight outcome are not observed.",
+   "The special gauge was not ready, but special usage is not observed."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "death_out_of_play",
+   "principle_redeath_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 13.0 seconds earlier."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 10.5 seconds after this death."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "durations.time_since_previous_death = 13.0s",
+    "kind": "source_path_ref",
+    "path": "durations.time_since_previous_death",
+    "source_path": "durations.time_since_previous_death"
+   },
+   {
+    "text": "death.death_to_active_again.value = 10.5s",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.value"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.seconds_remaining = 18",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].observation.seconds_remaining",
+    "source_path": "game_clock_samples[label=death].observation.seconds_remaining"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [
+   {
+    "rule": "R1",
+    "family": "causation",
+    "subcategory": "causation",
+    "field": "limitations",
+    "match": "cause",
+    "sentence": "The cause of death, player positioning, teammate state, opponent location, and fight outcome are not observed.",
+    "classification": "limitation",
+    "counts_as_violation": false
+   }
+  ],
+  "integrity_hits": [
+   {
+    "rule": "R9",
+    "check": "false_unknown_special",
+    "field": "limitations",
+    "text": "The special gauge was not ready, but special usage is not observed.",
+    "counts_as_violation": true
+   }
+  ],
+  "blocked": false,
+  "validation_status": "contains_unverified_wording"
+ },
+ "member_only_references": []
+}

@@ -1,0 +1,140 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "en_2026_09_21_23_13_21_death_episode_327_500__expanded__call_1",
+ "episode": "en_2026_09_21_23_13_21_death_episode_327_500",
+ "match": "en-2026-09-21 23-13-21",
+ "arm": "expanded",
+ "lead": "death_episode:327.500",
+ "members": [
+  "death_episode:327.500"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "bd13a641b0c11e8fe545a329a0c64b035549d93b9a19abe5e3a22c0ef2964ca9"
+ },
+ "executed_at": "2026-10-14T04:37:23+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"This death happened with only 0:29 left in the match. In the last 30 seconds, time spent respawning is a large share of the time left. Weigh whether a fight is worth the respawn time before committing.\",\"claims\":[{\"claim_id\":\"death_final_30s\",\"level\":\"A\",\"sentence\":\"This death happened with only 0:29 left in the match.\"},{\"claim_id\":\"process_final30_respawn_cost\",\"level\":\"B\",\"sentence\":\"In the last 30 seconds, time spent respawning is a large share of the time left.\"}],\"evidence_used\":[\"game_clock_samples[label=death].seconds_remaining = 29\",\"primary_context.death_episode.death_to_active_again.value = 11.0\"],\"limitations\":[\"The evidence does not identify the cause of death, positioning, opponent location, teammate state, or special usage.\"],\"recommendations\":[\"In the last 30 seconds, weigh whether a fight is worth the respawn time before committing.\"],\"selected_claim_ids\":[\"death_final_30s\",\"process_final30_respawn_cost\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "This death happened with only 0:29 left in the match. In the last 30 seconds, time spent respawning is a large share of the time left. Weigh whether a fight is worth the respawn time before committing.",
+  "evidence_used": [
+   "game_clock_samples[label=death].seconds_remaining = 29",
+   "primary_context.death_episode.death_to_active_again.value = 11.0"
+  ],
+  "limitations": [
+   "The evidence does not identify the cause of death, positioning, opponent location, teammate state, or special usage."
+  ],
+  "recommendations": [
+   "In the last 30 seconds, weigh whether a fight is worth the respawn time before committing."
+  ],
+  "selected_claim_ids": [
+   "death_final_30s",
+   "process_final30_respawn_cost"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_final_30s",
+    "level": "A",
+    "sentence": "This death happened with only 0:29 left in the match."
+   },
+   {
+    "claim_id": "process_final30_respawn_cost",
+    "level": "B",
+    "sentence": "In the last 30 seconds, time spent respawning is a large share of the time left."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "game_clock_samples[label=death].seconds_remaining = 29",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].seconds_remaining",
+    "source_path": "game_clock_samples[label=death]"
+   },
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 11.0",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [
+   {
+    "rule": "R1",
+    "family": "causation",
+    "subcategory": "causation",
+    "field": "limitations",
+    "match": "cause",
+    "sentence": "The evidence does not identify the cause of death, positioning, opponent location, teammate state, or special usage.",
+    "classification": "negated",
+    "counts_as_violation": false
+   }
+  ],
+  "integrity_hits": [
+   {
+    "rule": "R7",
+    "check": "value_mismatch",
+    "field": "evidence_used",
+    "text": "game_clock_samples[label=death].seconds_remaining = 29",
+    "view_value": 29,
+    "counts_as_violation": true
+   }
+  ],
+  "blocked": false,
+  "validation_status": "contains_unverified_wording"
+ },
+ "member_only_references": []
+}
