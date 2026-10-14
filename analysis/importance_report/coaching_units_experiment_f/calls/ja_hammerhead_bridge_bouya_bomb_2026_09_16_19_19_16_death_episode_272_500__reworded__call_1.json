@@ -1,0 +1,127 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_d",
+ "call_id": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_272_500__reworded__call_1",
+ "episode": "ja_hammerhead_bridge_bouya_bomb_2026_09_16_19_19_16_death_episode_272_500",
+ "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16",
+ "arm": "reworded",
+ "lead": "death_episode:272.500",
+ "members": [
+  "death_episode:272.500"
+ ],
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "6b5040f5965637fdb2cfa00f26e24809a4d9d7a42b5ff52348cde19fdee7533f"
+ },
+ "executed_at": "2026-10-14T06:38:47+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You got a splat 2.5 seconds before you were splatted. Your splat and this death were 2.5 seconds apart. After you get a splat, slow down for a moment before pushing on.\",\"claims\":[{\"claim_id\":\"death_own_splat_before\",\"level\":\"A\",\"sentence\":\"You got a splat 2.5 seconds before you were splatted.\"},{\"claim_id\":\"process_after_own_splat\",\"level\":\"B\",\"sentence\":\"Your splat and this death were 2.5 seconds apart.\"}],\"evidence_used\":[\"primary_context.death_episode.time_since_previous_splat.value = 2.5\",\"primary_context.death_episode.time_since_previous_splat.clock = \\\"video\\\"\",\"playback_clock.status = \\\"normal\\\"\"],\"limitations\":[\"This evidence does not establish why the death happened, player positioning, opponent location, teammate state, or fight outcome.\"],\"recommendations\":[\"After you get a splat, slow down for a moment before pushing on.\"],\"selected_claim_ids\":[\"death_own_splat_before\",\"process_after_own_splat\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 2.5 seconds before you were splatted. Your splat and this death were 2.5 seconds apart. After you get a splat, slow down for a moment before pushing on.",
+  "evidence_used": [
+   "primary_context.death_episode.time_since_previous_splat.value = 2.5",
+   "primary_context.death_episode.time_since_previous_splat.clock = \"video\"",
+   "playback_clock.status = \"normal\""
+  ],
+  "limitations": [
+   "This evidence does not establish why the death happened, player positioning, opponent location, teammate state, or fight outcome."
+  ],
+  "recommendations": [
+   "After you get a splat, slow down for a moment before pushing on."
+  ],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "process_after_own_splat"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 2.5 seconds before you were splatted."
+   },
+   {
+    "claim_id": "process_after_own_splat",
+    "level": "B",
+    "sentence": "Your splat and this death were 2.5 seconds apart."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.time_since_previous_splat.value = 2.5",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.time_since_previous_splat.value",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "primary_context.death_episode.time_since_previous_splat.clock = \"video\"",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.time_since_previous_splat.clock",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "playback_clock.status = \"normal\"",
+    "kind": "source_path_ref",
+    "path": "playback_clock.status",
+    "source_path": "playback_clock"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "member_only_references": []
+}
