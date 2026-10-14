@@ -131,3 +131,20 @@ comparison would differ on 2 units.
 
 At roughly 5 final-30 deaths per 24 Splat Zones matches, collecting about 10
 decided-band deaths would take on the order of a few hundred matches.
+
+## Decision (2026-10-14): stopping rule applied
+
+Final-30 deaths are about 7% of Splat Zones deaths (5 of 76 in round 1), and
+the score gate would change eligibility on 2 of 7 usable units. The gating
+experiment is not run. "Death in the final 30 seconds" does not get its own
+coaching-factor work now.
+
+- G's three final-30 facts and `rec_final30_respawn_time` stay frozen in the
+  Experiment G runner; they are not promoted to the production catalog.
+- The score gate (bands, Splat Zones only, counter-stability precondition) is
+  recorded here as designed but not implemented.
+- After-splat stays retired. Roster evidence stays disabled.
+- The assessment-layout issue (recommendations inside the assessment text)
+  remains logged separately.
+- Revisit only if a larger Splat Zones corpus becomes available for other
+  reasons; `tools/diagnostics/final30_score_survey.py` re-runs the audit.
