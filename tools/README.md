@@ -85,6 +85,8 @@ request observed at five-minute resolution, not the last browser page view.
 | `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
 | `final30_score_survey.py` | Read-only: Splat Zones score facts and counter stability at every final-30 death, with contexts rebuilt in memory (stored contexts may predate score context) |
 | `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
+| `roster_baseline.py` | Offline consistency baseline for the unchanged 2 FPS gameplay-HUD roster detector: raw changes/reversals, fused plausibility, production pre-death availability and even/odd 1 Hz phase agreement; live and replay-derived sources stay separate |
+| `roster_label_sample.py` | Builds a seeded, frozen blind sample of gameplay-HUD frames across six detector-independent strata and later scores sealed `x` / `alive` / `?` labels through slot, side-count, raw AvB, fused AvB and pre-death fused AvB levels; never reads Review lamps |
 
 ### reports/
 

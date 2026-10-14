@@ -1,0 +1,1233 @@
+{
+  "schema_version": 1,
+  "seed": 20261014,
+  "requested_n": 120,
+  "selected_n": 120,
+  "config_path": "/Users/kenjikahara/splatoon3-ai-coach/configs/default.yaml",
+  "config_sha256": "17cf9fa6218686a2f2ba425cc2b80c23309cd71acbd71afb884b828263d19621",
+  "roots": [
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_sz_corpus_v1"
+  ],
+  "replay_roots": [
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/en-preview-full-fast-2026-10-04 21-32-55"
+  ],
+  "video_dir": "/Users/kenjikahara/Movies",
+  "samples": [
+    {
+      "sample_id": "R001",
+      "image": "images/R001.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 276.0,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:16560",
+      "source_pts": 16560,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R002",
+      "image": "images/R002.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-04 22-12-51",
+      "video_time": 64.0,
+      "source_frame_id": "bb3db0e10b1766cfa148e81fe017f1dc76c63be8d382418ad97021e4feb8b139:frame:3840",
+      "source_pts": 3840,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R003",
+      "image": "images/R003.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03",
+      "video_time": 126.5,
+      "source_frame_id": "809e04b599ecb5b0b552010e48d2934680a13a17958f2dcd47154e76b7f4365b:frame:7590",
+      "source_pts": 7590,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R004",
+      "image": "images/R004.png",
+      "source_class": "live_gameplay",
+      "match": "en-live-playerview-2026-10-12 17-42-59",
+      "video_time": 32.5,
+      "source_frame_id": "71f8a3cf90b6ea038d7dc5b464c6acc5559907632caf040a87e39d64c0ce22fd:frame:1950",
+      "source_pts": 1950,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R005",
+      "image": "images/R005.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30",
+      "video_time": 242.5,
+      "source_frame_id": "a9399e921c1c74de47ecda583431f1ed3e56d185f8ff8461f7154c823e2375d4:frame:14550",
+      "source_pts": 14550,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R006",
+      "image": "images/R006.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 23-13-21",
+      "video_time": 75.5,
+      "source_frame_id": "6d99e02feddceca7bfb1f724821fc9fa2f84ee40aed2d4c828f5f1a0a2e391e2:frame:4530",
+      "source_pts": 4530,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R007",
+      "image": "images/R007.png",
+      "source_class": "live_gameplay",
+      "match": "en-live-playerview-2026-10-12 17-42-59",
+      "video_time": 6.0,
+      "source_frame_id": "71f8a3cf90b6ea038d7dc5b464c6acc5559907632caf040a87e39d64c0ce22fd:frame:360",
+      "source_pts": 360,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R008",
+      "image": "images/R008.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-04 22-05-25",
+      "video_time": 41.5,
+      "source_frame_id": "d6758b3d54ee77cc681e73be802c05bc36473b9e5407bbd9af9bc7882a81c0e2:frame:2490",
+      "source_pts": 2490,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R009",
+      "image": "images/R009.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 23-13-21",
+      "video_time": 297.0,
+      "source_frame_id": "6d99e02feddceca7bfb1f724821fc9fa2f84ee40aed2d4c828f5f1a0a2e391e2:frame:17820",
+      "source_pts": 17820,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R010",
+      "image": "images/R010.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 46.0,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:2760",
+      "source_pts": 2760,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R011",
+      "image": "images/R011.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03",
+      "video_time": 222.5,
+      "source_frame_id": "e7573da3e81410db5f1f043eb3848abdcb6070c42c0ae96d4415db0004a4b048:frame:13350",
+      "source_pts": 13350,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R012",
+      "image": "images/R012.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 4.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:240",
+      "source_pts": 240,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R013",
+      "image": "images/R013.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 192.0,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:11520",
+      "source_pts": 11520,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R014",
+      "image": "images/R014.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 17-13-47",
+      "video_time": 145.5,
+      "source_frame_id": "5031afeed75a3994c0e26db053740a68000bea09e3745ae6374c826e7bdbb50e:frame:8730",
+      "source_pts": 8730,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R015",
+      "image": "images/R015.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 74.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:4440",
+      "source_pts": 4440,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R016",
+      "image": "images/R016.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 17-13-47",
+      "video_time": 93.0,
+      "source_frame_id": "5031afeed75a3994c0e26db053740a68000bea09e3745ae6374c826e7bdbb50e:frame:5580",
+      "source_pts": 5580,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R017",
+      "image": "images/R017.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03",
+      "video_time": 105.5,
+      "source_frame_id": "e7573da3e81410db5f1f043eb3848abdcb6070c42c0ae96d4415db0004a4b048:frame:6330",
+      "source_pts": 6330,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R018",
+      "image": "images/R018.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-18 18-37-10",
+      "video_time": 129.5,
+      "source_frame_id": "2146db81b523b3523f917d242783b8a9b49f8a8a6ba85ddc90108058e284745e:frame:7770",
+      "source_pts": 7770,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R019",
+      "image": "images/R019.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-09 21-56-22",
+      "video_time": 83.0,
+      "source_frame_id": "da2a034fffa3d157299aef5b54921221fb4be15a95995b56011d75400d7f53c8:frame:4980",
+      "source_pts": 4980,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R020",
+      "image": "images/R020.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16",
+      "video_time": 272.0,
+      "source_frame_id": "927dabde5a573e104f717d1b33e01bba14270360150d952b2b4b0f3ba3d6f432:frame:16320",
+      "source_pts": 16320,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R021",
+      "image": "images/R021.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-03-58",
+      "video_time": 151.0,
+      "source_frame_id": "9d4c5c17746dd603e36c7c5bb24117444abd54949d3bef92941c3c7afbb0d498:frame:9060",
+      "source_pts": 9060,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R022",
+      "image": "images/R022.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30",
+      "video_time": 259.5,
+      "source_frame_id": "a9399e921c1c74de47ecda583431f1ed3e56d185f8ff8461f7154c823e2375d4:frame:15570",
+      "source_pts": 15570,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R023",
+      "image": "images/R023.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 23-13-21",
+      "video_time": 186.0,
+      "source_frame_id": "6d99e02feddceca7bfb1f724821fc9fa2f84ee40aed2d4c828f5f1a0a2e391e2:frame:11160",
+      "source_pts": 11160,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R024",
+      "image": "images/R024.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 65.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:3930",
+      "source_pts": 3930,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R025",
+      "image": "images/R025.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-15 19-42-35",
+      "video_time": 10.5,
+      "source_frame_id": "f6924418f9ec4436ed529919b9403aad4d05f7b3c358eee5287ccd5fb03158d8:frame:630",
+      "source_pts": 630,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R026",
+      "image": "images/R026.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_crab_tank_2026-09-16 19-49-36",
+      "video_time": 127.76666666666667,
+      "source_frame_id": "d28d39e9ec5cc6c2d7b6fe823a0586e217d26b7b1b10b25848d53c1ebed3c565:frame:7619",
+      "source_pts": 11499000,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R027",
+      "image": "images/R027.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 16.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:960",
+      "source_pts": 960,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R028",
+      "image": "images/R028.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 218.5,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:13110",
+      "source_pts": 13110,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R029",
+      "image": "images/R029.png",
+      "source_class": "live_gameplay",
+      "match": "en-live-playerview-2026-10-12 17-42-59",
+      "video_time": 39.5,
+      "source_frame_id": "71f8a3cf90b6ea038d7dc5b464c6acc5559907632caf040a87e39d64c0ce22fd:frame:2370",
+      "source_pts": 2370,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R030",
+      "image": "images/R030.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-04 22-05-25",
+      "video_time": 291.5,
+      "source_frame_id": "d6758b3d54ee77cc681e73be802c05bc36473b9e5407bbd9af9bc7882a81c0e2:frame:17490",
+      "source_pts": 17490,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R031",
+      "image": "images/R031.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 194.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:11670",
+      "source_pts": 11670,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R032",
+      "image": "images/R032.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-09 21-56-22",
+      "video_time": 102.0,
+      "source_frame_id": "da2a034fffa3d157299aef5b54921221fb4be15a95995b56011d75400d7f53c8:frame:6120",
+      "source_pts": 6120,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R033",
+      "image": "images/R033.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 23-13-21",
+      "video_time": 143.5,
+      "source_frame_id": "6d99e02feddceca7bfb1f724821fc9fa2f84ee40aed2d4c828f5f1a0a2e391e2:frame:8610",
+      "source_pts": 8610,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R034",
+      "image": "images/R034.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 133.5,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:8010",
+      "source_pts": 8010,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R035",
+      "image": "images/R035.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-04 22-05-25",
+      "video_time": 167.5,
+      "source_frame_id": "d6758b3d54ee77cc681e73be802c05bc36473b9e5407bbd9af9bc7882a81c0e2:frame:10050",
+      "source_pts": 10050,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R036",
+      "image": "images/R036.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03",
+      "video_time": 26.0,
+      "source_frame_id": "809e04b599ecb5b0b552010e48d2934680a13a17958f2dcd47154e76b7f4365b:frame:1560",
+      "source_pts": 1560,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R037",
+      "image": "images/R037.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 119.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:7170",
+      "source_pts": 7170,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R038",
+      "image": "images/R038.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-30-14",
+      "video_time": 303.0,
+      "source_frame_id": "8c3390527bb4bd460d18074710395737818f4c87193b47ec3909707694a7be51:frame:18180",
+      "source_pts": 18180,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R039",
+      "image": "images/R039.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 17-13-47",
+      "video_time": 132.0,
+      "source_frame_id": "5031afeed75a3994c0e26db053740a68000bea09e3745ae6374c826e7bdbb50e:frame:7920",
+      "source_pts": 7920,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R040",
+      "image": "images/R040.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39",
+      "video_time": 121.0,
+      "source_frame_id": "559f6fcfcbd9f2f501322a0a3f2bb5f8ac3c546bd6a120d9c3870012abbee59a:frame:7260",
+      "source_pts": 7260,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R041",
+      "image": "images/R041.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-15 19-42-35",
+      "video_time": 130.0,
+      "source_frame_id": "f6924418f9ec4436ed529919b9403aad4d05f7b3c358eee5287ccd5fb03158d8:frame:7800",
+      "source_pts": 7800,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R042",
+      "image": "images/R042.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_kraken_2026-09-16 20-18-04",
+      "video_time": 9.5,
+      "source_frame_id": "efdf5f263d90c039ecd3b5cfa03a0955ca756c6051a99049a55fe247eb1e022e:frame:570",
+      "source_pts": 570,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R043",
+      "image": "images/R043.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 95.0,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:5700",
+      "source_pts": 5700,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R044",
+      "image": "images/R044.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 163.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:9810",
+      "source_pts": 9810,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R045",
+      "image": "images/R045.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 184.5,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:11070",
+      "source_pts": 11070,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R046",
+      "image": "images/R046.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-15 19-42-35",
+      "video_time": 309.5,
+      "source_frame_id": "f6924418f9ec4436ed529919b9403aad4d05f7b3c358eee5287ccd5fb03158d8:frame:18570",
+      "source_pts": 18570,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R047",
+      "image": "images/R047.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03",
+      "video_time": 24.5,
+      "source_frame_id": "e7573da3e81410db5f1f043eb3848abdcb6070c42c0ae96d4415db0004a4b048:frame:1470",
+      "source_pts": 1470,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R048",
+      "image": "images/R048.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39",
+      "video_time": 265.5,
+      "source_frame_id": "559f6fcfcbd9f2f501322a0a3f2bb5f8ac3c546bd6a120d9c3870012abbee59a:frame:15930",
+      "source_pts": 15930,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R049",
+      "image": "images/R049.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-06 22-15-08",
+      "video_time": 128.5,
+      "source_frame_id": "19abc7c60d92b97748d8714143acb188f4f9be5cc9e4727900cb5d93c73af81e:frame:7710",
+      "source_pts": 7710,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R050",
+      "image": "images/R050.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24",
+      "video_time": 4.5,
+      "source_frame_id": "f5c87588f206275d43f482ee92e6e39cbd44b566b580a09fcfff88fb5ad17522:frame:270",
+      "source_pts": 270,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R051",
+      "image": "images/R051.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16",
+      "video_time": 85.5,
+      "source_frame_id": "927dabde5a573e104f717d1b33e01bba14270360150d952b2b4b0f3ba3d6f432:frame:5130",
+      "source_pts": 5130,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R052",
+      "image": "images/R052.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03",
+      "video_time": 100.0,
+      "source_frame_id": "e7573da3e81410db5f1f043eb3848abdcb6070c42c0ae96d4415db0004a4b048:frame:6000",
+      "source_pts": 6000,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R053",
+      "image": "images/R053.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-03-58",
+      "video_time": 7.5,
+      "source_frame_id": "9d4c5c17746dd603e36c7c5bb24117444abd54949d3bef92941c3c7afbb0d498:frame:450",
+      "source_pts": 450,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R054",
+      "image": "images/R054.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 53.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:3180",
+      "source_pts": 3180,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R055",
+      "image": "images/R055.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-09-07",
+      "video_time": 120.0,
+      "source_frame_id": "1d295e877f4f2ef22fdd99d0b8d88332f654ad62e4cea4ef3b8dcf723a2cd2c8:frame:7200",
+      "source_pts": 7200,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R056",
+      "image": "images/R056.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 135.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:8130",
+      "source_pts": 8130,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R057",
+      "image": "images/R057.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-06 22-15-08",
+      "video_time": 63.0,
+      "source_frame_id": "19abc7c60d92b97748d8714143acb188f4f9be5cc9e4727900cb5d93c73af81e:frame:3780",
+      "source_pts": 3780,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R058",
+      "image": "images/R058.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16",
+      "video_time": 147.5,
+      "source_frame_id": "927dabde5a573e104f717d1b33e01bba14270360150d952b2b4b0f3ba3d6f432:frame:8850",
+      "source_pts": 8850,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R059",
+      "image": "images/R059.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39",
+      "video_time": 319.0,
+      "source_frame_id": "559f6fcfcbd9f2f501322a0a3f2bb5f8ac3c546bd6a120d9c3870012abbee59a:frame:19140",
+      "source_pts": 19140,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R060",
+      "image": "images/R060.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 216.0,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:12960",
+      "source_pts": 12960,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R061",
+      "image": "images/R061.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-03-58",
+      "video_time": 61.5,
+      "source_frame_id": "9d4c5c17746dd603e36c7c5bb24117444abd54949d3bef92941c3c7afbb0d498:frame:3690",
+      "source_pts": 3690,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R062",
+      "image": "images/R062.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 185.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:11100",
+      "source_pts": 11100,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R063",
+      "image": "images/R063.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 285.5,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:17130",
+      "source_pts": 17130,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R064",
+      "image": "images/R064.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03",
+      "video_time": 303.5,
+      "source_frame_id": "809e04b599ecb5b0b552010e48d2934680a13a17958f2dcd47154e76b7f4365b:frame:18210",
+      "source_pts": 18210,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R065",
+      "image": "images/R065.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 188.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:11310",
+      "source_pts": 11310,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R066",
+      "image": "images/R066.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-19 12-24-32",
+      "video_time": 42.5,
+      "source_frame_id": "35fca3937d931089eeb473807df4a63c860fbdf7f9df4d183968df6266a15d5c:frame:2550",
+      "source_pts": 2550,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R067",
+      "image": "images/R067.png",
+      "source_class": "live_gameplay",
+      "match": "en-live-playerview-2026-10-12 19-59-26",
+      "video_time": 134.5,
+      "source_frame_id": "51077462876b3a71dcfd79f32f5f3fd70dabf3e469c2fe47631680a5e00b6287:frame:8070",
+      "source_pts": 8070,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R068",
+      "image": "images/R068.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_crab_tank_2026-09-16 19-49-36",
+      "video_time": 220.46665555555555,
+      "source_frame_id": "d28d39e9ec5cc6c2d7b6fe823a0586e217d26b7b1b10b25848d53c1ebed3c565:frame:13181",
+      "source_pts": 19841999,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R069",
+      "image": "images/R069.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-09-07",
+      "video_time": 236.0,
+      "source_frame_id": "1d295e877f4f2ef22fdd99d0b8d88332f654ad62e4cea4ef3b8dcf723a2cd2c8:frame:14160",
+      "source_pts": 14160,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R070",
+      "image": "images/R070.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 74.0,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:4440",
+      "source_pts": 4440,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R071",
+      "image": "images/R071.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 286.0,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:17160",
+      "source_pts": 17160,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R072",
+      "image": "images/R072.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 114.5,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:6870",
+      "source_pts": 6870,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R073",
+      "image": "images/R073.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24",
+      "video_time": 77.5,
+      "source_frame_id": "f5c87588f206275d43f482ee92e6e39cbd44b566b580a09fcfff88fb5ad17522:frame:4650",
+      "source_pts": 4650,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R074",
+      "image": "images/R074.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24",
+      "video_time": 281.0,
+      "source_frame_id": "f5c87588f206275d43f482ee92e6e39cbd44b566b580a09fcfff88fb5ad17522:frame:16860",
+      "source_pts": 16860,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R075",
+      "image": "images/R075.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03",
+      "video_time": 223.0,
+      "source_frame_id": "809e04b599ecb5b0b552010e48d2934680a13a17958f2dcd47154e76b7f4365b:frame:13380",
+      "source_pts": 13380,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R076",
+      "image": "images/R076.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03",
+      "video_time": 180.0,
+      "source_frame_id": "809e04b599ecb5b0b552010e48d2934680a13a17958f2dcd47154e76b7f4365b:frame:10800",
+      "source_pts": 10800,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R077",
+      "image": "images/R077.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-49-06",
+      "video_time": 111.5,
+      "source_frame_id": "3cb2e6336a48cae13eb36255841e4e46addba1057115cdeb95c6bc93703a25b9:frame:6690",
+      "source_pts": 6690,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R078",
+      "image": "images/R078.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 23-13-21",
+      "video_time": 371.5,
+      "source_frame_id": "6d99e02feddceca7bfb1f724821fc9fa2f84ee40aed2d4c828f5f1a0a2e391e2:frame:22290",
+      "source_pts": 22290,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R079",
+      "image": "images/R079.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 269.0,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:16140",
+      "source_pts": 16140,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R080",
+      "image": "images/R080.png",
+      "source_class": "live_gameplay",
+      "match": "ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30",
+      "video_time": 116.0,
+      "source_frame_id": "a9399e921c1c74de47ecda583431f1ed3e56d185f8ff8461f7154c823e2375d4:frame:6960",
+      "source_pts": 6960,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R081",
+      "image": "images/R081.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-18 18-37-10",
+      "video_time": 82.5,
+      "source_frame_id": "2146db81b523b3523f917d242783b8a9b49f8a8a6ba85ddc90108058e284745e:frame:4950",
+      "source_pts": 4950,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R082",
+      "image": "images/R082.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-30-14",
+      "video_time": 160.5,
+      "source_frame_id": "8c3390527bb4bd460d18074710395737818f4c87193b47ec3909707694a7be51:frame:9630",
+      "source_pts": 9630,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R083",
+      "image": "images/R083.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 17-13-47",
+      "video_time": 111.5,
+      "source_frame_id": "5031afeed75a3994c0e26db053740a68000bea09e3745ae6374c826e7bdbb50e:frame:6690",
+      "source_pts": 6690,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R084",
+      "image": "images/R084.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-20 16-09-34",
+      "video_time": 57.5,
+      "source_frame_id": "ac24e1e486142e9ced6060a1febb7e9c942fc7ff5c566ff86086afb4be5b67ca:frame:3450",
+      "source_pts": 3450,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R085",
+      "image": "images/R085.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24",
+      "video_time": 322.5,
+      "source_frame_id": "f5c87588f206275d43f482ee92e6e39cbd44b566b580a09fcfff88fb5ad17522:frame:19350",
+      "source_pts": 19350,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R086",
+      "image": "images/R086.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 21-30-18",
+      "video_time": 150.5,
+      "source_frame_id": "47943bf79725152983efc7a004233cbdcb7472583cd0dcc210fc716f4ba772af:frame:9030",
+      "source_pts": 9030,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R087",
+      "image": "images/R087.png",
+      "source_class": "live_gameplay",
+      "match": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39",
+      "video_time": 151.5,
+      "source_frame_id": "559f6fcfcbd9f2f501322a0a3f2bb5f8ac3c546bd6a120d9c3870012abbee59a:frame:9090",
+      "source_pts": 9090,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R088",
+      "image": "images/R088.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 12.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:720",
+      "source_pts": 720,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R089",
+      "image": "images/R089.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 94.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:5670",
+      "source_pts": 5670,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R090",
+      "image": "images/R090.png",
+      "source_class": "live_gameplay",
+      "match": "en-live-playerview-2026-10-12 19-59-26",
+      "video_time": 98.5,
+      "source_frame_id": "51077462876b3a71dcfd79f32f5f3fd70dabf3e469c2fe47631680a5e00b6287:frame:5910",
+      "source_pts": 5910,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R091",
+      "image": "images/R091.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-09-07",
+      "video_time": 247.0,
+      "source_frame_id": "1d295e877f4f2ef22fdd99d0b8d88332f654ad62e4cea4ef3b8dcf723a2cd2c8:frame:14820",
+      "source_pts": 14820,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R092",
+      "image": "images/R092.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 22-48-34",
+      "video_time": 40.0,
+      "source_frame_id": "7dc5eb6e9057d41d1d4f1d1443be049a154a5fdd446a082c965dc261b8623a6e:frame:2400",
+      "source_pts": 2400,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R093",
+      "image": "images/R093.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 21-30-18",
+      "video_time": 102.5,
+      "source_frame_id": "47943bf79725152983efc7a004233cbdcb7472583cd0dcc210fc716f4ba772af:frame:6150",
+      "source_pts": 6150,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R094",
+      "image": "images/R094.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 21-30-18",
+      "video_time": 110.0,
+      "source_frame_id": "47943bf79725152983efc7a004233cbdcb7472583cd0dcc210fc716f4ba772af:frame:6600",
+      "source_pts": 6600,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R095",
+      "image": "images/R095.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 23-13-21",
+      "video_time": 204.5,
+      "source_frame_id": "6d99e02feddceca7bfb1f724821fc9fa2f84ee40aed2d4c828f5f1a0a2e391e2:frame:12270",
+      "source_pts": 12270,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R096",
+      "image": "images/R096.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 17-13-47",
+      "video_time": 100.5,
+      "source_frame_id": "5031afeed75a3994c0e26db053740a68000bea09e3745ae6374c826e7bdbb50e:frame:6030",
+      "source_pts": 6030,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R097",
+      "image": "images/R097.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 74.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:4470",
+      "source_pts": 4470,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R098",
+      "image": "images/R098.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-19 12-24-32",
+      "video_time": 338.0,
+      "source_frame_id": "35fca3937d931089eeb473807df4a63c860fbdf7f9df4d183968df6266a15d5c:frame:20280",
+      "source_pts": 20280,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R099",
+      "image": "images/R099.png",
+      "source_class": "live_gameplay",
+      "match": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24",
+      "video_time": 16.0,
+      "source_frame_id": "f5c87588f206275d43f482ee92e6e39cbd44b566b580a09fcfff88fb5ad17522:frame:960",
+      "source_pts": 960,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R100",
+      "image": "images/R100.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 115.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:6900",
+      "source_pts": 6900,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R101",
+      "image": "images/R101.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-07-05 21-30-18",
+      "video_time": 105.5,
+      "source_frame_id": "47943bf79725152983efc7a004233cbdcb7472583cd0dcc210fc716f4ba772af:frame:6330",
+      "source_pts": 6330,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R102",
+      "image": "images/R102.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-49-06",
+      "video_time": 11.5,
+      "source_frame_id": "3cb2e6336a48cae13eb36255841e4e46addba1057115cdeb95c6bc93703a25b9:frame:690",
+      "source_pts": 690,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R103",
+      "image": "images/R103.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 17.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:1020",
+      "source_pts": 1020,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R104",
+      "image": "images/R104.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 155.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:9330",
+      "source_pts": 9330,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R105",
+      "image": "images/R105.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 173.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:10380",
+      "source_pts": 10380,
+      "stratum": "steady"
+    },
+    {
+      "sample_id": "R106",
+      "image": "images/R106.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-30-14",
+      "video_time": 250.5,
+      "source_frame_id": "8c3390527bb4bd460d18074710395737818f4c87193b47ec3909707694a7be51:frame:15030",
+      "source_pts": 15030,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R107",
+      "image": "images/R107.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-04 22-12-51",
+      "video_time": 175.0,
+      "source_frame_id": "bb3db0e10b1766cfa148e81fe017f1dc76c63be8d382418ad97021e4feb8b139:frame:10500",
+      "source_pts": 10500,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R108",
+      "image": "images/R108.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-19 12-24-32",
+      "video_time": 227.5,
+      "source_frame_id": "35fca3937d931089eeb473807df4a63c860fbdf7f9df4d183968df6266a15d5c:frame:13650",
+      "source_pts": 13650,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R109",
+      "image": "images/R109.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 247.5,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:14850",
+      "source_pts": 14850,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R110",
+      "image": "images/R110.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 127.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:7650",
+      "source_pts": 7650,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R111",
+      "image": "images/R111.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 180.0,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:10800",
+      "source_pts": 10800,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R112",
+      "image": "images/R112.png",
+      "source_class": "live_gameplay",
+      "match": "2026-09-04 22-05-25",
+      "video_time": 136.0,
+      "source_frame_id": "d6758b3d54ee77cc681e73be802c05bc36473b9e5407bbd9af9bc7882a81c0e2:frame:8160",
+      "source_pts": 8160,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R113",
+      "image": "images/R113.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-37-00",
+      "video_time": 6.0,
+      "source_frame_id": "289c91671d1ca1758de8948eb33f188699e3f19017c598aeff8400680b3fde85:frame:360",
+      "source_pts": 360,
+      "stratum": "hud_hidden"
+    },
+    {
+      "sample_id": "R114",
+      "image": "images/R114.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 180.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:10830",
+      "source_pts": 10830,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R115",
+      "image": "images/R115.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 37.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:2220",
+      "source_pts": 2220,
+      "stratum": "pre_death"
+    },
+    {
+      "sample_id": "R116",
+      "image": "images/R116.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 198.5,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:11910",
+      "source_pts": 11910,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R117",
+      "image": "images/R117.png",
+      "source_class": "replay_derived",
+      "match": "en-preview-full-fast-2026-10-04 21-32-55",
+      "video_time": 84.0,
+      "source_frame_id": "59258567ba8b7db97bb892999d7c90ad969891c2e89345a2d362863fdd616789:frame:5040",
+      "source_pts": 5040,
+      "stratum": "flicker"
+    },
+    {
+      "sample_id": "R118",
+      "image": "images/R118.png",
+      "source_class": "live_gameplay",
+      "match": "en-2026-09-21 22-48-34",
+      "video_time": 261.0,
+      "source_frame_id": "7dc5eb6e9057d41d1d4f1d1443be049a154a5fdd446a082c965dc261b8623a6e:frame:15660",
+      "source_pts": 15660,
+      "stratum": "fused_change"
+    },
+    {
+      "sample_id": "R119",
+      "image": "images/R119.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-06 22-37-08",
+      "video_time": 291.5,
+      "source_frame_id": "5bbd7f5bfe7907e46a80e8f14b322a2d8c3d69beedf62148688fdbb91a42c7bd:frame:17490",
+      "source_pts": 17490,
+      "stratum": "margin"
+    },
+    {
+      "sample_id": "R120",
+      "image": "images/R120.png",
+      "source_class": "live_gameplay",
+      "match": "2026-07-07 23-37-00",
+      "video_time": 340.5,
+      "source_frame_id": "289c91671d1ca1758de8948eb33f188699e3f19017c598aeff8400680b3fde85:frame:20430",
+      "source_pts": 20430,
+      "stratum": "fused_change"
+    }
+  ],
+  "skipped_analyses_without_video": [
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/9d472ec6060b4607ac1f57e3ae2b7adf",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/014c50601b1541a6917ed6afb7714fbe",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/162a810d490d439998e804c416379b33",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/1828351988f0450cb9529e914840c8f2",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/27bdd0218168413f94d33596e8533007",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/4679269a0c11412a97e38960dc4e491a",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/7b3a6bcd1c554713bc0db6fefb6a769d",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/7cb3caf39175428ba0f834127cf8135e",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/81526af6b30f4f9c8868a8844284e6e2",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/e82f4884a01a499ea0b619cce7eca05b",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/_public/analysis/ef43f14ca16c49bdbc7fa39e7232d752",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/clam_blitz_score_survey/probes/en_2026-09-04_21-39-09",
+    "/Users/kenjikahara/splatoon3-ai-coach/analysis/_rescore_v2/clam_blitz_score_survey/probes/ja_2026-09-05_09-34-24"
+  ]
+}
