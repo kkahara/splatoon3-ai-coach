@@ -89,6 +89,7 @@ request observed at five-minute resolution, not the last browser page view.
 | `roster_label_sample.py` | Builds a seeded, frozen blind sample of gameplay-HUD frames across six detector-independent strata and later scores sealed `x` / `alive` / `?` labels through slot, side-count, raw AvB, fused AvB and pre-death fused AvB levels; never reads Review lamps |
 | `roster_geometry_survey.py` | Development-only fixed-vs-constrained roster geometry measurements and auditable overlays for known live slot misses; does not assign localization cause automatically |
 | `roster_dynamic_roi.py` | Development-only parallel constrained dynamic-ROI localization, crop normalization and unchanged 0.03 masked-X comparison against the fixed detector |
+| `roster_slot_isolation.py` | Experiment 2 development diagnostic: measures neighbor contamination and tests constrained divider placement with template-territory matching and native-scale translated crops; reports paired fixes and collateral damage |
 
 ### reports/
 
