@@ -1,5 +1,9 @@
 # Roster ROI Experiment 2: slot isolation
 
+**Closed.** No production changes. The evidence rejects neighbor contamination as the primary explanation for the known live roster errors: Variant A fixed 0/13 known misses and introduced 4 collateral errors; Variant B fixed 0/13 and introduced 32; all three production false-positive X matches were already in target territory. Do not rerun or modify this experiment unless later evidence gives a reason to revisit localization. The next step is X appearance/classification (`../x_appearance/X_APPEARANCE.md`).
+
+**Implementation deviation.** The plan specified a joint 3-node dynamic-programming optimization for the dividers. `estimate_dividers()` instead selects each divider by sequential greedy valley search (left to right, each confined to +/-18px of its calibrated prior and kept ordered). This deviation is recorded, not corrected; given that neither variant fixed any known miss, a joint optimizer is not expected to change the conclusion.
+
 Status: development measurement only. Production detector, templates, threshold `0.03`, fusion and coaching remain unchanged. Experiment 1 is untouched. The sealed labels are development data, not held-out validation.
 
 ## Method
