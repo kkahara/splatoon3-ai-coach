@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { LanguageSwitch } from "./LanguageSwitch.jsx";
+import { useT } from "./i18n/LocaleContext.jsx";
 import { AdminCoachingPage } from "./pages/AdminCoaching.jsx";
 import { AdminFailuresPage } from "./pages/AdminFailures.jsx";
 import { AdminLayout } from "./pages/AdminLayout.jsx";
@@ -28,7 +29,17 @@ export function App() {
     <>
       <LanguageSwitch />
       <AppRoutes />
+      <SiteFooter />
     </>
+  );
+}
+
+function SiteFooter() {
+  const t = useT();
+  return (
+    <footer className="site-footer">
+      <p>{t("legal.trademark")}</p>
+    </footer>
   );
 }
 

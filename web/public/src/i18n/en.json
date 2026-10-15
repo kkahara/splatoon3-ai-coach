@@ -1,5 +1,7 @@
 {
   "brand": "Splatoon 3 AI Coach",
+  "legal.unofficial": "Unofficial fan-made AI coaching tool. Not affiliated with, endorsed by, or sponsored by Nintendo.",
+  "legal.trademark": "Splatoon and Nintendo are trademarks of Nintendo. This is an independent, fan-made project and is not affiliated with, endorsed by, or sponsored by Nintendo.",
   "common.game_time": "Game Time",
   "common.deaths": "Deaths",
   "common.share": "Share",

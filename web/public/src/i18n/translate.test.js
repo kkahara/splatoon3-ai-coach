@@ -52,6 +52,16 @@ test("every public coaching state has English and Japanese text", () => {
   );
 });
 
+test("the unofficial and trademark notices have English and Japanese text", () => {
+  for (const key of ["legal.unofficial", "legal.trademark"]) {
+    const en = translate(resources, "en", key);
+    const ja = translate(resources, "ja", key);
+    assert.match(en, /not affiliated with, endorsed by, or sponsored by Nintendo/i);
+    assert.match(ja, /任天堂/);
+    assert.notEqual(ja, en);
+  }
+});
+
 test("the stale-evidence notice has English and Japanese text", () => {
   const en = translate(resources, "en", "review.stale_evidence");
   const ja = translate(resources, "ja", "review.stale_evidence");

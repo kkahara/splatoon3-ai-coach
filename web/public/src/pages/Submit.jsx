@@ -161,6 +161,7 @@ export function SubmitPage() {
         <img className="hero-banner" src={heroBanner} alt="" />
         <h1>{t("submit.title")}</h1>
       </div>
+      <p className="unofficial">{t("legal.unofficial")}</p>
       <p>{t("submit.intro")}</p>
       <form onSubmit={onSubmit}>
         <label>

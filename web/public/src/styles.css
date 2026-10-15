@@ -755,6 +755,34 @@ button,
   letter-spacing: -0.02em;
 }
 
+.unofficial {
+  margin: -0.3rem 0 1.1rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(215, 255, 0, 0.35);
+  border-radius: 0.6rem;
+  background: rgba(215, 255, 0, 0.06);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--s3-text);
+}
+
+.site-footer {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--s3-muted);
+}
+
+.site-footer p {
+  margin: 0;
+}
+
 .top a,
 button.linkish,
 .admin-table a,
