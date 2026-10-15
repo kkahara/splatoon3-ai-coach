@@ -87,6 +87,8 @@ request observed at five-minute resolution, not the last browser page view.
 | `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
 | `roster_baseline.py` | Offline consistency baseline for the unchanged 2 FPS gameplay-HUD roster detector: raw changes/reversals, fused plausibility, production pre-death availability and even/odd 1 Hz phase agreement; live and replay-derived sources stay separate |
 | `roster_label_sample.py` | Builds a seeded, frozen blind sample of gameplay-HUD frames across six detector-independent strata and later scores sealed `x` / `alive` / `?` labels through slot, side-count, raw AvB, fused AvB and pre-death fused AvB levels; never reads Review lamps |
+| `roster_geometry_survey.py` | Development-only fixed-vs-constrained roster geometry measurements and auditable overlays for known live slot misses; does not assign localization cause automatically |
+| `roster_dynamic_roi.py` | Development-only parallel constrained dynamic-ROI localization, crop normalization and unchanged 0.03 masked-X comparison against the fixed detector |
 
 ### reports/
 
