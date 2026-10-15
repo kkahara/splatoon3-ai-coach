@@ -1,0 +1,578 @@
+{
+ "pool": [
+  {
+   "video": "2026-06-30 21-24-53.mov",
+   "duration_s": 700.7
+  },
+  {
+   "video": "2026-06-30 23-43-09.mov",
+   "duration_s": 1485.8
+  },
+  {
+   "video": "2026-07-04 16-06-41.mp4",
+   "duration_s": 354.9
+  },
+  {
+   "video": "2026-07-04 23-55-59.mp4",
+   "duration_s": 352.0
+  },
+  {
+   "video": "2026-07-05 15-57-07.mp4",
+   "duration_s": 249.2
+  },
+  {
+   "video": "2026-07-05 16-10-48.mp4",
+   "duration_s": 322.7
+  },
+  {
+   "video": "2026-07-05 17-17-56.mp4",
+   "duration_s": 338.7
+  },
+  {
+   "video": "2026-07-05 20-28-22.mov",
+   "duration_s": 334.2
+  },
+  {
+   "video": "2026-07-05 20-35-00.mov",
+   "duration_s": 323.4
+  },
+  {
+   "video": "2026-07-05 20-48-23.mov",
+   "duration_s": 342.5
+  },
+  {
+   "video": "2026-07-05 21-54-14.mov",
+   "duration_s": 664.3
+  },
+  {
+   "video": "2026-07-05 23-16-52.mov",
+   "duration_s": 326.4
+  },
+  {
+   "video": "2026-07-05 23-24-21.mov",
+   "duration_s": 329.4
+  },
+  {
+   "video": "2026-07-05 23-47-36.mov",
+   "duration_s": 322.5
+  },
+  {
+   "video": "2026-07-06 22-06-50.mov",
+   "duration_s": 248.1
+  },
+  {
+   "video": "2026-07-06 22-55-06.mov",
+   "duration_s": 350.0
+  },
+  {
+   "video": "2026-07-07 22-28-43.mov",
+   "duration_s": 393.6
+  },
+  {
+   "video": "2026-09-04 21-32-25.mov",
+   "duration_s": 361.2
+  },
+  {
+   "video": "2026-09-04 21-57-34.mov",
+   "duration_s": 326.8
+  },
+  {
+   "video": "2026-09-04 22-50-19.mov",
+   "duration_s": 205.4
+  },
+  {
+   "video": "2026-09-04 23-08-27.mov",
+   "duration_s": 342.4
+  },
+  {
+   "video": "2026-09-07 13-41-08.mov",
+   "duration_s": 200.7
+  },
+  {
+   "video": "2026-09-09 20-32-39.mov",
+   "duration_s": 325.5
+  },
+  {
+   "video": "2026-09-10 13-44-28.mov",
+   "duration_s": 284.2
+  },
+  {
+   "video": "2026-09-10 14-20-12.mov",
+   "duration_s": 305.9
+  },
+  {
+   "video": "2026-09-10 15-26-49.mov",
+   "duration_s": 263.2
+  },
+  {
+   "video": "2026-09-12 12-42-53.mov",
+   "duration_s": 132.9
+  },
+  {
+   "video": "2026-09-12 13-34-57.mov",
+   "duration_s": 327.4
+  },
+  {
+   "video": "2026-09-15 19-56-29.mov",
+   "duration_s": 307.3
+  },
+  {
+   "video": "2026-09-18 19-36-27.mov",
+   "duration_s": 365.6
+  },
+  {
+   "video": "2026-09-19 12-46-14.mov",
+   "duration_s": 412.6
+  },
+  {
+   "video": "2026-09-20 14-47-03.mov",
+   "duration_s": 417.4
+  },
+  {
+   "video": "2026-09-20 15-45-17.mov",
+   "duration_s": 257.2
+  },
+  {
+   "video": "2026-09-20 15-50-36.mov",
+   "duration_s": 101.3
+  },
+  {
+   "video": "2026-09-20 15-53-31.mov",
+   "duration_s": 326.3
+  },
+  {
+   "video": "2026-09-20 16-18-22.mov",
+   "duration_s": 115.1
+  },
+  {
+   "video": "2026-09-20 16-20-26.mov",
+   "duration_s": 562.3
+  },
+  {
+   "video": "2026-09-20 16-33-33.mov",
+   "duration_s": 500.5
+  },
+  {
+   "video": "2026-09-20 16-44-17.mov",
+   "duration_s": 223.1
+  },
+  {
+   "video": "2026-09-20 16-48-47.mov",
+   "duration_s": 228.4
+  },
+  {
+   "video": "2026-09-20 17-00-29.mov",
+   "duration_s": 475.9
+  },
+  {
+   "video": "2026-09-20 17-17-57.mov",
+   "duration_s": 393.6
+  },
+  {
+   "video": "2026-09-20 17-45-40.mov",
+   "duration_s": 8122.6
+  },
+  {
+   "video": "2026-09-20 23-22-34.mov",
+   "duration_s": 114.2
+  },
+  {
+   "video": "2026-09-20 23-25-42.mov",
+   "duration_s": 340.6
+  },
+  {
+   "video": "2026-09-20 23-34-42.mov",
+   "duration_s": 211.4
+  },
+  {
+   "video": "2026-09-20 23-38-13.mov",
+   "duration_s": 354.5
+  },
+  {
+   "video": "2026-09-20 23-44-11.mov",
+   "duration_s": 131.9
+  },
+  {
+   "video": "en-2026-07-04 15-27-20.mp4",
+   "duration_s": 308.8
+  },
+  {
+   "video": "en-2026-07-04 15-34-49.mp4",
+   "duration_s": 317.3
+  },
+  {
+   "video": "en-2026-07-04 15-43-13.mp4",
+   "duration_s": 171.6
+  },
+  {
+   "video": "en-2026-07-04 17-42-08.mp4",
+   "duration_s": 281.4
+  },
+  {
+   "video": "en-2026-07-05 13-29-26.mp4",
+   "duration_s": 2142.2
+  },
+  {
+   "video": "en-2026-07-05 14-40-32.mp4",
+   "duration_s": 369.2
+  },
+  {
+   "video": "en-2026-07-05 16-30-49.mp4",
+   "duration_s": 336.0
+  },
+  {
+   "video": "en-2026-07-05 16-37-14.mp4",
+   "duration_s": 337.6
+  },
+  {
+   "video": "en-2026-07-05 17-27-06.mp4",
+   "duration_s": 242.1
+  },
+  {
+   "video": "en-2026-07-05 17-34-46.mp4",
+   "duration_s": 237.9
+  },
+  {
+   "video": "en-2026-07-05 17-46-52.mp4",
+   "duration_s": 325.9
+  },
+  {
+   "video": "en-2026-07-05 20-41-37.mov",
+   "duration_s": 330.1
+  },
+  {
+   "video": "en-2026-07-05 23-32-19.mov",
+   "duration_s": 328.4
+  },
+  {
+   "video": "en-2026-07-06 21-45-19.mov",
+   "duration_s": 162.1
+  },
+  {
+   "video": "en-2026-07-06 22-16-05.mov",
+   "duration_s": 308.7
+  },
+  {
+   "video": "en-2026-09-04 21-51-26.mov",
+   "duration_s": 234.2
+  },
+  {
+   "video": "en-2026-09-04 23-47-07.mov",
+   "duration_s": 318.6
+  },
+  {
+   "video": "en-2026-09-12 12-48-02.mov",
+   "duration_s": 101.7
+  },
+  {
+   "video": "en-2026-09-14 20-39-31.mov",
+   "duration_s": 168.4
+  },
+  {
+   "video": "en-2026-09-20 22-35-00.mov",
+   "duration_s": 197.7
+  },
+  {
+   "video": "en-2026-09-20 22-43-37.mov",
+   "duration_s": 255.6
+  },
+  {
+   "video": "en-2026-09-20 22-48-24.mov",
+   "duration_s": 382.0
+  },
+  {
+   "video": "en-2026-09-21 07-15-56.mov",
+   "duration_s": 461.9
+  },
+  {
+   "video": "en-2026-10-13 18-36-55.mov",
+   "duration_s": 2928.0
+  },
+  {
+   "video": "en-2026-10-13 19-28-40.mov",
+   "duration_s": 352.1
+  },
+  {
+   "video": "en-2026-10-13 19-43-30.mov",
+   "duration_s": 303.9
+  },
+  {
+   "video": "en-2026-10-14 23-00-10.mov",
+   "duration_s": 384.2
+  },
+  {
+   "video": "ja-2026-09-05 09-20-18.mov",
+   "duration_s": 322.6
+  },
+  {
+   "video": "ja-2026-09-05 23-01-33.mov",
+   "duration_s": 325.6
+  },
+  {
+   "video": "ja-2026-09-05 23-15-32.mov",
+   "duration_s": 309.1
+  },
+  {
+   "video": "ja-2026-09-06 14-54-11.mov",
+   "duration_s": 262.3
+  },
+  {
+   "video": "ja-2026-09-06 16-03-41.mov",
+   "duration_s": 346.4
+  },
+  {
+   "video": "ja-2026-09-06 22-35-09.mov",
+   "duration_s": 334.9
+  },
+  {
+   "video": "ja-2026-09-07 09-45-26.mov",
+   "duration_s": 313.5
+  },
+  {
+   "video": "ja-2026-09-07 13-44-29.mov",
+   "duration_s": 510.9
+  },
+  {
+   "video": "ja-2026-09-09 20-01-09.mov",
+   "duration_s": 1149.0
+  },
+  {
+   "video": "ja-2026-09-10 13-51-45.mov",
+   "duration_s": 122.4
+  },
+  {
+   "video": "ja-2026-09-18 19-03-54.mov",
+   "duration_s": 352.4
+  },
+  {
+   "video": "ja-2026-09-18 19-17-54.mov",
+   "duration_s": 543.4
+  },
+  {
+   "video": "ja-2026-09-19 11-56-23.mov",
+   "duration_s": 313.7
+  },
+  {
+   "video": "ja-2026-09-19 12-30-46.mov",
+   "duration_s": 232.7
+  },
+  {
+   "video": "ja-2026-09-19 12-38-47.mov",
+   "duration_s": 438.5
+  },
+  {
+   "video": "ja-2026-09-20 14-21-22.mov",
+   "duration_s": 942.4
+  },
+  {
+   "video": "ja-2026-09-20 14-39-55.mov",
+   "duration_s": 335.3
+  },
+  {
+   "video": "ja-2026-09-20 20-17-05.mov",
+   "duration_s": 421.8
+  },
+  {
+   "video": "ja-2026-09-20 20-43-42.mov",
+   "duration_s": 225.6
+  },
+  {
+   "video": "ja-2026-09-20 20-48-13.mov",
+   "duration_s": 241.9
+  },
+  {
+   "video": "ja-2026-09-20 21-07-02.mov",
+   "duration_s": 253.8
+  },
+  {
+   "video": "ja-2026-09-20 21-17-29.mov",
+   "duration_s": 255.1
+  },
+  {
+   "video": "ja-2026-09-20 21-21-48.mov",
+   "duration_s": 301.2
+  },
+  {
+   "video": "ja-2026-09-20 21-26-50.mov",
+   "duration_s": 281.8
+  },
+  {
+   "video": "ja_eeltail_alley_zip_caster_2026-09-16 19-06-13.mov",
+   "duration_s": 272.7
+  },
+  {
+   "video": "ja_inkblot_academy_ink_storm_2026-09-15 22-00-54.mov",
+   "duration_s": 325.1
+  },
+  {
+   "video": "ja_mahi_mahi_resort_2026-09-07 14-02-14.mov",
+   "duration_s": 323.3
+  },
+  {
+   "video": "jp-2026-09-09 21-10-07.mov",
+   "duration_s": 317.6
+  },
+  {
+   "video": "jp-2026-09-21 06-57-14.mov",
+   "duration_s": 203.4
+  },
+  {
+   "video": "jp-2026-09-21 07-00-38.mov",
+   "duration_s": 628.4
+  }
+ ],
+ "excluded": [
+  {
+   "video": "2026-06-30 23-28-47.mov",
+   "reason": "duration 13s < 60s"
+  },
+  {
+   "video": "2026-07-07 22-49-54.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-04 23-02-31.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-05 23-08-26.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-09 23-29-20.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-20 15-07-24.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-20 16-53-13.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-20 22-55-56.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-20 23-04-54.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-06-30 21-17-03.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-06-30 21-45-35.mov",
+   "reason": "duration 18s < 60s"
+  },
+  {
+   "video": "en-2026-06-30 21-47-34.mov",
+   "reason": "duration 24s < 60s"
+  },
+  {
+   "video": "en-2026-06-30 21-48-45.mov",
+   "reason": "duration 21s < 60s"
+  },
+  {
+   "video": "en-2026-06-30 21-49-48.mov",
+   "reason": "duration 36s < 60s"
+  },
+  {
+   "video": "en-2026-07-04 16-00-03.mp4",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-07-05 16-02-45.mp4",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-07-05 18-02-24.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-07-07 22-47-30.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-09-04 21-39-09.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-09-20 22-38-46.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-09-21 23-20-25.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-09-27 17-01-20.mov",
+   "reason": "duration 32s < 60s"
+  },
+  {
+   "video": "en-2026-09-27 17-26-56.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "en-2026-10-13 18-36-35.mov",
+   "reason": "duration 10s < 60s"
+  },
+  {
+   "video": "ja-2026-09-06 15-40-39.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "ja-2026-09-07 10-35-50.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "ja-2026-09-18 19-29-29.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "ja-2026-09-20 20-35-50.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "ja-2026-09-20 21-12-28.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "ja-2026-09-20 21-46-11.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "ja_lumira_hub_inkjet_2026-09-16 19-33-24.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "jp-2026-09-27 21-01-09.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "jp-2026-09-27 21-02-07.mov",
+   "reason": "duration 36s < 60s"
+  },
+  {
+   "video": "jp-2026-09-27 21-02-49.mov",
+   "reason": "duration 4s < 60s"
+  },
+  {
+   "video": "jp-2026-10-01 21-39-44.mov",
+   "reason": "duration 24s < 60s"
+  },
+  {
+   "video": "jp-2026-10-01 23-42-04.mov",
+   "reason": "referenced by a non-roster analysis artifact"
+  },
+  {
+   "video": "2026-09-10 15-58-36.mov",
+   "reason": "referenced by configs/tests (default development / ground-truth video)"
+  },
+  {
+   "video": "2026-07-07 23-14-50.mov",
+   "reason": "referenced by tests/simulate fixtures"
+  }
+ ]
+}
