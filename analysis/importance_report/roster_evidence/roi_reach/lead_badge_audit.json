@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "method": "manual visual audit of sheets/layout_rows_a1.png and sheets/layout_rows_o3.png; badge text is 'Lead!' or 'リード!'; side = which end of the HUD row shows the badge",
+  "automated": false,
+  "note": "A colour-threshold badge detector was tried and was unreliable (zone clipping, team ink of similar hue); it is not used.",
+  "a1": [
+    {"sample_id": "R112", "center_x": 542.6, "badge_side": "ally"},
+    {"sample_id": "R096", "center_x": 543.6, "badge_side": "ally"},
+    {"sample_id": "R049", "center_x": 558.6, "badge_side": "ally"},
+    {"sample_id": "R041", "center_x": 568.1, "badge_side": "ally"},
+    {"sample_id": "R077", "center_x": 570.1, "badge_side": "opponent"},
+    {"sample_id": "R006", "center_x": 591.1, "badge_side": "opponent"},
+    {"sample_id": "R063", "center_x": 591.1, "badge_side": "opponent"},
+    {"sample_id": "R071", "center_x": 591.1, "badge_side": "opponent"},
+    {"sample_id": "R093", "center_x": 592.1, "badge_side": "opponent"},
+    {"sample_id": "R023", "center_x": 607.1, "badge_side": "opponent"},
+    {"sample_id": "R028", "center_x": 607.1, "badge_side": "opponent"},
+    {"sample_id": "R036", "center_x": 607.1, "badge_side": "opponent"},
+    {"sample_id": "R013", "center_x": 608.1, "badge_side": "opponent"},
+    {"sample_id": "R101", "center_x": 608.1, "badge_side": "opponent"}
+  ],
+  "o3": [
+    {"sample_id": "R018", "center_x": 1237.1, "badge_side": "ally"},
+    {"sample_id": "R032", "center_x": 1237.1, "badge_side": "ally"},
+    {"sample_id": "R090", "center_x": 1237.1, "badge_side": "ally"},
+    {"sample_id": "R096", "center_x": 1238.1, "badge_side": "ally"},
+    {"sample_id": "R074", "center_x": 1247.1, "badge_side": "ally"},
+    {"sample_id": "R080", "center_x": 1247.1, "badge_side": "ally"},
+    {"sample_id": "R118", "center_x": 1262.6, "badge_side": "opponent"},
+    {"sample_id": "R109", "center_x": 1263.6, "badge_side": "opponent"},
+    {"sample_id": "R076", "center_x": 1268.6, "badge_side": "opponent"},
+    {"sample_id": "R082", "center_x": 1269.6, "badge_side": "opponent"},
+    {"sample_id": "R021", "center_x": 1279.6, "badge_side": "opponent"},
+    {"sample_id": "R022", "center_x": 1279.6, "badge_side": "opponent"},
+    {"sample_id": "R119", "center_x": 1280.6, "badge_side": "opponent"}
+  ]
+}
