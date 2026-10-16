@@ -1,0 +1,5464 @@
+{
+  "schema_version": 1,
+  "candidate": {
+    "a1": 16,
+    "o3": 8
+  },
+  "scan_summary": {
+    "pool_videos": 105,
+    "videos_with_eligible_frames": 104,
+    "eligible_frames": 27697,
+    "discordant_frames": 1115,
+    "discordant_runs": 312,
+    "samples": 199,
+    "strata": {
+      "discordant": 100,
+      "random": 100
+    },
+    "both_strata": 1
+  },
+  "hud_visible": {
+    "visible": 188,
+    "hidden": 11
+  },
+  "all": {
+    "frames": 188,
+    "determinable_slots": 1495,
+    "human_x_slots": 324,
+    "paired": {
+      "correct->correct": 1380,
+      "wrong->correct": 115,
+      "correct->wrong": 0,
+      "wrong->wrong": 0
+    },
+    "production": {
+      "tp": 209,
+      "fp": 0,
+      "fn": 115,
+      "tn": 1171,
+      "x_precision": 1.0,
+      "x_recall": 0.645062,
+      "slot_accuracy": 0.923077,
+      "per_slot_accuracy": {
+        "a1": 0.670213,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 0.716578,
+        "o4": 1.0
+      },
+      "side_count_exact": 255,
+      "side_count_comparable": 367,
+      "side_count_accuracy": 0.694823,
+      "raw_avb_exact": 81,
+      "raw_avb_comparable": 180,
+      "raw_avb_accuracy": 0.45,
+      "avb_transitions": {
+        "correct->correct": 81,
+        "wrong->wrong": 99
+      }
+    },
+    "candidate": {
+      "tp": 324,
+      "fp": 0,
+      "fn": 0,
+      "tn": 1171,
+      "x_precision": 1.0,
+      "x_recall": 1.0,
+      "slot_accuracy": 1.0,
+      "per_slot_accuracy": {
+        "a1": 1.0,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 1.0,
+        "o4": 1.0
+      },
+      "side_count_exact": 367,
+      "side_count_comparable": 367,
+      "side_count_accuracy": 1.0,
+      "raw_avb_exact": 180,
+      "raw_avb_comparable": 180,
+      "raw_avb_accuracy": 1.0,
+      "avb_transitions": {
+        "correct->correct": 81,
+        "wrong->correct": 99
+      }
+    },
+    "a1": {
+      "paired": {
+        "correct->correct": 126,
+        "wrong->correct": 62,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 62,
+        "tn": 121,
+        "x_precision": 1.0,
+        "x_recall": 0.074627
+      },
+      "candidate": {
+        "tp": 67,
+        "fp": 0,
+        "fn": 0,
+        "tn": 121,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    },
+    "o3": {
+      "paired": {
+        "correct->correct": 134,
+        "wrong->correct": 53,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 11,
+        "fp": 0,
+        "fn": 53,
+        "tn": 123,
+        "x_precision": 1.0,
+        "x_recall": 0.171875
+      },
+      "candidate": {
+        "tp": 64,
+        "fp": 0,
+        "fn": 0,
+        "tn": 123,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    }
+  },
+  "random": {
+    "frames": 92,
+    "determinable_slots": 732,
+    "human_x_slots": 103,
+    "paired": {
+      "correct->correct": 724,
+      "wrong->correct": 8,
+      "correct->wrong": 0,
+      "wrong->wrong": 0
+    },
+    "production": {
+      "tp": 95,
+      "fp": 0,
+      "fn": 8,
+      "tn": 629,
+      "x_precision": 1.0,
+      "x_recall": 0.92233,
+      "slot_accuracy": 0.989071,
+      "per_slot_accuracy": {
+        "a1": 0.945652,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 0.967391,
+        "o4": 1.0
+      },
+      "side_count_exact": 172,
+      "side_count_comparable": 180,
+      "side_count_accuracy": 0.955556,
+      "raw_avb_exact": 81,
+      "raw_avb_comparable": 89,
+      "raw_avb_accuracy": 0.910112,
+      "avb_transitions": {
+        "correct->correct": 81,
+        "wrong->wrong": 8
+      }
+    },
+    "candidate": {
+      "tp": 103,
+      "fp": 0,
+      "fn": 0,
+      "tn": 629,
+      "x_precision": 1.0,
+      "x_recall": 1.0,
+      "slot_accuracy": 1.0,
+      "per_slot_accuracy": {
+        "a1": 1.0,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 1.0,
+        "o4": 1.0
+      },
+      "side_count_exact": 180,
+      "side_count_comparable": 180,
+      "side_count_accuracy": 1.0,
+      "raw_avb_exact": 89,
+      "raw_avb_comparable": 89,
+      "raw_avb_accuracy": 1.0,
+      "avb_transitions": {
+        "correct->correct": 81,
+        "wrong->correct": 8
+      }
+    },
+    "a1": {
+      "paired": {
+        "correct->correct": 87,
+        "wrong->correct": 5,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 5,
+        "tn": 82,
+        "x_precision": 1.0,
+        "x_recall": 0.5
+      },
+      "candidate": {
+        "tp": 10,
+        "fp": 0,
+        "fn": 0,
+        "tn": 82,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    },
+    "o3": {
+      "paired": {
+        "correct->correct": 89,
+        "wrong->correct": 3,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 11,
+        "fp": 0,
+        "fn": 3,
+        "tn": 78,
+        "x_precision": 1.0,
+        "x_recall": 0.785714
+      },
+      "candidate": {
+        "tp": 14,
+        "fp": 0,
+        "fn": 0,
+        "tn": 78,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    }
+  },
+  "discordant": {
+    "frames": 97,
+    "determinable_slots": 771,
+    "human_x_slots": 224,
+    "paired": {
+      "correct->correct": 663,
+      "wrong->correct": 108,
+      "correct->wrong": 0,
+      "wrong->wrong": 0
+    },
+    "production": {
+      "tp": 116,
+      "fp": 0,
+      "fn": 108,
+      "tn": 547,
+      "x_precision": 1.0,
+      "x_recall": 0.517857,
+      "slot_accuracy": 0.859922,
+      "per_slot_accuracy": {
+        "a1": 0.402062,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 0.479167,
+        "o4": 1.0
+      },
+      "side_count_exact": 84,
+      "side_count_comparable": 189,
+      "side_count_accuracy": 0.444444,
+      "raw_avb_exact": 0,
+      "raw_avb_comparable": 92,
+      "raw_avb_accuracy": 0.0,
+      "avb_transitions": {
+        "wrong->wrong": 92
+      }
+    },
+    "candidate": {
+      "tp": 224,
+      "fp": 0,
+      "fn": 0,
+      "tn": 547,
+      "x_precision": 1.0,
+      "x_recall": 1.0,
+      "slot_accuracy": 1.0,
+      "per_slot_accuracy": {
+        "a1": 1.0,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 1.0,
+        "o4": 1.0
+      },
+      "side_count_exact": 189,
+      "side_count_comparable": 189,
+      "side_count_accuracy": 1.0,
+      "raw_avb_exact": 92,
+      "raw_avb_comparable": 92,
+      "raw_avb_accuracy": 1.0,
+      "avb_transitions": {
+        "wrong->correct": 92
+      }
+    },
+    "a1": {
+      "paired": {
+        "correct->correct": 39,
+        "wrong->correct": 58,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 58,
+        "tn": 39,
+        "x_precision": null,
+        "x_recall": 0.0
+      },
+      "candidate": {
+        "tp": 58,
+        "fp": 0,
+        "fn": 0,
+        "tn": 39,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    },
+    "o3": {
+      "paired": {
+        "correct->correct": 46,
+        "wrong->correct": 50,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 50,
+        "tn": 46,
+        "x_precision": null,
+        "x_recall": 0.0
+      },
+      "candidate": {
+        "tp": 50,
+        "fp": 0,
+        "fn": 0,
+        "tn": 46,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    }
+  },
+  "after_template_date": {
+    "frames": 97,
+    "determinable_slots": 773,
+    "human_x_slots": 172,
+    "paired": {
+      "correct->correct": 711,
+      "wrong->correct": 62,
+      "correct->wrong": 0,
+      "wrong->wrong": 0
+    },
+    "production": {
+      "tp": 110,
+      "fp": 0,
+      "fn": 62,
+      "tn": 601,
+      "x_precision": 1.0,
+      "x_recall": 0.639535,
+      "slot_accuracy": 0.919793,
+      "per_slot_accuracy": {
+        "a1": 0.628866,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 0.731959,
+        "o4": 1.0
+      },
+      "side_count_exact": 130,
+      "side_count_comparable": 191,
+      "side_count_accuracy": 0.680628,
+      "raw_avb_exact": 40,
+      "raw_avb_comparable": 95,
+      "raw_avb_accuracy": 0.421053,
+      "avb_transitions": {
+        "correct->correct": 40,
+        "wrong->wrong": 55
+      }
+    },
+    "candidate": {
+      "tp": 172,
+      "fp": 0,
+      "fn": 0,
+      "tn": 601,
+      "x_precision": 1.0,
+      "x_recall": 1.0,
+      "slot_accuracy": 1.0,
+      "per_slot_accuracy": {
+        "a1": 1.0,
+        "a2": 1.0,
+        "a3": 1.0,
+        "a4": 1.0,
+        "o1": 1.0,
+        "o2": 1.0,
+        "o3": 1.0,
+        "o4": 1.0
+      },
+      "side_count_exact": 191,
+      "side_count_comparable": 191,
+      "side_count_accuracy": 1.0,
+      "raw_avb_exact": 95,
+      "raw_avb_comparable": 95,
+      "raw_avb_accuracy": 1.0,
+      "avb_transitions": {
+        "correct->correct": 40,
+        "wrong->correct": 55
+      }
+    },
+    "a1": {
+      "paired": {
+        "correct->correct": 61,
+        "wrong->correct": 36,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 36,
+        "tn": 57,
+        "x_precision": 1.0,
+        "x_recall": 0.1
+      },
+      "candidate": {
+        "tp": 40,
+        "fp": 0,
+        "fn": 0,
+        "tn": 57,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    },
+    "o3": {
+      "paired": {
+        "correct->correct": 71,
+        "wrong->correct": 26,
+        "correct->wrong": 0,
+        "wrong->wrong": 0
+      },
+      "production": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 26,
+        "tn": 68,
+        "x_precision": 1.0,
+        "x_recall": 0.103448
+      },
+      "candidate": {
+        "tp": 29,
+        "fp": 0,
+        "fn": 0,
+        "tn": 68,
+        "x_precision": 1.0,
+        "x_recall": 1.0
+      }
+    }
+  },
+  "x_reach": [
+    {
+      "sample_id": "H036",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 558.6,
+      "free_template": "player-x-3",
+      "free_score": 0.012112288735806942,
+      "production_reach": [
+        526.6,
+        591.6
+      ],
+      "candidate_reach": [
+        526.6,
+        607.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H002",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 568.1,
+      "free_template": "player-x-1",
+      "free_score": 0.012157442979514599,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H151",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 568.1,
+      "free_template": "player-x-1",
+      "free_score": 0.010849068872630596,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H145",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 591.1,
+      "free_template": "player-x-1",
+      "free_score": 0.027594851329922676,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H126",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 592.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01715521328151226,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H001",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015558118931949139,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H005",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015271877869963646,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H013",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01925811730325222,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H020",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01627536676824093,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H022",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.016547750681638718,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H023",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013136988505721092,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H029",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.016373200342059135,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H035",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013755930587649345,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H050",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015114294365048409,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H051",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01467681024223566,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H052",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014293508604168892,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H053",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013279346749186516,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H055",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.025473780930042267,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H056",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.018960673362016678,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H063",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013483398593962193,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H068",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01787075214087963,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H070",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.0141013003885746,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H083",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.018695471808314323,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H084",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015478387475013733,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H086",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.011602923274040222,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H092",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.027127927169203758,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H107",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.024010038003325462,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H112",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01406856533139944,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H114",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.020204054191708565,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H120",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.02395913004875183,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H123",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.016743190586566925,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H129",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01472461223602295,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H132",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.016989341005682945,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H134",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.029797274619340897,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H136",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.018417520448565483,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H137",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015664054080843925,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H141",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.029551299288868904,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H153",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015405661426484585,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H157",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.018221314996480942,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H160",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.019404802471399307,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H161",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014138276688754559,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H165",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015977762639522552,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H168",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013523497618734837,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H178",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.017637701705098152,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H190",
+      "slot": "a1",
+      "strata": [
+        "discordant",
+        "random"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015552088618278503,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H196",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.018210332840681076,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H197",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.0159646887332201,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H199",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 607.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014440434984862804,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H007",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013430855236947536,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H008",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01950136385858059,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H015",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.017015503719449043,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H039",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.02057618461549282,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H059",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014297999441623688,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H066",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.017447277903556824,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H067",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01542700082063675,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H072",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01673971489071846,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H108",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.02228955365717411,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H133",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.02271481603384018,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H144",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014795802533626556,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H155",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.013631713576614857,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H158",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01601256988942623,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H171",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.016373759135603905,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H180",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014040134847164154,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H181",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014658529311418533,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H183",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01778213307261467,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H185",
+      "slot": "a1",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 608.1,
+      "free_template": "player-x-1",
+      "free_score": 0.020402144640684128,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H109",
+      "slot": "a1",
+      "strata": [
+        "random"
+      ],
+      "center_x": 609.1,
+      "free_template": "player-x-1",
+      "free_score": 0.009458455257117748,
+      "production_reach": [
+        524.1,
+        595.1
+      ],
+      "candidate_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H026",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1237.1,
+      "free_template": "player-x-1",
+      "free_score": 0.01751585304737091,
+      "production_reach": [
+        1232.1,
+        1273.1
+      ],
+      "candidate_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H170",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1238.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014948534779250622,
+      "production_reach": [
+        1232.1,
+        1273.1
+      ],
+      "candidate_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H011",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1247.1,
+      "free_template": "player-x-1",
+      "free_score": 0.012028124183416367,
+      "production_reach": [
+        1232.1,
+        1273.1
+      ],
+      "candidate_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H148",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1248.1,
+      "free_template": "player-x-1",
+      "free_score": 0.015293172560632229,
+      "production_reach": [
+        1232.1,
+        1273.1
+      ],
+      "candidate_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H041",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1262.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009186208248138428,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H184",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1262.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010204454883933067,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H081",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1263.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007230102084577084,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H012",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1264.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014870161190629005,
+      "production_reach": [
+        1232.1,
+        1273.1
+      ],
+      "candidate_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H018",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1268.6,
+      "free_template": "player-x-3",
+      "free_score": 0.011490481905639172,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H024",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1268.6,
+      "free_template": "player-x-3",
+      "free_score": 0.0116034634411335,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H125",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1268.6,
+      "free_template": "player-x-3",
+      "free_score": 0.0098973847925663,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": true,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H118",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1278.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007317620329558849,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H123",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1278.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009423358365893364,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H174",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1278.6,
+      "free_template": "player-x-3",
+      "free_score": 0.00923925917595625,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H186",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1278.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008040666580200195,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H090",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.1,
+      "free_template": "player-x-1",
+      "free_score": 0.014256634749472141,
+      "production_reach": [
+        1232.1,
+        1273.1
+      ],
+      "candidate_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_production": false,
+      "reachable_candidate": true,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H003",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010870900005102158,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H014",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.006800326984375715,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H016",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.00845121219754219,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H037",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007840176112949848,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H040",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008402005769312382,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H043",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008829732425510883,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H049",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008558378554880619,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H053",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008817214518785477,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H062",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010572148486971855,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H069",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007500024978071451,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H079",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008379627019166946,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H080",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.0077063855715096,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H082",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007773560006171465,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H083",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.01020610611885786,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H094",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.00922291912138462,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H095",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009187456220388412,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H100",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008339481428265572,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H102",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008042252622544765,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H106",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010398238897323608,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H112",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008240562863647938,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H113",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008416153490543365,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H136",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.011353936977684498,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H137",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.0088294493034482,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H147",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.0086310850456357,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H153",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008317767642438412,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H157",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.00796716008335352,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H163",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007432251702994108,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H164",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008860903792083263,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H166",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.00856014620512724,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H175",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007614076603204012,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H182",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009501450695097446,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H187",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007937401533126831,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H193",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.00956743210554123,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H195",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1279.6,
+      "free_template": "player-x-3",
+      "free_score": 0.006912474520504475,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H004",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010438497178256512,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H021",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009340084157884121,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H038",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.006889892276376486,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H039",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009995628148317337,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H066",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007978875190019608,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H087",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009908631443977356,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H110",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.007957498542964458,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H111",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.008626728318631649,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H146",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010179435834288597,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H149",
+      "slot": "o3",
+      "strata": [
+        "random"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.006958186160773039,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H156",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009998591616749763,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H183",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.010450252331793308,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H191",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.009889640845358372,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    },
+    {
+      "sample_id": "H192",
+      "slot": "o3",
+      "strata": [
+        "discordant"
+      ],
+      "center_x": 1280.6,
+      "free_template": "player-x-3",
+      "free_score": 0.006974699907004833,
+      "production_reach": [
+        1234.6,
+        1269.6
+      ],
+      "candidate_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_production": false,
+      "reachable_candidate": false,
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x"
+    }
+  ],
+  "transitions": [
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H001",
+      "video": "2026-09-15 19-56-29.mov",
+      "t": 269.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.13459880650043488,
+      "candidate_score": 0.015558118931949139,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H001_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H003",
+      "video": "en-2026-10-14 23-00-10.mov",
+      "t": 247.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.12053773552179337,
+      "candidate_score": 0.012275952845811844,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H003_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H004",
+      "video": "en-2026-07-05 17-46-52.mp4",
+      "t": 66.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2002371996641159,
+      "candidate_score": 0.013114244677126408,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H004_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H005",
+      "video": "2026-09-15 19-56-29.mov",
+      "t": 300.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.22056661546230316,
+      "candidate_score": 0.015271877869963646,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H005_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H007",
+      "video": "2026-07-05 20-35-00.mov",
+      "t": 152.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.30908799171447754,
+      "candidate_score": 0.013430855236947536,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H007_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H008",
+      "video": "en-2026-07-05 13-29-26.mp4",
+      "t": 355.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2481125295162201,
+      "candidate_score": 0.01950136385858059,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H008_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H013",
+      "video": "en-2026-10-13 19-43-30.mov",
+      "t": 274.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.08096230030059814,
+      "candidate_score": 0.01925811730325222,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H013_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H014",
+      "video": "2026-09-09 20-32-39.mov",
+      "t": 128.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.20270420610904694,
+      "candidate_score": 0.009840023703873158,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H014_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H015",
+      "video": "2026-06-30 23-43-09.mov",
+      "t": 1297.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2213546335697174,
+      "candidate_score": 0.017015503719449043,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H015_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H016",
+      "video": "2026-09-12 12-42-53.mov",
+      "t": 74.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2480044960975647,
+      "candidate_score": 0.010731063783168793,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H016_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H020",
+      "video": "2026-09-12 12-42-53.mov",
+      "t": 61.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.270384818315506,
+      "candidate_score": 0.01627536676824093,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H020_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H021",
+      "video": "2026-06-30 23-43-09.mov",
+      "t": 1246.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.19196118414402008,
+      "candidate_score": 0.01136303972452879,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H021_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H022",
+      "video": "2026-09-04 21-57-34.mov",
+      "t": 23.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2331867516040802,
+      "candidate_score": 0.016547750681638718,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H022_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H023",
+      "video": "2026-09-20 23-25-42.mov",
+      "t": 166.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.14500795304775238,
+      "candidate_score": 0.013136988505721092,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H023_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H029",
+      "video": "2026-09-20 17-17-57.mov",
+      "t": 154.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.11155793815851212,
+      "candidate_score": 0.016373200342059135,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H029_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H035",
+      "video": "ja-2026-09-18 19-17-54.mov",
+      "t": 135.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3554564416408539,
+      "candidate_score": 0.013755930587649345,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H035_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H037",
+      "video": "2026-09-04 21-32-25.mov",
+      "t": 241.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.19931936264038086,
+      "candidate_score": 0.01068815216422081,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H037_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H038",
+      "video": "2026-07-05 20-35-00.mov",
+      "t": 56.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.19624857604503632,
+      "candidate_score": 0.010044177994132042,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H038_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H039",
+      "video": "en-2026-07-04 15-34-49.mp4",
+      "t": 53.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.31457284092903137,
+      "candidate_score": 0.02057618461549282,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H039_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H039",
+      "video": "en-2026-07-04 15-34-49.mp4",
+      "t": 53.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.22513964772224426,
+      "candidate_score": 0.012266801670193672,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H039_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H040",
+      "video": "2026-09-09 20-32-39.mov",
+      "t": 81.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21728670597076416,
+      "candidate_score": 0.011447189375758171,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H040_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H043",
+      "video": "ja-2026-09-20 14-39-55.mov",
+      "t": 64.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.16988345980644226,
+      "candidate_score": 0.01194108184427023,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H043_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H049",
+      "video": "ja-2026-09-18 19-03-54.mov",
+      "t": 236.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.24720580875873566,
+      "candidate_score": 0.011416415683925152,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H049_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H050",
+      "video": "2026-09-20 16-33-33.mov",
+      "t": 377.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3398353159427643,
+      "candidate_score": 0.015114294365048409,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H050_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H051",
+      "video": "2026-09-12 12-42-53.mov",
+      "t": 54.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.10148180276155472,
+      "candidate_score": 0.01467681024223566,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H051_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H052",
+      "video": "2026-09-20 16-48-47.mov",
+      "t": 130.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2979774475097656,
+      "candidate_score": 0.014293508604168892,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H052_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H053",
+      "video": "2026-09-20 16-33-33.mov",
+      "t": 421.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.24563352763652802,
+      "candidate_score": 0.013279346749186516,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H053_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H053",
+      "video": "2026-09-20 16-33-33.mov",
+      "t": 421.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.19304929673671722,
+      "candidate_score": 0.010282288305461407,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H053_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H055",
+      "video": "ja-2026-09-18 19-17-54.mov",
+      "t": 459.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.33121001720428467,
+      "candidate_score": 0.025473780930042267,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H055_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H056",
+      "video": "en-2026-10-13 19-43-30.mov",
+      "t": 75.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.17157335579395294,
+      "candidate_score": 0.018960673362016678,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H056_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H059",
+      "video": "en-2026-07-05 23-32-19.mov",
+      "t": 199.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2839806377887726,
+      "candidate_score": 0.014297999441623688,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H059_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H062",
+      "video": "en-2026-10-13 18-36-55.mov",
+      "t": 244.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.13494153320789337,
+      "candidate_score": 0.013105190359055996,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H062_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H063",
+      "video": "2026-09-20 15-50-36.mov",
+      "t": 92.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3067586123943329,
+      "candidate_score": 0.013483398593962193,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H063_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H066",
+      "video": "en-2026-07-05 23-32-19.mov",
+      "t": 161.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.15748052299022675,
+      "candidate_score": 0.017447277903556824,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H066_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H066",
+      "video": "en-2026-07-05 23-32-19.mov",
+      "t": 161.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.16141252219676971,
+      "candidate_score": 0.010400245897471905,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H066_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H067",
+      "video": "en-2026-07-06 21-45-19.mov",
+      "t": 112.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2541927993297577,
+      "candidate_score": 0.01542700082063675,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H067_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H068",
+      "video": "ja_inkblot_academy_ink_storm_2026-09-15 22-00-54.mov",
+      "t": 312.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3227352499961853,
+      "candidate_score": 0.01787075214087963,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H068_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H069",
+      "video": "2026-09-20 17-00-29.mov",
+      "t": 106.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21723325550556183,
+      "candidate_score": 0.009326684288680553,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H069_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H070",
+      "video": "2026-09-18 19-36-27.mov",
+      "t": 88.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.24171821773052216,
+      "candidate_score": 0.0141013003885746,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H070_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H072",
+      "video": "2026-07-05 23-16-52.mov",
+      "t": 301.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3336527943611145,
+      "candidate_score": 0.01673971489071846,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H072_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H079",
+      "video": "ja-2026-09-18 19-03-54.mov",
+      "t": 273.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.22217091917991638,
+      "candidate_score": 0.01078727561980486,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H079_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H080",
+      "video": "ja-2026-09-18 19-03-54.mov",
+      "t": 237.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21332864463329315,
+      "candidate_score": 0.010298275388777256,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H080_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H082",
+      "video": "2026-09-20 17-17-57.mov",
+      "t": 202.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.19382552802562714,
+      "candidate_score": 0.010501614771783352,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H082_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H083",
+      "video": "en-2026-10-13 18-36-55.mov",
+      "t": 152.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.12133502215147018,
+      "candidate_score": 0.018695471808314323,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H083_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H083",
+      "video": "en-2026-10-13 18-36-55.mov",
+      "t": 152.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.12584514915943146,
+      "candidate_score": 0.011817418038845062,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H083_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H084",
+      "video": "2026-09-20 15-50-36.mov",
+      "t": 93.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.18726249039173126,
+      "candidate_score": 0.015478387475013733,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H084_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H086",
+      "video": "ja-2026-09-19 12-38-47.mov",
+      "t": 115.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2894355356693268,
+      "candidate_score": 0.011602923274040222,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H086_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H087",
+      "video": "en-2026-07-04 15-34-49.mp4",
+      "t": 232.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2313738614320755,
+      "candidate_score": 0.012367590330541134,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H087_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H090",
+      "video": "en-2026-07-04 15-34-49.mp4",
+      "t": 228.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.22307367622852325,
+      "candidate_score": 0.014256634749472141,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H090_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H092",
+      "video": "ja-2026-09-20 20-48-13.mov",
+      "t": 168.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.22412925958633423,
+      "candidate_score": 0.027127927169203758,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H092_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H094",
+      "video": "ja-2026-09-20 20-48-13.mov",
+      "t": 203.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.17574825882911682,
+      "candidate_score": 0.01099616289138794,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H094_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H095",
+      "video": "2026-09-20 23-25-42.mov",
+      "t": 88.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.1448165625333786,
+      "candidate_score": 0.01142895221710205,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H095_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H100",
+      "video": "2026-07-05 23-47-36.mov",
+      "t": 115.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.14523400366306305,
+      "candidate_score": 0.01112348586320877,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H100_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H102",
+      "video": "2026-09-09 20-32-39.mov",
+      "t": 50.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21284902095794678,
+      "candidate_score": 0.011144875548779964,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H102_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H106",
+      "video": "2026-07-05 17-17-56.mp4",
+      "t": 161.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2024073451757431,
+      "candidate_score": 0.013126404024660587,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H106_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H107",
+      "video": "2026-09-20 17-00-29.mov",
+      "t": 434.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2310646027326584,
+      "candidate_score": 0.024010038003325462,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H107_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H108",
+      "video": "en-2026-07-05 17-34-46.mp4",
+      "t": 75.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.25865399837493896,
+      "candidate_score": 0.02228955365717411,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H108_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H109",
+      "video": "2026-09-04 22-50-19.mov",
+      "t": 186.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.14314159750938416,
+      "candidate_score": 0.009458455257117748,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 609.1,
+      "beyond_production_roi_px": 14,
+      "overlay": "overlays/recovered_fn_H109_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H110",
+      "video": "en-2026-07-06 22-16-05.mov",
+      "t": 144.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.1949596107006073,
+      "candidate_score": 0.010405207052826881,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H110_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H111",
+      "video": "2026-07-05 20-28-22.mov",
+      "t": 97.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.18158192932605743,
+      "candidate_score": 0.010963818058371544,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H111_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H112",
+      "video": "2026-09-19 12-46-14.mov",
+      "t": 129.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.18244870007038116,
+      "candidate_score": 0.01406856533139944,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H112_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H112",
+      "video": "2026-09-19 12-46-14.mov",
+      "t": 129.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.23740831017494202,
+      "candidate_score": 0.010838132351636887,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H112_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H113",
+      "video": "2026-09-20 17-00-29.mov",
+      "t": 403.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.16953794658184052,
+      "candidate_score": 0.010636409744620323,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H113_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H114",
+      "video": "en-2026-09-20 22-43-37.mov",
+      "t": 132.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3343043625354767,
+      "candidate_score": 0.020204054191708565,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H114_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H118",
+      "video": "ja-2026-09-20 21-17-29.mov",
+      "t": 90.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.20069658756256104,
+      "candidate_score": 0.010506395250558853,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H118_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H120",
+      "video": "ja-2026-09-20 21-26-50.mov",
+      "t": 260.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2871084213256836,
+      "candidate_score": 0.02395913004875183,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H120_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H123",
+      "video": "2026-09-20 17-17-57.mov",
+      "t": 128.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.15550237894058228,
+      "candidate_score": 0.016743190586566925,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H123_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H123",
+      "video": "2026-09-20 17-17-57.mov",
+      "t": 128.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.18893548846244812,
+      "candidate_score": 0.011277621611952782,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H123_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H129",
+      "video": "ja-2026-09-10 13-51-45.mov",
+      "t": 38.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.1215982511639595,
+      "candidate_score": 0.01472461223602295,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H129_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H132",
+      "video": "en-2026-09-21 07-15-56.mov",
+      "t": 45.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.20690017938613892,
+      "candidate_score": 0.016989341005682945,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H132_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H133",
+      "video": "en-2026-07-05 17-34-46.mp4",
+      "t": 81.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.1292232871055603,
+      "candidate_score": 0.02271481603384018,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H133_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H134",
+      "video": "en-2026-09-20 22-43-37.mov",
+      "t": 218.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3080265522003174,
+      "candidate_score": 0.029797274619340897,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H134_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H136",
+      "video": "en-2026-10-13 18-36-55.mov",
+      "t": 149.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.07118160277605057,
+      "candidate_score": 0.018417520448565483,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H136_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H136",
+      "video": "en-2026-10-13 18-36-55.mov",
+      "t": 149.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.13172242045402527,
+      "candidate_score": 0.013104072771966457,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1279.1,
+      "beyond_production_roi_px": 6,
+      "overlay": "overlays/recovered_fn_H136_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H137",
+      "video": "2026-09-10 15-26-49.mov",
+      "t": 114.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.17316856980323792,
+      "candidate_score": 0.015664054080843925,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H137_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H137",
+      "video": "2026-09-10 15-26-49.mov",
+      "t": 114.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.13483355939388275,
+      "candidate_score": 0.011467103846371174,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H137_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H141",
+      "video": "en-2026-09-20 22-43-37.mov",
+      "t": 220.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.34901535511016846,
+      "candidate_score": 0.029551299288868904,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H141_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H144",
+      "video": "en-2026-07-05 23-32-19.mov",
+      "t": 264.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.18618114292621613,
+      "candidate_score": 0.014795802533626556,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H144_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H146",
+      "video": "en-2026-07-05 16-30-49.mp4",
+      "t": 305.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.22279919683933258,
+      "candidate_score": 0.012085202150046825,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H146_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H147",
+      "video": "ja-2026-09-18 19-17-54.mov",
+      "t": 515.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21792232990264893,
+      "candidate_score": 0.011680370196700096,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H147_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H149",
+      "video": "2026-07-05 20-35-00.mov",
+      "t": 58.5,
+      "strata": [
+        "random"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.18921862542629242,
+      "candidate_score": 0.010122817009687424,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H149_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H153",
+      "video": "ja-2026-09-18 19-17-54.mov",
+      "t": 142.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.1682826429605484,
+      "candidate_score": 0.015405661426484585,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H153_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H153",
+      "video": "ja-2026-09-18 19-17-54.mov",
+      "t": 142.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.20892363786697388,
+      "candidate_score": 0.011409452185034752,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H153_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H155",
+      "video": "2026-07-05 20-48-23.mov",
+      "t": 207.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2617120146751404,
+      "candidate_score": 0.013631713576614857,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H155_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H156",
+      "video": "en-2026-07-05 17-27-06.mp4",
+      "t": 73.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21074062585830688,
+      "candidate_score": 0.012791168875992298,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H156_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H157",
+      "video": "ja_mahi_mahi_resort_2026-09-07 14-02-14.mov",
+      "t": 102.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.1284332126379013,
+      "candidate_score": 0.018221314996480942,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H157_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H157",
+      "video": "ja_mahi_mahi_resort_2026-09-07 14-02-14.mov",
+      "t": 102.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.20247003436088562,
+      "candidate_score": 0.010730982758104801,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H157_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H158",
+      "video": "2026-07-05 20-35-00.mov",
+      "t": 166.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.12016983330249786,
+      "candidate_score": 0.01601256988942623,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H158_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H160",
+      "video": "ja-2026-09-20 20-48-13.mov",
+      "t": 230.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.31853756308555603,
+      "candidate_score": 0.019404802471399307,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H160_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H161",
+      "video": "ja-2026-09-05 09-20-18.mov",
+      "t": 274.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3300841748714447,
+      "candidate_score": 0.014138276688754559,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H161_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H163",
+      "video": "en-2026-09-20 22-35-00.mov",
+      "t": 178.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21583004295825958,
+      "candidate_score": 0.010510538704693317,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H163_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H164",
+      "video": "ja-2026-09-07 09-45-26.mov",
+      "t": 172.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2119002789258957,
+      "candidate_score": 0.01072410587221384,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H164_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H165",
+      "video": "2026-09-20 17-17-57.mov",
+      "t": 269.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.28182241320610046,
+      "candidate_score": 0.015977762639522552,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H165_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H166",
+      "video": "ja-2026-09-19 12-30-46.mov",
+      "t": 224.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.15314102172851562,
+      "candidate_score": 0.011473976075649261,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H166_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H168",
+      "video": "2026-09-12 13-34-57.mov",
+      "t": 67.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.28058791160583496,
+      "candidate_score": 0.013523497618734837,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H168_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H171",
+      "video": "en-2026-07-06 22-16-05.mov",
+      "t": 122.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2864670157432556,
+      "candidate_score": 0.016373759135603905,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H171_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H174",
+      "video": "2026-09-20 16-48-47.mov",
+      "t": 143.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.1848560869693756,
+      "candidate_score": 0.011060628108680248,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H174_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H175",
+      "video": "2026-09-20 17-17-57.mov",
+      "t": 304.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.1966637521982193,
+      "candidate_score": 0.010501950047910213,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H175_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H178",
+      "video": "ja-2026-09-07 09-45-26.mov",
+      "t": 165.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.3228517472743988,
+      "candidate_score": 0.017637701705098152,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H178_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H180",
+      "video": "2026-07-05 21-54-14.mov",
+      "t": 658.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2763349115848541,
+      "candidate_score": 0.014040134847164154,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H180_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H181",
+      "video": "en-2026-07-05 23-32-19.mov",
+      "t": 160.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.36067745089530945,
+      "candidate_score": 0.014658529311418533,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H181_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H182",
+      "video": "2026-07-05 15-57-07.mp4",
+      "t": 159.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.17619915306568146,
+      "candidate_score": 0.012207075022161007,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H182_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H183",
+      "video": "en-2026-07-05 16-37-14.mp4",
+      "t": 158.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.1103491485118866,
+      "candidate_score": 0.01778213307261467,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H183_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H183",
+      "video": "en-2026-07-05 16-37-14.mp4",
+      "t": 158.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.21197275817394257,
+      "candidate_score": 0.012218935415148735,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H183_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H185",
+      "video": "en-2026-07-05 13-29-26.mp4",
+      "t": 118.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.39273303747177124,
+      "candidate_score": 0.020402144640684128,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 608.1,
+      "beyond_production_roi_px": 13,
+      "overlay": "overlays/recovered_fn_H185_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H186",
+      "video": "ja-2026-09-18 19-03-54.mov",
+      "t": 158.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2484573870897293,
+      "candidate_score": 0.010595979169011116,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H186_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H187",
+      "video": "en-2026-07-05 23-32-19.mov",
+      "t": 56.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.1835082471370697,
+      "candidate_score": 0.010617394000291824,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1281.1,
+      "beyond_production_roi_px": 8,
+      "overlay": "overlays/recovered_fn_H187_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H190",
+      "video": "2026-09-20 17-00-29.mov",
+      "t": 455.5,
+      "strata": [
+        "discordant",
+        "random"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.25259649753570557,
+      "candidate_score": 0.015552088618278503,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H190_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H191",
+      "video": "2026-06-30 23-43-09.mov",
+      "t": 1372.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.18941046297550201,
+      "candidate_score": 0.012295013293623924,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H191_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H192",
+      "video": "2026-07-05 20-48-23.mov",
+      "t": 202.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.19136373698711395,
+      "candidate_score": 0.010076439939439297,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H192_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H193",
+      "video": "ja-2026-09-18 19-17-54.mov",
+      "t": 437.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.2107067108154297,
+      "candidate_score": 0.012165606953203678,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H193_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H195",
+      "video": "2026-09-04 23-08-27.mov",
+      "t": 88.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "o3",
+      "human": "x",
+      "production_score": 0.20217981934547424,
+      "candidate_score": 0.010284030809998512,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 1280.1,
+      "beyond_production_roi_px": 7,
+      "overlay": "overlays/recovered_fn_H195_o3.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H196",
+      "video": "2026-09-09 20-32-39.mov",
+      "t": 65.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.2720388174057007,
+      "candidate_score": 0.018210332840681076,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H196_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H197",
+      "video": "2026-09-20 16-33-33.mov",
+      "t": 415.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.23473817110061646,
+      "candidate_score": 0.0159646887332201,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H197_a1.png"
+    },
+    {
+      "kind": "recovered_fn",
+      "sample_id": "H199",
+      "video": "2026-09-20 15-53-31.mov",
+      "t": 132.5,
+      "strata": [
+        "discordant"
+      ],
+      "slot": "a1",
+      "human": "x",
+      "production_score": 0.10210813581943512,
+      "candidate_score": 0.014440434984862804,
+      "candidate_template": "player-x-1",
+      "placement_center_x": 607.1,
+      "beyond_production_roi_px": 12,
+      "overlay": "overlays/recovered_fn_H199_a1.png"
+    }
+  ]
+}
