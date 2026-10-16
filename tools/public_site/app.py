@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from public_site.accounts import Account, AccountStore, account_email
+from public_site.contact import ContactDraft, accept_contact
 from public_site.errors import (
     ACCOUNTS_UNAVAILABLE,
     BAD_LINK,
@@ -144,6 +145,20 @@ class TokenBody(BaseModel):
 
     token: str = ""
     password: str = ""
+
+
+class ContactBody(BaseModel):
+    """A public contact message. Login is not required."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    turnstile_token: str = ""
+    reason: str = ""
+    name: str = ""
+    email: str = ""
+    message: str = ""
+    reference: str = ""
+    leave_blank: str = ""
 
 
 class NoticePreferenceBody(BaseModel):
@@ -293,6 +308,29 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
     @app.get("/api/config")
     def get_config(request: Request) -> dict:
         return _public_config(request, settings, accounts, payments).model_dump()
+
+    @app.post("/api/contact")
+    def post_contact(body: ContactBody, request: Request) -> dict:
+        try:
+            accept_contact(
+                settings,
+                service.store,
+                verifier,
+                ContactDraft(
+                    turnstile_token=body.turnstile_token,
+                    reason=body.reason,
+                    name=body.name,
+                    email=body.email,
+                    message=body.message,
+                    reference=body.reference,
+                    leave_blank=body.leave_blank,
+                ),
+                ip=_client_ip(request, settings),
+                now=datetime.now(UTC),
+            )
+        except RequestRejected as exc:
+            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+        return {"ok": True}
 
     @app.post("/api/funnel/page-view")
     def page_view() -> dict:

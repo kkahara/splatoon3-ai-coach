@@ -779,8 +779,36 @@ button,
   color: var(--s3-muted);
 }
 
+.site-footer nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin-bottom: 0.45rem;
+}
+
+.site-footer a {
+  color: var(--s3-cyan);
+}
+
 .site-footer p {
   margin: 0;
+}
+
+.contact-warning {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(255, 79, 163, 0.55);
+  border-radius: 0.5rem;
+  color: var(--s3-text);
+}
+
+.contact-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .top a,

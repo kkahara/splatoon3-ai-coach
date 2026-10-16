@@ -94,6 +94,8 @@ class PublicSettings:
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     payment_hold_seconds: int = 24 * 60 * 60
+    contact_to: str = ""
+    contact_messages_per_hour: int = 5
 
     @property
     def r2_ready(self) -> bool:
@@ -168,4 +170,6 @@ class PublicSettings:
             stripe_secret_key=os.environ.get("PUBLIC_STRIPE_SECRET_KEY", "").strip(),
             stripe_webhook_secret=os.environ.get("PUBLIC_STRIPE_WEBHOOK_SECRET", "").strip(),
             payment_hold_seconds=int(os.environ.get("PUBLIC_PAYMENT_HOLD_SECONDS", str(24 * 60 * 60))),
+            contact_to=os.environ.get("PUBLIC_CONTACT_TO", "").strip(),
+            contact_messages_per_hour=int(os.environ.get("PUBLIC_CONTACT_PER_HOUR", "5")),
         )

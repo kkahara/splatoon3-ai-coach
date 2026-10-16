@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import { LanguageSwitch } from "./LanguageSwitch.jsx";
 import { useT } from "./i18n/LocaleContext.jsx";
 import { AdminCoachingPage } from "./pages/AdminCoaching.jsx";
@@ -14,7 +14,9 @@ import { AdminRequestDetailPage } from "./pages/AdminRequestDetail.jsx";
 import { AdminRequestsPage } from "./pages/AdminRequests.jsx";
 import { AdminUserDetailPage } from "./pages/AdminUserDetail.jsx";
 import { AdminUsersPage } from "./pages/AdminUsers.jsx";
+import { AboutPage } from "./pages/About.jsx";
 import { CoachingPage } from "./pages/Coaching.jsx";
+import { ContactPage } from "./pages/Contact.jsx";
 import { ConfirmNoticesPage } from "./pages/ConfirmNotices.jsx";
 import { ForgotPage } from "./pages/Forgot.jsx";
 import { LoginPage } from "./pages/Login.jsx";
@@ -38,6 +40,10 @@ function SiteFooter() {
   const t = useT();
   return (
     <footer className="site-footer">
+      <nav>
+        <Link to="/about">{t("nav.about")}</Link>
+        <Link to="/contact">{t("nav.contact")}</Link>
+      </nav>
       <p>{t("legal.trademark")}</p>
     </footer>
   );
@@ -47,6 +53,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<SubmitPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot" element={<ForgotPage />} />

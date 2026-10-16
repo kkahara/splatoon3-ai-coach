@@ -42,6 +42,15 @@ MAIL_FAILED = (
     "The confirmation email could not be sent. Brevo rejected this computer's "
     "address. Add it under authorized IPs, then try again."
 )
+CONTACT_REASON = "Choose a reason for contacting."
+CONTACT_NAME_LONG = "That name is too long."
+CONTACT_MESSAGE = "Enter a message."
+CONTACT_MESSAGE_LONG = "That message is too long."
+CONTACT_REFERENCE_LONG = "That review link is too long."
+CONTACT_VERIFY = "Complete the check before sending."
+CONTACT_RATE_LIMIT = "Too many messages from this network. Try again later."
+CONTACT_UNAVAILABLE = "The contact form is unavailable right now."
+CONTACT_MAIL_FAILED = "The message could not be sent. Try again later."
 
 
 class RequestRejected(Exception):

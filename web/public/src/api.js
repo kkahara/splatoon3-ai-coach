@@ -71,6 +71,15 @@ async function read(response, fallback) {
   return payload;
 }
 
+export async function sendContact(body) {
+  const response = await fetch("/api/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return read(response, "The message could not be sent. Try again later.");
+}
+
 export async function loadAccount() {
   const response = await fetch("/api/me");
   if (response.status === 401 || response.status === 404 || response.status === 503) {

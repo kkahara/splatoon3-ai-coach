@@ -21,9 +21,11 @@ export function AccountBar({ account, onChange }) {
         {pathname === "/" ? null : (
           <Link to="/">{t("coaching.submit_video")}</Link>
         )}
+        <Link to="/about">{t("nav.about")}</Link>
         {account ? (
           <>
             <Link to="/coaching">{t("account.past_coaching")}</Link>
+            <Link to="/contact">{t("nav.contact")}</Link>
             {account.role === "admin" ? <Link to="/admin">Admin</Link> : null}
             <button type="button" className="linkish" onClick={logout}>
               {t("account.log_out")}

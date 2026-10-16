@@ -62,6 +62,22 @@ test("the unofficial and trademark notices have English and Japanese text", () =
   }
 });
 
+test("payment terms do not promise an administrator refund", () => {
+  const english = translate(resources, "en", "submit.terms");
+  const japanese = translate(resources, "ja", "submit.terms");
+  assert.match(english, /not refunded automatically/);
+  assert.match(japanese, /自動で返金されることはありません/);
+  assert.doesNotMatch(english, /administrator can refund/i);
+  assert.doesNotMatch(japanese, /管理者が返金/);
+});
+
+test("the about page keeps the supplied Japanese story", () => {
+  const japanese = translate(resources, "ja", "about.p1");
+  const english = translate(resources, "en", "about.p1");
+  assert.match(japanese, /ガチパワーは1800ぐらいが最高/);
+  assert.notEqual(english, japanese);
+});
+
 test("the stale-evidence notice has English and Japanese text", () => {
   const en = translate(resources, "en", "review.stale_evidence");
   const ja = translate(resources, "ja", "review.stale_evidence");
