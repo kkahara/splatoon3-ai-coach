@@ -386,6 +386,14 @@ class PlayerCountDetectorConfig(BaseModel):
             (0.664583, 0.013889, 0.738021, 0.109259),
         ]
     )
+    # Template search extends this many px (at 1920 wide) right of each slot
+    # ROI; templates stay fitted to the ROI and the ROI itself (visibility
+    # gate, team colour) is unchanged. Frozen held-out-validated values: do
+    # not tune.
+    ally_search_extend_right_px: list[int] = Field(default_factory=lambda: [16, 0, 0, 0])
+    opponent_search_extend_right_px: list[int] = Field(
+        default_factory=lambda: [0, 0, 8, 0]
+    )
     template_dir: Path | None = None
     # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X detected (lower=better).
     # Library scores: X markers peak at 0.00–0.02, live icons start near 0.04.
@@ -426,6 +434,15 @@ class PlayerCountDetectorConfig(BaseModel):
             if x2 <= x1 or y2 <= y1:
                 raise ValueError(f"region must have positive area: {box}")
         return slots
+
+    @field_validator("ally_search_extend_right_px", "opponent_search_extend_right_px")
+    @classmethod
+    def _check_extensions(cls, values: list[int]) -> list[int]:
+        if len(values) != 4:
+            raise ValueError(f"expected exactly 4 slot extensions, got {len(values)}")
+        if any(value < 0 for value in values):
+            raise ValueError(f"slot extensions must be >= 0: {values}")
+        return values
 
 
 class SpecialGaugeDetectorConfig(BaseModel):

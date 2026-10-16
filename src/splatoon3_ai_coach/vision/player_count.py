@@ -26,9 +26,10 @@ from loguru import logger
 from splatoon3_ai_coach.config.models import PlayerCountDetectorConfig
 from splatoon3_ai_coach.types import NormalizedBox
 from splatoon3_ai_coach.vision.models import PlayerCountReading
-from splatoon3_ai_coach.vision.roi import crop_roi
+from splatoon3_ai_coach.vision.roi import crop_roi, pixel_box_from_normalized
 
 _SLOT_COUNT = 4
+_CALIBRATION_WIDTH = 1920
 _VALID_SLOT_INDEXES = frozenset({1, 2, 3, 4})
 
 # Validated mask construction (see player_count_crop_diagnostic_masked_sqdiff).
@@ -112,10 +113,15 @@ def _fit_template_and_mask(
     image: np.ndarray,
     template: np.ndarray,
     mask: np.ndarray,
+    fit_shape: tuple[int, int] | None = None,
 ) -> tuple[np.ndarray, np.ndarray] | None:
-    """Shrink template and mask together so they fit inside ``image``."""
+    """Shrink template and mask together so they fit inside ``image``.
+
+    ``fit_shape`` ``(h, w)`` fits against that size instead of ``image``'s
+    (the slot ROI when matching over a wider search crop).
+    """
     th, tw = template.shape[:2]
-    ih, iw = image.shape[:2]
+    ih, iw = fit_shape if fit_shape is not None else image.shape[:2]
     if th < 4 or tw < 4 or ih < 4 or iw < 4:
         return None
     scale = min(1.0, ih / th, iw / tw)
@@ -134,10 +140,12 @@ def _fit_template_and_mask(
 def _best_masked_sqdiff(
     roi: np.ndarray,
     templates: list[MaskedXTemplate],
+    fit_shape: tuple[int, int] | None = None,
 ) -> tuple[float, str | None]:
     """Lowest masked SQDIFF across templates (lower = better X match).
 
     Uses raw grayscale only. Returns ``(1.0, None)`` when matching is impossible.
+    ``fit_shape`` sizes templates and masks independently of the search crop.
     """
     if not templates or roi.size == 0:
         return 1.0, None
@@ -145,7 +153,7 @@ def _best_masked_sqdiff(
     best = 1.0
     best_name: str | None = None
     for item in templates:
-        fitted = _fit_template_and_mask(gray, item.image, item.mask)
+        fitted = _fit_template_and_mask(gray, item.image, item.mask, fit_shape)
         if fitted is None:
             continue
         tmpl, mask = fitted
@@ -243,8 +251,14 @@ class PlayerCountDetector:
         edges = tuple(slot_edge_energy(crop_roi(image, box)) for box in slots)
         if min(edges) < self.config.min_slot_edge_energy:
             return PlayerCountReading(roster_visible=False, slot_edge_energy=edges), 0.0
-        ally_scores, ally_dead = self._score_side(image, self.config.ally_slots)
-        opp_scores, opp_dead = self._score_side(image, self.config.opponent_slots)
+        ally_scores, ally_dead = self._score_side(
+            image, self.config.ally_slots, self.config.ally_search_extend_right_px
+        )
+        opp_scores, opp_dead = self._score_side(
+            image,
+            self.config.opponent_slots,
+            self.config.opponent_search_extend_right_px,
+        )
         all_scores = ally_scores + opp_scores
         confidence = _confidence_from_sqdiff(all_scores)
         reading = PlayerCountReading(
@@ -260,17 +274,36 @@ class PlayerCountDetector:
         self,
         image: np.ndarray,
         slots: list[NormalizedBox],
+        extend_right_px: list[int],
     ) -> tuple[list[float], list[int]]:
         """Return per-slot SQDIFF scores and 1-based indexes that pass threshold."""
         scores: list[float] = []
         dead: list[int] = []
         threshold = self.config.sqdiff_match_threshold
-        for index, box in enumerate(slots, start=1):
-            roi = crop_roi(image, box)
-            score, _name = (
-                _best_masked_sqdiff(roi, self._templates) if roi.size else (1.0, None)
-            )
+        for index, (box, extend) in enumerate(
+            zip(slots, extend_right_px, strict=True), start=1
+        ):
+            score = self._score_slot(image, box, extend)
             scores.append(score)
             if score <= threshold:
                 dead.append(index)
         return scores, dead
+
+    def _score_slot(self, image: np.ndarray, box: NormalizedBox, extend: int) -> float:
+        """Best SQDIFF for one slot; search optionally extends right of the ROI.
+
+        Templates and masks are fitted to the slot ROI either way; only the
+        search crop widens, by ``extend`` px scaled from the 1920-wide calibration.
+        """
+        height, width = image.shape[:2]
+        extend_px = round(extend * width / _CALIBRATION_WIDTH)
+        if extend_px == 0:
+            roi = crop_roi(image, box)
+            return _best_masked_sqdiff(roi, self._templates)[0] if roi.size else 1.0
+        left, top, right, bottom = pixel_box_from_normalized(box, width, height)
+        if right <= left or bottom <= top:
+            return 1.0
+        search = image[top:bottom, left : min(width, right + extend_px)]
+        roi_shape = (bottom - top, right - left)
+        score, _name = _best_masked_sqdiff(search, self._templates, roi_shape)
+        return score

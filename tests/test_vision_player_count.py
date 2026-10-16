@@ -13,10 +13,11 @@ from splatoon3_ai_coach.config.models import PlayerCountDetectorConfig
 from splatoon3_ai_coach.vision.player_count import (
     PlayerCountDetector,
     _best_masked_sqdiff,
+    _fit_template_and_mask,
     _to_raw_gray,
     derive_x_mask,
 )
-from splatoon3_ai_coach.vision.roi import crop_roi
+from splatoon3_ai_coach.vision.roi import crop_roi, pixel_box_from_normalized
 
 _REPO = Path(__file__).resolve().parents[1]
 _TEMPLATE_DIR = _REPO / "calibration" / "templates" / "players"
@@ -233,6 +234,131 @@ def test_player_count_enabled_by_default_with_validated_settings() -> None:
     assert default.player_count == validated.player_count
     assert default.player_count.template_dir is not None
     assert sorted(default.player_count.template_dir.glob("player-x-*.png"))
+    assert default.player_count.ally_search_extend_right_px == [16, 0, 0, 0]
+    assert default.player_count.opponent_search_extend_right_px == [0, 0, 8, 0]
+
+
+def test_model_defaults_are_the_frozen_search_extensions() -> None:
+    cfg = PlayerCountDetectorConfig()
+    assert cfg.ally_search_extend_right_px == [16, 0, 0, 0]
+    assert cfg.opponent_search_extend_right_px == [0, 0, 8, 0]
+
+
+@pytest.mark.parametrize("bad", [[16, 0, 0], [0, 0, 0, 0, 0], [0, -1, 0, 0]])
+def test_search_extension_validation(bad: list[int]) -> None:
+    with pytest.raises(ValueError):
+        PlayerCountDetectorConfig(ally_search_extend_right_px=bad)
+
+
+def _zero_extension(cfg: PlayerCountDetectorConfig) -> PlayerCountDetectorConfig:
+    return cfg.model_copy(
+        update={
+            "ally_search_extend_right_px": [0, 0, 0, 0],
+            "opponent_search_extend_right_px": [0, 0, 0, 0],
+        }
+    )
+
+
+def _paste_fitted_past_right_edge(
+    frame: np.ndarray,
+    template: np.ndarray,
+    box: tuple[float, float, float, float],
+    overhang_px: int,
+) -> None:
+    """Paste ``template`` fitted to the slot ROI with its right edge past the ROI."""
+    left, top, right, bottom = pixel_box_from_normalized(box, 1920, 1080)
+    roi_gray = np.zeros((bottom - top, right - left), dtype=np.uint8)
+    fitted = _fit_template_and_mask(roi_gray, template, derive_x_mask(template))
+    assert fitted is not None
+    patch = fitted[0]
+    x2 = right + overhang_px
+    x1 = x2 - patch.shape[1]
+    frame[top : top + patch.shape[0], x1:x2] = cv2.cvtColor(patch, cv2.COLOR_GRAY2BGR)
+
+
+def _x_template() -> np.ndarray:
+    template = cv2.imread(str(_first_player_x()), cv2.IMREAD_GRAYSCALE)
+    assert template is not None
+    return template
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_zero_extension_scores_equal_plain_roi_scores() -> None:
+    cfg = _zero_extension(_config())
+    detector = PlayerCountDetector(cfg)
+    template = cv2.imread(str(_first_player_x()), cv2.IMREAD_COLOR)
+    assert template is not None
+    frame = _blank_frame()
+    _paste_bgr(frame, template, cfg.ally_slots[0])
+    _paste_bgr(frame, template, cfg.opponent_slots[2])
+    reading, _ = detector.detect(frame)
+    assert reading is not None
+    expected = [
+        _best_masked_sqdiff(crop_roi(frame, box), detector._templates)[0]  # noqa: SLF001
+        for box in [*cfg.ally_slots, *cfg.opponent_slots]
+    ]
+    assert [*reading.ally_slot_scores, *reading.opponent_slot_scores] == expected
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_unextended_slots_score_identically_with_frozen_extensions() -> None:
+    cfg = _config()
+    template = cv2.imread(str(_first_player_x()), cv2.IMREAD_COLOR)
+    assert template is not None
+    frame = _blank_frame()
+    for box in [*cfg.ally_slots, *cfg.opponent_slots]:
+        _paste_bgr(frame, template, box)
+    new, _ = PlayerCountDetector(cfg).detect(frame)
+    old, _ = PlayerCountDetector(_zero_extension(cfg)).detect(frame)
+    assert new is not None and old is not None
+    assert new.slot_edge_energy == old.slot_edge_energy
+    assert new.ally_slot_scores[1:] == old.ally_slot_scores[1:]
+    assert new.opponent_slot_scores[:2] == old.opponent_slot_scores[:2]
+    assert new.opponent_slot_scores[3] == old.opponent_slot_scores[3]
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_fit_shape_fits_template_and_mask_to_the_roi() -> None:
+    cfg = _config()
+    item = PlayerCountDetector(cfg)._templates[0]  # noqa: SLF001
+    left, top, right, bottom = pixel_box_from_normalized(cfg.ally_slots[0], 1920, 1080)
+    roi = np.zeros((bottom - top, right - left), dtype=np.uint8)
+    wide = np.zeros((bottom - top, right - left + 16), dtype=np.uint8)
+    plain = _fit_template_and_mask(roi, item.image, item.mask)
+    fitted = _fit_template_and_mask(wide, item.image, item.mask, roi.shape)
+    assert plain is not None and fitted is not None
+    assert np.array_equal(plain[0], fitted[0])
+    assert np.array_equal(plain[1], fitted[1])
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+@pytest.mark.parametrize(
+    ("side", "index", "overhang"), [("ally", 0, 16), ("opponent", 2, 8)]
+)
+def test_x_past_roi_edge_needs_the_frozen_extension(
+    side: str, index: int, overhang: int
+) -> None:
+    cfg = _config()
+    box = (cfg.ally_slots if side == "ally" else cfg.opponent_slots)[index]
+    frame = _blank_frame()
+    _paste_fitted_past_right_edge(frame, _x_template(), box, overhang)
+    new, _ = PlayerCountDetector(cfg).detect(frame)
+    old, _ = PlayerCountDetector(_zero_extension(cfg)).detect(frame)
+    assert new is not None and old is not None
+    new_scores = new.ally_slot_scores if side == "ally" else new.opponent_slot_scores
+    old_scores = old.ally_slot_scores if side == "ally" else old.opponent_slot_scores
+    assert new_scores[index] <= cfg.sqdiff_match_threshold
+    assert old_scores[index] > cfg.sqdiff_match_threshold
+
+
+@pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")
+def test_extension_clips_at_frame_edge() -> None:
+    cfg = _config().model_copy(
+        update={"opponent_search_extend_right_px": [0, 0, 0, 4000]}
+    )
+    reading, _ = PlayerCountDetector(cfg).detect(_blank_frame())
+    assert reading is not None
+    assert np.isfinite(reading.opponent_slot_scores[3])
 
 
 @pytest.mark.skipif(not _TEMPLATE_DIR.is_dir(), reason="player X templates missing")

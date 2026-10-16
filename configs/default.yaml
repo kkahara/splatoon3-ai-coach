@@ -235,6 +235,12 @@ vision:
       - [0.585417, 0.013889, 0.642188, 0.115741]
       - [0.623437, 0.017593, 0.681771, 0.110185]
       - [0.664583, 0.013889, 0.738021, 0.109259]
+    # Template search extends this many px (at 1920 wide) right of each slot
+    # ROI; the ROI itself (visibility gate, team colour) is unchanged. Frozen:
+    # validated on held-out live gameplay (HELDOUT_VALIDATION.md, labels sealed
+    # 90572c5, results 33f89c7). Do not tune.
+    ally_search_extend_right_px: [16, 0, 0, 0]
+    opponent_search_extend_right_px: [0, 0, 8, 0]
     template_dir: "../calibration/templates/players"
     # Masked TM_SQDIFF_NORMED: score <= threshold ⇒ X (lower=better).
     # Library scores: X markers peak at 0.00–0.02, live icons start near 0.04
