@@ -250,6 +250,23 @@ def _rule(doc: dict[str, Any]) -> list[str]:
     ]
 
 
+def amendments_markdown(amendments: Sequence[dict[str, Any]]) -> list[str]:
+    """Dated pre-output amendments, in order."""
+    if not amendments:
+        return []
+    lines = ["## Pre-output amendments", ""]
+    for a in amendments:
+        lines += [f"**Amendment {a['id']} ({a['date']}, after {a['after']}).**", ""]
+        lines += [a["text"], ""]
+    return lines
+
+
 def design_markdown(doc: dict[str, Any]) -> str:
     """Pre-registration document for ``doc`` (from ``design_doc``)."""
-    return "\n".join(_header(doc) + _sets(doc) + _measures(doc) + _rule(doc))
+    return "\n".join(
+        _header(doc)
+        + _sets(doc)
+        + _measures(doc)
+        + _rule(doc)
+        + amendments_markdown(doc.get("amendments", ()))
+    )

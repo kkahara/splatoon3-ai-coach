@@ -111,6 +111,41 @@ def test_roster_mention_and_cited_values() -> None:
     assert not xh.mentions_roster("You were splatted 12 seconds after respawning.")
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "you had the advantage",
+        "your team had a numbers advantage",
+        "you were at an advantage because it was 4v3",
+        "with a player advantage you moved up",
+        "Take advantage of the 4v3 advantage.",
+    ],
+)
+def test_advantage_claims_still_count(text: str) -> None:
+    assert "advantage" in xh.cited_states(text)
+    assert xh.mentions_roster(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Take advantage of your special.",
+        "taking advantage of the opening",
+        "They took advantage of their positioning.",
+        "Take full advantage of the respawn timer.",
+    ],
+)
+def test_take_advantage_of_is_not_a_roster_claim(text: str) -> None:
+    assert xh.cited_states(text) == set()
+    assert not xh.mentions_roster(text)
+    assert xh.count_fidelity(text, ROSTER_VIEW)
+
+
+def test_amendment_is_recorded() -> None:
+    (amendment,) = xh.AMENDMENTS
+    assert "No experimental output had been generated" in amendment["text"]
+
+
 def test_count_fidelity_uses_the_arms_own_roster_block() -> None:
     assert xh.count_fidelity("3 players alive against 4", ROSTER_VIEW)
     assert xh.count_fidelity("2v4 at the death; numbers were even earlier", ROSTER_VIEW)

@@ -84,6 +84,28 @@ MODEL = "gpt-5.6-luna"
 PROVIDER = "cursor"
 ROSTER_USE_VALUES = ("correct", "incorrect", "not_mentioned")
 
+AMENDMENTS = (
+    {
+        "id": 1,
+        "date": "2026-10-15",
+        "after": "78f0f6f (stop point 1)",
+        "text": (
+            "After Stop Point 1 and before inputs were built or any model "
+            "outputs existed, inspection of the frozen automatic checker found "
+            "that generic 'advantage' matching would incorrectly classify "
+            "ordinary constructions such as 'take advantage of your special' "
+            "as numerical-roster claims. The checker was narrowed to exclude "
+            "non-roster 'take advantage of ...' usage (take / takes / taking / "
+            "took / taken, optionally 'full' or 'more') from both the "
+            "numbers-state match used by count fidelity and the roster-mention "
+            "match, so such an output is neither a roster claim nor a roster "
+            "mention. No experimental output had been generated or observed "
+            "when this change was made. All decision thresholds and other "
+            "checks remain unchanged."
+        ),
+    },
+)
+
 AT_OR_BEFORE_DEATH = "at_or_before_death"
 WINDOW_ONLY = "window_only"
 RANK_ONLY = "rank_only"
@@ -245,10 +267,21 @@ _DURATION = re.compile(
     re.IGNORECASE,
 )
 _SENTENCE = re.compile(r"(?<=[.!?])\s+|\n+")
+# Pre-output amendment 1: "take advantage of ..." uses an opportunity; it is
+# not a numbers-advantage claim and is removed before state / mention matching.
+_TAKE_ADVANTAGE = re.compile(
+    r"\b(?:take|takes|taking|took|taken)\s+(?:full\s+|more\s+)?advantage\s+of\b",
+    re.IGNORECASE,
+)
+
+
+def _roster_text(text: str) -> str:
+    return _TAKE_ADVANTAGE.sub(" ", text)
 
 
 def mentions_roster(text: str) -> bool:
     """The output refers to alive counts, numbers state or the roster."""
+    text = _roster_text(text)
     return bool(_MENTION.search(text) or _PAIR.search(text))
 
 
@@ -263,6 +296,7 @@ def cited_pairs(text: str) -> set[tuple[int, int]]:
 
 def cited_states(text: str) -> set[str]:
     """Numbers states (even / advantage / disadvantage) named in ``text``."""
+    text = _roster_text(text)
     return {state for state, pattern in _STATES.items() if pattern.search(text)}
 
 
@@ -439,6 +473,7 @@ def design_doc(base_path: Path) -> dict[str, Any]:
             "validator_margin": VALIDATOR_MARGIN,
         },
         "production_equivalence": production_equivalence(base_path, views),
+        "amendments": list(AMENDMENTS),
         "treatment": [[r["match"], r["cid"]] for r in treatment],
         "controls": [list(k) for k in controls],
         "deaths": rows,

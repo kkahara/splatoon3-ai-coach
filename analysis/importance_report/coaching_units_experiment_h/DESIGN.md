@@ -189,3 +189,9 @@ are sealed in a commit before the key is opened.
 2. Built inputs and dry run, sealed. Go-ahead before any call.
 3. Outputs, automatic summary, blind sheet.
 4. Sealed ratings, then key and `analyze` report.
+
+## Pre-output amendments
+
+**Amendment 1 (2026-10-15, after 78f0f6f (stop point 1)).**
+
+After Stop Point 1 and before inputs were built or any model outputs existed, inspection of the frozen automatic checker found that generic 'advantage' matching would incorrectly classify ordinary constructions such as 'take advantage of your special' as numerical-roster claims. The checker was narrowed to exclude non-roster 'take advantage of ...' usage (take / takes / taking / took / taken, optionally 'full' or 'more') from both the numbers-state match used by count fidelity and the roster-mention match, so such an output is neither a roster claim nor a roster mention. No experimental output had been generated or observed when this change was made. All decision thresholds and other checks remain unchanged.
