@@ -481,17 +481,22 @@ def design_doc(base_path: Path) -> dict[str, Any]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI: ``design`` (stop point 1)."""
+    """CLI: ``design`` (stop point 1), ``build`` and ``plan`` (stop point 2)."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=("design",))
+    parser.add_argument("command", choices=("design", "build", "plan"))
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     parser.add_argument("--config", type=Path, default=default_config_path())
     args = parser.parse_args(argv)
+    logger.remove()
+    logger.add(sys.stderr, level="WARNING")
+    if args.command != "design":
+        import coaching_units_experiment_h_inputs as xi
+
+        command = xi.build if args.command == "build" else xi.plan
+        return command(args.out, args.config.resolve())
     target = args.out / "design.json"
     if target.exists():
         raise SystemExit(f"{target} exists; the design is frozen")
-    logger.remove()
-    logger.add(sys.stderr, level="WARNING")
     doc = design_doc(args.config.resolve())
     args.out.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")

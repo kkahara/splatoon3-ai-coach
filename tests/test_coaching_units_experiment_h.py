@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import coaching_units_experiment_h as xh
+import coaching_units_experiment_h_inputs as xi
 import pytest
 
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
@@ -14,6 +15,7 @@ MATCH = "en-live-playerview-2026-10-11 22-57-30"
 HAVE_DATA = (xh.REFRESHED_ROOT / MATCH).is_dir() and (
     xh.PRE_REFRESH_ROOT / MATCH
 ).is_dir()
+DESIGN = xh.OUT_DIR / "design.json"
 
 
 def _dump_without_switch(config) -> dict:
@@ -176,6 +178,57 @@ def test_roster_violations(text: str, codes: list[str]) -> None:
 def test_divergence() -> None:
     assert xh.divergence("same text", "same text") == 0.0
     assert 0.0 < xh.divergence("abc", "abd") < 1.0
+
+
+def _row(cid: str, group: str, a: str, b_equals_c: bool) -> dict:
+    return {"cid": cid, "set": group, "A_roster": a, "b_equals_c": b_equals_c}
+
+
+def test_input_invariants() -> None:
+    ok = [
+        _row("t", "treatment", "no roster block", False),
+        _row("c", "control", "no roster block", True),
+    ]
+    assert xi.check_rows(ok) == []
+    bad = [
+        _row("t", "treatment", "before 3v4, at -, window", True),
+        _row("c", "control", "no roster block", False),
+    ]
+    assert len(xi.check_rows(bad)) == 3
+
+
+def test_design_deaths_order_and_tags() -> None:
+    design = {
+        "treatment": [["m", "d1"]],
+        "controls": [["m", "d2"]],
+        "deaths": [
+            {"match": "m", "cid": "d1", "change_type": xh.WINDOW_ONLY},
+            {"match": "m", "cid": "d2", "change_type": xh.UNCHANGED},
+        ],
+    }
+    assert [(d["cid"], d["set"]) for d in xi.design_deaths(design)] == [
+        ("d1", "treatment"),
+        ("d2", "control"),
+    ]
+    assert xi.slug("en-live-playerview-2026-10-11 22-57-30", "death_episode:308.000") == (
+        "2026_10_11_22_57_30_death_episode_308_000"
+    )
+
+
+def test_roster_summary() -> None:
+    assert xi.roster_summary({"roster": None}) == "no roster block"
+    assert xi.roster_summary(ROSTER_VIEW) == "before 3v4, at 2v4, window 4v4 -"
+
+
+@pytest.mark.skipif(not (HAVE_DATA and DESIGN.is_file()), reason="data or design missing")
+def test_build_and_plan_from_frozen_design(tmp_path: Path) -> None:
+    (tmp_path / "design.json").write_text(DESIGN.read_text(encoding="utf-8"), "utf-8")
+    assert xi.build(tmp_path, default_config_path()) == 0
+    manifest = xi.load_manifest(tmp_path / "inputs")
+    assert len(manifest["calls"]) == 66 and manifest["repeats"] == 2
+    assert xi.plan(tmp_path, default_config_path()) == 0
+    with pytest.raises(SystemExit):
+        xi.build(tmp_path, default_config_path())
 
 
 @pytest.mark.skipif(
