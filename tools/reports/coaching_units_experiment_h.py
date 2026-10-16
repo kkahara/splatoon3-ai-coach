@@ -480,15 +480,44 @@ def design_doc(base_path: Path) -> dict[str, Any]:
     }
 
 
+def _stop_point_3(args: argparse.Namespace) -> int:
+    import coaching_units_experiment_h_results as xres
+    import coaching_units_experiment_h_run as xr
+
+    if args.command in ("run", "recover"):
+        if not (args.confirm and args.model):
+            raise SystemExit(f"{args.command} needs --model and --confirm")
+        command = xr.run if args.command == "run" else xr.recover
+        return command(args.out, load_config(args.config), args.provider, args.model)
+    if args.command == "summary":
+        doc = xres.write_summary(args.out)
+        sys.stdout.write(json.dumps(doc["coverage"]) + "\n")
+        return 0 if not any(doc["coverage"].values()) else 1
+    result = xres.write_sheet(args.out)
+    sys.stdout.write(json.dumps(result) + "\n")
+    return (
+        0 if not any(any(c.values()) for c in (result["records"], result["key"])) else 1
+    )
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI: ``design`` (stop point 1), ``build`` and ``plan`` (stop point 2)."""
+    """CLI: ``design`` (stop point 1), ``build`` / ``plan`` (stop point 2),
+    ``run`` / ``recover`` / ``summary`` / ``sheet`` (stop point 3)."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=("design", "build", "plan"))
+    parser.add_argument(
+        "command",
+        choices=("design", "build", "plan", "run", "recover", "summary", "sheet"),
+    )
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     parser.add_argument("--config", type=Path, default=default_config_path())
+    parser.add_argument("--provider", default=PROVIDER)
+    parser.add_argument("--model", default=None)
+    parser.add_argument("--confirm", action="store_true")
     args = parser.parse_args(argv)
     logger.remove()
     logger.add(sys.stderr, level="WARNING")
+    if args.command in ("run", "recover", "summary", "sheet"):
+        return _stop_point_3(args)
     if args.command != "design":
         import coaching_units_experiment_h_inputs as xi
 
