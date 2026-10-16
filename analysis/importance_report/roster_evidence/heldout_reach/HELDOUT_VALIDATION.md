@@ -4,8 +4,11 @@ Candidate frozen and pre-registered in `FREEZE.md` (commit `0fcf3ed`) before any
 held-out frame was decoded: **A1 search area +16 native px right, O3 +8 native
 px right**, everything else production (templates, masks, scale, masked
 `TM_SQDIFF_NORMED`, threshold 0.03, visibility gate, fusion, coaching).
-Production code is unchanged. The values were not altered after scanning or
-labeling.
+Production code was unchanged during validation. The values were not altered
+after scanning or labeling.
+
+**Outcome: PASS. Promoted to production exactly as frozen** (see *Decision and
+promotion*). The ROI-reach investigation is closed.
 
 ## Result
 
@@ -79,9 +82,9 @@ All other slots are identical under both methods by construction.
 
 ## Held-out A1/O3 X centres and reach
 
-`heldout_results.json` -> `x_reach` lists every held-out human X on A1 and O3
-(67 A1, 64 O3) with its centre (best placement over the ROI widened 24 px each
-side), reach intervals and both methods' labels.
+`heldout_results.json` -> `x_reach` (schema 2) lists every held-out human X on
+A1 and O3 (67 A1, 64 O3) with its centre (best placement over the ROI widened
+24 px each side), reach intervals and both methods' labels.
 
 | Slot | X-centre clusters (native x, count) | Production detected | Candidate detected |
 |---|---|---|---|
@@ -92,23 +95,40 @@ These are the same clusters found in development (A1 outer cluster 607-608,
 O3 outer cluster 1280). Every production miss is in the outer cluster; every
 outer-cluster X is recovered by the candidate.
 
-Reachability as computed by the pre-registered field uses the reach interval of
-the *free-window best template* (`player-x-3` for O3). Under that template the
-candidate's O3 reach ends at 1277.6, so 52 of 53 outer-cluster O3 X are flagged
-`reachable_candidate = false` while being detected. The candidate wins those
-slots with `player-x-1`, whose placement centre lands at 1279.1-1281.1 (on the
-X, within about 0.5 px). So the flag reflects which template the metric uses,
-not a miss. A1 has no such discrepancy: all 62 outer-cluster X are reachable
-and won by `player-x-1` at 607.1-609.1.
+The first version of this report measured reach with only the *free-window
+best template* (`player-x-3` for O3). Under that template the candidate's O3
+reach ends at 1277.6, so 52 of 53 outer-cluster O3 X were flagged "beyond
+candidate reach" while being detected. That was a flaw in the diagnostic, not
+a miss: the candidate wins those slots with `player-x-1`, whose placement
+centre lands at 1279.1-1281.1 (on the X, within about 0.5 px).
+
+Commit `60a51c7` fixed the diagnostic only (detector, sealed key and labels
+unchanged; every non-reach field of `heldout_results.json` identical). `score`
+now re-decodes each A1/O3 human-X frame and records three reach measures per
+method: the free-window template (`reachable_*_free_template`, the old field),
+any fitted template (`reachable_*_any_template`) and the template that actually
+wins (`reachable_*_winner_template`).
+
+| Slot | Method | Free template | Any template | Winning template | Detected |
+|---|---|---|---|---|---|
+| A1 | production | 5 / 67 | 5 / 67 | 5 / 67 | 5 |
+| A1 | candidate | 67 / 67 | 67 / 67 | 67 / 67 | 67 |
+| O3 | production | 11 / 64 | 11 / 64 | 11 / 64 | 11 |
+| O3 | candidate | 12 / 64 | **64 / 64** | **64 / 64** | 64 |
+
+With the corrected measures, reach agrees with detection on every slot. The
+candidate wins A1 with `player-x-1` 66 times (`player-x-3` once) and O3 with
+`player-x-1` 58 times (`player-x-3` 6 times).
 
 ## Margins
 
 These are observations, not failures; the values remain frozen.
 
-1. **O3 +8 is fully used.** 15 of 53 O3 recoveries need all 8 px (placement
-   right edge 8 px past the production ROI); none needs more. An O3 X centred
-   at 1282 or beyond would not be reached. None was observed in 64 held-out
-   O3 X or in development.
+1. **O3 +8 is fully used (zero margin).** 15 of 53 O3 recoveries need all
+   8 px (placement right edge 8 px past the production ROI); none needs more.
+   The `player-x-1` reach ends at 1281.1, so an O3 X centred at 1282 or beyond
+   would not be reached. None was observed in 64 held-out O3 X or in
+   development. This is recorded, not acted on: the value stays frozen.
 2. **A1 +16 uses at most 14 px** (12 px for 43 cases, 13 for 18, 14 for 1).
 3. **Recovered A1 scores approach the threshold.** Candidate scores on the 62
    recovered A1: min 0.0095, median 0.0161, max 0.0298 (H134 0.0298, H141
@@ -140,10 +160,71 @@ FPs.
 - Replay footage, R029 / dark-silhouette handling and Lead!-conditional
   behavior remain out of scope.
 
-## Decision
+## Decision and promotion
 
-Production is unchanged. Whether to adopt A1 +16 / O3 +8 in `configs/` and the
-detector is the user's decision.
+**Decision (user): PASS.** A1 +16 px right and O3 +8 px right were promoted to
+production exactly as frozen. There was no further ROI expansion and no
+threshold change (0.03). The O3 reach finding was treated as a diagnostic
+defect, logged and fixed separately; it did not block promotion.
+
+### Audit trail
+
+| Commit | Content |
+|---|---|
+| `0fcf3ed` | Freeze and pre-registration (`FREEZE.md`, `pool.json`) |
+| `3e8f1a1` | Earlier, mostly prefilled **draft** of `labels.csv`. **Not the sealed labels**; never scored |
+| `90572c5` | **Sealed** final held-out labels, committed before scoring |
+| `33f89c7` | Held-out scoring and this report (`heldout_results.json`, overlays) |
+| `5a84802` | Production promotion: config fields, detector search extension, tests |
+| `3ca8fab` | Production-equivalence diagnostic and `production_equivalence.json` |
+| `60a51c7` | Diagnostics-only fix of the O3 reach measure |
+
+### Production implementation
+
+`vision.player_count.ally_search_extend_right_px: [16, 0, 0, 0]` and
+`opponent_search_extend_right_px: [0, 0, 8, 0]` (px at 1920 wide, scaled by
+frame width). Only the template search crop widens to the right. Templates and
+masks are still fitted to the production slot ROI, and the ROI itself (used by
+the visibility gate, team-colour calibration and the manifest viewer) is
+unchanged. A slot with zero extension takes the original code path.
+
+### Production equivalence
+
+`tools/diagnostics/roster_reach_equivalence.py` ran the production detector,
+with and without the extensions, against the independent research
+implementation (`roster_roi_reach` placement search). It covered 120
+development frames (decode-verified) and the 199 held-out frames
+(image-hash verified): 300 visible frames, 2,400 slot comparisons.
+
+- **0 mismatches** (tolerance 1e-6). Result: `production_equivalence.json`,
+  `passed: true`.
+- 4 slots score above 1.0 in the raw reference (R059 O2, H054 O3/O4,
+  H078 A4). Production reports them as 1.0 because its best score starts at
+  1.0, both before and after the change. The check treats this ceiling as
+  equal; neither implementation was altered.
+- Label changes occur only on A1 (72) and O3 (56), all alive -> X. 123 are
+  human-labelled X recoveries (115 held-out, 8 development). The other 5 are
+  on frames humans labelled `hidden` that still pass the production
+  visibility gate (R068, H033, H089, H105, H128; A1, scores 0.019-0.0295).
+  These slots are `?` in the labels and are not scored either way.
+- Zero-extension slots match the old code path exactly (unit test with exact
+  numeric equality).
+
+### Regression
+
+`ruff check src tools tests` and the full `pytest` suite: 1,635 passed,
+49 skipped. There are 2 failures
+(`test_public_site.py::test_dev_mode_keeps_regular_upload_limits`,
+`test_public_site_refuses_to_start_without_turnstile`) and 1 ruff E501 in
+`tests/test_public_abuse.py`. All three fail identically without these
+commits, and they are unrelated to the roster detector.
+
+### Closure
+
+The ROI-reach investigation is closed. +16 / +8 passing equivalence means
+promotion and closure, not another optimization round. Replay footage,
+R029 / dark-silhouette handling and Lead!-conditional behavior remain out of
+scope.
 
 ## Reproduce
 
@@ -154,3 +235,12 @@ cd tools/diagnostics
 ```
 
 `score` checks every blind image against its sealed SHA-256 before scoring.
+
+Production equivalence (from the repo root):
+
+```bash
+.venv/bin/python tools/diagnostics/roster_reach_equivalence.py \
+  --baseline analysis/importance_report/roster_evidence/baseline/labels \
+  --heldout analysis/importance_report/roster_evidence/heldout_reach \
+  --output analysis/importance_report/roster_evidence/heldout_reach/production_equivalence.json
+```

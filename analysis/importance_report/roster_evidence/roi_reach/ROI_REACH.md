@@ -168,6 +168,13 @@ The badge does **not** decide the fine cluster within a side. With opponents lea
 - This is development data with 8 positives in the target clusters. It cannot establish held-out false-positive rates, fusion effects or replay behaviour.
 - R029 O1 remains open as a separate labelling and semantics question.
 
+**Closed.** A1 +16 / O3 +8 was frozen (`0fcf3ed`) and validated on held-out
+live footage with labels sealed in `90572c5`. The scoring is in `33f89c7`; it
+recovered 115 slots, broke 0 and created no false positives. It was then
+promoted to production exactly as frozen (`5a84802`) and passed the
+production-equivalence check (`3ca8fab`). The threshold stays 0.03 and no
+other ROI changes. See `../heldout_reach/HELDOUT_VALIDATION.md`.
+
 Regenerate:
 
 ```bash
