@@ -90,31 +90,54 @@ def test_paired_transitions() -> None:
     }
 
 
-def test_x_reach_flags_production_and_candidate() -> None:
-    base = {
-        "sample_id": "H001",
+def _reach_row(sample_id: str, slot: str, center: float, human: str = "x") -> dict:
+    return {
+        "sample_id": sample_id,
+        "slot": slot,
         "strata": ["random"],
-        "human": "x",
+        "human": human,
         "free_template": "player-x-1",
         "free_score": 0.01,
-        "production_reach": [500.0, 595.0],
-        "candidate_reach": [500.0, 611.0],
+        "free_center_x": center,
         "production": "alive",
         "candidate": "x",
     }
+
+
+def test_x_reach_flags_production_and_candidate() -> None:
+    reach = {
+        "intervals": {"player-x-1": [500.0, 595.0]},
+        "winner": {"production": "player-x-1", "candidate": "player-x-1"},
+    }
     rows = [
-        {**base, "slot": "a1", "free_center_x": 590.0},
-        {**base, "slot": "a1", "free_center_x": 607.5},
-        {**base, "slot": "a1", "free_center_x": 615.0},
-        {**base, "slot": "a2", "free_center_x": 650.0},
-        {**base, "slot": "a1", "free_center_x": 600.0, "human": "alive"},
+        _reach_row("H001", "a1", 590.0),
+        _reach_row("H002", "a1", 607.5),
+        _reach_row("H003", "a1", 615.0),
+        _reach_row("H004", "a2", 650.0),
+        _reach_row("H005", "a1", 600.0, human="alive"),
     ]
-    out = heldout.x_reach(rows)
-    assert [(r["reachable_production"], r["reachable_candidate"]) for r in out] == [
-        (True, True),
-        (False, True),
-        (False, False),
-    ]
+    reaches = {(r["sample_id"], r["slot"]): reach for r in rows}
+    out = heldout.x_reach(rows, reaches)
+    assert [
+        (r["reachable_production_any_template"], r["reachable_candidate_any_template"])
+        for r in out
+    ] == [(True, True), (False, True), (False, False)]
+    assert out[1]["candidate_free_template_reach"] == [500.0, 611.0]
+
+
+def test_x_reach_uses_the_winning_template_not_only_the_free_one() -> None:
+    row = {**_reach_row("H010", "o3", 1279.6), "free_template": "player-x-3"}
+    reach = {
+        "intervals": {"player-x-3": [1234.6, 1269.6], "player-x-1": [1240.0, 1273.1]},
+        "winner": {"production": "player-x-3", "candidate": "player-x-1"},
+    }
+    (item,) = heldout.x_reach([row], {("H010", "o3"): reach})
+    assert item["reachable_candidate_free_template"] is False
+    assert item["reachable_candidate_any_template"] is True
+    assert item["candidate_winner_template"] == "player-x-1"
+    assert item["candidate_winner_reach"] == [1240.0, 1281.1]
+    assert item["reachable_candidate_winner_template"] is True
+    assert item["reachable_production_any_template"] is False
 
 
 def test_read_labels_rejects_unknown_values(tmp_path: Path) -> None:

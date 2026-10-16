@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "candidate": {
     "a1": 16,
     "o3": 8
@@ -497,19 +497,33 @@
       "center_x": 558.6,
       "free_template": "player-x-3",
       "free_score": 0.012112288735806942,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         526.6,
         591.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        526.6,
+        591.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         526.6,
         607.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        526.6,
+        607.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H002",
@@ -520,19 +534,33 @@
       "center_x": 568.1,
       "free_template": "player-x-1",
       "free_score": 0.012157442979514599,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H151",
@@ -543,19 +571,33 @@
       "center_x": 568.1,
       "free_template": "player-x-1",
       "free_score": 0.010849068872630596,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H145",
@@ -566,19 +608,33 @@
       "center_x": 591.1,
       "free_template": "player-x-1",
       "free_score": 0.027594851329922676,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H126",
@@ -589,19 +645,33 @@
       "center_x": 592.1,
       "free_template": "player-x-1",
       "free_score": 0.01715521328151226,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H001",
@@ -612,19 +682,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015558118931949139,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H005",
@@ -635,19 +719,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015271877869963646,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H013",
@@ -658,19 +756,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.01925811730325222,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H020",
@@ -681,19 +793,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.01627536676824093,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H022",
@@ -704,19 +830,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.016547750681638718,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H023",
@@ -727,19 +867,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.013136988505721092,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H029",
@@ -750,19 +904,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.016373200342059135,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H035",
@@ -773,19 +941,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.013755930587649345,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H050",
@@ -796,19 +978,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015114294365048409,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H051",
@@ -819,19 +1015,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.01467681024223566,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H052",
@@ -842,19 +1052,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.014293508604168892,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H053",
@@ -865,19 +1089,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.013279346749186516,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H055",
@@ -888,19 +1126,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.025473780930042267,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H056",
@@ -911,19 +1163,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.018960673362016678,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H063",
@@ -934,19 +1200,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.013483398593962193,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H068",
@@ -957,19 +1237,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.01787075214087963,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H070",
@@ -980,19 +1274,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.0141013003885746,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H083",
@@ -1003,19 +1311,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.018695471808314323,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H084",
@@ -1026,19 +1348,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015478387475013733,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H086",
@@ -1049,19 +1385,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.011602923274040222,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H092",
@@ -1072,19 +1422,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.027127927169203758,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H107",
@@ -1095,19 +1459,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.024010038003325462,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H112",
@@ -1118,19 +1496,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.01406856533139944,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H114",
@@ -1141,19 +1533,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.020204054191708565,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H120",
@@ -1164,19 +1570,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.02395913004875183,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H123",
@@ -1187,19 +1607,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.016743190586566925,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H129",
@@ -1210,19 +1644,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.01472461223602295,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H132",
@@ -1233,19 +1681,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.016989341005682945,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H134",
@@ -1256,19 +1718,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.029797274619340897,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H136",
@@ -1279,19 +1755,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.018417520448565483,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H137",
@@ -1302,19 +1792,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015664054080843925,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H141",
@@ -1325,19 +1829,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.029551299288868904,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H153",
@@ -1348,19 +1866,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015405661426484585,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H157",
@@ -1371,19 +1903,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.018221314996480942,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H160",
@@ -1394,19 +1940,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.019404802471399307,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H161",
@@ -1417,19 +1977,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.014138276688754559,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H165",
@@ -1440,19 +2014,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015977762639522552,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H168",
@@ -1463,19 +2051,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.013523497618734837,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H178",
@@ -1486,19 +2088,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.017637701705098152,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H190",
@@ -1510,19 +2126,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.015552088618278503,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H196",
@@ -1533,19 +2163,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.018210332840681076,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H197",
@@ -1556,19 +2200,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.0159646887332201,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H199",
@@ -1579,19 +2237,33 @@
       "center_x": 607.1,
       "free_template": "player-x-1",
       "free_score": 0.014440434984862804,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H007",
@@ -1602,19 +2274,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.013430855236947536,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H008",
@@ -1625,19 +2311,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.01950136385858059,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H015",
@@ -1648,19 +2348,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.017015503719449043,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H039",
@@ -1671,19 +2385,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.02057618461549282,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H059",
@@ -1694,19 +2422,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.014297999441623688,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H066",
@@ -1717,19 +2459,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.017447277903556824,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H067",
@@ -1740,19 +2496,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.01542700082063675,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H072",
@@ -1763,19 +2533,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.01673971489071846,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H108",
@@ -1786,19 +2570,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.02228955365717411,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H133",
@@ -1809,19 +2607,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.02271481603384018,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H144",
@@ -1832,19 +2644,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.014795802533626556,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H155",
@@ -1855,19 +2681,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.013631713576614857,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H158",
@@ -1878,19 +2718,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.01601256988942623,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H171",
@@ -1901,19 +2755,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.016373759135603905,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H180",
@@ -1924,19 +2792,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.014040134847164154,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H181",
@@ -1947,19 +2829,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.014658529311418533,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H183",
@@ -1970,19 +2866,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.01778213307261467,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H185",
@@ -1993,19 +2903,33 @@
       "center_x": 608.1,
       "free_template": "player-x-1",
       "free_score": 0.020402144640684128,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H109",
@@ -2016,19 +2940,33 @@
       "center_x": 609.1,
       "free_template": "player-x-1",
       "free_score": 0.009458455257117748,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         524.1,
         595.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        524.1,
+        595.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         524.1,
         611.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        524.1,
+        611.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H026",
@@ -2039,19 +2977,33 @@
       "center_x": 1237.1,
       "free_template": "player-x-1",
       "free_score": 0.01751585304737091,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1232.1,
         1273.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1232.1,
         1281.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H170",
@@ -2062,19 +3014,33 @@
       "center_x": 1238.1,
       "free_template": "player-x-1",
       "free_score": 0.014948534779250622,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1232.1,
         1273.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1232.1,
         1281.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H011",
@@ -2085,19 +3051,33 @@
       "center_x": 1247.1,
       "free_template": "player-x-1",
       "free_score": 0.012028124183416367,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1232.1,
         1273.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1232.1,
         1281.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H148",
@@ -2108,19 +3088,33 @@
       "center_x": 1248.1,
       "free_template": "player-x-1",
       "free_score": 0.015293172560632229,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1232.1,
         1273.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1232.1,
         1281.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H041",
@@ -2131,19 +3125,33 @@
       "center_x": 1262.6,
       "free_template": "player-x-3",
       "free_score": 0.009186208248138428,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H184",
@@ -2154,19 +3162,33 @@
       "center_x": 1262.6,
       "free_template": "player-x-3",
       "free_score": 0.010204454883933067,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H081",
@@ -2177,19 +3199,33 @@
       "center_x": 1263.6,
       "free_template": "player-x-3",
       "free_score": 0.007230102084577084,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H012",
@@ -2200,19 +3236,33 @@
       "center_x": 1264.1,
       "free_template": "player-x-1",
       "free_score": 0.014870161190629005,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1232.1,
         1273.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1232.1,
         1281.1
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H018",
@@ -2223,19 +3273,33 @@
       "center_x": 1268.6,
       "free_template": "player-x-3",
       "free_score": 0.011490481905639172,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H024",
@@ -2246,19 +3310,33 @@
       "center_x": 1268.6,
       "free_template": "player-x-3",
       "free_score": 0.0116034634411335,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H125",
@@ -2269,19 +3347,33 @@
       "center_x": 1268.6,
       "free_template": "player-x-3",
       "free_score": 0.0098973847925663,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "x",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": true,
+      "reachable_production_any_template": true,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": true,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": true,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "x",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-3",
+      "candidate_winner_reach": [
+        1234.6,
+        1277.6
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H118",
@@ -2292,19 +3384,33 @@
       "center_x": 1278.6,
       "free_template": "player-x-3",
       "free_score": 0.007317620329558849,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H123",
@@ -2315,19 +3421,33 @@
       "center_x": 1278.6,
       "free_template": "player-x-3",
       "free_score": 0.009423358365893364,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H174",
@@ -2338,19 +3458,33 @@
       "center_x": 1278.6,
       "free_template": "player-x-3",
       "free_score": 0.00923925917595625,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-9",
+      "production_winner_reach": [
+        1232.1,
+        1271.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H186",
@@ -2361,19 +3495,33 @@
       "center_x": 1278.6,
       "free_template": "player-x-3",
       "free_score": 0.008040666580200195,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H090",
@@ -2384,19 +3532,33 @@
       "center_x": 1279.1,
       "free_template": "player-x-1",
       "free_score": 0.014256634749472141,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1232.1,
         1273.1
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1232.1,
         1281.1
       ],
-      "reachable_production": false,
-      "reachable_candidate": true,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": true,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H003",
@@ -2407,19 +3569,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.010870900005102158,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H014",
@@ -2430,19 +3606,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.006800326984375715,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H016",
@@ -2453,19 +3643,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.00845121219754219,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H037",
@@ -2476,19 +3680,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.007840176112949848,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H040",
@@ -2499,19 +3717,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008402005769312382,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H043",
@@ -2522,19 +3754,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008829732425510883,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H049",
@@ -2545,19 +3791,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008558378554880619,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H053",
@@ -2568,19 +3828,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008817214518785477,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H062",
@@ -2591,19 +3865,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.010572148486971855,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H069",
@@ -2614,19 +3902,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.007500024978071451,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H079",
@@ -2637,19 +3939,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008379627019166946,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H080",
@@ -2660,19 +3976,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.0077063855715096,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H082",
@@ -2683,19 +4013,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.007773560006171465,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H083",
@@ -2706,19 +4050,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.01020610611885786,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H094",
@@ -2729,19 +4087,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.00922291912138462,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H095",
@@ -2752,19 +4124,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.009187456220388412,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-9",
+      "production_winner_reach": [
+        1232.1,
+        1271.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H100",
@@ -2775,19 +4161,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008339481428265572,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H102",
@@ -2798,19 +4198,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008042252622544765,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H106",
@@ -2821,19 +4235,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.010398238897323608,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H112",
@@ -2844,19 +4272,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008240562863647938,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H113",
@@ -2867,19 +4309,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008416153490543365,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H136",
@@ -2890,19 +4346,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.011353936977684498,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H137",
@@ -2913,19 +4383,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.0088294493034482,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H147",
@@ -2936,19 +4420,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.0086310850456357,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H153",
@@ -2959,19 +4457,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008317767642438412,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H157",
@@ -2982,19 +4494,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.00796716008335352,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H163",
@@ -3005,19 +4531,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.007432251702994108,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H164",
@@ -3028,19 +4568,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.008860903792083263,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H166",
@@ -3051,19 +4605,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.00856014620512724,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-9",
+      "production_winner_reach": [
+        1232.1,
+        1271.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H175",
@@ -3074,19 +4642,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.007614076603204012,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H182",
@@ -3097,19 +4679,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.009501450695097446,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-2",
+      "production_winner_reach": [
+        1238.7,
+        1266.7
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H187",
@@ -3120,19 +4716,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.007937401533126831,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H193",
@@ -3143,19 +4753,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.00956743210554123,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H195",
@@ -3166,19 +4790,33 @@
       "center_x": 1279.6,
       "free_template": "player-x-3",
       "free_score": 0.006912474520504475,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-11",
+      "production_winner_reach": [
+        1237.3,
+        1272.3
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H004",
@@ -3189,19 +4827,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.010438497178256512,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-3",
+      "production_winner_reach": [
+        1234.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H021",
@@ -3212,19 +4864,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.009340084157884121,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H038",
@@ -3235,19 +4901,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.006889892276376486,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H039",
@@ -3258,19 +4938,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.009995628148317337,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H066",
@@ -3281,19 +4975,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.007978875190019608,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-9",
+      "production_winner_reach": [
+        1232.1,
+        1271.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H087",
@@ -3304,19 +5012,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.009908631443977356,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H110",
@@ -3327,19 +5049,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.007957498542964458,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H111",
@@ -3350,19 +5086,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.008626728318631649,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H146",
@@ -3373,19 +5123,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.010179435834288597,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H149",
@@ -3396,19 +5160,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.006958186160773039,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H156",
@@ -3419,19 +5197,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.009998591616749763,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-8",
+      "production_winner_reach": [
+        1235.6,
+        1269.6
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H183",
@@ -3442,19 +5234,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.010450252331793308,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H191",
@@ -3465,19 +5271,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.009889640845358372,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     },
     {
       "sample_id": "H192",
@@ -3488,19 +5308,33 @@
       "center_x": 1280.6,
       "free_template": "player-x-3",
       "free_score": 0.006974699907004833,
-      "production_reach": [
+      "free_window_is_x": true,
+      "production": "alive",
+      "candidate": "x",
+      "production_free_template_reach": [
         1234.6,
         1269.6
       ],
-      "candidate_reach": [
+      "reachable_production_free_template": false,
+      "reachable_production_any_template": false,
+      "production_winner_template": "player-x-1",
+      "production_winner_reach": [
+        1232.1,
+        1273.1
+      ],
+      "reachable_production_winner_template": false,
+      "candidate_free_template_reach": [
         1234.6,
         1277.6
       ],
-      "reachable_production": false,
-      "reachable_candidate": false,
-      "free_window_is_x": true,
-      "production": "alive",
-      "candidate": "x"
+      "reachable_candidate_free_template": false,
+      "reachable_candidate_any_template": true,
+      "candidate_winner_template": "player-x-1",
+      "candidate_winner_reach": [
+        1232.1,
+        1281.1
+      ],
+      "reachable_candidate_winner_template": true
     }
   ],
   "transitions": [

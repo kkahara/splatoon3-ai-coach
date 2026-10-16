@@ -443,32 +443,92 @@ def _confusion(m: dict[str, Any]) -> dict[str, Any]:
     return {k: m[k] for k in keys}
 
 
-def x_reach(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """X centre and reachability for every held-out human X on A1/O3."""
-    out = []
-    for row in rows:
-        if row["slot"] not in CANDIDATE or row["human"] != "x":
-            continue
-        lo, hi = row["production_reach"]
-        hi_c = row["candidate_reach"][1]
-        center = row["free_center_x"]
-        out.append(
-            {
-                "sample_id": row["sample_id"],
-                "slot": row["slot"],
-                "strata": row["strata"],
-                "center_x": center,
-                "free_template": row["free_template"],
-                "free_score": row["free_score"],
-                "production_reach": [lo, hi],
-                "candidate_reach": [lo, hi_c],
-                "reachable_production": lo <= center <= hi,
-                "reachable_candidate": lo <= center <= hi_c,
-                "free_window_is_x": label_of(row["free_score"]) == "x",
-                "production": row["production"],
-                "candidate": row["candidate"],
-            }
+def is_reach_row(row: dict[str, Any]) -> bool:
+    """A held-out human X on a slot the candidate extends."""
+    return row["slot"] in CANDIDATE and row["human"] == "x"
+
+
+def template_reaches(
+    frame: np.ndarray, box: tuple[int, int, int, int], templates: list, slot: str
+) -> dict[str, Any]:
+    """Production reach interval of every fitted template, plus each method's winner."""
+    maps = slot_maps(frame, box, templates)
+    return {
+        "intervals": {
+            m.name: [round(v, 1) for v in reach_interval(maps, box, m.name)] for m in maps
+        },
+        "winner": {
+            method: best_placement(maps, box, 0, right_of(method, slot)).name
+            for method in ("production", "candidate")
+        },
+    }
+
+
+def measure_reaches(
+    rows: list[dict[str, Any]], video_dir: Path, config_path: Path
+) -> dict[tuple[str, str], dict[str, Any]]:
+    """Re-decode every A1/O3 human-X frame and measure per-template reach."""
+    config = load_config(config_path)
+    templates = _load_masked_templates(config.vision.player_count.template_dir)
+    out = {}
+    for row in filter(is_reach_row, rows):
+        capture = cv2.VideoCapture(str(video_dir / row["video"]))
+        frame = read_frame(capture, row["t"])
+        capture.release()
+        box = slot_boxes(config, frame.shape)[row["index"]]
+        out[(row["sample_id"], row["slot"])] = template_reaches(
+            frame, box, templates, row["slot"]
         )
+    return out
+
+
+def _reachable(center: float, interval: list[float], right: int) -> bool:
+    return interval[0] <= center <= interval[1] + right
+
+
+def x_reach(
+    rows: list[dict[str, Any]], reaches: dict[tuple[str, str], dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """X centre and reachability for every held-out human X on A1/O3.
+
+    ``*_free_template`` judges reach with the free-window best template only;
+    ``*_any_template`` asks whether any fitted template can centre on the X;
+    ``*_winner_template`` uses the template that actually wins under each method.
+    """
+    out = []
+    for row in filter(is_reach_row, rows):
+        center = row["free_center_x"]
+        reach = reaches[(row["sample_id"], row["slot"])]
+        item = {
+            "sample_id": row["sample_id"],
+            "slot": row["slot"],
+            "strata": row["strata"],
+            "center_x": center,
+            "free_template": row["free_template"],
+            "free_score": row["free_score"],
+            "free_window_is_x": label_of(row["free_score"]) == "x",
+            "production": row["production"],
+            "candidate": row["candidate"],
+        }
+        for method in ("production", "candidate"):
+            right = right_of(method, row["slot"])
+            free = reach["intervals"][row["free_template"]]
+            winner = reach["winner"][method]
+            item[f"{method}_free_template_reach"] = [free[0], free[1] + right]
+            item[f"reachable_{method}_free_template"] = _reachable(center, free, right)
+            item[f"reachable_{method}_any_template"] = any(
+                _reachable(center, interval, right)
+                for interval in reach["intervals"].values()
+            )
+            item[f"{method}_winner_template"] = winner
+            item[f"{method}_winner_reach"] = [
+                reach["intervals"][winner][0],
+                reach["intervals"][winner][1] + right,
+            ]
+            item[f"reachable_{method}_winner_template"] = _reachable(
+                center, reach["intervals"][winner], right
+            )
+        out.append(item)
     return sorted(out, key=lambda r: (r["slot"], r["center_x"]))
 
 
@@ -552,7 +612,7 @@ def score(output: Path, video_dir: Path, config_path: Path) -> dict[str, Any]:
     late = [r for r in rows if video_date(r["video"]) > TEMPLATE_DATE]
     (output / "overlays").mkdir(parents=True, exist_ok=True)
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "candidate": CANDIDATE,
         "scan_summary": key["scan_summary"],
         "hud_visible": dict(
@@ -562,7 +622,7 @@ def score(output: Path, video_dir: Path, config_path: Path) -> dict[str, Any]:
         "random": metrics([r for r in rows if "random" in r["strata"]], labels),
         "discordant": metrics([r for r in rows if "discordant" in r["strata"]], labels),
         "after_template_date": metrics(late, labels),
-        "x_reach": x_reach(rows),
+        "x_reach": x_reach(rows, measure_reaches(rows, video_dir, config_path)),
         "transitions": render_transitions(rows, video_dir, config_path, output),
     }
     (output / "heldout_results.json").write_text(
