@@ -1,0 +1,260 @@
+{
+ "ratings": 132,
+ "safety_gate": {
+  "passed": true,
+  "checks": {
+   "roster_violations_zero": true,
+   "count_fidelity_errors_zero": true,
+   "blocked_not_above_A": true,
+   "validator_hits_within_margin": true
+  },
+  "figures": {
+   "A": {
+    "roster_violations": 0,
+    "count_fidelity_errors": 0,
+    "blocked": 0,
+    "validator_hits_per_call": 0.091
+   },
+   "C": {
+    "roster_violations": 0,
+    "count_fidelity_errors": 0,
+    "blocked": 0,
+    "validator_hits_per_call": 0.0
+   }
+  }
+ },
+ "q1": {
+  "passed": true,
+  "c_abd_outputs": 10,
+  "c_abd_mentions": 2,
+  "c_abd_fidelity_pass": 2,
+  "c_abd_fidelity_rate": 1.0,
+  "fidelity_ok": true,
+  "divergence_treatment": 0.1457,
+  "divergence_control": 0.1219,
+  "divergence_ok": true,
+  "treatment_roster_correct": {
+   "B": 0,
+   "C": 2
+  },
+  "roster_correct_ok": true,
+  "roster_mentions": {
+   "A": {
+    "treatment": 0,
+    "control": 0,
+    "at_or_before_death": 0
+   },
+   "B": {
+    "treatment": 0,
+    "control": 2,
+    "at_or_before_death": 0
+   },
+   "C": {
+    "treatment": 2,
+    "control": 2,
+    "at_or_before_death": 2
+   }
+  }
+ },
+ "q2": {
+  "passed": false,
+  "usefulness_c_minus_a": -0.0227,
+  "noise_floor": 0.1364,
+  "usefulness_ok": false,
+  "supported_rate": {
+   "A": 1.0,
+   "B": 0.9773,
+   "C": 0.9773
+  },
+  "supported_ok": false,
+  "mean_usefulness": {
+   "A": 3.0455,
+   "B": 3.0,
+   "C": 3.0227
+  },
+  "mean_missing_context": {
+   "A": 4.9773,
+   "B": 4.9773,
+   "C": 5
+  }
+ },
+ "outcome": "keep_off_no_value",
+ "covariates": [
+  {
+   "group": "C_selected=False",
+   "deaths": 14,
+   "usefulness_A": 3.036,
+   "usefulness_B": 2.893,
+   "usefulness_C": 2.893,
+   "roster_correct_A": 0,
+   "roster_correct_B": 0,
+   "roster_correct_C": 0
+  },
+  {
+   "group": "C_selected=True",
+   "deaths": 8,
+   "usefulness_A": 3.062,
+   "usefulness_B": 3.188,
+   "usefulness_C": 3.25,
+   "roster_correct_A": 0,
+   "roster_correct_B": 2,
+   "roster_correct_C": 4
+  },
+  {
+   "group": "change_type=at_or_before_death",
+   "deaths": 5,
+   "usefulness_A": 3,
+   "usefulness_B": 2.9,
+   "usefulness_C": 3.1,
+   "roster_correct_A": 0,
+   "roster_correct_B": 0,
+   "roster_correct_C": 2
+  },
+  {
+   "group": "change_type=unchanged",
+   "deaths": 11,
+   "usefulness_A": 3.045,
+   "usefulness_B": 3.091,
+   "usefulness_C": 2.955,
+   "roster_correct_A": 0,
+   "roster_correct_B": 2,
+   "roster_correct_C": 2
+  },
+  {
+   "group": "change_type=window_only",
+   "deaths": 6,
+   "usefulness_A": 3.083,
+   "usefulness_B": 2.917,
+   "usefulness_C": 3.083,
+   "roster_correct_A": 0,
+   "roster_correct_B": 0,
+   "roster_correct_C": 0
+  }
+ ],
+ "rated_roster_use": [
+  {
+   "output_id": "output_028",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "set": "treatment",
+   "arm": "C",
+   "repeat": 2,
+   "roster_use": "correct"
+  },
+  {
+   "output_id": "output_036",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "set": "treatment",
+   "arm": "C",
+   "repeat": 1,
+   "roster_use": "correct"
+  },
+  {
+   "output_id": "output_043",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "cid": "death_episode:180.500",
+   "set": "control",
+   "arm": "B",
+   "repeat": 2,
+   "roster_use": "correct"
+  },
+  {
+   "output_id": "output_056",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "cid": "death_episode:180.500",
+   "set": "control",
+   "arm": "C",
+   "repeat": 2,
+   "roster_use": "correct"
+  },
+  {
+   "output_id": "output_061",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "cid": "death_episode:180.500",
+   "set": "control",
+   "arm": "B",
+   "repeat": 1,
+   "roster_use": "correct"
+  },
+  {
+   "output_id": "output_102",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "cid": "death_episode:180.500",
+   "set": "control",
+   "arm": "C",
+   "repeat": 1,
+   "roster_use": "correct"
+  }
+ ],
+ "rating_distribution": {
+  "usefulness": {
+   "A": {
+    "3": 42,
+    "4": 2
+   },
+   "B": {
+    "2": 3,
+    "3": 38,
+    "4": 3
+   },
+   "C": {
+    "1": 1,
+    "2": 1,
+    "3": 38,
+    "4": 4
+   }
+  },
+  "redundancy": {
+   "A": {
+    "1": 44
+   },
+   "B": {
+    "1": 44
+   },
+   "C": {
+    "1": 44
+   }
+  },
+  "anchor": {
+   "A": {
+    "2": 1,
+    "5": 43
+   },
+   "B": {
+    "3": 2,
+    "5": 42
+   },
+   "C": {
+    "2": 2,
+    "5": 42
+   }
+  },
+  "missing_context": {
+   "A": {
+    "4": 1,
+    "5": 43
+   },
+   "B": {
+    "4": 1,
+    "5": 43
+   },
+   "C": {
+    "5": 44
+   }
+  },
+  "roster_use": {
+   "A": {
+    "not_mentioned": 44
+   },
+   "B": {
+    "correct": 2,
+    "not_mentioned": 42
+   },
+   "C": {
+    "correct": 4,
+    "not_mentioned": 40
+   }
+  }
+ }
+}

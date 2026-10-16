@@ -489,6 +489,19 @@ def _stop_point_3(args: argparse.Namespace) -> int:
             raise SystemExit(f"{args.command} needs --model and --confirm")
         command = xr.run if args.command == "run" else xr.recover
         return command(args.out, load_config(args.config), args.provider, args.model)
+    if args.command == "analyze":
+        import coaching_units_experiment_h_analyze as xa
+
+        sheet = args.out / "rating_sheet.csv"
+        clean = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", str(sheet)])
+        if clean.returncode != 0 or (args.out / "REPORT.md").exists():
+            raise SystemExit("ratings must be committed and REPORT.md must not exist")
+        doc = xa.analyze(args.out)
+        (args.out / "analysis.json").write_text(json.dumps(doc, indent=1) + "\n")
+        text = xa.report_markdown(doc, args.exposure)
+        (args.out / "REPORT.md").write_text(text, encoding="utf-8")
+        sys.stdout.write(text)
+        return 0
     if args.command == "summary":
         doc = xres.write_summary(args.out)
         sys.stdout.write(json.dumps(doc["coverage"]) + "\n")
@@ -506,8 +519,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
         "command",
-        choices=("design", "build", "plan", "run", "recover", "summary", "sheet"),
+        choices=(
+            "design",
+            "build",
+            "plan",
+            "run",
+            "recover",
+            "summary",
+            "sheet",
+            "analyze",
+        ),
     )
+    parser.add_argument("--exposure", default="not stated")
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     parser.add_argument("--config", type=Path, default=default_config_path())
     parser.add_argument("--provider", default=PROVIDER)
@@ -516,7 +539,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     logger.remove()
     logger.add(sys.stderr, level="WARNING")
-    if args.command in ("run", "recover", "summary", "sheet"):
+    if args.command in ("run", "recover", "summary", "sheet", "analyze"):
         return _stop_point_3(args)
     if args.command != "design":
         import coaching_units_experiment_h_inputs as xi
