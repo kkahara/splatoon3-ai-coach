@@ -1,0 +1,147 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_h",
+ "call_id": "A__2026_10_11_22_37_47_death_episode_58_000__r1",
+ "match": "en-live-playerview-2026-10-11 22-37-47",
+ "cid": "death_episode:58.000",
+ "set": "treatment",
+ "change_type": "window_only",
+ "arm": "A",
+ "repeat": 1,
+ "file": "A/2026_10_11_22_37_47_death_episode_58_000.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "attempt": 1,
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "ead9b469c67c5656dc8db1e7ba697eede7778a19421eaecab56ff00a78fc417b"
+ },
+ "executed_at": "2026-10-16T02:44:23+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 8.5 seconds after this death. This death happened early in the match, with 4:43 left. Your special was still charged when you were splatted.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 8.5 seconds after this death.\"},{\"claim_id\":\"death_first_30s\",\"level\":\"A\",\"sentence\":\"This death happened early in the match, with 4:43 left.\"},{\"claim_id\":\"death_special_ready\",\"level\":\"A\",\"sentence\":\"Your special was still charged when you were splatted.\"}],\"evidence_used\":[\"primary_context.death_episode.death_to_active_again.value = 8.5\",\"game_clock_samples[label=death].observation.seconds_remaining = 283\",\"game_clock_samples[label=death].observation.display = \\\"4:43\\\"\",\"primary_context.special.nearest_before_anchor.state = \\\"ready\\\"\"],\"limitations\":[\"No behavioral recommendation is supported by the available claim frames.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\",\"death_first_30s\",\"death_special_ready\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 8.5 seconds after this death. This death happened early in the match, with 4:43 left. Your special was still charged when you were splatted.",
+  "evidence_used": [
+   "primary_context.death_episode.death_to_active_again.value = 8.5",
+   "game_clock_samples[label=death].observation.seconds_remaining = 283",
+   "game_clock_samples[label=death].observation.display = \"4:43\"",
+   "primary_context.special.nearest_before_anchor.state = \"ready\""
+  ],
+  "limitations": [
+   "No behavioral recommendation is supported by the available claim frames."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "death_first_30s",
+   "death_special_ready"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   },
+   {
+    "claim_id": "death_first_30s",
+    "level": "A",
+    "sentence": "This death happened early in the match, with 4:43 left."
+   },
+   {
+    "claim_id": "death_special_ready",
+    "level": "A",
+    "sentence": "Your special was still charged when you were splatted."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 8.5",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.seconds_remaining = 283",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].observation.seconds_remaining",
+    "source_path": "game_clock_samples[label=death].observation.seconds_remaining"
+   },
+   {
+    "text": "game_clock_samples[label=death].observation.display = \"4:43\"",
+    "kind": "unresolved",
+    "path": "game_clock_samples[label=death].observation.display",
+    "reason": "unknown_key"
+   },
+   {
+    "text": "primary_context.special.nearest_before_anchor.state = \"ready\"",
+    "kind": "source_path_ref",
+    "path": "primary_context.special.nearest_before_anchor.state",
+    "source_path": "primary_context.special.nearest_before_anchor"
+   }
+  ],
+  "unresolved_evidence_paths": [
+   {
+    "text": "game_clock_samples[label=death].observation.display = \"4:43\"",
+    "kind": "unresolved",
+    "path": "game_clock_samples[label=death].observation.display",
+    "reason": "unknown_key"
+   }
+  ],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "contains_unverified_wording"
+ },
+ "elapsed_seconds": 7.3
+}

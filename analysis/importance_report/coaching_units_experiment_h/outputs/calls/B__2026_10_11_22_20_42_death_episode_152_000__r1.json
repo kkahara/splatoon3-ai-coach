@@ -1,0 +1,120 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_h",
+ "call_id": "B__2026_10_11_22_20_42_death_episode_152_000__r1",
+ "match": "en-live-playerview-2026-10-11 22-20-42",
+ "cid": "death_episode:152.000",
+ "set": "treatment",
+ "change_type": "window_only",
+ "arm": "B",
+ "repeat": 1,
+ "file": "B/2026_10_11_22_20_42_death_episode_152_000.user_prompt.txt",
+ "system": "system_prompt_B.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "attempt": 1,
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "731622b4f103b60aaf12929624c3dfc4b83224aa53697dbb7107f3596d65df8a"
+ },
+ "executed_at": "2026-10-16T02:43:57+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"Your previous death was 11.5 seconds earlier. Back-to-back deaths keep you out of play for longer.\",\"claims\":[{\"claim_id\":\"death_quick_redeath\",\"level\":\"A\",\"sentence\":\"Your previous death was 11.5 seconds earlier.\"},{\"claim_id\":\"principle_redeath_out_of_play\",\"level\":\"B\",\"sentence\":\"Back-to-back deaths keep you out of play for longer.\"}],\"evidence_used\":[\"timeline.time_since_previous_death.value = 11.5\",\"death.death_to_active_again.value = 8.0\"],\"limitations\":[\"The available evidence does not establish why this death happened or assess positioning, teammate state, or opponent location.\"],\"recommendations\":[\"After being splatted, take a moment to reset before re-engaging.\"],\"selected_claim_ids\":[\"death_quick_redeath\",\"principle_redeath_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 11.5 seconds earlier. Back-to-back deaths keep you out of play for longer.",
+  "evidence_used": [
+   "timeline.time_since_previous_death.value = 11.5",
+   "death.death_to_active_again.value = 8.0"
+  ],
+  "limitations": [
+   "The available evidence does not establish why this death happened or assess positioning, teammate state, or opponent location."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "principle_redeath_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 11.5 seconds earlier."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "timeline.time_since_previous_death.value = 11.5",
+    "kind": "view_native",
+    "path": "timeline.time_since_previous_death.value"
+   },
+   {
+    "text": "death.death_to_active_again.value = 8.0",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.value"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 5.6
+}

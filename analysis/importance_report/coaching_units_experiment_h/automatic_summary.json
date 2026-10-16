@@ -1,0 +1,345 @@
+{
+ "decision_rule_applied": false,
+ "text_scope": "assessment + recommendations",
+ "coverage": {
+  "missing": [],
+  "duplicate": [],
+  "unexpected": []
+ },
+ "arms": {
+  "A": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 4,
+    "validator_hits_per_call": 0.091,
+    "roster_mentions": 0,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 0,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "treatment": {
+    "calls": 22,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 3,
+    "validator_hits_per_call": 0.136,
+    "roster_mentions": 0,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 0,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "control": {
+    "calls": 22,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 1,
+    "validator_hits_per_call": 0.045,
+    "roster_mentions": 0,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 0,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "at_or_before_death": {
+    "calls": 10,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 0,
+    "validator_hits_per_call": 0.0,
+    "roster_mentions": 0,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 0,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   }
+  },
+  "B": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 4,
+    "validator_hits_per_call": 0.091,
+    "roster_mentions": 2,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 2,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "treatment": {
+    "calls": 22,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 1,
+    "validator_hits_per_call": 0.045,
+    "roster_mentions": 0,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 0,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "control": {
+    "calls": 22,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 3,
+    "validator_hits_per_call": 0.136,
+    "roster_mentions": 2,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 2,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "at_or_before_death": {
+    "calls": 10,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 0,
+    "validator_hits_per_call": 0.0,
+    "roster_mentions": 0,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 0,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   }
+  },
+  "C": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 0,
+    "validator_hits_per_call": 0.0,
+    "roster_mentions": 4,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 4,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "treatment": {
+    "calls": 22,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 0,
+    "validator_hits_per_call": 0.0,
+    "roster_mentions": 2,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 2,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "control": {
+    "calls": 22,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 0,
+    "validator_hits_per_call": 0.0,
+    "roster_mentions": 2,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 2,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   },
+   "at_or_before_death": {
+    "calls": 10,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits": 0,
+    "validator_hits_per_call": 0.0,
+    "roster_mentions": 2,
+    "count_fidelity_errors": 0,
+    "fidelity_pass_among_mentions": 2,
+    "roster_violations": 0,
+    "roster_violation_codes": {}
+   }
+  }
+ },
+ "divergence_b_c": {
+  "treatment_mean": 0.1457,
+  "control_mean": 0.1219,
+  "at_or_before_death_mean": 0.158,
+  "window_only_mean": 0.1355,
+  "deaths": [
+   {
+    "match": "en-live-playerview-2026-10-11 18-18-00",
+    "cid": "death_episode:197.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 18-25-16",
+    "cid": "death_episode:175.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.0118
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 18-25-16",
+    "cid": "death_episode:85.000",
+    "set": "treatment",
+    "change_type": "at_or_before_death",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 20-33-31",
+    "cid": "death_episode:151.000",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.1947
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 20-33-31",
+    "cid": "death_episode:180.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.2766
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 20-33-31",
+    "cid": "death_episode:199.500",
+    "set": "treatment",
+    "change_type": "at_or_before_death",
+    "pairs": 2,
+    "divergence": 0.0722
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 20-33-31",
+    "cid": "death_episode:37.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.2812
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-20-42",
+    "cid": "death_episode:152.000",
+    "set": "treatment",
+    "change_type": "window_only",
+    "pairs": 2,
+    "divergence": 0.1983
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-31-53",
+    "cid": "death_episode:208.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.172
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-37-47",
+    "cid": "death_episode:210.500",
+    "set": "treatment",
+    "change_type": "at_or_before_death",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-37-47",
+    "cid": "death_episode:301.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-37-47",
+    "cid": "death_episode:58.000",
+    "set": "treatment",
+    "change_type": "window_only",
+    "pairs": 2,
+    "divergence": 0.2628
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-57-30",
+    "cid": "death_episode:106.500",
+    "set": "treatment",
+    "change_type": "window_only",
+    "pairs": 2,
+    "divergence": 0.2077
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-57-30",
+    "cid": "death_episode:176.500",
+    "set": "treatment",
+    "change_type": "window_only",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-57-30",
+    "cid": "death_episode:244.000",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-57-30",
+    "cid": "death_episode:278.500",
+    "set": "treatment",
+    "change_type": "window_only",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-57-30",
+    "cid": "death_episode:308.000",
+    "set": "treatment",
+    "change_type": "at_or_before_death",
+    "pairs": 2,
+    "divergence": 0.5299
+   },
+   {
+    "match": "en-live-playerview-2026-10-11 22-57-30",
+    "cid": "death_episode:49.500",
+    "set": "treatment",
+    "change_type": "at_or_before_death",
+    "pairs": 2,
+    "divergence": 0.1879
+   },
+   {
+    "match": "en-live-playerview-2026-10-12 20-17-32",
+    "cid": "death_episode:179.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.0
+   },
+   {
+    "match": "en-live-playerview-2026-10-12 20-17-32",
+    "cid": "death_episode:221.000",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.1947
+   },
+   {
+    "match": "en-live-playerview-2026-10-12 20-17-32",
+    "cid": "death_episode:257.500",
+    "set": "control",
+    "change_type": "unchanged",
+    "pairs": 2,
+    "divergence": 0.2099
+   },
+   {
+    "match": "en-live-playerview-2026-10-12 20-17-32",
+    "cid": "death_episode:65.500",
+    "set": "treatment",
+    "change_type": "window_only",
+    "pairs": 2,
+    "divergence": 0.1444
+   }
+  ]
+ }
+}

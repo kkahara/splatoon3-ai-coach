@@ -1,0 +1,107 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_h",
+ "call_id": "B__2026_10_11_22_57_30_death_episode_278_500__r2",
+ "match": "en-live-playerview-2026-10-11 22-57-30",
+ "cid": "death_episode:278.500",
+ "set": "treatment",
+ "change_type": "window_only",
+ "arm": "B",
+ "repeat": 2,
+ "file": "B/2026_10_11_22_57_30_death_episode_278_500.user_prompt.txt",
+ "system": "system_prompt_B.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "attempt": 1,
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "535c06433aeda77b09974b2c22ad685fa61d51cb59aebf738e247c1cecafe908"
+ },
+ "executed_at": "2026-10-16T02:51:08+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 8.0 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 8.0 seconds after this death.\"}],\"evidence_used\":[\"primary_context.death_episode.death_to_active_again.value = 8.0\"],\"limitations\":[\"The available evidence does not support a behavioral recommendation for this moment.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 8.0 seconds after this death.",
+  "evidence_used": [
+   "primary_context.death_episode.death_to_active_again.value = 8.0"
+  ],
+  "limitations": [
+   "The available evidence does not support a behavioral recommendation for this moment."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.0 seconds after this death."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 8.0",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 5.6
+}

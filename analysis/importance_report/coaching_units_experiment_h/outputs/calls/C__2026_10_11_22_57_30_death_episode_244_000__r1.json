@@ -1,0 +1,133 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_h",
+ "call_id": "C__2026_10_11_22_57_30_death_episode_244_000__r1",
+ "match": "en-live-playerview-2026-10-11 22-57-30",
+ "cid": "death_episode:244.000",
+ "set": "control",
+ "change_type": "unchanged",
+ "arm": "C",
+ "repeat": 1,
+ "file": "C/2026_10_11_22_57_30_death_episode_244_000.user_prompt.txt",
+ "system": "system_prompt_C.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "attempt": 1,
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "7e51717e6f7a10914f65c51f6bf9cfdc7e9006d3fbbc6613c57b6603bfb81b6b"
+ },
+ "executed_at": "2026-10-16T02:48:23+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 11.0 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 11.0 seconds after this death.\"}],\"evidence_used\":[\"primary_context.death_episode.death_to_active_again.value = 11.0\",\"playback_clock.status = \\\"normal\\\"\"],\"limitations\":[\"What caused the death, your positioning, opponent location, teammate state, special usage, and fight outcome were not observed.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 11.0 seconds after this death.",
+  "evidence_used": [
+   "primary_context.death_episode.death_to_active_again.value = 11.0",
+   "playback_clock.status = \"normal\""
+  ],
+  "limitations": [
+   "What caused the death, your positioning, opponent location, teammate state, special usage, and fight outcome were not observed."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 11.0 seconds after this death."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [
+   {
+    "field": "limitations",
+    "match": "caused the death",
+    "text": "What caused the death, your positioning, opponent location, teammate state, special usage, and fight outcome were not observed.",
+    "classification": "limitation",
+    "counts_as_violation": false
+   }
+  ],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 11.0",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "playback_clock.status = \"normal\"",
+    "kind": "source_path_ref",
+    "path": "playback_clock.status",
+    "source_path": "playback_clock"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [
+   {
+    "rule": "R1",
+    "family": "causation",
+    "subcategory": "causation",
+    "field": "limitations",
+    "match": "caused",
+    "sentence": "What caused the death, your positioning, opponent location, teammate state, special usage, and fight outcome were not observed.",
+    "classification": "limitation",
+    "counts_as_violation": false
+   }
+  ],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 3.5
+}
