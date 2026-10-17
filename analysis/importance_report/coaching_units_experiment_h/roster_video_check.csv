@@ -1,0 +1,8 @@
+match,death,video_span,rater_observed,B_reading,C_reading,readings_vs_footage
+2026-10-11 22-57-30,death_episode:308.000,5:00-5:05 (300-305 s),3 against 4,before_death 3v4 @300 s,,B matches
+2026-10-11 22-57-30,death_episode:308.000,5:05-5:08 (305-308 s),2 against 4 (teammate down at ~5:05),at_death 3v4 @308 s,before_death 2v4 @306 s; at_death 2v4 @308 s,C matches; B misses the teammate down at ~5:05
+2026-10-11 22-57-30,death_episode:308.000,5:08 (308 s),1 against 4 (includes the local player's own death),,,not a pre-death count
+2026-10-11 20-33-31,death_episode:180.500,until 2:59,3 against 4,,,
+2026-10-11 20-33-31,death_episode:180.500,~2:59-3:00,4 against 4 briefly,,,
+2026-10-11 20-33-31,death_episode:180.500,~3:00 (180 s),2 against 4 (two down almost together),before_death 2v4 @180 s; at_death 2v4 @180.5 s,before_death 2v4 @180 s; at_death 2v4 @180.5 s,B and C match
+2026-10-11 20-33-31,death_episode:180.500,~3:01,1 against 4 (taken as the local player's own death at 180.5 s),,,not a pre-death count
