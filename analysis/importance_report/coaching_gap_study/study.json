@@ -1,0 +1,127 @@
+{
+ "schema_version": 1,
+ "git_head": "5ab9aceef5713cfcb1fea62f21284eb857d4e3ed",
+ "source": "Experiment H design.json; arm A (production, roster off) outputs",
+ "seed": 20261019,
+ "n_unselected": 4,
+ "population": {
+  "selected": [
+   [
+    "en-live-playerview-2026-10-11 18-18-00",
+    "death_episode:197.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 18-25-16",
+    "death_episode:175.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 20-33-31",
+    "death_episode:199.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-20-42",
+    "death_episode:152.000"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-31-53",
+    "death_episode:208.500"
+   ],
+   [
+    "en-live-playerview-2026-10-12 20-17-32",
+    "death_episode:65.500"
+   ]
+  ],
+  "unselected": [
+   [
+    "en-live-playerview-2026-10-11 18-25-16",
+    "death_episode:85.000"
+   ],
+   [
+    "en-live-playerview-2026-10-11 20-33-31",
+    "death_episode:151.000"
+   ],
+   [
+    "en-live-playerview-2026-10-11 20-33-31",
+    "death_episode:180.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 20-33-31",
+    "death_episode:37.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-37-47",
+    "death_episode:210.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-37-47",
+    "death_episode:301.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-37-47",
+    "death_episode:58.000"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-57-30",
+    "death_episode:106.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-57-30",
+    "death_episode:176.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-57-30",
+    "death_episode:244.000"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-57-30",
+    "death_episode:278.500"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-57-30",
+    "death_episode:308.000"
+   ],
+   [
+    "en-live-playerview-2026-10-11 22-57-30",
+    "death_episode:49.500"
+   ],
+   [
+    "en-live-playerview-2026-10-12 20-17-32",
+    "death_episode:179.500"
+   ],
+   [
+    "en-live-playerview-2026-10-12 20-17-32",
+    "death_episode:221.000"
+   ],
+   [
+    "en-live-playerview-2026-10-12 20-17-32",
+    "death_episode:257.500"
+   ]
+  ]
+ },
+ "draw_rule": "All production-selected deaths are included. From the unselected pool, random.Random(seed) shuffles the sorted list of matches that have an unselected death; the first N matches are kept and, in that order, rng.choice picks one death from each match's sorted unselected deaths.",
+ "watch_window_seconds": [
+  -20.0,
+  2.0
+ ],
+ "categories": {
+  "A": "Already available: a concrete field holds the fact for this death. a_location=view if it is in the CoachLlmView the model receives (e.g. death, clock, low_ink, map, related, importance); a_location=pipeline if it is in ScenarioContext or the vision manifest but not in the view (e.g. special, score, zone_control, map.ink, players).",
+  "B": "Derivable: computable from readings or fused state that exist today, with no new detector (e.g. special ready when the fight began, from special gauge readings and the death time).",
+  "C": "New detector required: visible on screen but not extracted (e.g. the weapon that splatted you, the splat feed).",
+  "D": "Not realistically observable: needs information the footage does not carry or substantially harder inference (e.g. off-screen teammate positions, opponent intent)."
+ },
+ "primary_rule": "Exactly one primary category per fact. When more than one applies, the category needing the least engineering work wins: A before B before C before D, and within A, view before pipeline.",
+ "evidence_rule": "A: field path and its value for this death. B: the existing readings or state it is computed from. C: the screen element. D: the reason.",
+ "themes": [
+  "special",
+  "objective",
+  "ink",
+  "map",
+  "opponent",
+  "teammate",
+  "positioning",
+  "timing",
+  "other"
+ ],
+ "decision_rule": "Counts are per missing fact, not per death. Actionable facts are A, B and C; D facts are recorded only. If A + B >= C, the next experiment targets the theme with the most A + B facts (ties: more A facts, then report both); within that theme the most common of A-view, A-pipeline and B decides its kind (ties: least work first): A-view -> prompt / claim-catalog experiment, A-pipeline -> view-extension experiment, B -> fusion feature. If C > A + B, scope a detector for the theme with the most C facts. Ranking review is flagged if unselected deaths average at least 1.0 more A + B missing facts per death than selected deaths (descriptive; no automatic change).",
+ "ranking_review_min_gap": 1.0
+}
