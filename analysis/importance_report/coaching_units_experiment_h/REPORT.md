@@ -1,5 +1,9 @@
 # Experiment H report: roster evidence in coaching
 
+**Status: closed 2026-10-16.** `coach.roster_evidence` stays off; the
+next research phase is the coaching gap study
+(`../coaching_gap_study/`).
+
 Decision rule applied exactly as pre-registered in `DESIGN.md`
 (thresholds unchanged). Directional only: one rater, small n. Any
 production change is a separate decision.
