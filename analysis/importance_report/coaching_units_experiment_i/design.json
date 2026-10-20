@@ -1,0 +1,274 @@
+{
+ "experiment": "I",
+ "title": "map-check coaching",
+ "status": "frozen",
+ "frozen_on": "2026-10-19",
+ "design_commit_parent": "3a9b6240cee6256d64752d504e6e0a97b3127c7d",
+ "arms": {
+  "A": "production (refreshed analysis, roster off), production system prompt",
+  "M": "production + map_awareness view block + map-check prompt section"
+ },
+ "model": {
+  "provider": "cursor",
+  "model": "gpt-5.6-luna"
+ },
+ "repeats": 2,
+ "calls": 88,
+ "derived_fact": {
+  "respawn_grace_seconds": 2.0,
+  "policy_threshold_seconds": 10.0,
+  "threshold_is_policy_not_estimated": true
+ },
+ "rating": {
+  "seed": 20261020,
+  "extra_column": "map_use (correct / incorrect / not_mentioned)"
+ },
+ "gates": {
+  "order": [
+   "safety",
+   "uptake",
+   "value"
+  ],
+  "uptake_is_not_success": true,
+  "safety": {
+   "map_rule_violations": 0,
+   "value_fidelity_errors": 0,
+   "blocked_max": "arm A",
+   "validator_hits_per_call_max": "arm A + 0.25"
+  },
+  "uptake": {
+   "min_mentions_eligible": 15,
+   "of": 30
+  },
+  "value": {
+   "noise_floor": 0.1364,
+   "noise_floor_source": "coaching_units_experiment_h/analysis.json q2.noise_floor",
+   "eligible_usefulness_m_minus_a_gt": 0.1364,
+   "all_usefulness_m_minus_a_ge": -0.1364,
+   "supported_rate_m_ge_a": true
+  }
+ },
+ "deaths": [
+  {
+   "match": "2026-10-11 18-18-00",
+   "scenario_id": "death_episode:197.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 123.0,
+   "seconds_back_in_play": 74.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 18-25-16",
+   "scenario_id": "death_episode:175.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 94.0,
+   "seconds_back_in_play": 81.5,
+   "map_checks_since_back_in_play": 1,
+   "seconds_since_alive_map_check": 39.5,
+   "eligible": false
+  },
+  {
+   "match": "2026-10-11 18-25-16",
+   "scenario_id": "death_episode:85.000",
+   "back_in_play_source": "match_start",
+   "back_in_play_time": 19.0,
+   "seconds_back_in_play": 66.0,
+   "map_checks_since_back_in_play": 1,
+   "seconds_since_alive_map_check": 43.0,
+   "eligible": false
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "scenario_id": "death_episode:151.000",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 132.0,
+   "seconds_back_in_play": 19.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "scenario_id": "death_episode:180.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 159.0,
+   "seconds_back_in_play": 21.5,
+   "map_checks_since_back_in_play": 1,
+   "seconds_since_alive_map_check": 7.0,
+   "eligible": false
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "scenario_id": "death_episode:199.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 188.5,
+   "seconds_back_in_play": 11.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "scenario_id": "death_episode:37.500",
+   "back_in_play_source": "match_start",
+   "back_in_play_time": 13.5,
+   "seconds_back_in_play": 24.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-20-42",
+   "scenario_id": "death_episode:152.000",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 148.0,
+   "seconds_back_in_play": 4.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": false
+  },
+  {
+   "match": "2026-10-11 22-31-53",
+   "scenario_id": "death_episode:208.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 190.5,
+   "seconds_back_in_play": 18.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "scenario_id": "death_episode:210.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 67.0,
+   "seconds_back_in_play": 143.5,
+   "map_checks_since_back_in_play": 1,
+   "seconds_since_alive_map_check": 46.5,
+   "eligible": false
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "scenario_id": "death_episode:301.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 220.0,
+   "seconds_back_in_play": 81.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "scenario_id": "death_episode:58.000",
+   "back_in_play_source": "match_start",
+   "back_in_play_time": 42.0,
+   "seconds_back_in_play": 16.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:106.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 73.5,
+   "seconds_back_in_play": 33.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:176.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 151.5,
+   "seconds_back_in_play": 25.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:244.000",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 187.5,
+   "seconds_back_in_play": 56.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:278.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 255.0,
+   "seconds_back_in_play": 23.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:308.000",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 287.5,
+   "seconds_back_in_play": 20.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:49.500",
+   "back_in_play_source": "match_start",
+   "back_in_play_time": 17.5,
+   "seconds_back_in_play": 32.0,
+   "map_checks_since_back_in_play": 1,
+   "seconds_since_alive_map_check": 16.0,
+   "eligible": false
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "scenario_id": "death_episode:179.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 160.0,
+   "seconds_back_in_play": 19.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "scenario_id": "death_episode:221.000",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 188.5,
+   "seconds_back_in_play": 32.5,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "scenario_id": "death_episode:257.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 229.5,
+   "seconds_back_in_play": 28.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": true
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "scenario_id": "death_episode:65.500",
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 58.5,
+   "seconds_back_in_play": 7.0,
+   "map_checks_since_back_in_play": 0,
+   "seconds_since_alive_map_check": null,
+   "eligible": false
+  }
+ ],
+ "eligible": 15
+}

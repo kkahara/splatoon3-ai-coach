@@ -1,8 +1,9 @@
-# Experiment I: map-check coaching (pre-registration DRAFT)
+# Experiment I: map-check coaching (pre-registration)
 
-**Status: draft for review. Nothing is frozen, built or called until the
-rater approves this document.** After approval, gates and thresholds are
-not adjusted after outputs are seen, including results close to a boundary.
+**Status: frozen 2026-10-19 after rater approval (stop point 1).** Nothing
+has been built or called. Gates and thresholds are not adjusted after
+outputs are seen, including results close to a boundary. Machine-readable:
+`design.json`.
 
 Research only. Production code, prompts, claim catalog and config are
 unchanged. Origin: coaching gap study (`../coaching_gap_study/GAP_STUDY.md`,
@@ -45,10 +46,14 @@ Scenario or ScenarioContext change.
 - `seconds_since_alive_map_check`: death time - start of the last such
   overlay, or null.
 - **Eligible:** `map_checks_since_back_in_play == 0` and
-  `seconds_back_in_play >= 10.0`. The 10 s threshold is set from the
-  rater's gap sheet (prior data, not experiment output): the rater called
-  "no map check" at 11 s, 19 s and 74.5 s back in play; under 10 s is
-  mostly super jump and travel.
+  `seconds_back_in_play >= 10.0`.
+- **Policy threshold:** 10 seconds continuously back in active play
+  without a voluntary map check. The threshold is fixed for Experiment I
+  and is not being estimated or validated by this experiment. It was
+  chosen with knowledge of the gap sheet (the rater called "no map check"
+  at 11 s, 19 s and 74.5 s back in play), so a positive result is evidence
+  that surfacing this coaching unit is valuable under a fixed 10 s policy,
+  not evidence that 10 s is the right threshold.
 - Unknown map observability (`map_check_status` not `observed` /
   `not_observed`, or episode map observability not `sufficient`): block is
   null; no map-check coaching.
@@ -160,7 +165,25 @@ missing_context (1-5), supported (yes/no), **map_use** (correct /
 incorrect / not_mentioned), notes. Ratings sealed in a commit before the
 key is opened.
 
+## Noise floor dependency
+
+No third arm. The usefulness noise floor is Experiment H's measured value,
+0.1364 (`coaching_units_experiment_h/analysis.json`, `q2.noise_floor`;
+reported there as 0.136; mean over its 11 control deaths of |mean usefulness B - mean
+usefulness C|, two byte-identical arms, 2 repeats each). Reusing it
+assumes the rating procedure is unchanged from Experiment H: same single
+rater, same 1-5 usefulness scale and column wording
+(`coaching_units.RATING_COLUMNS`), same model (cursor `gpt-5.6-luna`), one
+death per call, 2 repeats per arm, and a blind shuffled sheet rated before
+the key is opened. If any of these changes before rating, the floor no
+longer applies and the deviation is recorded; the threshold is not
+re-derived after outputs are seen.
+
 ## Decision rule
+
+Gates are evaluated in order: safety, then uptake, then value. **Uptake is
+not success by itself:** a prompt that mechanically forces map advice
+could reach 15 of 30. Value (rule 3) is decisive.
 
 1. **Safety gate (arm M).** 0 map-rule violations; 0 value-fidelity
    errors; blocked outputs no more than arm A; validator hits per call no
@@ -168,10 +191,10 @@ key is opened.
 2. **Q1 uptake.** On eligible deaths, at least 15 of 30 M outputs mention
    the map check. Failure: the wording did not take effect; production
    unchanged; investigate the prompt section.
-3. **Q2 value.** On eligible deaths, mean usefulness M - A exceeds 0.136
+3. **Q2 value.** On eligible deaths, mean usefulness M - A exceeds 0.1364
    (the Experiment H noise floor: same rater, model, deaths and scale);
    M's supported rate is not lower than A's on all 22 deaths; and over all
-   22 deaths mean usefulness M - A is at least -0.136 (no harm).
+   22 deaths mean usefulness M - A is at least -0.1364 (no harm).
 4. **Outcomes.**
    - Passes 1, 2 and 3: recommend a production change (separate
      decision: derived field in the coaching layer, prompt section, claim).
@@ -184,7 +207,7 @@ key is opened.
 
 ## Stop points
 
-1. This design. Review and approval (then frozen; `design.json`).
+1. This design. Review and approval (then frozen; `design.json`). Done.
 2. Tool, tests, built inputs and dry run, sealed. Go-ahead before any call.
 3. Outputs, automatic summary, blind sheet.
 4. Sealed ratings, then key and `analyze` report.
