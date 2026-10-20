@@ -82,6 +82,7 @@ request observed at five-minute resolution, not the last browser page view.
 | `review_gameplay_alignment.py` | Review to gameplay clock alignment diagnostics per declared pair (`--pair REVIEW GAMEPLAY`, repeatable): calibration quality, roster-X onset and local DEATH interval residuals under the contract's fixed association rule, and the replicated `delta = 0` test. `--gate` (with `--negative-control REVIEW GAMEPLAY`) evaluates the pre-registered held-out gate. Never reads SPECIAL_USE |
 | `map_ink_geometry_validate.py` | Multi-frame map ink geometry validation (needs local paint-map references) |
 | `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
+| `game_tape_probe.py` | Prototype: end-of-match "GAME!" tape mask + per-frame features over videos (match-end evidence) |
 | `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
 | `final30_score_survey.py` | Read-only: Splat Zones score facts and counter stability at every final-30 death, with contexts rebuilt in memory (stored contexts may predate score context) |
 | `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
