@@ -1,0 +1,40 @@
+death,source,fact,category,a_location,theme,evidence,note
+2026-10-11 18-18-00 @197.5,fact_1,Was riding the tower (mostly alone) and its progress advanced while he rode,C,,objective,Tower position and tower progress counter on the HUD; no tower-control detector (score evidence is Splat Zones only),
+2026-10-11 18-18-00 @197.5,fact_2,Numbers went 3v4 then back to 3v3 just before the death; he stayed on the tower without an advantage,A,pipeline,other,roster: ScenarioContext.players.trajectory 193.0 3v4; 194.0 3v3; at_death 3v3 (roster_evidence=false keeps it out of the view),matches rater
+2026-10-11 18-18-00 @197.5,fact_3,Roller was above him behind a wall within flick range,D,,opponent,Opponent 3D position relative to the player; not extractable without scene understanding,split from fact_3
+2026-10-11 18-18-00 @197.5,fact_3,No map check before the death,A,view,map,map.seconds_since_map_check_before_death = 75.0; map_check_status observed,split from fact_3; claim exists but model did not use it
+2026-10-11 18-25-16 @175.5,fact_1,A splat about 5 s before the death made it 3v3,A,pipeline,other,roster: players.trajectory 169.0 3v4; 171.5 3v3; at_death 3v3,matches rater
+2026-10-11 18-25-16 @175.5,fact_2,After the splat he moved into opponent territory covered in opponent ink,C,,ink,Local ink around the player / player map position; map.ink holds only whole-map fractions while the map is open,
+2026-10-11 18-25-16 @175.5,fact_3,Two opponents nearby and no ally close when he was splatted,D,,opponent,Opponent and ally positions around the player; not extractable,split from fact_3
+2026-10-11 18-25-16 @175.5,fact_3,No map check before the death,A,view,map,map.seconds_since_map_check_before_death = 39.5,split from fact_3
+2026-10-11 18-25-16 @85.0,fact_1,Used his special earlier without getting a splat,B,,special,Special gauge readings (vision manifest frame_results) show the drain before the scenario window; ScenarioContext.special covers only the window,split from fact_1; evidence contract forbids presenting gauge readings as usage events: needs an explicit contract decision
+2026-10-11 18-25-16 @85.0,fact_1,An opponent stayed submerged in an ink patch on the bridge for about 5 s,D,,opponent,Submerged opponent; not reliably visible,split from fact_1
+2026-10-11 18-25-16 @85.0,fact_2,Did not deal with the opponent deeper in his own territory,D,,opponent,Opponent positions on the map; not extracted from the overlay,split from fact_2
+2026-10-11 18-25-16 @85.0,fact_2,Did not check the map,A,view,map,map.seconds_since_map_check_before_death = 43.0,split from fact_2
+2026-10-11 18-25-16 @85.0,fact_3,Splatted at close range by a close-range weapon while his weapon has longer range,C,,opponent,Splatter's weapon on the death (splatted-by) screen; not read,
+2026-10-11 20-33-31 @151.0,fact_1,It was 2 against 4,A,pipeline,other,roster: players.at_death 4v3; trajectory 143.0 2v4; 145.0 2v3; 147.0 3v3; 150.0 4v3,VALUE DISAGREES with rater (2v4 vs 4v3 at death): check footage
+2026-10-11 20-33-31 @151.0,fact_1,Special was not ready,A,view,special,special.nearest_before_anchor not_ready fill 0.71 at 151.0,split from fact_1; view also says last ready 0.5 s before (gauge flicker)
+2026-10-11 20-33-31 @151.0,fact_1,Rainmaker progress did not change while he was out,C,,objective,Rainmaker counters on the HUD; not read (score evidence is Splat Zones only),split from fact_1
+2026-10-11 20-33-31 @151.0,fact_2,An opponent activated Ink Vac just before he attacked and it absorbed his bomb,C,,opponent,Opponent special activation on screen; not extracted,
+2026-10-11 20-33-31 @151.0,fact_3,A second opponent came from behind a wall,D,,opponent,Opponent position; not extractable,split from fact_3
+2026-10-11 20-33-31 @151.0,fact_3,Did not check the map,A,view,map,map.seconds_since_map_check_before_death = 18.0 (respawn map of the previous death),split from fact_3
+2026-10-11 20-33-31 @199.5,fact_1,3 against 4 then 2 against 4 right before the death,A,pipeline,other,roster: players.trajectory 195.0 3v4; 200.0 1v4; at_death 3v4,partial: the 2v4 step is not sampled before the death
+2026-10-11 20-33-31 @199.5,fact_2,Did not check the map,A,view,map,map.seconds_since_map_check_before_death = 14.0 (respawn map),split from fact_2
+2026-10-11 20-33-31 @199.5,fact_2,Left the high platform to attack the Rainmaker,D,,positioning,Player elevation / movement intent; not extractable,split from fact_2
+2026-10-11 20-33-31 @199.5,fact_3,Splatted by a Splat Bomb,C,,opponent,Splatter's weapon / sub on the death screen; not read,
+2026-10-11 22-20-42 @152.0,fact_1,Super jumped to an ally next to a large patch of opponent ink and was splatted right after landing,C,,positioning,Super jump and its target are on screen; not detected (the time back in play alone would be B),
+2026-10-11 22-20-42 @152.0,fact_2,Checked the map while respawning before this death,A,view,map,map.map_checked_while_dead = true; seconds_since_map_check_before_death = 3.5,
+2026-10-11 22-20-42 @152.0,fact_3,Not wearing Stealth Jump,D,,other,Gear is not shown during play; also outside the evidence contract (no gear blame),
+2026-10-11 22-31-53 @208.5,fact_1,The opponent knew where he was; he beat the first opponent but a second and third came right after,D,,opponent,Opponent awareness and arrival order; not extractable,
+2026-10-11 22-31-53 @208.5,fact_2,4 against 4,A,pipeline,other,roster: players.trajectory 205.0 4v4; at_death 4v3 (his own splat 0.5 s before),matches rater before his splat
+2026-10-11 22-31-53 @208.5,fact_3,Died with about 10 s left,A,view,timing,clock.display 0:12,already in the current coaching
+2026-10-11 22-37-47 @301.5,fact_1,39 s left in the game,A,view,timing,clock.display 0:40,not in the current coaching (final-30s claim does not apply at 40 s)
+2026-10-11 22-37-47 @301.5,fact_2,3 against 4,A,pipeline,other,roster: players.at_death 4v4; 302.5 3v4 (includes his own death),timing differs from rater by about 1 s
+2026-10-11 22-37-47 @301.5,fact_3,Died just as his Kraken Royale wore off,B,,special,ScenarioContext.special.observations fill 0.71 at 293.5 draining to 0.10 at 301.5 after ready,evidence contract forbids presenting gauge readings as usage events: needs an explicit contract decision
+2026-10-11 22-57-30 @308.0,fact_1,9 s left in the game,A,view,timing,clock.display 0:09,already in the current coaching
+2026-10-11 22-57-30 @308.0,fact_2,Losing on count 17 to 2,A,view,objective,score.ally_remaining 17; score.opponent_remaining 2; claim death_while_behind_in_count available,claim exists but model did not use it
+2026-10-11 22-57-30 @308.0,fact_3,2 against 4,A,pipeline,other,roster: players.trajectory 306.0 2v4; at_death 2v4,matches rater (footage check in Experiment H)
+2026-10-12 20-17-32 @65.5,fact_1,2 against 4 two seconds before the death,A,pipeline,other,roster: players.trajectory 62.5 2v4; 65.0 3v4; at_death 3v4,matches rater at 63.5 s
+2026-10-12 20-17-32 @65.5,fact_2,Flanked by an opponent,D,,opponent,Opponent approach direction; not extractable,split from fact_2
+2026-10-12 20-17-32 @65.5,fact_2,Splatted only about 5 s after coming back into play,B,,timing,Previous episode active_again_time (ScenarioContext of death_episode:49.000) to this death time,split from fact_2
+2026-10-12 20-17-32 @65.5,fact_3,Special was not ready,A,view,special,special.nearest_before_anchor not_ready fill 0.10,
