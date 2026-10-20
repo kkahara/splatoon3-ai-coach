@@ -1,0 +1,183 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_i",
+ "call_id": "M__2026_10_11_22_57_30_death_episode_308_000__r2",
+ "match": "en-live-playerview-2026-10-11 22-57-30",
+ "cid": "death_episode:308.000",
+ "eligible": true,
+ "arm": "M",
+ "repeat": 2,
+ "file": "M/2026_10_11_22_57_30_death_episode_308_000.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "79be6ac306b8e36341147dea08451aa118a1bc9d",
+ "run_commit": "2d47e362df9b405049804fec45fd3fb4d1225d74",
+ "attempt": 1,
+ "system_sha256": "73f6faa6e60e2b9544baf9ae24f6c6b7114ea491acf8ef8a677077da84158094",
+ "user_prompt_sha256": "5e1ba68daa04bca92cb8979938a286be870eae20647a690dc15de56553fdd303",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "31c952bc7c1025615572f6330907fe3488d25311d7d6ac5f69be8b6f583a7c44"
+ },
+ "executed_at": "2026-10-20T06:50:36+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 17.5 seconds after this death. This death happened with only 0:09 left in the match. No map check was observed in the 20.5 seconds since you were back in play.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 17.5 seconds after this death.\"},{\"claim_id\":\"death_final_30s\",\"level\":\"A\",\"sentence\":\"This death happened with only 0:09 left in the match.\"},{\"claim_id\":\"no_map_check_since_back_in_play\",\"level\":\"A\",\"sentence\":\"No map check was observed in the 20.5 seconds since you were back in play.\"}],\"evidence_used\":[\"primary_context.death_episode.death_to_active_again.value = 17.5\",\"game_clock_samples[label=death].seconds_remaining = 9\",\"game_clock_samples[label=death].display = \\\"0:09\\\"\",\"primary_context.map_awareness.seconds_back_in_play = 20.5\",\"primary_context.map_awareness.map_checks_since_back_in_play = 0\"],\"limitations\":[\"The evidence does not identify why the death happened.\",\"A map check was observed 21.5 seconds before the death, but map-check timing does not establish map-usage quality.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_out_of_play\",\"death_final_30s\",\"no_map_check_since_back_in_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 17.5 seconds after this death. This death happened with only 0:09 left in the match. No map check was observed in the 20.5 seconds since you were back in play.",
+  "evidence_used": [
+   "primary_context.death_episode.death_to_active_again.value = 17.5",
+   "game_clock_samples[label=death].seconds_remaining = 9",
+   "game_clock_samples[label=death].display = \"0:09\"",
+   "primary_context.map_awareness.seconds_back_in_play = 20.5",
+   "primary_context.map_awareness.map_checks_since_back_in_play = 0"
+  ],
+  "limitations": [
+   "The evidence does not identify why the death happened.",
+   "A map check was observed 21.5 seconds before the death, but map-check timing does not establish map-usage quality."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "death_final_30s",
+   "no_map_check_since_back_in_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 17.5 seconds after this death."
+   },
+   {
+    "claim_id": "death_final_30s",
+    "level": "A",
+    "sentence": "This death happened with only 0:09 left in the match."
+   },
+   {
+    "claim_id": "no_map_check_since_back_in_play",
+    "level": "A",
+    "sentence": "No map check was observed in the 20.5 seconds since you were back in play."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 17.5",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "game_clock_samples[label=death].seconds_remaining = 9",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].seconds_remaining",
+    "source_path": "game_clock_samples[label=death]"
+   },
+   {
+    "text": "game_clock_samples[label=death].display = \"0:09\"",
+    "kind": "source_path_ref",
+    "path": "game_clock_samples[label=death].display",
+    "source_path": "game_clock_samples[label=death]"
+   },
+   {
+    "text": "primary_context.map_awareness.seconds_back_in_play = 20.5",
+    "kind": "unresolved",
+    "path": "primary_context.map_awareness.seconds_back_in_play",
+    "reason": "unknown_block"
+   },
+   {
+    "text": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+    "kind": "unresolved",
+    "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+    "reason": "unknown_block"
+   }
+  ],
+  "unresolved_evidence_paths": [
+   {
+    "text": "primary_context.map_awareness.seconds_back_in_play = 20.5",
+    "kind": "unresolved",
+    "path": "primary_context.map_awareness.seconds_back_in_play",
+    "reason": "unknown_block"
+   },
+   {
+    "text": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+    "kind": "unresolved",
+    "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+    "reason": "unknown_block"
+   }
+  ],
+  "claim_rule_hits": [],
+  "integrity_hits": [
+   {
+    "rule": "R5",
+    "check": "map_absence",
+    "field": "assessment",
+    "text": "No map check was observed in the 20.5 seconds since you were back in play.",
+    "counts_as_violation": true,
+    "view_state": "observed"
+   },
+   {
+    "rule": "R5",
+    "check": "map_absence",
+    "field": "claims",
+    "text": "No map check was observed in the 20.5 seconds since you were back in play.",
+    "counts_as_violation": true,
+    "view_state": "observed"
+   }
+  ],
+  "blocked": false,
+  "validation_status": "contains_unverified_wording"
+ },
+ "elapsed_seconds": 6.8
+}

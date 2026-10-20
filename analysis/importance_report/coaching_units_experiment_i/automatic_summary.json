@@ -1,0 +1,148 @@
+{
+ "decision_rule_applied": false,
+ "text_scope": "assessment + recommendations + claim sentences",
+ "coverage": {
+  "missing": [],
+  "duplicate": [],
+  "unexpected": []
+ },
+ "arms": {
+  "A": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 1,
+    "validator_hits_production_per_call": 0.023,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 1,
+    "validator_hits_adjusted_per_call": 0.023,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "eligible": {
+    "calls": 28,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 1,
+    "validator_hits_production_per_call": 0.036,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 1,
+    "validator_hits_adjusted_per_call": 0.036,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "not_eligible": {
+    "calls": 16,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 0,
+    "validator_hits_production_per_call": 0.0,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 0,
+    "validator_hits_adjusted_per_call": 0.0,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "null_block": {
+    "calls": 2,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 0,
+    "validator_hits_production_per_call": 0.0,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 0,
+    "validator_hits_adjusted_per_call": 0.0,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   }
+  },
+  "M": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 83,
+    "validator_hits_production_per_call": 1.886,
+    "r5_window_exempt": 51,
+    "validator_hits_adjusted": 32,
+    "validator_hits_adjusted_per_call": 0.727,
+    "map_mentions": 28,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "eligible": {
+    "calls": 28,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 81,
+    "validator_hits_production_per_call": 2.893,
+    "r5_window_exempt": 51,
+    "validator_hits_adjusted": 30,
+    "validator_hits_adjusted_per_call": 1.071,
+    "map_mentions": 28,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "not_eligible": {
+    "calls": 16,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 2,
+    "validator_hits_production_per_call": 0.125,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 2,
+    "validator_hits_adjusted_per_call": 0.125,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "null_block": {
+    "calls": 2,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 0,
+    "validator_hits_production_per_call": 0.0,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 0,
+    "validator_hits_adjusted_per_call": 0.0,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   }
+  }
+ },
+ "eligible_m_map_mentions": {
+  "mentions": 28,
+  "of": 28,
+  "pre_registered_denominator": 28
+ }
+}

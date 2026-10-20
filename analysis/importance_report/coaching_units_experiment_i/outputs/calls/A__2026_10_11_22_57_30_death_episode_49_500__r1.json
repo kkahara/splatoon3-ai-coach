@@ -1,0 +1,117 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_i",
+ "call_id": "A__2026_10_11_22_57_30_death_episode_49_500__r1",
+ "match": "en-live-playerview-2026-10-11 22-57-30",
+ "cid": "death_episode:49.500",
+ "eligible": false,
+ "arm": "A",
+ "repeat": 1,
+ "file": "A/2026_10_11_22_57_30_death_episode_49_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "79be6ac306b8e36341147dea08451aa118a1bc9d",
+ "run_commit": "2d47e362df9b405049804fec45fd3fb4d1225d74",
+ "attempt": 1,
+ "system_sha256": "894fa0d0736c6cb5fbdd688f6965f880dbe7c16645c032533cd2801834bd18bd",
+ "user_prompt_sha256": "3677ff87ed2deb461901a05a2c9a491ad492d63f706c7bdd3d780f68519ec03b",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "d727a496480c9724d6252ce4647019445186d8c7e89d1dea9da8df8db1250485"
+ },
+ "executed_at": "2026-10-20T06:46:29+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 9.0 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.0 seconds after this death.\"}],\"evidence_used\":[\"primary_context.death_episode.death_to_active_again.value = 9.0\",\"playback_clock.status = \\\"normal\\\"\"],\"limitations\":[\"The evidence does not establish why the death happened or support a specific behavioral recommendation.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.0 seconds after this death.",
+  "evidence_used": [
+   "primary_context.death_episode.death_to_active_again.value = 9.0",
+   "playback_clock.status = \"normal\""
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened or support a specific behavioral recommendation."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.0 seconds after this death."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 9.0",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   },
+   {
+    "text": "playback_clock.status = \"normal\"",
+    "kind": "source_path_ref",
+    "path": "playback_clock.status",
+    "source_path": "playback_clock"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 3.5
+}

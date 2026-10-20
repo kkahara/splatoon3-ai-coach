@@ -1,0 +1,131 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_i",
+ "call_id": "A__2026_10_11_22_20_42_death_episode_152_000__r1",
+ "match": "en-live-playerview-2026-10-11 22-20-42",
+ "cid": "death_episode:152.000",
+ "eligible": false,
+ "arm": "A",
+ "repeat": 1,
+ "file": "A/2026_10_11_22_20_42_death_episode_152_000.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "79be6ac306b8e36341147dea08451aa118a1bc9d",
+ "run_commit": "2d47e362df9b405049804fec45fd3fb4d1225d74",
+ "attempt": 1,
+ "system_sha256": "894fa0d0736c6cb5fbdd688f6965f880dbe7c16645c032533cd2801834bd18bd",
+ "user_prompt_sha256": "f5c3859e16e4bfc209e9bf869e08467812cf064dd2195045645a5fe467e975ab",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "680852351cd639a3e1e887f63a8fd55a36bd65f5c60a78e3f2dbb1430dab4785"
+ },
+ "executed_at": "2026-10-20T06:44:33+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"Your previous death was 11.5 seconds earlier. You were out of play for 8.0 seconds after this death. Back-to-back deaths keep you out of play for longer.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_quick_redeath\",\n      \"level\": \"A\",\n      \"sentence\": \"Your previous death was 11.5 seconds earlier.\"\n    },\n    {\n      \"claim_id\": \"death_out_of_play\",\n      \"level\": \"A\",\n      \"sentence\": \"You were out of play for 8.0 seconds after this death.\"\n    },\n    {\n      \"claim_id\": \"principle_redeath_out_of_play\",\n      \"level\": \"B\",\n      \"sentence\": \"Back-to-back deaths keep you out of play for longer.\"\n    }\n  ],\n  \"evidence_used\": [\n    \"durations.time_since_previous_death.value = 11.5\",\n    \"primary_context.death_episode.death_to_active_again.value = 8.0\"\n  ],\n  \"limitations\": [\n    \"The evidence does not establish why the death happened or assess positioning, opponent location, teammate state, or fight outcome.\"\n  ],\n  \"recommendations\": [\n    \"After being splatted, take a moment to reset before re-engaging.\"\n  ],\n  \"selected_claim_ids\": [\n    \"death_quick_redeath\",\n    \"death_out_of_play\",\n    \"principle_redeath_out_of_play\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 11.5 seconds earlier. You were out of play for 8.0 seconds after this death. Back-to-back deaths keep you out of play for longer.",
+  "evidence_used": [
+   "durations.time_since_previous_death.value = 11.5",
+   "primary_context.death_episode.death_to_active_again.value = 8.0"
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened or assess positioning, opponent location, teammate state, or fight outcome."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "death_out_of_play",
+   "principle_redeath_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 11.5 seconds earlier."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.0 seconds after this death."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "durations.time_since_previous_death.value = 11.5",
+    "kind": "source_path_ref",
+    "path": "durations.time_since_previous_death.value",
+    "source_path": "durations.time_since_previous_death"
+   },
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 8.0",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 6.5
+}

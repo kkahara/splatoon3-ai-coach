@@ -1,0 +1,145 @@
+{
+ "experiment": "coaching_units_experiment_i",
+ "checked_at": "2026-10-20T06:42:54+00:00",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "79be6ac",
+ "passed": true,
+ "checks": [
+  {
+   "name": "provider_model",
+   "ok": true,
+   "problems": [],
+   "detail": "cursor/gpt-5.6-luna"
+  },
+  {
+   "name": "repository_state",
+   "ok": true,
+   "problems": [],
+   "detail": {
+    "head_commit": "2d47e362df9b405049804fec45fd3fb4d1225d74",
+    "seal_commit": "79be6ac306b8e36341147dea08451aa118a1bc9d",
+    "seal_is_ancestor_of_head": true,
+    "run_tooling_committed_clean": true,
+    "porcelain": [
+     "?? docs/follow-ups/"
+    ],
+    "problems": []
+   }
+  },
+  {
+   "name": "seal_bytes_and_file_set",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "design_hash",
+   "ok": true,
+   "problems": [],
+   "detail": "ee71a493b00e84ddc2a8a0d2053fccf6897f93cecdfdf60efb1d146a697ae600"
+  },
+  {
+   "name": "derived_facts_reproduce_design",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "rebuild_byte_equal_current_production",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "production_roster_evidence_off",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "frozen_invariants",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "sealed_m_differs_only_by_authorized_additions",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "counts_22_14_8_88",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "amendment_2_null_block_20_33_31_199_5",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "output_destination_empty",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  }
+ ],
+ "hashes": {
+  "design.json": "87d12127616e5f369c0dca96236469b7a36a28c04cc4566ef95c5b7fd22b067d",
+  "DESIGN.md": "e26194dd0f0807e53e7e7fe0108bfc00af3df6f030d3fe8dd46a505e1468841c",
+  "inputs_aggregate": "3b1915979510366f5b0c588a3738b9d03d19d14f6e7a0343f30dbe6a7a4391c5",
+  "inputs": {
+   "A/2026_10_11_18_18_00_death_episode_197_500.user_prompt.txt": "be2dfe9fcbb6937bf37f38dd06e1677313334faa9b65a942cf5d6c521470ff70",
+   "A/2026_10_11_18_25_16_death_episode_175_500.user_prompt.txt": "3baa903b582b7ede2b4bf37e79709f7731e3a7f2a36f0fcf8e33beadddbba650",
+   "A/2026_10_11_18_25_16_death_episode_85_000.user_prompt.txt": "8063c728e9a4504380c6e9a33a9b655bc0af7840b6163bb6eacfc4989b1e40dc",
+   "A/2026_10_11_20_33_31_death_episode_151_000.user_prompt.txt": "c4f5291c6335df52f8f8880685b600f19d07ad9c49eeb05f250b1647ddbb8d5c",
+   "A/2026_10_11_20_33_31_death_episode_180_500.user_prompt.txt": "2f71edb6a85c02423e885f607bbd776856bdb0a93e60f5378bdc0ea14250c46b",
+   "A/2026_10_11_20_33_31_death_episode_199_500.user_prompt.txt": "7a1968255408ffe6352371d360e645a42d98873455aa88e8674f3e2551d4df4b",
+   "A/2026_10_11_20_33_31_death_episode_37_500.user_prompt.txt": "a59280795c9666fef4b2848683444ed5caedb58dc02d909dedfb8a2375ccb61b",
+   "A/2026_10_11_22_20_42_death_episode_152_000.user_prompt.txt": "f5c3859e16e4bfc209e9bf869e08467812cf064dd2195045645a5fe467e975ab",
+   "A/2026_10_11_22_31_53_death_episode_208_500.user_prompt.txt": "a2408970483618242b7d9f4b8d327fa692f379526f98540eeebb6cf1ae015f89",
+   "A/2026_10_11_22_37_47_death_episode_210_500.user_prompt.txt": "5deeacc1735d3771450961c33650cb7c313c43918e6a6a5ac03b03e1ee887b98",
+   "A/2026_10_11_22_37_47_death_episode_301_500.user_prompt.txt": "04563ffe25e0c69682b0c45a7cca0bbee89ad2d1591d0e6db494827e188cc0e3",
+   "A/2026_10_11_22_37_47_death_episode_58_000.user_prompt.txt": "0565431792c28803bea1011b8ce17ac7e5477fe57d01ab1eacc499593a5d15d5",
+   "A/2026_10_11_22_57_30_death_episode_106_500.user_prompt.txt": "e39213c51f8bbc999a09557fbfc51f184bd3e90c5d878a058532efd8b8776d3e",
+   "A/2026_10_11_22_57_30_death_episode_176_500.user_prompt.txt": "8b834120ec576b376d73c44261b86858826a4c449b00dc67f6c5de2e372472c6",
+   "A/2026_10_11_22_57_30_death_episode_244_000.user_prompt.txt": "fb67746140e8b8f947fc32d18dffe7a8470afa5aac28d2610508da418eca9463",
+   "A/2026_10_11_22_57_30_death_episode_278_500.user_prompt.txt": "e50f3f1949c18bb008dec5901bf2ee561444db516e1cb8ed58b4625943a51179",
+   "A/2026_10_11_22_57_30_death_episode_308_000.user_prompt.txt": "99267a5d665c5420608663ea6d2fc988464c5b8f0d6550ae48f843a61d9c1b73",
+   "A/2026_10_11_22_57_30_death_episode_49_500.user_prompt.txt": "3677ff87ed2deb461901a05a2c9a491ad492d63f706c7bdd3d780f68519ec03b",
+   "A/2026_10_12_20_17_32_death_episode_179_500.user_prompt.txt": "a41ddff2ab58b223b32a3bbcd279de7feb279e8486ec38f106645fbe02bd5583",
+   "A/2026_10_12_20_17_32_death_episode_221_000.user_prompt.txt": "91048307c79e4405eaf153247dfd694ec6a27874c11fe211c0046a0137383355",
+   "A/2026_10_12_20_17_32_death_episode_257_500.user_prompt.txt": "5f5e885e11e8d25d250f1500ec02c6fbcca510ad3fdfcf8c64e83f0fb0bd12f5",
+   "A/2026_10_12_20_17_32_death_episode_65_500.user_prompt.txt": "325de914b0dd8809ab6615775d0b6449c7d35f732e56bde0342c70ac11c17d87",
+   "M/2026_10_11_18_18_00_death_episode_197_500.user_prompt.txt": "291cdfc295a5b696a9ffc781f0d017407457d2a8fcd739946a8907f1acff4168",
+   "M/2026_10_11_18_25_16_death_episode_175_500.user_prompt.txt": "b79ffd1fd45831ee0a237c9e001f0dc70c5843b2b238a46de5696c140aa78686",
+   "M/2026_10_11_18_25_16_death_episode_85_000.user_prompt.txt": "e97f2cccec28477ca438b69d2e83add179dd02459c56ba6f62f673ea2f7ec646",
+   "M/2026_10_11_20_33_31_death_episode_151_000.user_prompt.txt": "0ba4854bd0c1797483a8bc016a40d180625c295dfce8c8ba8946fd273bddf8ac",
+   "M/2026_10_11_20_33_31_death_episode_180_500.user_prompt.txt": "6c7879a86818595ae734a468fa7cdbd705fc54ff1f5953f00426ac3f378efb5a",
+   "M/2026_10_11_20_33_31_death_episode_199_500.user_prompt.txt": "0b62256aeb660b21bf09f21a84bd2546b2d7cfe3aefb3259655223eaf9af113a",
+   "M/2026_10_11_20_33_31_death_episode_37_500.user_prompt.txt": "2124540170bd1f6e6d591c6769e12a26c747976c5aa57fb0ae8a63391d9a5bf8",
+   "M/2026_10_11_22_20_42_death_episode_152_000.user_prompt.txt": "982a2ed9c260bea0df7d18cff50cdda38fab57fe1afd21b0f3314cfaa28dab32",
+   "M/2026_10_11_22_31_53_death_episode_208_500.user_prompt.txt": "fb3349b92638d17423ca889ea1419e47c73c2733e0138891ce2c70fa4a5ec0bd",
+   "M/2026_10_11_22_37_47_death_episode_210_500.user_prompt.txt": "8c89df34f61d3946ba970c5a98a78154c9e2f26976c2250e9dc5666bca1a20b5",
+   "M/2026_10_11_22_37_47_death_episode_301_500.user_prompt.txt": "ed3e0a4c712d1b1321b2d7038f70a71ba0f8ceee69c194750846c1c428ead771",
+   "M/2026_10_11_22_37_47_death_episode_58_000.user_prompt.txt": "4b1da1be0773a06da8b299894d77af26b483fbf9b405b72ccb192accc3d8d589",
+   "M/2026_10_11_22_57_30_death_episode_106_500.user_prompt.txt": "6677e80d8f03c297f45d86884d36d2b7d74f6fe0a45910202f230fdf903c0d2b",
+   "M/2026_10_11_22_57_30_death_episode_176_500.user_prompt.txt": "7448247a569b68cb20739974a9447e112ad506b6288cc65e5d8805ba3fac2b2d",
+   "M/2026_10_11_22_57_30_death_episode_244_000.user_prompt.txt": "c8a159323656209bb9a42f2048c826a220634d7a777e0b9a7009cfb19d213371",
+   "M/2026_10_11_22_57_30_death_episode_278_500.user_prompt.txt": "4698a837bec073f9773a14044002fdce99bc8bdb036a62eee1f783b16f87a081",
+   "M/2026_10_11_22_57_30_death_episode_308_000.user_prompt.txt": "5e1ba68daa04bca92cb8979938a286be870eae20647a690dc15de56553fdd303",
+   "M/2026_10_11_22_57_30_death_episode_49_500.user_prompt.txt": "be32fe4861f19712727cd7ed4308565003b11a04b768d472e4ccc3fd550ec8a6",
+   "M/2026_10_12_20_17_32_death_episode_179_500.user_prompt.txt": "537dc4c81c5e4d75e8ac1a63b847ee932358a0740d2b081dd4a7291adb031080",
+   "M/2026_10_12_20_17_32_death_episode_221_000.user_prompt.txt": "2c583d025450080ce8bab8aeaa80d37544da0db43676ce6cfe889d563aa8b003",
+   "M/2026_10_12_20_17_32_death_episode_257_500.user_prompt.txt": "1b822b2e94fe2d4024c5f3e71685f0f92906a2e1ba71e17f8575f3acff4f1871",
+   "M/2026_10_12_20_17_32_death_episode_65_500.user_prompt.txt": "75dd794736d525dfa76ac532815d80679ff6fe9a0c602aa90dfd12add373740a",
+   "manifest.json": "442740f9a5cb1d198a21ea511409e349271d19f8b1baadb5e52d2a0e9a34539c",
+   "system_prompt_A.txt": "894fa0d0736c6cb5fbdd688f6965f880dbe7c16645c032533cd2801834bd18bd",
+   "system_prompt_M.txt": "73f6faa6e60e2b9544baf9ae24f6c6b7114ea491acf8ef8a677077da84158094"
+  }
+ }
+}

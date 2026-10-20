@@ -1,0 +1,129 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_i",
+ "call_id": "M__2026_10_11_18_25_16_death_episode_85_000__r2",
+ "match": "en-live-playerview-2026-10-11 18-25-16",
+ "cid": "death_episode:85.000",
+ "eligible": false,
+ "arm": "M",
+ "repeat": 2,
+ "file": "M/2026_10_11_18_25_16_death_episode_85_000.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "79be6ac306b8e36341147dea08451aa118a1bc9d",
+ "run_commit": "2d47e362df9b405049804fec45fd3fb4d1225d74",
+ "attempt": 1,
+ "system_sha256": "73f6faa6e60e2b9544baf9ae24f6c6b7114ea491acf8ef8a677077da84158094",
+ "user_prompt_sha256": "e97f2cccec28477ca438b69d2e83add179dd02459c56ba6f62f673ea2f7ec646",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "0afe257c59f94b3f5f725ea4f54a715d24148a8e1d0205269d5bf0cb143d5c6f"
+ },
+ "executed_at": "2026-10-20T06:47:46+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"You were out of play for 9.0 seconds after this death.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_out_of_play\",\n      \"level\": \"A\",\n      \"sentence\": \"You were out of play for 9.0 seconds after this death.\"\n    }\n  ],\n  \"evidence_used\": [\n    \"primary_context.death_episode.death_to_active_again.value = 9.0\"\n  ],\n  \"limitations\": [\n    \"The evidence does not establish what caused the death or assess positioning, teammate state, opponent location, or fight outcome.\"\n  ],\n  \"recommendations\": [],\n  \"selected_claim_ids\": [\n    \"death_out_of_play\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.0 seconds after this death.",
+  "evidence_used": [
+   "primary_context.death_episode.death_to_active_again.value = 9.0"
+  ],
+  "limitations": [
+   "The evidence does not establish what caused the death or assess positioning, teammate state, opponent location, or fight outcome."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.0 seconds after this death."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [
+   {
+    "field": "limitations",
+    "match": "caused the death",
+    "text": "The evidence does not establish what caused the death or assess positioning, teammate state, opponent location, or fight outcome.",
+    "classification": "negated",
+    "counts_as_violation": false
+   }
+  ],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "primary_context.death_episode.death_to_active_again.value = 9.0",
+    "kind": "source_path_ref",
+    "path": "primary_context.death_episode.death_to_active_again.value",
+    "source_path": "primary_context.death_episode"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [
+   {
+    "rule": "R1",
+    "family": "causation",
+    "subcategory": "causation",
+    "field": "limitations",
+    "match": "caused",
+    "sentence": "The evidence does not establish what caused the death or assess positioning, teammate state, opponent location, or fight outcome.",
+    "classification": "negated",
+    "counts_as_violation": false
+   }
+  ],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 11.2
+}
