@@ -1,0 +1,693 @@
+{
+ "pre_unblinding_gate": {
+  "checked_at": "2026-10-20T13:20:18+00:00",
+  "passed": true,
+  "checks": [
+   {
+    "name": "repository_state",
+    "ok": true,
+    "problems": [],
+    "detail": {
+     "head_commit": "81634bdb5822fd7ac133a8ae70f39538a12c3b87",
+     "porcelain": [
+      "?? docs/follow-ups/"
+     ]
+    }
+   },
+   {
+    "name": "stop_point_2_seal_unchanged",
+    "ok": true,
+    "problems": [],
+    "detail": null
+   },
+   {
+    "name": "amendments_unchanged",
+    "ok": true,
+    "problems": [],
+    "detail": null
+   },
+   {
+    "name": "run_outputs_and_automatic_artifacts_unchanged",
+    "ok": true,
+    "problems": [],
+    "detail": null
+   },
+   {
+    "name": "no_additional_model_calls",
+    "ok": true,
+    "problems": [],
+    "detail": null
+   },
+   {
+    "name": "rating_key_hash",
+    "ok": true,
+    "problems": [],
+    "detail": null
+   },
+   {
+    "name": "rating_sheet_sealed_and_valid",
+    "ok": true,
+    "problems": [],
+    "detail": null
+   }
+  ],
+  "sheet_sha256": "b5db14eec2fdfe754c93a4e9019b9df79c317f3ebdce1bf7324a0f00d5d29616",
+  "key_sha256": "d368951c90c2467eae774aeccc149155e147cf231ace4e324b279d68e0316eca"
+ },
+ "unblinding": {
+  "unblinded_at": "2026-10-20T13:20:18+00:00",
+  "sheet_sha256": "b5db14eec2fdfe754c93a4e9019b9df79c317f3ebdce1bf7324a0f00d5d29616",
+  "key_sha256": "d368951c90c2467eae774aeccc149155e147cf231ace4e324b279d68e0316eca"
+ },
+ "join_problems": [],
+ "ratings": 88,
+ "safety_gate": {
+  "passed": false,
+  "checks": {
+   "map_rule_violations_zero": true,
+   "value_fidelity_errors_zero": true,
+   "blocked_not_above_A": true,
+   "adjusted_validator_hits_within_margin": false
+  },
+  "figures": {
+   "A": {
+    "calls": 44,
+    "map_rule_violations": 0,
+    "value_fidelity_errors": 0,
+    "blocked": 0,
+    "validator_hits_production": 1,
+    "validator_hits_adjusted": 1,
+    "adjusted_per_call": 0.0227,
+    "production_per_call": 0.0227
+   },
+   "M": {
+    "calls": 44,
+    "map_rule_violations": 0,
+    "value_fidelity_errors": 0,
+    "blocked": 0,
+    "validator_hits_production": 83,
+    "validator_hits_adjusted": 32,
+    "adjusted_per_call": 0.7273,
+    "production_per_call": 1.8864
+   }
+  },
+  "production_count_view_not_the_gate": {
+   "within_margin": false
+  }
+ },
+ "uptake": {
+  "passed": true,
+  "mentions": 28,
+  "of": 28,
+  "required": ">= 14 of 28"
+ },
+ "value": {
+  "passed": true,
+  "checks": {
+   "eligible_usefulness_gain_exceeds_floor": true,
+   "supported_rate_M_not_lower": true,
+   "all_deaths_no_harm": true
+  },
+  "noise_floor": 0.1364,
+  "eligible_deaths": 14,
+  "all_deaths": 22,
+  "eligible_usefulness_m_minus_a": 1.8571,
+  "all_usefulness_m_minus_a": 1.1818,
+  "supported_rate": {
+   "A": 1.0,
+   "M": 1.0
+  },
+  "eligible_mean_usefulness": {
+   "A": 2.1429,
+   "M": 4.0
+  },
+  "all_mean_usefulness": {
+   "A": 2.2273,
+   "M": 3.4091
+  }
+ },
+ "outcome": "fails_1_or_2",
+ "automatic_summary_arms": {
+  "A": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 1,
+    "validator_hits_production_per_call": 0.023,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 1,
+    "validator_hits_adjusted_per_call": 0.023,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "eligible": {
+    "calls": 28,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 1,
+    "validator_hits_production_per_call": 0.036,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 1,
+    "validator_hits_adjusted_per_call": 0.036,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "not_eligible": {
+    "calls": 16,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 0,
+    "validator_hits_production_per_call": 0.0,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 0,
+    "validator_hits_adjusted_per_call": 0.0,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "null_block": {
+    "calls": 2,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 0,
+    "validator_hits_production_per_call": 0.0,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 0,
+    "validator_hits_adjusted_per_call": 0.0,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   }
+  },
+  "M": {
+   "all": {
+    "calls": 44,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 83,
+    "validator_hits_production_per_call": 1.886,
+    "r5_window_exempt": 51,
+    "validator_hits_adjusted": 32,
+    "validator_hits_adjusted_per_call": 0.727,
+    "map_mentions": 28,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "eligible": {
+    "calls": 28,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 81,
+    "validator_hits_production_per_call": 2.893,
+    "r5_window_exempt": 51,
+    "validator_hits_adjusted": 30,
+    "validator_hits_adjusted_per_call": 1.071,
+    "map_mentions": 28,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "not_eligible": {
+    "calls": 16,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 2,
+    "validator_hits_production_per_call": 0.125,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 2,
+    "validator_hits_adjusted_per_call": 0.125,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   },
+   "null_block": {
+    "calls": 2,
+    "failed": 0,
+    "blocked": 0,
+    "validator_hits_production": 0,
+    "validator_hits_production_per_call": 0.0,
+    "r5_window_exempt": 0,
+    "validator_hits_adjusted": 0,
+    "validator_hits_adjusted_per_call": 0.0,
+    "map_mentions": 0,
+    "outputs_with_value_fidelity_errors": 0,
+    "value_fidelity_errors": 0,
+    "outputs_with_map_rule_violations": 0,
+    "map_rule_violations": 0,
+    "map_rule_violation_codes": {}
+   }
+  }
+ },
+ "path_anomaly": {
+  "A other": 1,
+  "M other": 4,
+  "M primary_context.map_awareness.*": 28
+ },
+ "rating_means": {
+  "A": {
+   "all": {
+    "n": 44,
+    "usefulness": 2.2273,
+    "redundancy": 2.1364,
+    "anchor": 2.5909,
+    "missing_context": 4,
+    "supported_rate": 1.0,
+    "map_use": {
+     "not_mentioned": 44
+    }
+   },
+   "eligible": {
+    "n": 28,
+    "usefulness": 2.1429,
+    "redundancy": 2,
+    "anchor": 2.4286,
+    "missing_context": 4,
+    "supported_rate": 1.0,
+    "map_use": {
+     "not_mentioned": 28
+    }
+   },
+   "not_eligible": {
+    "n": 16,
+    "usefulness": 2.375,
+    "redundancy": 2.375,
+    "anchor": 2.875,
+    "missing_context": 4,
+    "supported_rate": 1.0,
+    "map_use": {
+     "not_mentioned": 16
+    }
+   },
+   "null_block": {
+    "n": 2,
+    "usefulness": 3,
+    "redundancy": 3,
+    "anchor": 4,
+    "missing_context": 4,
+    "supported_rate": 1.0,
+    "map_use": {
+     "not_mentioned": 2
+    }
+   }
+  },
+  "M": {
+   "all": {
+    "n": 44,
+    "usefulness": 3.4091,
+    "redundancy": 2.1364,
+    "anchor": 3.5909,
+    "missing_context": 3.3636,
+    "supported_rate": 1.0,
+    "map_use": {
+     "correct": 28,
+     "not_mentioned": 16
+    }
+   },
+   "eligible": {
+    "n": 28,
+    "usefulness": 4,
+    "redundancy": 2,
+    "anchor": 4,
+    "missing_context": 3,
+    "supported_rate": 1.0,
+    "map_use": {
+     "correct": 28
+    }
+   },
+   "not_eligible": {
+    "n": 16,
+    "usefulness": 2.375,
+    "redundancy": 2.375,
+    "anchor": 2.875,
+    "missing_context": 4,
+    "supported_rate": 1.0,
+    "map_use": {
+     "not_mentioned": 16
+    }
+   },
+   "null_block": {
+    "n": 2,
+    "usefulness": 3,
+    "redundancy": 3,
+    "anchor": 4,
+    "missing_context": 4,
+    "supported_rate": 1.0,
+    "map_use": {
+     "not_mentioned": 2
+    }
+   }
+  }
+ },
+ "repeat_consistency": {
+  "A": {
+   "mean_abs_r1_minus_r2": 0,
+   "deaths_identical": 22,
+   "deaths": 22
+  },
+  "M": {
+   "mean_abs_r1_minus_r2": 0,
+   "deaths_identical": 22,
+   "deaths": 22
+  }
+ },
+ "covariates": [
+  {
+   "group": "eligible, back in play 10-30 s",
+   "deaths": 9,
+   "usefulness_A": 2.222,
+   "usefulness_M": 4,
+   "map_correct_A": 0,
+   "map_correct_M": 18
+  },
+  {
+   "group": "eligible, back in play over 30 s",
+   "deaths": 5,
+   "usefulness_A": 2,
+   "usefulness_M": 4,
+   "map_correct_A": 0,
+   "map_correct_M": 10
+  },
+  {
+   "group": "production selected=False",
+   "deaths": 16,
+   "usefulness_A": 2.062,
+   "usefulness_M": 3.5,
+   "map_correct_A": 0,
+   "map_correct_M": 24
+  },
+  {
+   "group": "production selected=True",
+   "deaths": 6,
+   "usefulness_A": 2.667,
+   "usefulness_M": 3.167,
+   "map_correct_A": 0,
+   "map_correct_M": 4
+  }
+ ],
+ "per_death": [
+  {
+   "match": "2026-10-11 18-18-00",
+   "cid": "death_episode:197.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 18-25-16",
+   "cid": "death_episode:175.500",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 2.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 18-25-16",
+   "cid": "death_episode:85.000",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 2.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:151.000",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:180.500",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 2.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:199.500",
+   "eligible": false,
+   "null_block": true,
+   "usefulness_A": 3.0,
+   "usefulness_M": 3.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:37.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-20-42",
+   "cid": "death_episode:152.000",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 3.0,
+   "usefulness_M": 3.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-31-53",
+   "cid": "death_episode:208.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 3.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:210.500",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 2.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:301.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:58.000",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 3.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:106.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:176.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:244.000",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:278.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:49.500",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 2.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:179.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:221.000",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:257.500",
+   "eligible": true,
+   "null_block": false,
+   "usefulness_A": 2.0,
+   "usefulness_M": 4.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:65.500",
+   "eligible": false,
+   "null_block": false,
+   "usefulness_A": 3.0,
+   "usefulness_M": 3.0,
+   "supported_A": 1.0,
+   "supported_M": 1.0
+  }
+ ],
+ "rating_distribution": {
+  "usefulness": {
+   "A": {
+    "2": 34,
+    "3": 10
+   },
+   "M": {
+    "2": 10,
+    "3": 6,
+    "4": 28
+   }
+  },
+  "redundancy": {
+   "A": {
+    "2": 38,
+    "3": 6
+   },
+   "M": {
+    "2": 38,
+    "3": 6
+   }
+  },
+  "anchor": {
+   "A": {
+    "2": 24,
+    "3": 14,
+    "4": 6
+   },
+   "M": {
+    "2": 8,
+    "3": 2,
+    "4": 34
+   }
+  },
+  "missing_context": {
+   "A": {
+    "4": 44
+   },
+   "M": {
+    "3": 28,
+    "4": 16
+   }
+  },
+  "supported": {
+   "A": {
+    "True": 44
+   },
+   "M": {
+    "True": 44
+   }
+  },
+  "map_use": {
+   "A": {
+    "not_mentioned": 44
+   },
+   "M": {
+    "correct": 28,
+    "not_mentioned": 16
+   }
+  }
+ }
+}
