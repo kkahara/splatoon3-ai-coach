@@ -1,0 +1,263 @@
+{
+ "distribution": {
+  "A eligible": {
+   "usefulness_1to5": {
+    "2": 24,
+    "3": 4
+   },
+   "redundancy_1to5": {
+    "2": 28
+   },
+   "anchor_shows_situation_1to5": {
+    "2": 16,
+    "3": 12
+   },
+   "missing_context_1to5": {
+    "4": 28
+   },
+   "supported_yes_no": {
+    "yes": 28
+   },
+   "map_use_correct_incorrect_not_mentioned": {
+    "not_mentioned": 28
+   }
+  },
+  "A not_eligible": {
+   "usefulness_1to5": {
+    "2": 10,
+    "3": 4
+   },
+   "redundancy_1to5": {
+    "2": 10,
+    "3": 4
+   },
+   "anchor_shows_situation_1to5": {
+    "2": 8,
+    "3": 2,
+    "4": 4
+   },
+   "missing_context_1to5": {
+    "4": 14
+   },
+   "supported_yes_no": {
+    "yes": 14
+   },
+   "map_use_correct_incorrect_not_mentioned": {
+    "not_mentioned": 14
+   }
+  },
+  "A null_block": {
+   "usefulness_1to5": {
+    "3": 2
+   },
+   "redundancy_1to5": {
+    "3": 2
+   },
+   "anchor_shows_situation_1to5": {
+    "4": 2
+   },
+   "missing_context_1to5": {
+    "4": 2
+   },
+   "supported_yes_no": {
+    "yes": 2
+   },
+   "map_use_correct_incorrect_not_mentioned": {
+    "not_mentioned": 2
+   }
+  },
+  "M eligible": {
+   "usefulness_1to5": {
+    "4": 28
+   },
+   "redundancy_1to5": {
+    "2": 28
+   },
+   "anchor_shows_situation_1to5": {
+    "4": 28
+   },
+   "missing_context_1to5": {
+    "3": 28
+   },
+   "supported_yes_no": {
+    "yes": 28
+   },
+   "map_use_correct_incorrect_not_mentioned": {
+    "correct": 28
+   }
+  },
+  "M not_eligible": {
+   "usefulness_1to5": {
+    "2": 10,
+    "3": 4
+   },
+   "redundancy_1to5": {
+    "2": 10,
+    "3": 4
+   },
+   "anchor_shows_situation_1to5": {
+    "2": 8,
+    "3": 2,
+    "4": 4
+   },
+   "missing_context_1to5": {
+    "4": 14
+   },
+   "supported_yes_no": {
+    "yes": 14
+   },
+   "map_use_correct_incorrect_not_mentioned": {
+    "not_mentioned": 14
+   }
+  },
+  "M null_block": {
+   "usefulness_1to5": {
+    "3": 2
+   },
+   "redundancy_1to5": {
+    "3": 2
+   },
+   "anchor_shows_situation_1to5": {
+    "4": 2
+   },
+   "missing_context_1to5": {
+    "4": 2
+   },
+   "supported_yes_no": {
+    "yes": 2
+   },
+   "map_use_correct_incorrect_not_mentioned": {
+    "not_mentioned": 2
+   }
+  }
+ },
+ "patterns": {
+  "A eligible": {
+   "2 / 2 / 2 / 4 / yes / not_mentioned": 16,
+   "2 / 2 / 3 / 4 / yes / not_mentioned": 8,
+   "3 / 2 / 3 / 4 / yes / not_mentioned": 4
+  },
+  "A not_eligible": {
+   "2 / 2 / 2 / 4 / yes / not_mentioned": 8,
+   "3 / 3 / 4 / 4 / yes / not_mentioned": 4,
+   "2 / 2 / 3 / 4 / yes / not_mentioned": 2
+  },
+  "A null_block": {
+   "3 / 3 / 4 / 4 / yes / not_mentioned": 2
+  },
+  "M eligible": {
+   "4 / 2 / 4 / 3 / yes / correct": 28
+  },
+  "M not_eligible": {
+   "2 / 2 / 2 / 4 / yes / not_mentioned": 8,
+   "3 / 3 / 4 / 4 / yes / not_mentioned": 4,
+   "2 / 2 / 3 / 4 / yes / not_mentioned": 2
+  },
+  "M null_block": {
+   "3 / 3 / 4 / 4 / yes / not_mentioned": 2
+  }
+ },
+ "distinct_patterns_overall": 5,
+ "repeat_pairs_identical_pattern": 44,
+ "repeat_pairs": 44,
+ "usefulness_by_map_use": {
+  "correct": {
+   "n": 28,
+   "mean": 4,
+   "values": {
+    "4": 28
+   }
+  },
+  "not_mentioned": {
+   "n": 60,
+   "mean": 2.2667,
+   "values": {
+    "2": 44,
+    "3": 16
+   }
+  }
+ },
+ "usefulness_by_arm_group_recommendation": {
+  "A eligible has_recommendation=False": {
+   "n": 28,
+   "values": {
+    "2": 24,
+    "3": 4
+   }
+  },
+  "A not_eligible has_recommendation=False": {
+   "n": 10,
+   "values": {
+    "2": 10
+   }
+  },
+  "A not_eligible has_recommendation=True": {
+   "n": 4,
+   "values": {
+    "3": 4
+   }
+  },
+  "A null_block has_recommendation=True": {
+   "n": 2,
+   "values": {
+    "3": 2
+   }
+  },
+  "M eligible has_recommendation=True": {
+   "n": 28,
+   "values": {
+    "4": 28
+   }
+  },
+  "M not_eligible has_recommendation=False": {
+   "n": 10,
+   "values": {
+    "2": 10
+   }
+  },
+  "M not_eligible has_recommendation=True": {
+   "n": 4,
+   "values": {
+    "3": 4
+   }
+  },
+  "M null_block has_recommendation=True": {
+   "n": 2,
+   "values": {
+    "3": 2
+   }
+  }
+ },
+ "notes": {
+  "distinct_notes": 7,
+  "distinct_templates": 7,
+  "templates_by_cell": {
+   "A eligible": {
+    "The visible facts are supported, but without a recommendation or tactical context they provide limited actionable coaching.": 16,
+    "The recent splat gives some engagement context, but the row does not show positioning, objective state, or an actionable recommendation.": 4,
+    "Match timing adds context, but the row does not show positioning, objective state, or an actionable recommendation.": 4,
+    "Special-ready-at-death is potentially useful context, but the row gives no recommendation or surrounding tactical situation.": 2,
+    "The trade and match timing add useful situation context, but no actionable recommendation or objective/position context is shown.": 2
+   },
+   "A not_eligible": {
+    "The visible facts are supported, but without a recommendation or tactical context they provide limited actionable coaching.": 8,
+    "Quick re-death supports a reset-oriented coaching point, but the row lacks positioning, objective, and engagement context.": 4,
+    "Match timing adds context, but the row does not show positioning, objective state, or an actionable recommendation.": 2
+   },
+   "A null_block": {
+    "Quick re-death supports a reset-oriented coaching point, but the row lacks positioning, objective, and engagement context.": 2
+   },
+   "M eligible": {
+    "Observed no-map-check interval directly supports the map-check recommendation; broader tactical context is not shown.": 28
+   },
+   "M not_eligible": {
+    "The visible facts are supported, but without a recommendation or tactical context they provide limited actionable coaching.": 8,
+    "Quick re-death supports a reset-oriented coaching point, but the row lacks positioning, objective, and engagement context.": 4,
+    "Match timing adds context, but the row does not show positioning, objective state, or an actionable recommendation.": 2
+   },
+   "M null_block": {
+    "Quick re-death supports a reset-oriented coaching point, but the row lacks positioning, objective, and engagement context.": 2
+   }
+  }
+ }
+}

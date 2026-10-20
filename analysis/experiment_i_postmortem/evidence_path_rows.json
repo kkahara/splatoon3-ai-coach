@@ -1,0 +1,929 @@
+[
+ {
+  "output_id": "output_055",
+  "call_id": "A__2026_10_11_20_33_31_death_episode_37_500__r2",
+  "match": "2026-10-11 20-33-31",
+  "death": "death_episode:37.500",
+  "arm": "A",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "game_clock_samples[label=death].observation.display = \"4:35\"",
+  "path": "game_clock_samples[label=death].observation.display",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_key",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": true,
+  "cited_value": "\"4:35\"",
+  "candidates": {
+   "clock.display": "4:35"
+  },
+  "equal_candidates": {
+   "clock.display": "4:35"
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[1].values.display": "4:35",
+   "claim_basis[3].values.display": "4:35",
+   "clock.display": "4:35"
+  },
+  "category": "A",
+  "mapping": "label_block"
+ },
+ {
+  "output_id": "output_051",
+  "call_id": "M__2026_10_11_18_18_00_death_episode_197_500__r2",
+  "match": "2026-10-11 18-18-00",
+  "death": "death_episode:197.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 74.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "74.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 74.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 74.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[5].values.seconds_back_in_play": 74.5,
+   "map_awareness.seconds_back_in_play": 74.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_051",
+  "call_id": "M__2026_10_11_18_18_00_death_episode_197_500__r2",
+  "match": "2026-10-11 18-18-00",
+  "death": "death_episode:197.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[5].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_050",
+  "call_id": "M__2026_10_11_18_25_16_death_episode_175_500__r1",
+  "match": "2026-10-11 18-25-16",
+  "death": "death_episode:175.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": false,
+  "citation": "game_clock_samples[label=death].observation.display = \"0:23\"",
+  "path": "game_clock_samples[label=death].observation.display",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_key",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": true,
+  "cited_value": "\"0:23\"",
+  "candidates": {
+   "clock.display": "0:23"
+  },
+  "equal_candidates": {
+   "clock.display": "0:23"
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[1].values.display": "0:23",
+   "claim_basis[4].values.display": "0:23",
+   "clock.display": "0:23"
+  },
+  "category": "A",
+  "mapping": "label_block"
+ },
+ {
+  "output_id": "output_054",
+  "call_id": "M__2026_10_11_20_33_31_death_episode_37_500__r1",
+  "match": "2026-10-11 20-33-31",
+  "death": "death_episode:37.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "game_clock_samples[label=death].observation.display = \"4:35\"",
+  "path": "game_clock_samples[label=death].observation.display",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_key",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": true,
+  "cited_value": "\"4:35\"",
+  "candidates": {
+   "clock.display": "4:35"
+  },
+  "equal_candidates": {
+   "clock.display": "4:35"
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[1].values.display": "4:35",
+   "claim_basis[3].values.display": "4:35",
+   "clock.display": "4:35"
+  },
+  "category": "A",
+  "mapping": "label_block"
+ },
+ {
+  "output_id": "output_022",
+  "call_id": "M__2026_10_11_20_33_31_death_episode_37_500__r2",
+  "match": "2026-10-11 20-33-31",
+  "death": "death_episode:37.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 24.0",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "24.0",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 24.0
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 24.0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 24.0,
+   "map_awareness.seconds_back_in_play": 24.0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_022",
+  "call_id": "M__2026_10_11_20_33_31_death_episode_37_500__r2",
+  "match": "2026-10-11 20-33-31",
+  "death": "death_episode:37.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_088",
+  "call_id": "M__2026_10_11_22_20_42_death_episode_152_000__r1",
+  "match": "2026-10-11 22-20-42",
+  "death": "death_episode:152.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": false,
+  "citation": "primary_context.timeline.time_since_previous_death.value = 11.5",
+  "path": "primary_context.timeline.time_since_previous_death.value",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "11.5",
+  "candidates": {
+   "timeline.time_since_previous_death.value": 11.5
+  },
+  "equal_candidates": {
+   "timeline.time_since_previous_death.value": 11.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "supporting_evidence[3].value": "11.5s",
+   "timeline.time_since_previous_death.value": 11.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_058",
+  "call_id": "M__2026_10_11_22_31_53_death_episode_208_500__r1",
+  "match": "2026-10-11 22-31-53",
+  "death": "death_episode:208.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 18.0",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "18.0",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 18.0
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 18.0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.seconds_back_in_play": 18.0,
+   "map_awareness.seconds_back_in_play": 18.0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_058",
+  "call_id": "M__2026_10_11_22_31_53_death_episode_208_500__r1",
+  "match": "2026-10-11 22-31-53",
+  "death": "death_episode:208.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_048",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_301_500__r1",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:301.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 81.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "81.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 81.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 81.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 81.5,
+   "map_awareness.seconds_back_in_play": 81.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_048",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_301_500__r1",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:301.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_077",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_301_500__r2",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:301.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 81.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "81.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 81.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 81.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 81.5,
+   "map_awareness.seconds_back_in_play": 81.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_077",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_301_500__r2",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:301.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_029",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_58_000__r1",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:58.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.special.state_at_anchor = \"ready\"",
+  "path": "primary_context.special.state_at_anchor",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": true,
+  "cited_value": "\"ready\"",
+  "candidates": {
+   "special.state_at_anchor": "ready"
+  },
+  "equal_candidates": {
+   "special.state_at_anchor": "ready"
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[2].values.state_at_anchor": "ready",
+   "special.state_at_anchor": "ready"
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_029",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_58_000__r1",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:58.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 16.0",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "16.0",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 16.0
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 16.0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.seconds_back_in_play": 16.0,
+   "map_awareness.seconds_back_in_play": 16.0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_029",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_58_000__r1",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:58.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_070",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_58_000__r2",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:58.000",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 16.0",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "16.0",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 16.0
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 16.0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.seconds_back_in_play": 16.0,
+   "map_awareness.seconds_back_in_play": 16.0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_070",
+  "call_id": "M__2026_10_11_22_37_47_death_episode_58_000__r2",
+  "match": "2026-10-11 22-37-47",
+  "death": "death_episode:58.000",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_035",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_106_500__r2",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:106.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 33.0",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "33.0",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 33.0
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 33.0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 33.0,
+   "map_awareness.seconds_back_in_play": 33.0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_035",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_106_500__r2",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:106.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_047",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_244_000__r1",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:244.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 56.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "56.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 56.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 56.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 56.5,
+   "map_awareness.seconds_back_in_play": 56.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_047",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_244_000__r1",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:244.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_034",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_278_500__r1",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:278.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 23.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "23.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 23.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 23.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 23.5,
+   "map_awareness.seconds_back_in_play": 23.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_034",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_278_500__r1",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:278.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_016",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_308_000__r2",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:308.000",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 20.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "20.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 20.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 20.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.seconds_back_in_play": 20.5,
+   "map_awareness.seconds_back_in_play": 20.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_016",
+  "call_id": "M__2026_10_11_22_57_30_death_episode_308_000__r2",
+  "match": "2026-10-11 22-57-30",
+  "death": "death_episode:308.000",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[6].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_036",
+  "call_id": "M__2026_10_12_20_17_32_death_episode_179_500__r1",
+  "match": "2026-10-12 20-17-32",
+  "death": "death_episode:179.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 19.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "19.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 19.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 19.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[5].values.seconds_back_in_play": 19.5,
+   "map_awareness.seconds_back_in_play": 19.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_036",
+  "call_id": "M__2026_10_12_20_17_32_death_episode_179_500__r1",
+  "match": "2026-10-12 20-17-32",
+  "death": "death_episode:179.500",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[5].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_014",
+  "call_id": "M__2026_10_12_20_17_32_death_episode_179_500__r2",
+  "match": "2026-10-12 20-17-32",
+  "death": "death_episode:179.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 19.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "19.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 19.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 19.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[5].values.seconds_back_in_play": 19.5,
+   "map_awareness.seconds_back_in_play": 19.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_014",
+  "call_id": "M__2026_10_12_20_17_32_death_episode_179_500__r2",
+  "match": "2026-10-12 20-17-32",
+  "death": "death_episode:179.500",
+  "arm": "M",
+  "repeat": 2,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[5].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_008",
+  "call_id": "M__2026_10_12_20_17_32_death_episode_221_000__r1",
+  "match": "2026-10-12 20-17-32",
+  "death": "death_episode:221.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.seconds_back_in_play = 32.5",
+  "path": "primary_context.map_awareness.seconds_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "32.5",
+  "candidates": {
+   "map_awareness.seconds_back_in_play": 32.5
+  },
+  "equal_candidates": {
+   "map_awareness.seconds_back_in_play": 32.5
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.seconds_back_in_play": 32.5,
+   "map_awareness.seconds_back_in_play": 32.5
+  },
+  "category": "A",
+  "mapping": "prefix"
+ },
+ {
+  "output_id": "output_008",
+  "call_id": "M__2026_10_12_20_17_32_death_episode_221_000__r1",
+  "match": "2026-10-12 20-17-32",
+  "death": "death_episode:221.000",
+  "arm": "M",
+  "repeat": 1,
+  "eligible": true,
+  "citation": "primary_context.map_awareness.map_checks_since_back_in_play = 0",
+  "path": "primary_context.map_awareness.map_checks_since_back_in_play",
+  "validator_kind": "unresolved",
+  "validator_reason": "unknown_block",
+  "literal_path_in_view": false,
+  "coachinput_schema_field": false,
+  "cited_value": "0",
+  "candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "equal_candidates": {
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "same_final_key_equal_value_anywhere": {
+   "claim_basis[4].values.map_checks_since_back_in_play": 0,
+   "map_awareness.map_checks_since_back_in_play": 0
+  },
+  "category": "A",
+  "mapping": "prefix"
+ }
+]

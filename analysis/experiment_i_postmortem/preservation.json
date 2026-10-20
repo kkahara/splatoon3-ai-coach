@@ -1,0 +1,21 @@
+{
+ "head_commit": "419fae12edc5b04a11bcd313ca90aef0f381b2bf",
+ "commits": {
+  "stop_point_2_seal": "79be6ac306b8e36341147dea08451aa118a1bc9d",
+  "run_tooling": "2d47e362df9b405049804fec45fd3fb4d1225d74",
+  "run_outputs": "4f656e9dda32b23973ae93d4ef5bfbc936b32c1c",
+  "sealed_ratings": "c20b7cb3a9c218c235fbd36f278afe0cc7295ca2",
+  "analysis_tooling": "81634bdb5822fd7ac133a8ae70f39538a12c3b87",
+  "stop_point_4_analysis": "419fae12edc5b04a11bcd313ca90aef0f381b2bf"
+ },
+ "sha256sums_sha256": "b9957a0579a2484fa52c2fe916131777824ab4f33324a4a0cea31e778ac62ecb",
+ "files_verified": 150,
+ "checks": {
+  "sha256sums_all_files": [],
+  "dir_identical_to_final_commit": [],
+  "rating_sheet_hash": [],
+  "rating_key_hash": [],
+  "commits_resolve": []
+ },
+ "passed": true
+}

@@ -1,0 +1,96 @@
+{
+ "citations_by_arm_family_kind": {
+  "A | other | source_path_ref": 26,
+  "A | other | unresolved": 1,
+  "A | other | view_native": 11,
+  "A | primary_context (other) | source_path_ref": 54,
+  "M | map_awareness (top level) | view_native": 28,
+  "M | other | source_path_ref": 10,
+  "M | other | unresolved": 2,
+  "M | other | view_native": 14,
+  "M | primary_context (other) | source_path_ref": 43,
+  "M | primary_context (other) | unresolved": 2,
+  "M | primary_context.map_awareness | unresolved": 28
+ },
+ "eligible_m_map_awareness_form": {
+  "2026-10-11 18-18-00 death_episode:197.500": {
+   "1": "map_awareness (top level)",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-11 20-33-31 death_episode:151.000": {
+   "1": "map_awareness (top level)",
+   "2": "map_awareness (top level)"
+  },
+  "2026-10-11 20-33-31 death_episode:37.500": {
+   "1": "map_awareness (top level)",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-11 22-31-53 death_episode:208.500": {
+   "1": "primary_context.map_awareness",
+   "2": "map_awareness (top level)"
+  },
+  "2026-10-11 22-37-47 death_episode:301.500": {
+   "1": "primary_context.map_awareness",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-11 22-37-47 death_episode:58.000": {
+   "1": "primary_context.map_awareness",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-11 22-57-30 death_episode:106.500": {
+   "1": "map_awareness (top level)",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-11 22-57-30 death_episode:176.500": {
+   "1": "map_awareness (top level)",
+   "2": "map_awareness (top level)"
+  },
+  "2026-10-11 22-57-30 death_episode:244.000": {
+   "1": "primary_context.map_awareness",
+   "2": "map_awareness (top level)"
+  },
+  "2026-10-11 22-57-30 death_episode:278.500": {
+   "1": "primary_context.map_awareness",
+   "2": "map_awareness (top level)"
+  },
+  "2026-10-11 22-57-30 death_episode:308.000": {
+   "1": "map_awareness (top level)",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-12 20-17-32 death_episode:179.500": {
+   "1": "primary_context.map_awareness",
+   "2": "primary_context.map_awareness"
+  },
+  "2026-10-12 20-17-32 death_episode:221.000": {
+   "1": "primary_context.map_awareness",
+   "2": "map_awareness (top level)"
+  },
+  "2026-10-12 20-17-32 death_episode:257.500": {
+   "1": "map_awareness (top level)",
+   "2": "map_awareness (top level)"
+  }
+ },
+ "eligible_m_form_counts": {
+  "map_awareness (top level)": 14,
+  "primary_context.map_awareness": 14
+ },
+ "deaths_where_repeats_differ": 8,
+ "system_prompt_examples": {
+  "primary_context.death_episode.death_to_respawn.value = 6.0": {
+   "source_path_ref": 22
+  },
+  "death.death_to_active_again.value = 7.5": {
+   "view_native": 22
+  },
+  "primary_context.relations.leads_to_death_episode_id = null": {
+   "unresolved/unknown_block": 22
+  },
+  "primary_context.combat.trade_candidate = false": {
+   "unresolved/unknown_block": 22
+  },
+  "related[0].context.relations.leads_to_death_episode_id = \"death_episode:326.000\"": {
+   "source_path_ref": 15,
+   "unresolved/unknown_key": 7
+  }
+ }
+}

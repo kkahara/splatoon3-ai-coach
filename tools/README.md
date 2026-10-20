@@ -84,6 +84,7 @@ request observed at five-minute resolution, not the last browser page view.
 | `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
 | `game_tape_probe.py` | Prototype: end-of-match "GAME!" tape mask + per-frame features over videos (match-end evidence) |
 | `game_tape_validate.py` | Frozen "GAME!" tape rule: held-out list, scan, labeling sheets, pass/fail report, descriptive ending types |
+| `experiment_i_postmortem.py` | Read-only Experiment I diagnostic (no model calls, no re-scoring): verifies Experiment I against its `SHA256SUMS` and commits, classifies every unresolved evidence path (A/B/C/D, citation verbatim, view and CoachInput-schema checks), counts citation path families, resolves the system prompt's citation examples against the sealed views, and describes the sealed ratings; writes `analysis/experiment_i_postmortem/` |
 | `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
 | `final30_score_survey.py` | Read-only: Splat Zones score facts and counter stability at every final-30 death, with contexts rebuilt in memory (stored contexts may predate score context) |
 | `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
