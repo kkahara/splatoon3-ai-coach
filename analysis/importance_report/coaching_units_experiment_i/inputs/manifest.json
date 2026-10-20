@@ -1,0 +1,378 @@
+{
+ "amendments": [
+  {
+   "after": "a82fcdc (stop point 1)",
+   "date": "2026-10-20",
+   "id": 1,
+   "text": "At stop point 2, before any model call, the production validator was run on synthetic arm-M outputs. Two production rules encode the respawn-map concept this experiment replaces. (a) Map advice is an unsupported recommendation (and fails R10) unless a claim grounds rec_map_after_respawn: as pre-registered, the experiment-only claim no_map_check_since_back_in_play is added to arm M's claim_basis on eligible deaths, grounding that production template. (b) R5 map_absence flags any 'no map check' sentence unless map.map_check_before_death.status is not_observed, and that status counts the respawn map, so the frozen arm-M statement is a validator hit by construction. The validator is not changed; each record keeps the production count. A second, adjusted count removes only R5 map_absence hits where the call's own map_awareness block is non-null with map_checks_since_back_in_play == 0 and the sentence ties the absence to the back-in-play window ('since', back in play, respawn, return, rejoin, came back, or the seconds_back_in_play value). Arm A has no block, so the adjustment cannot apply to it. The safety gate uses the adjusted count; both are reported. No output existed; gates and thresholds are unchanged. Approved by the rater before any call."
+  },
+  {
+   "after": "a82fcdc (stop point 1)",
+   "date": "2026-10-20",
+   "id": 2,
+   "text": "Building the views showed that the death table and the frozen observability rule disagree on 2026-10-11 20-33-31 death_episode:199.500: its episode map coverage is insufficient (no respawn overlay detected for its own respawn), so the rule makes its map_awareness block null with no map-check coaching, while the table lists it as eligible. The rater chose the rule. Eligible 14, not eligible 8 (the derived facts are unchanged and still reproduce design.json). The uptake gate keeps its 50% rate: at least 14 of 28 eligible arm-M outputs. The value gate uses the 14 eligible deaths; all other gates and thresholds are unchanged. No output existed."
+  }
+ ],
+ "arms": [
+  "A",
+  "M"
+ ],
+ "calls": [
+  {
+   "arm": "A",
+   "cid": "death_episode:197.500",
+   "eligible": true,
+   "file": "A/2026_10_11_18_18_00_death_episode_197_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-18-00",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:197.500",
+   "eligible": true,
+   "file": "M/2026_10_11_18_18_00_death_episode_197_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-18-00",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:175.500",
+   "eligible": false,
+   "file": "A/2026_10_11_18_25_16_death_episode_175_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-25-16",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:175.500",
+   "eligible": false,
+   "file": "M/2026_10_11_18_25_16_death_episode_175_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-25-16",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:85.000",
+   "eligible": false,
+   "file": "A/2026_10_11_18_25_16_death_episode_85_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-25-16",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:85.000",
+   "eligible": false,
+   "file": "M/2026_10_11_18_25_16_death_episode_85_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-25-16",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:151.000",
+   "eligible": true,
+   "file": "A/2026_10_11_20_33_31_death_episode_151_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:151.000",
+   "eligible": true,
+   "file": "M/2026_10_11_20_33_31_death_episode_151_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:180.500",
+   "eligible": false,
+   "file": "A/2026_10_11_20_33_31_death_episode_180_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:180.500",
+   "eligible": false,
+   "file": "M/2026_10_11_20_33_31_death_episode_180_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:199.500",
+   "eligible": false,
+   "file": "A/2026_10_11_20_33_31_death_episode_199_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:199.500",
+   "eligible": false,
+   "file": "M/2026_10_11_20_33_31_death_episode_199_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:37.500",
+   "eligible": true,
+   "file": "A/2026_10_11_20_33_31_death_episode_37_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:37.500",
+   "eligible": true,
+   "file": "M/2026_10_11_20_33_31_death_episode_37_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:152.000",
+   "eligible": false,
+   "file": "A/2026_10_11_22_20_42_death_episode_152_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-20-42",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:152.000",
+   "eligible": false,
+   "file": "M/2026_10_11_22_20_42_death_episode_152_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-20-42",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:208.500",
+   "eligible": true,
+   "file": "A/2026_10_11_22_31_53_death_episode_208_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-31-53",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:208.500",
+   "eligible": true,
+   "file": "M/2026_10_11_22_31_53_death_episode_208_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-31-53",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:210.500",
+   "eligible": false,
+   "file": "A/2026_10_11_22_37_47_death_episode_210_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:210.500",
+   "eligible": false,
+   "file": "M/2026_10_11_22_37_47_death_episode_210_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:301.500",
+   "eligible": true,
+   "file": "A/2026_10_11_22_37_47_death_episode_301_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:301.500",
+   "eligible": true,
+   "file": "M/2026_10_11_22_37_47_death_episode_301_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:58.000",
+   "eligible": true,
+   "file": "A/2026_10_11_22_37_47_death_episode_58_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:58.000",
+   "eligible": true,
+   "file": "M/2026_10_11_22_37_47_death_episode_58_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:106.500",
+   "eligible": true,
+   "file": "A/2026_10_11_22_57_30_death_episode_106_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:106.500",
+   "eligible": true,
+   "file": "M/2026_10_11_22_57_30_death_episode_106_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:176.500",
+   "eligible": true,
+   "file": "A/2026_10_11_22_57_30_death_episode_176_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:176.500",
+   "eligible": true,
+   "file": "M/2026_10_11_22_57_30_death_episode_176_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:244.000",
+   "eligible": true,
+   "file": "A/2026_10_11_22_57_30_death_episode_244_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:244.000",
+   "eligible": true,
+   "file": "M/2026_10_11_22_57_30_death_episode_244_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:278.500",
+   "eligible": true,
+   "file": "A/2026_10_11_22_57_30_death_episode_278_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:278.500",
+   "eligible": true,
+   "file": "M/2026_10_11_22_57_30_death_episode_278_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:308.000",
+   "eligible": true,
+   "file": "A/2026_10_11_22_57_30_death_episode_308_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:308.000",
+   "eligible": true,
+   "file": "M/2026_10_11_22_57_30_death_episode_308_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:49.500",
+   "eligible": false,
+   "file": "A/2026_10_11_22_57_30_death_episode_49_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:49.500",
+   "eligible": false,
+   "file": "M/2026_10_11_22_57_30_death_episode_49_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:179.500",
+   "eligible": true,
+   "file": "A/2026_10_12_20_17_32_death_episode_179_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:179.500",
+   "eligible": true,
+   "file": "M/2026_10_12_20_17_32_death_episode_179_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:221.000",
+   "eligible": true,
+   "file": "A/2026_10_12_20_17_32_death_episode_221_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:221.000",
+   "eligible": true,
+   "file": "M/2026_10_12_20_17_32_death_episode_221_000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:257.500",
+   "eligible": true,
+   "file": "A/2026_10_12_20_17_32_death_episode_257_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:257.500",
+   "eligible": true,
+   "file": "M/2026_10_12_20_17_32_death_episode_257_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "cid": "death_episode:65.500",
+   "eligible": false,
+   "file": "A/2026_10_12_20_17_32_death_episode_65_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "cid": "death_episode:65.500",
+   "eligible": false,
+   "file": "M/2026_10_12_20_17_32_death_episode_65_500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "system": "system_prompt_M.txt"
+  }
+ ],
+ "design_sha256": "ee71a493b00e84ddc2a8a0d2053fccf6897f93cecdfdf60efb1d146a697ae600",
+ "model": "gpt-5.6-luna",
+ "provider": "cursor",
+ "repeats": 2
+}

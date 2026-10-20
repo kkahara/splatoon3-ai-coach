@@ -1,0 +1,347 @@
+{
+ "dry_run": true,
+ "llm_calls_made": 0,
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "repeats": 2,
+ "temperature_support": "unsupported",
+ "temperature_note": "never sent: the Cursor SDK has no sampling field (AgentOptions has none; model params are context / reasoning / fast only), and the SDK takes one joined message, no separate system prompt",
+ "fact_problems": [],
+ "stale_inputs": [],
+ "invariant_problems": [],
+ "amendments": [
+  {
+   "id": 1,
+   "date": "2026-10-20",
+   "after": "a82fcdc (stop point 1)",
+   "text": "At stop point 2, before any model call, the production validator was run on synthetic arm-M outputs. Two production rules encode the respawn-map concept this experiment replaces. (a) Map advice is an unsupported recommendation (and fails R10) unless a claim grounds rec_map_after_respawn: as pre-registered, the experiment-only claim no_map_check_since_back_in_play is added to arm M's claim_basis on eligible deaths, grounding that production template. (b) R5 map_absence flags any 'no map check' sentence unless map.map_check_before_death.status is not_observed, and that status counts the respawn map, so the frozen arm-M statement is a validator hit by construction. The validator is not changed; each record keeps the production count. A second, adjusted count removes only R5 map_absence hits where the call's own map_awareness block is non-null with map_checks_since_back_in_play == 0 and the sentence ties the absence to the back-in-play window ('since', back in play, respawn, return, rejoin, came back, or the seconds_back_in_play value). Arm A has no block, so the adjustment cannot apply to it. The safety gate uses the adjusted count; both are reported. No output existed; gates and thresholds are unchanged. Approved by the rater before any call."
+  },
+  {
+   "id": 2,
+   "date": "2026-10-20",
+   "after": "a82fcdc (stop point 1)",
+   "text": "Building the views showed that the death table and the frozen observability rule disagree on 2026-10-11 20-33-31 death_episode:199.500: its episode map coverage is insufficient (no respawn overlay detected for its own respawn), so the rule makes its map_awareness block null with no map-check coaching, while the table lists it as eligible. The rater chose the rule. Eligible 14, not eligible 8 (the derived facts are unchanged and still reproduce design.json). The uptake gate keeps its 50% rate: at least 14 of 28 eligible arm-M outputs. The value gate uses the 14 eligible deaths; all other gates and thresholds are unchanged. No output existed."
+  }
+ ],
+ "total_calls": 88,
+ "eligible": 14,
+ "system_chars": {
+  "A": 16204,
+  "M": 17004
+ },
+ "smoke_test": [
+  {
+   "case": "intended",
+   "view": "M (eligible)",
+   "validator_hits": 1,
+   "r5_window_exempt": 1,
+   "adjusted": 0,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "map_rule_violations": [],
+   "value_fidelity_errors": 0,
+   "mentions_map_check": true
+  },
+  {
+   "case": "intended",
+   "view": "M without claim",
+   "validator_hits": 3,
+   "r5_window_exempt": 1,
+   "adjusted": 2,
+   "hit_rules": [
+    "R10:ungrounded_template",
+    "R5:map_absence",
+    "R7:unknown_claim"
+   ],
+   "blocked": false,
+   "map_rule_violations": [],
+   "value_fidelity_errors": 0,
+   "mentions_map_check": true
+  },
+  {
+   "case": "causal",
+   "view": "M (eligible)",
+   "validator_hits": 2,
+   "r5_window_exempt": 1,
+   "adjusted": 1,
+   "hit_rules": [
+    "R5:map_absence",
+    "causal_map_claim"
+   ],
+   "blocked": true,
+   "map_rule_violations": [
+    "causal"
+   ],
+   "value_fidelity_errors": 0,
+   "mentions_map_check": true
+  },
+  {
+   "case": "map_content",
+   "view": "M (eligible)",
+   "validator_hits": 0,
+   "r5_window_exempt": 0,
+   "adjusted": 0,
+   "hit_rules": [],
+   "blocked": true,
+   "map_rule_violations": [
+    "map_content"
+   ],
+   "value_fidelity_errors": 0,
+   "mentions_map_check": true
+  },
+  {
+   "case": "wrong_seconds",
+   "view": "M (eligible)",
+   "validator_hits": 1,
+   "r5_window_exempt": 1,
+   "adjusted": 0,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "map_rule_violations": [],
+   "value_fidelity_errors": 1,
+   "mentions_map_check": true
+  },
+  {
+   "case": "advice_not_eligible",
+   "view": "M (not_eligible)",
+   "validator_hits": 1,
+   "r5_window_exempt": 0,
+   "adjusted": 1,
+   "hit_rules": [
+    "R10:ungrounded_template"
+   ],
+   "blocked": false,
+   "map_rule_violations": [
+    "advice_not_eligible"
+   ],
+   "value_fidelity_errors": 0,
+   "mentions_map_check": true
+  }
+ ],
+ "deaths": [
+  {
+   "match": "2026-10-11 18-18-00",
+   "cid": "death_episode:197.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 74.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9259,
+   "M_chars": 9983
+  },
+  {
+   "match": "2026-10-11 18-25-16",
+   "cid": "death_episode:175.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 81.5,
+   "checks": 1,
+   "eligible": false,
+   "A_chars": 8510,
+   "M_chars": 8738
+  },
+  {
+   "match": "2026-10-11 18-25-16",
+   "cid": "death_episode:85.000",
+   "source": "match_start",
+   "seconds_back_in_play": 66.0,
+   "checks": 1,
+   "eligible": false,
+   "A_chars": 8190,
+   "M_chars": 8413
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:151.000",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 19.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 8044,
+   "M_chars": 8768
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:180.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 21.5,
+   "checks": 1,
+   "eligible": false,
+   "A_chars": 7808,
+   "M_chars": 8035
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:199.500",
+   "source": "null block",
+   "seconds_back_in_play": null,
+   "checks": null,
+   "eligible": false,
+   "A_chars": 8728,
+   "M_chars": 8749
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:37.500",
+   "source": "match_start",
+   "seconds_back_in_play": 24.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 8001,
+   "M_chars": 8720
+  },
+  {
+   "match": "2026-10-11 22-20-42",
+   "cid": "death_episode:152.000",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 4.0,
+   "checks": 0,
+   "eligible": false,
+   "A_chars": 9374,
+   "M_chars": 9601
+  },
+  {
+   "match": "2026-10-11 22-31-53",
+   "cid": "death_episode:208.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 18.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9388,
+   "M_chars": 10112
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:210.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 143.5,
+   "checks": 1,
+   "eligible": false,
+   "A_chars": 9363,
+   "M_chars": 9592
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:301.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 81.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 8932,
+   "M_chars": 9656
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:58.000",
+   "source": "match_start",
+   "seconds_back_in_play": 16.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9903,
+   "M_chars": 10622
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:106.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 33.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9849,
+   "M_chars": 10573
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:176.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 25.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 10438,
+   "M_chars": 11162
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:244.000",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 56.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9871,
+   "M_chars": 10595
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:278.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 23.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 10040,
+   "M_chars": 10764
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 20.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 10070,
+   "M_chars": 10794
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:49.500",
+   "source": "match_start",
+   "seconds_back_in_play": 32.0,
+   "checks": 1,
+   "eligible": false,
+   "A_chars": 10323,
+   "M_chars": 10546
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:179.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 19.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9699,
+   "M_chars": 10423
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:221.000",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 32.5,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 9417,
+   "M_chars": 10141
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:257.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 28.0,
+   "checks": 0,
+   "eligible": true,
+   "A_chars": 8684,
+   "M_chars": 9408
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:65.500",
+   "source": "previous_respawn",
+   "seconds_back_in_play": 7.0,
+   "checks": 0,
+   "eligible": false,
+   "A_chars": 10151,
+   "M_chars": 10378
+  }
+ ]
+}

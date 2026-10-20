@@ -211,3 +211,43 @@ could reach 15 of 30. Value (rule 3) is decisive.
 2. Tool, tests, built inputs and dry run, sealed. Go-ahead before any call.
 3. Outputs, automatic summary, blind sheet.
 4. Sealed ratings, then key and `analyze` report.
+
+## Amendments (stop point 2, before any model call)
+
+The frozen sections above are unchanged; these amendments override them
+where they conflict. `design.json` is unchanged. The same text is in
+`AMENDMENTS` in `tools/reports/coaching_units_experiment_i.py` and in
+`inputs/manifest.json`.
+
+1. (2026-10-20, after a82fcdc (stop point 1)) At stop point 2, before
+   any model call, the production validator was run on synthetic arm-M
+   outputs. Two production rules encode the respawn-map concept this
+   experiment replaces. (a) Map advice is an unsupported recommendation
+   (and fails R10) unless a claim grounds rec_map_after_respawn: as pre-
+   registered, the experiment-only claim no_map_check_since_back_in_play
+   is added to arm M's claim_basis on eligible deaths, grounding that
+   production template. (b) R5 map_absence flags any 'no map check'
+   sentence unless map.map_check_before_death.status is not_observed,
+   and that status counts the respawn map, so the frozen arm-M statement
+   is a validator hit by construction. The validator is not changed;
+   each record keeps the production count. A second, adjusted count
+   removes only R5 map_absence hits where the call's own map_awareness
+   block is non-null with map_checks_since_back_in_play == 0 and the
+   sentence ties the absence to the back-in-play window ('since', back
+   in play, respawn, return, rejoin, came back, or the
+   seconds_back_in_play value). Arm A has no block, so the adjustment
+   cannot apply to it. The safety gate uses the adjusted count; both are
+   reported. No output existed; gates and thresholds are unchanged.
+   Approved by the rater before any call.
+
+2. (2026-10-20, after a82fcdc (stop point 1)) Building the views showed
+   that the death table and the frozen observability rule disagree on
+   2026-10-11 20-33-31 death_episode:199.500: its episode map coverage
+   is insufficient (no respawn overlay detected for its own respawn), so
+   the rule makes its map_awareness block null with no map-check
+   coaching, while the table lists it as eligible. The rater chose the
+   rule. Eligible 14, not eligible 8 (the derived facts are unchanged
+   and still reproduce design.json). The uptake gate keeps its 50% rate:
+   at least 14 of 28 eligible arm-M outputs. The value gate uses the 14
+   eligible deaths; all other gates and thresholds are unchanged. No
+   output existed.
