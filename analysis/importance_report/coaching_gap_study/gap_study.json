@@ -1,0 +1,19 @@
+{
+ "categories": {
+  "C": 7,
+  "A": 20,
+  "D": 9,
+  "B": 3
+ },
+ "ab": 23,
+ "c": 7,
+ "path": "A/B",
+ "themes": [
+  "other"
+ ],
+ "kind": "A-pipeline",
+ "next": "view-extension experiment",
+ "ab_per_death_selected": 2.0,
+ "ab_per_death_unselected": 2.75,
+ "ranking_review": false
+}
