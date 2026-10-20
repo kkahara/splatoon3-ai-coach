@@ -83,7 +83,7 @@ request observed at five-minute resolution, not the last browser page view.
 | `map_ink_geometry_validate.py` | Multi-frame map ink geometry validation (needs local paint-map references) |
 | `special_gauge_diagnose.py` | Special gauge diagnostics on survey representative frames |
 | `game_tape_probe.py` | Prototype: end-of-match "GAME!" tape mask + per-frame features over videos (match-end evidence) |
-| `game_tape_validate.py` | Frozen "GAME!" tape rule: held-out list, scan, labeling sheets, pass/fail report |
+| `game_tape_validate.py` | Frozen "GAME!" tape rule: held-out list, scan, labeling sheets, pass/fail report, descriptive ending types |
 | `trace_fixture.py` | Writes a trimmed golden-trace fixture (`tests/fixtures/traces/`) from a real analysis directory |
 | `final30_score_survey.py` | Read-only: Splat Zones score facts and counter stability at every final-30 death, with contexts rebuilt in memory (stored contexts may predate score context) |
 | `claim_corpus.py` | Freezes saved LLM outputs into the claim-validity corpus (`tests/fixtures/claim_corpus/`) and reports per-rule metrics under current validation |
