@@ -1,0 +1,2404 @@
+[
+ {
+  "video": "2026-07-04 23-55-59.mp4",
+  "run_start": 323.0,
+  "true_onset": 323.0,
+  "ending": "overtime",
+  "last_clock": [
+   318.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "2026-07-05 15-57-07.mp4",
+  "run_start": 239.5,
+  "true_onset": 239.5,
+  "ending": "knockout",
+  "last_clock": [
+   238.5,
+   77.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "2026-07-05 16-10-48.mp4",
+  "run_start": 314.5,
+  "true_onset": 314.5,
+  "ending": "time",
+  "last_clock": [
+   314.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-07-05 17-17-56.mp4",
+  "run_start": 308.5,
+  "true_onset": 308.5,
+  "ending": "knockout",
+  "last_clock": [
+   308.0,
+   9.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-07-05 20-28-22.mov",
+  "run_start": 330.5,
+  "true_onset": 330.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-07-05 20-35-00.mov",
+  "run_start": 316.5,
+  "true_onset": 316.5,
+  "ending": "time",
+  "last_clock": [
+   316.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "2026-07-05 20-48-23.mov",
+  "run_start": 334.5,
+  "true_onset": 334.5,
+  "ending": "overtime",
+  "last_clock": [
+   314.0,
+   0.0
+  ],
+  "max_clock": 491.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "2026-07-05 23-16-52.mov",
+  "run_start": 320.5,
+  "true_onset": 320.5,
+  "ending": "time",
+  "last_clock": [
+   319.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 124.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-07-05 23-24-21.mov",
+  "run_start": 318.0,
+  "true_onset": 318.0,
+  "ending": "time",
+  "last_clock": [
+   317.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-07-05 23-47-36.mov",
+  "run_start": 316.5,
+  "true_onset": 316.0,
+  "ending": "time",
+  "last_clock": [
+   315.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-07-06 22-06-50.mov",
+  "run_start": 181.0,
+  "true_onset": 180.5,
+  "ending": "time",
+  "last_clock": [
+   180.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "2026-07-06 22-37-08.mov",
+  "run_start": 317.5,
+  "true_onset": 317.5,
+  "ending": "time",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 301.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-07-06 22-55-06.mov",
+  "run_start": 343.5,
+  "true_onset": 343.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "2026-07-07 22-49-54.mov",
+  "run_start": 319.0,
+  "true_onset": 319.0,
+  "ending": "time",
+  "last_clock": [
+   318.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-07-07 23-09-07.mov",
+  "run_start": 203.0,
+  "true_onset": 203.0,
+  "ending": "knockout",
+  "last_clock": [
+   202.5,
+   116.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 124.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-07-07 23-14-50.mov",
+  "run_start": 168.0,
+  "true_onset": 167.5,
+  "ending": "knockout",
+  "last_clock": [
+   167.0,
+   148.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 50.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-07-07 23-14-50.mov",
+  "run_start": 442.0,
+  "true_onset": 442.0,
+  "ending": "knockout",
+  "last_clock": [
+   441.5,
+   122.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "2026-07-07 23-30-14.mov",
+  "run_start": 312.0,
+  "true_onset": 311.5,
+  "ending": "knockout",
+  "last_clock": [
+   311.0,
+   9.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-07-07 23-37-00.mov",
+  "run_start": 347.5,
+  "true_onset": 347.0,
+  "ending": "overtime",
+  "last_clock": [
+   314.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-07-07 23-49-06.mov",
+  "run_start": 236.5,
+  "true_onset": 236.0,
+  "ending": "knockout",
+  "last_clock": [
+   235.5,
+   83.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-04 21-32-25.mov",
+  "run_start": 319.5,
+  "true_onset": 319.5,
+  "ending": "overtime",
+  "last_clock": [
+   313.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-04 21-57-34.mov",
+  "run_start": 310.0,
+  "true_onset": 310.0,
+  "ending": "overtime",
+  "last_clock": [
+   303.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-04 22-05-25.mov",
+  "run_start": 298.5,
+  "true_onset": 298.5,
+  "ending": "knockout",
+  "last_clock": [
+   298.0,
+   16.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-04 22-12-51.mov",
+  "run_start": 208.0,
+  "true_onset": 208.0,
+  "ending": "knockout",
+  "last_clock": [
+   207.5,
+   106.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-04 22-50-19.mov",
+  "run_start": 199.0,
+  "true_onset": 199.0,
+  "ending": "time",
+  "last_clock": [
+   198.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-04 23-02-31.mov",
+  "run_start": 245.0,
+  "true_onset": 245.0,
+  "ending": "knockout",
+  "last_clock": [
+   244.5,
+   73.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-04 23-08-27.mov",
+  "run_start": 334.0,
+  "true_onset": 334.0,
+  "ending": "overtime",
+  "last_clock": [
+   316.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-05 09-34-24.mov",
+  "run_start": 340.5,
+  "true_onset": 340.5,
+  "ending": "overtime",
+  "last_clock": [
+   320.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-05 23-08-26.mov",
+  "run_start": 316.5,
+  "true_onset": 316.5,
+  "ending": "time",
+  "last_clock": [
+   316.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-06 22-15-08.mov",
+  "run_start": 187.0,
+  "true_onset": 187.0,
+  "ending": "knockout",
+  "last_clock": [
+   186.5,
+   128.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-07 13-41-08.mov",
+  "run_start": 197.5,
+  "true_onset": 197.5,
+  "ending": "time",
+  "last_clock": [
+   190.5,
+   7.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 124.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-09-09 20-32-39.mov",
+  "run_start": 317.5,
+  "true_onset": 317.5,
+  "ending": "time",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-09 21-56-22.mov",
+  "run_start": 113.0,
+  "true_onset": 113.0,
+  "ending": "knockout",
+  "last_clock": [
+   112.5,
+   201.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 50.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-09 23-29-20.mov",
+  "run_start": 211.5,
+  "true_onset": 211.5,
+  "ending": "knockout",
+  "last_clock": [
+   211.0,
+   108.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "2026-09-10 13-44-28.mov",
+  "run_start": 276.5,
+  "true_onset": 276.5,
+  "ending": "knockout",
+  "last_clock": [
+   276.0,
+   117.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-10 14-20-12.mov",
+  "run_start": 301.5,
+  "true_onset": 301.5,
+  "ending": "time",
+  "last_clock": [
+   301.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-10 15-26-49.mov",
+  "run_start": 130.5,
+  "true_onset": 130.5,
+  "ending": "knockout",
+  "last_clock": [
+   130.0,
+   237.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "2026-09-10 15-58-36.mov",
+  "run_start": 336.5,
+  "true_onset": 336.5,
+  "ending": "overtime",
+  "last_clock": [
+   315.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-12 12-42-53.mov",
+  "run_start": 127.5,
+  "true_onset": 127.0,
+  "ending": "knockout",
+  "last_clock": [
+   126.5,
+   202.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-12 13-34-57.mov",
+  "run_start": 324.0,
+  "true_onset": 324.0,
+  "ending": "overtime",
+  "last_clock": [
+   318.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-14 21-02-41.mov",
+  "run_start": 120.0,
+  "true_onset": 120.0,
+  "ending": "knockout",
+  "last_clock": [
+   119.5,
+   192.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-15 19-42-35.mov",
+  "run_start": 317.0,
+  "true_onset": 317.0,
+  "ending": "time",
+  "last_clock": [
+   316.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-15 19-56-29.mov",
+  "run_start": 302.0,
+  "true_onset": 302.0,
+  "ending": "knockout",
+  "last_clock": [
+   301.5,
+   16.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-18 18-37-10.mov",
+  "run_start": 158.5,
+  "true_onset": 158.5,
+  "ending": "knockout",
+  "last_clock": [
+   158.0,
+   160.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 124.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-09-18 18-45-40.mov",
+  "run_start": 145.0,
+  "true_onset": 145.0,
+  "ending": "knockout",
+  "last_clock": [
+   144.5,
+   174.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-09-18 19-36-27.mov",
+  "run_start": 359.0,
+  "true_onset": 359.0,
+  "ending": "overtime",
+  "last_clock": [
+   333.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "2026-09-19 12-24-32.mov",
+  "run_start": 243.5,
+  "true_onset": 243.5,
+  "ending": "knockout",
+  "last_clock": [
+   243.0,
+   74.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-19 12-46-14.mov",
+  "run_start": 320.5,
+  "true_onset": 320.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-09-20 14-47-03.mov",
+  "run_start": 414.0,
+  "true_onset": 413.5,
+  "ending": "unknown",
+  "last_clock": null,
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "2026-09-20 15-07-24.mov",
+  "run_start": 339.0,
+  "true_onset": 339.0,
+  "ending": "time",
+  "last_clock": [
+   338.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-20 15-45-17.mov",
+  "run_start": 251.0,
+  "true_onset": 251.0,
+  "ending": "knockout",
+  "last_clock": [
+   250.5,
+   76.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-20 15-50-36.mov",
+  "run_start": 96.0,
+  "true_onset": 96.0,
+  "ending": "knockout",
+  "last_clock": [
+   95.5,
+   229.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-20 15-53-31.mov",
+  "run_start": 323.5,
+  "true_onset": 323.5,
+  "ending": "time",
+  "last_clock": [
+   323.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 124.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "2026-09-20 16-03-58.mov",
+  "run_start": 271.0,
+  "true_onset": 271.0,
+  "ending": "knockout",
+  "last_clock": [
+   270.5,
+   67.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 50.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-20 16-09-34.mov",
+  "run_start": 310.5,
+  "true_onset": 310.5,
+  "ending": "knockout",
+  "last_clock": [
+   307.5,
+   6.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-20 16-18-22.mov",
+  "run_start": 110.5,
+  "true_onset": 110.5,
+  "ending": "knockout",
+  "last_clock": [
+   110.0,
+   237.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-20 16-44-17.mov",
+  "run_start": 203.5,
+  "true_onset": 203.0,
+  "ending": "time",
+  "last_clock": [
+   202.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-20 16-48-47.mov",
+  "run_start": 221.5,
+  "true_onset": 221.0,
+  "ending": "time",
+  "last_clock": [
+   219.0,
+   2.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-20 16-53-13.mov",
+  "run_start": 226.0,
+  "true_onset": 226.0,
+  "ending": "time",
+  "last_clock": [
+   225.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "2026-09-20 17-00-29.mov",
+  "run_start": 210.5,
+  "true_onset": 210.5,
+  "ending": "time",
+  "last_clock": [
+   210.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "2026-09-20 17-00-29.mov",
+  "run_start": 464.0,
+  "true_onset": 464.0,
+  "ending": "time",
+  "last_clock": [
+   463.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "2026-09-20 17-17-57.mov",
+  "run_start": 355.5,
+  "true_onset": 355.5,
+  "ending": "knockout",
+  "last_clock": [
+   355.0,
+   29.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-06-30 21-17-03.mov",
+  "run_start": 322.5,
+  "true_onset": 322.0,
+  "ending": "time",
+  "last_clock": [
+   321.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-04 15-27-20.mp4",
+  "run_start": 300.5,
+  "true_onset": 300.5,
+  "ending": "time",
+  "last_clock": [
+   300.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-04 15-34-49.mp4",
+  "run_start": 310.5,
+  "true_onset": 310.5,
+  "ending": "overtime",
+  "last_clock": [
+   306.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-04 15-43-13.mp4",
+  "run_start": 163.0,
+  "true_onset": 162.5,
+  "ending": "knockout",
+  "last_clock": [
+   162.0,
+   148.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-07-04 16-00-03.mp4",
+  "run_start": 223.5,
+  "true_onset": 223.5,
+  "ending": "knockout",
+  "last_clock": [
+   223.0,
+   83.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-07-04 17-42-08.mp4",
+  "run_start": 278.0,
+  "true_onset": 278.0,
+  "ending": "knockout",
+  "last_clock": [
+   277.5,
+   86.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-07-05 14-40-32.mp4",
+  "run_start": 312.5,
+  "true_onset": 312.5,
+  "ending": "time",
+  "last_clock": [
+   312.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "en-2026-07-05 16-02-45.mp4",
+  "run_start": 313.0,
+  "true_onset": 313.0,
+  "ending": "time",
+  "last_clock": [
+   312.5,
+   1.0
+  ],
+  "max_clock": 491.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-07-05 16-30-49.mp4",
+  "run_start": 331.0,
+  "true_onset": 331.0,
+  "ending": "overtime",
+  "last_clock": [
+   310.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-07-05 16-37-14.mp4",
+  "run_start": 334.5,
+  "true_onset": 334.5,
+  "ending": "overtime",
+  "last_clock": [
+   329.5,
+   0.0
+  ],
+  "max_clock": 558.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-05 17-13-47.mp4",
+  "run_start": 175.5,
+  "true_onset": 175.5,
+  "ending": "knockout",
+  "last_clock": [
+   175.0,
+   158.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-07-05 17-27-06.mp4",
+  "run_start": 212.5,
+  "true_onset": 212.5,
+  "ending": "knockout",
+  "last_clock": [
+   212.0,
+   130.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-07-05 17-34-46.mp4",
+  "run_start": 206.5,
+  "true_onset": 206.5,
+  "ending": "knockout",
+  "last_clock": [
+   206.0,
+   95.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-07-05 17-46-52.mp4",
+  "run_start": 305.5,
+  "true_onset": 305.5,
+  "ending": "time",
+  "last_clock": [
+   303.5,
+   2.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-07-05 18-02-24.mov",
+  "run_start": 196.0,
+  "true_onset": 196.0,
+  "ending": "knockout",
+  "last_clock": [
+   195.5,
+   147.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "en-2026-07-05 20-41-37.mov",
+  "run_start": 319.0,
+  "true_onset": 319.0,
+  "ending": "overtime",
+  "last_clock": [
+   298.5,
+   0.0
+  ],
+  "max_clock": 299.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-07-05 21-30-18.mov",
+  "run_start": 161.5,
+  "true_onset": 161.5,
+  "ending": "knockout",
+  "last_clock": [
+   161.0,
+   155.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-07-05 23-32-19.mov",
+  "run_start": 325.0,
+  "true_onset": 325.0,
+  "ending": "knockout",
+  "last_clock": [
+   324.5,
+   10.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-07-06 21-45-19.mov",
+  "run_start": 136.5,
+  "true_onset": 136.5,
+  "ending": "knockout",
+  "last_clock": [
+   136.0,
+   160.0
+  ],
+  "max_clock": 296.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-06 22-16-05.mov",
+  "run_start": 305.0,
+  "true_onset": 305.0,
+  "ending": "time",
+  "last_clock": [
+   304.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-07 22-47-30.mov",
+  "run_start": 92.5,
+  "true_onset": 92.5,
+  "ending": "knockout",
+  "last_clock": [
+   92.0,
+   219.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-07-07 23-23-43.mov",
+  "run_start": 307.5,
+  "true_onset": 307.5,
+  "ending": "time",
+  "last_clock": [
+   307.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-09-04 21-39-09.mov",
+  "run_start": 297.0,
+  "true_onset": 297.0,
+  "ending": "knockout",
+  "last_clock": [
+   296.5,
+   10.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-09-04 21-51-26.mov",
+  "run_start": 213.5,
+  "true_onset": 213.5,
+  "ending": "knockout",
+  "last_clock": [
+   213.0,
+   86.0
+  ],
+  "max_clock": 299.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-09-04 23-47-07.mov",
+  "run_start": 308.0,
+  "true_onset": 308.0,
+  "ending": "overtime",
+  "last_clock": [
+   305.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-09-12 12-48-02.mov",
+  "run_start": 94.0,
+  "true_onset": 93.5,
+  "ending": "knockout",
+  "last_clock": [
+   93.0,
+   202.0
+  ],
+  "max_clock": 295.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-09-14 20-39-31.mov",
+  "run_start": 162.5,
+  "true_onset": 162.5,
+  "ending": "knockout",
+  "last_clock": [
+   162.0,
+   136.0
+  ],
+  "max_clock": 299.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-09-20 22-35-00.mov",
+  "run_start": 185.0,
+  "true_onset": 185.0,
+  "ending": "time",
+  "last_clock": [
+   184.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-09-20 22-38-46.mov",
+  "run_start": 250.5,
+  "true_onset": 250.5,
+  "ending": "time",
+  "last_clock": [
+   250.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-09-20 22-43-37.mov",
+  "run_start": 248.0,
+  "true_onset": 248.0,
+  "ending": "time",
+  "last_clock": [
+   247.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "en-2026-09-20 22-48-24.mov",
+  "run_start": 377.0,
+  "true_onset": 377.0,
+  "ending": "time",
+  "last_clock": [
+   376.5,
+   1.0
+  ],
+  "max_clock": 491.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "en-2026-09-21 07-15-56.mov",
+  "run_start": 317.0,
+  "true_onset": 317.0,
+  "ending": "time",
+  "last_clock": [
+   316.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-09-21 22-48-34.mov",
+  "run_start": 321.5,
+  "true_onset": 321.5,
+  "ending": "time",
+  "last_clock": [
+   319.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-09-21 22-55-33.mov",
+  "run_start": 213.5,
+  "true_onset": 213.5,
+  "ending": "knockout",
+  "last_clock": [
+   213.0,
+   251.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-09-21 22-55-33.mov",
+  "run_start": 440.5,
+  "true_onset": 440.5,
+  "ending": "knockout",
+  "last_clock": [
+   440.0,
+   181.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-09-21 23-13-21.mov",
+  "run_start": 392.5,
+  "true_onset": 392.5,
+  "ending": "overtime",
+  "last_clock": [
+   355.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-09-21 23-20-25.mov",
+  "run_start": 190.5,
+  "true_onset": 190.5,
+  "ending": "knockout",
+  "last_clock": [
+   190.0,
+   156.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-09-23 21-13-04.mov",
+  "run_start": 332.0,
+  "true_onset": 332.0,
+  "ending": "time",
+  "last_clock": [
+   331.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-10-13 19-28-40.mov",
+  "run_start": 320.5,
+  "true_onset": 320.5,
+  "ending": "overtime",
+  "last_clock": [
+   316.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 84.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "en-2026-10-13 19-43-30.mov",
+  "run_start": 275.5,
+  "true_onset": 275.5,
+  "ending": "knockout",
+  "last_clock": [
+   274.5,
+   65.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 41.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-14 23-00-10.mov",
+  "run_start": 339.5,
+  "true_onset": 339.5,
+  "ending": "overtime",
+  "last_clock": [
+   319.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 159.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-10-16 21-44-08.mov",
+  "run_start": 264.0,
+  "true_onset": 264.0,
+  "ending": "knockout",
+  "last_clock": [
+   263.5,
+   120.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-10-16 22-06-16.mov",
+  "run_start": 118.0,
+  "true_onset": 118.0,
+  "ending": "knockout",
+  "last_clock": [
+   117.5,
+   216.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-17 22-17-38.mov",
+  "run_start": 342.5,
+  "true_onset": 342.5,
+  "ending": "knockout",
+  "last_clock": [
+   341.5,
+   24.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-17 22-28-38.mov",
+  "run_start": 347.0,
+  "true_onset": 347.0,
+  "ending": "overtime",
+  "last_clock": [
+   315.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-17 22-36-34.mov",
+  "run_start": 179.0,
+  "true_onset": 179.0,
+  "ending": "knockout",
+  "last_clock": [
+   178.5,
+   138.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 30.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-10-17 22-41-01.mov",
+  "run_start": 152.0,
+  "true_onset": 152.0,
+  "ending": "knockout",
+  "last_clock": [
+   151.5,
+   168.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 41.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-17 23-04-58.mov",
+  "run_start": 237.0,
+  "true_onset": 237.0,
+  "ending": "knockout",
+  "last_clock": [
+   236.5,
+   83.0
+  ],
+  "max_clock": 480.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-17 23-12-04.mov",
+  "run_start": 101.5,
+  "true_onset": 101.5,
+  "ending": "knockout",
+  "last_clock": [
+   101.0,
+   216.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 120.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-10-18 20-23-41.mov",
+  "run_start": 295.5,
+  "true_onset": 295.5,
+  "ending": "knockout",
+  "last_clock": [
+   295.0,
+   20.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-18 20-31-55.mov",
+  "run_start": 112.5,
+  "true_onset": 112.5,
+  "ending": "knockout",
+  "last_clock": [
+   112.0,
+   207.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 30.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-10-18 20-38-48.mov",
+  "run_start": 322.5,
+  "true_onset": 322.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-18 20-58-22.mov",
+  "run_start": 320.0,
+  "true_onset": 320.0,
+  "ending": "time",
+  "last_clock": [
+   319.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 41.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-18 21-36-32.mov",
+  "run_start": 335.0,
+  "true_onset": 335.0,
+  "ending": "overtime",
+  "last_clock": [
+   318.0,
+   1.0
+  ],
+  "max_clock": 481.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-18 21-48-35.mov",
+  "run_start": 331.0,
+  "true_onset": 331.0,
+  "ending": "overtime",
+  "last_clock": [
+   315.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 49.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-18 21-59-44.mov",
+  "run_start": 335.5,
+  "true_onset": 335.5,
+  "ending": "overtime",
+  "last_clock": [
+   315.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-18 22-10-35.mov",
+  "run_start": 316.5,
+  "true_onset": 316.5,
+  "ending": "time",
+  "last_clock": [
+   316.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 49.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-18 22-18-04.mov",
+  "run_start": 339.0,
+  "true_onset": 338.5,
+  "ending": "time",
+  "last_clock": [
+   337.5,
+   1.0
+  ],
+  "max_clock": 428.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-18 22-26-19.mov",
+  "run_start": 338.0,
+  "true_onset": 338.0,
+  "ending": "overtime",
+  "last_clock": [
+   317.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 153.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-2026-10-18 22-34-06.mov",
+  "run_start": 303.5,
+  "true_onset": 303.5,
+  "ending": "knockout",
+  "last_clock": [
+   303.0,
+   15.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 123.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-10-18 22-47-35.mov",
+  "run_start": 319.5,
+  "true_onset": 319.5,
+  "ending": "time",
+  "last_clock": [
+   319.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en-2026-10-18 22-56-07.mov",
+  "run_start": 297.5,
+  "true_onset": 297.5,
+  "ending": "knockout",
+  "last_clock": [
+   297.0,
+   20.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 41.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-18 23-26-44.mov",
+  "run_start": 339.0,
+  "true_onset": 339.0,
+  "ending": "overtime",
+  "last_clock": [
+   318.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 30.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en-2026-10-18 23-34-26.mov",
+  "run_start": 320.5,
+  "true_onset": 320.5,
+  "ending": "time",
+  "last_clock": [
+   320.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 13.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en-2026-10-18 23-41-15.mov",
+  "run_start": 321.0,
+  "true_onset": 321.0,
+  "ending": "overtime",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 49.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-2026-10-19 00-02-16.mov",
+  "run_start": 319.0,
+  "true_onset": 319.0,
+  "ending": "time",
+  "last_clock": [
+   318.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 41.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en-barnicle_and_dime_2026-09-14 21-13-09.mov",
+  "run_start": 107.5,
+  "true_onset": 107.5,
+  "ending": "knockout",
+  "last_clock": [
+   107.0,
+   213.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "en-hagglefish_market_2026-09-15 20-18-11.mov",
+  "run_start": 235.5,
+  "true_onset": 235.5,
+  "ending": "knockout",
+  "last_clock": [
+   235.0,
+   98.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en_2026-09-20 22-55-56.mov",
+  "run_start": 196.0,
+  "true_onset": 196.0,
+  "ending": "time",
+  "last_clock": [
+   195.5,
+   0.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "en_2026-09-20 23-04-54.mov",
+  "run_start": 250.0,
+  "true_onset": 250.0,
+  "ending": "time",
+  "last_clock": [
+   249.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "en_2026-09-20 23-22-34.mov",
+  "run_start": 94.5,
+  "true_onset": 94.5,
+  "ending": "knockout",
+  "last_clock": [
+   93.5,
+   259.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "en_2026-09-20 23-25-42.mov",
+  "run_start": 320.5,
+  "true_onset": 320.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.0,
+   0.0
+  ],
+  "max_clock": 558.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "en_SW2--2026-10-19 23-13-06.mov",
+  "run_start": 353.0,
+  "true_onset": 353.0,
+  "ending": "time",
+  "last_clock": [
+   352.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en_SW2--2026-10-19 23-20-28.mov",
+  "run_start": 336.0,
+  "true_onset": 336.0,
+  "ending": "knockout",
+  "last_clock": [
+   335.5,
+   69.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 123.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "en_undertow_spillway_2026-09-14 21-51-23.mov",
+  "run_start": 248.0,
+  "true_onset": 248.0,
+  "ending": "knockout",
+  "last_clock": [
+   247.5,
+   72.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja-2026-09-05 09-20-18.mov",
+  "run_start": 320.0,
+  "true_onset": 320.0,
+  "ending": "time",
+  "last_clock": [
+   319.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "ja-2026-09-05 23-01-33.mov",
+  "run_start": 312.0,
+  "true_onset": 312.0,
+  "ending": "time",
+  "last_clock": [
+   311.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja-2026-09-05 23-15-32.mov",
+  "run_start": 306.5,
+  "true_onset": 306.5,
+  "ending": "time",
+  "last_clock": [
+   305.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja-2026-09-06 14-54-11.mov",
+  "run_start": 251.0,
+  "true_onset": 251.0,
+  "ending": "knockout",
+  "last_clock": [
+   250.5,
+   57.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "ja-2026-09-06 15-40-39.mov",
+  "run_start": 241.0,
+  "true_onset": 241.0,
+  "ending": "overtime",
+  "last_clock": [
+   220.5,
+   1.0
+  ],
+  "max_clock": 221.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja-2026-09-06 16-03-41.mov",
+  "run_start": 342.0,
+  "true_onset": 342.0,
+  "ending": "overtime",
+  "last_clock": [
+   321.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja-2026-09-06 22-35-09.mov",
+  "run_start": 331.5,
+  "true_onset": 331.5,
+  "ending": "overtime",
+  "last_clock": [
+   321.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja-2026-09-07 09-45-26.mov",
+  "run_start": 310.5,
+  "true_onset": 310.5,
+  "ending": "time",
+  "last_clock": [
+   310.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja-2026-09-07 10-35-50.mov",
+  "run_start": 310.0,
+  "true_onset": 310.0,
+  "ending": "time",
+  "last_clock": [
+   309.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-10 13-51-45.mov",
+  "run_start": 113.5,
+  "true_onset": 113.0,
+  "ending": "knockout",
+  "last_clock": [
+   112.5,
+   194.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja-2026-09-18 19-03-54.mov",
+  "run_start": 337.0,
+  "true_onset": 337.0,
+  "ending": "time",
+  "last_clock": [
+   336.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja-2026-09-18 19-29-29.mov",
+  "run_start": 224.5,
+  "true_onset": 224.5,
+  "ending": "time",
+  "last_clock": [
+   224.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-19 11-56-23.mov",
+  "run_start": 301.5,
+  "true_onset": 301.5,
+  "ending": "knockout",
+  "last_clock": [
+   301.0,
+   20.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja-2026-09-19 12-30-46.mov",
+  "run_start": 228.5,
+  "true_onset": 228.5,
+  "ending": "knockout",
+  "last_clock": [
+   227.5,
+   140.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja-2026-09-19 12-38-47.mov",
+  "run_start": 341.5,
+  "true_onset": 341.5,
+  "ending": "time",
+  "last_clock": [
+   341.0,
+   0.0
+  ],
+  "max_clock": 431.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-20 14-39-55.mov",
+  "run_start": 320.5,
+  "true_onset": 320.5,
+  "ending": "time",
+  "last_clock": [
+   320.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja-2026-09-20 20-02-59.mov",
+  "run_start": 317.5,
+  "true_onset": 317.5,
+  "ending": "time",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja-2026-09-20 20-17-05.mov",
+  "run_start": 414.0,
+  "true_onset": 414.0,
+  "ending": "overtime",
+  "last_clock": [
+   393.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "ja-2026-09-20 20-35-50.mov",
+  "run_start": 337.0,
+  "true_onset": 337.0,
+  "ending": "overtime",
+  "last_clock": [
+   316.5,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja-2026-09-20 20-43-42.mov",
+  "run_start": 220.0,
+  "true_onset": 216.5,
+  "ending": "time",
+  "last_clock": [
+   209.5,
+   7.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja-2026-09-20 20-48-13.mov",
+  "run_start": 237.5,
+  "true_onset": 237.5,
+  "ending": "time",
+  "last_clock": [
+   237.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja-2026-09-20 21-07-02.mov",
+  "run_start": 237.0,
+  "true_onset": 237.0,
+  "ending": "time",
+  "last_clock": [
+   236.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja-2026-09-20 21-12-28.mov",
+  "run_start": 202.0,
+  "true_onset": 202.0,
+  "ending": "time",
+  "last_clock": [
+   201.5,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-20 21-17-29.mov",
+  "run_start": 204.5,
+  "true_onset": 204.5,
+  "ending": "time",
+  "last_clock": [
+   204.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-20 21-21-48.mov",
+  "run_start": 233.5,
+  "true_onset": 233.5,
+  "ending": "time",
+  "last_clock": [
+   233.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-20 21-26-50.mov",
+  "run_start": 278.5,
+  "true_onset": 278.5,
+  "ending": "time",
+  "last_clock": [
+   278.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 124.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja-2026-09-20 21-46-11.mov",
+  "run_start": 324.5,
+  "true_onset": 324.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja_brinewater_springs_crab_tank_2026-09-16 19-49-36.mp4",
+  "run_start": 215.0,
+  "true_onset": 215.0,
+  "ending": "knockout",
+  "last_clock": [
+   214.5,
+   105.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03.mov",
+  "run_start": 230.0,
+  "true_onset": 230.0,
+  "ending": "knockout",
+  "last_clock": [
+   229.5,
+   107.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30.mov",
+  "run_start": 318.0,
+  "true_onset": 317.5,
+  "ending": "time",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "ja_brinewater_springs_triple_splashdown_2026-09-16 20-27-13.mov",
+  "run_start": 173.0,
+  "true_onset": 173.0,
+  "ending": "knockout",
+  "last_clock": [
+   172.5,
+   158.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 121.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja_eeltail_alley_zip_caster_2026-09-16 19-06-13.mov",
+  "run_start": 269.5,
+  "true_onset": 269.5,
+  "ending": "knockout",
+  "last_clock": [
+   268.5,
+   47.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16.mov",
+  "run_start": 332.5,
+  "true_onset": 332.5,
+  "ending": "overtime",
+  "last_clock": [
+   317.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 80.0,
+  "tape_color": "teal"
+ },
+ {
+  "video": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39.mov",
+  "run_start": 315.5,
+  "true_onset": 315.5,
+  "ending": "time",
+  "last_clock": [
+   314.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja_inkblot_academy_ink_storm_2026-09-15 22-00-54.mov",
+  "run_start": 321.0,
+  "true_onset": 321.0,
+  "ending": "time",
+  "last_clock": [
+   320.5,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja_inkblot_art_academy_big_bubbler_2026-09-16 20-53-49.mov",
+  "run_start": 195.5,
+  "true_onset": 195.5,
+  "ending": "time",
+  "last_clock": [
+   195.0,
+   1.0
+  ],
+  "max_clock": 180.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ },
+ {
+  "video": "ja_lumira_hub_inkjet_2026-09-16 19-33-24.mov",
+  "run_start": 265.0,
+  "true_onset": 265.0,
+  "ending": "knockout",
+  "last_clock": [
+   264.5,
+   42.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 50.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "ja_mahi_mahi_kraken_2026-09-16 20-18-04.mov",
+  "run_start": 179.5,
+  "true_onset": 179.5,
+  "ending": "knockout",
+  "last_clock": [
+   179.0,
+   139.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03.mov",
+  "run_start": 314.5,
+  "true_onset": 314.5,
+  "ending": "time",
+  "last_clock": [
+   314.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 152.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "ja_mahi_mahi_resort_2026-09-07 14-02-14.mov",
+  "run_start": 315.5,
+  "true_onset": 315.5,
+  "ending": "time",
+  "last_clock": [
+   315.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24.mov",
+  "run_start": 319.5,
+  "true_onset": 319.5,
+  "ending": "time",
+  "last_clock": [
+   319.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "ja_mahi_mahi_resort_ultra_stamp_2026-09-16 19-49-36.mp4",
+  "run_start": 98.0,
+  "true_onset": 98.0,
+  "ending": "knockout",
+  "last_clock": [
+   97.5,
+   214.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 157.0,
+  "tape_color": "pink"
+ },
+ {
+  "video": "jn_barnacle_and_dime_2026-09-15 21-28-49.mov",
+  "run_start": 334.5,
+  "true_onset": 334.5,
+  "ending": "overtime",
+  "last_clock": [
+   319.0,
+   0.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 43.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "jn_robo_rom_en_2026-09-15 21-19-51.mov",
+  "run_start": 315.5,
+  "true_onset": 315.5,
+  "ending": "time",
+  "last_clock": [
+   315.0,
+   1.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "jp-2026-09-09 21-10-07.mov",
+  "run_start": 315.5,
+  "true_onset": 315.0,
+  "ending": "time",
+  "last_clock": [
+   313.0,
+   2.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 122.0,
+  "tape_color": "blue"
+ },
+ {
+  "video": "jp-2026-09-20 23-46-44.mov",
+  "run_start": 167.0,
+  "true_onset": 167.0,
+  "ending": "knockout",
+  "last_clock": [
+   166.5,
+   161.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 50.0,
+  "tape_color": "lime"
+ },
+ {
+  "video": "jp-2026-09-21 07-24-31.mov",
+  "run_start": 133.0,
+  "true_onset": 133.0,
+  "ending": "knockout",
+  "last_clock": [
+   132.5,
+   181.0
+  ],
+  "max_clock": 300.0,
+  "tape_hue": 14.0,
+  "tape_color": "orange"
+ },
+ {
+  "video": "jp_2026-09-20 23-38-13.mov",
+  "run_start": 321.0,
+  "true_onset": 321.0,
+  "ending": "overtime",
+  "last_clock": [
+   317.5,
+   1.0
+  ],
+  "max_clock": 401.0,
+  "tape_hue": 33.0,
+  "tape_color": "yellow"
+ }
+]

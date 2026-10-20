@@ -85,3 +85,26 @@ def test_grid_sample_includes_every_video_without_a_run() -> None:
     assert {"none1", "none2"} <= set(sample)
     assert len(sample) == 2 + gv.GRID_SAMPLE
     assert sample == gv.grid_sample(detections)
+
+
+def test_ending_type_from_clock_slack() -> None:
+    assert gv.ending_type(None, 300.0) == "unknown"
+    assert gv.ending_type((299.5, 1.0), 300.0) == "time"
+    assert gv.ending_type((209.5, 7.0), 216.5) == "time"
+    assert gv.ending_type((167.0, 148.0), 168.0) == "knockout"
+    assert gv.ending_type((300.0, 1.0), 320.0) == "overtime"
+
+
+def test_hue_name_bins() -> None:
+    assert gv.hue_name(None) == "unknown"
+    assert [gv.hue_name(h) for h in (0, 14, 28, 50, 90, 110, 140, 157, 175)] == [
+        "red",
+        "orange",
+        "yellow",
+        "lime",
+        "teal",
+        "blue",
+        "purple",
+        "pink",
+        "red",
+    ]

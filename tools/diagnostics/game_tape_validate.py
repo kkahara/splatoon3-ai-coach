@@ -11,9 +11,11 @@ Pre-registered in ``analysis/game_tape_probe/VALIDATION.md``. Commands::
     python tools/diagnostics/game_tape_validate.py sheets
     # after truth.csv is filled from the sheets: apply the pass criteria
     python tools/diagnostics/game_tape_validate.py report
+    # descriptive only: ending type, match length and tape color per run
+    python tools/diagnostics/game_tape_validate.py describe
 
 The rule, thresholds and mask are frozen; this tool refuses to run if the
-mask checksum differs.
+mask checksum differs. ``describe`` never feeds the pass criteria.
 """
 
 from __future__ import annotations
@@ -25,7 +27,7 @@ import json
 import re
 import subprocess
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -35,7 +37,13 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from game_tape_probe import SAMPLE_FPS, TapeLayout, frames, tape_features  # noqa: E402
+from game_tape_probe import (  # noqa: E402
+    SAMPLE_FPS,
+    TapeLayout,
+    dominant_hue,
+    frames,
+    tape_features,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = PROJECT_ROOT / "analysis" / "game_tape_probe"
@@ -56,6 +64,22 @@ THUMB_EVERY = 4
 THUMB_SIZE = (120, 68)
 STRIP_SIZE = (240, 135)
 STRIPS_PER_PAGE = 8
+END_WINDOW = 60.0
+TIME_SLACK = (-1.5, 2.0)
+SHORT_MATCH_CLOCK = 180.0
+FULL_SIZE = (1920, 1080)
+HUE_NAMES = (
+    (8, "red"),
+    (20, "orange"),
+    (33, "yellow"),
+    (50, "lime"),
+    (75, "green"),
+    (95, "teal"),
+    (125, "blue"),
+    (145, "purple"),
+    (169, "pink"),
+    (179, "red"),
+)
 
 
 @dataclass(frozen=True)
@@ -348,10 +372,124 @@ def report(out_dir: Path) -> int:
     return 0
 
 
+def ending_type(last: tuple[float, float] | None, onset: float) -> str:
+    """Ending from the last usable clock reading ``(video_t, seconds_left)``.
+
+    ``slack`` is how long after the clock would have reached 0:00 the tape
+    starts; the clock is often hidden (map, death) in the last seconds.
+    """
+    if last is None:
+        return "unknown"
+    slack = onset - last[0] - last[1]
+    if slack < TIME_SLACK[0]:
+        return "knockout"
+    if slack <= TIME_SLACK[1]:
+        return "time"
+    return "overtime"
+
+
+def hue_name(hue: float | None) -> str:
+    """Coarse color name for an OpenCV hue (0-179)."""
+    if hue is None:
+        return "unknown"
+    return next(name for limit, name in HUE_NAMES if hue <= limit)
+
+
+def _full_frames(
+    path: Path, start: float = 0.0, duration: float | None = None, keyframes: bool = False
+) -> Iterator[np.ndarray]:
+    """Full-resolution BGR frames: 2 fps from ``start``, or every keyframe."""
+    cmd = ["ffmpeg", "-loglevel", "error"]
+    cmd += ["-skip_frame", "nokey"] if keyframes else ["-ss", f"{start}"]
+    cmd += ["-i", str(path)]
+    if duration is not None:
+        cmd += ["-t", f"{duration}"]
+    cmd += ["-fps_mode", "passthrough"] if keyframes else ["-vf", f"fps={SAMPLE_FPS}"]
+    cmd += ["-f", "rawvideo", "-pix_fmt", "bgr24", "-"]
+    width, height = FULL_SIZE
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE) as proc:
+        assert proc.stdout is not None
+        while len(chunk := proc.stdout.read(width * height * 3)) == width * height * 3:
+            yield np.frombuffer(chunk, np.uint8).reshape(height, width, 3)
+
+
+def _describe_one(det: Mapping) -> list[dict]:
+    """Descriptive facts for every run of one video."""
+    from loguru import logger
+
+    from splatoon3_ai_coach.config.loader import load_config
+    from splatoon3_ai_coach.config.paths import default_config_path
+    from splatoon3_ai_coach.vision.timer import TimerDetector
+
+    logger.remove()
+    config = load_config(default_config_path()).vision.timer
+    timer = TimerDetector(config)
+
+    def clock(image: np.ndarray) -> float | None:
+        reading, confidence = timer.detect(image)
+        if reading is None or confidence < config.min_usable_confidence:
+            return None
+        return reading.seconds_remaining
+
+    path = MOVIES / det["video"]
+    seen = [c for c in map(clock, _full_frames(path, keyframes=True)) if c is not None]
+    layout = TapeLayout.from_mask(cv2.imread(str(MASK), cv2.IMREAD_GRAYSCALE) > 0)
+    out = []
+    for run_doc in det["runs"]:
+        onset = _match(run_doc["start"], det["true_onsets"])[0] or run_doc["start"]
+        start = max(0.0, onset - END_WINDOW)
+        last = None
+        for i, image in enumerate(_full_frames(path, start, onset - start)):
+            value = clock(image)
+            if value is not None:
+                last = (start + i / SAMPLE_FPS, value)
+        _, settled = next(frames(path, onset + 0.5, 0.5))
+        hsv = cv2.cvtColor(settled, cv2.COLOR_BGR2HSV)
+        hue = dominant_hue(hsv, layout.band)
+        out.append(
+            {
+                "video": det["video"],
+                "run_start": run_doc["start"],
+                "true_onset": onset,
+                "ending": ending_type(last, onset),
+                "last_clock": last,
+                "max_clock": max(seen) if seen else None,
+                "tape_hue": hue,
+                "tape_color": hue_name(hue),
+            }
+        )
+    return out
+
+
+def describe(out_dir: Path, jobs: int) -> int:
+    """Write ``endings.json``: descriptive facts per run (not a pass criterion).
+
+    Clock slack is measured from the labeled true onset in ``truth.csv``.
+    """
+    detections = json.loads((out_dir / "detections.json").read_text(encoding="utf-8"))
+    with (out_dir / "truth.csv").open(newline="", encoding="utf-8") as fh:
+        truth = {row["video"]: row["true_onsets"] for row in csv.DictReader(fh)}
+    with_runs = [
+        {**d, "true_onsets": [float(x) for x in truth[d["video"]].split(";") if x]}
+        for d in detections
+        if d["runs"]
+    ]
+    rows: list[dict] = []
+    with ProcessPoolExecutor(max_workers=jobs) as pool:
+        for result in pool.map(_describe_one, with_runs):
+            rows += result
+            sys.stdout.write(f"{result[0]['video']}: {[r['ending'] for r in result]}\n")
+            sys.stdout.flush()
+    (out_dir / "endings.json").write_text(json.dumps(rows, indent=1) + "\n", "utf-8")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=("select", "run", "sheets", "report"))
+    parser.add_argument(
+        "command", choices=("select", "run", "sheets", "report", "describe")
+    )
     parser.add_argument("--out", type=Path, default=OUT_DIR / "heldout")
     parser.add_argument("--jobs", type=int, default=3)
     args = parser.parse_args(argv)
@@ -362,6 +500,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run(args.out, args.jobs)
     if args.command == "sheets":
         return sheets(args.out)
+    if args.command == "describe":
+        return describe(args.out, args.jobs)
     return report(args.out)
 
 
