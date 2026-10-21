@@ -9,7 +9,10 @@ from typing import Any
 from loguru import logger
 
 from splatoon3_ai_coach.analysis.session import GameSession
-from splatoon3_ai_coach.coach.claim_validation import validate_assessment
+from splatoon3_ai_coach.coach.claim_validation import (
+    VALIDATION_CONTRACT_VERSION,
+    validate_assessment,
+)
 from splatoon3_ai_coach.coach.coach_input import CoachInput
 from splatoon3_ai_coach.coach.evidence_contract import (
     PROHIBITED_CLAIM_PATTERNS,
@@ -108,6 +111,7 @@ def annotate_claim_flags(
     only hits classified as prohibited assertions. ``validation_status`` also
     reflects causal map claims, unsupported map recommendations and
     ``evidence_used`` entries that do not resolve against ``view``.
+    ``validation_contract_version`` names the rules that produced it.
     """
     fields = {
         "assessment": assessment.assessment,
@@ -142,6 +146,7 @@ def annotate_claim_flags(
             view_json,
             prohibited_hit_count=hit_count,
         ),
+        "validation_contract_version": VALIDATION_CONTRACT_VERSION,
     }
 
 

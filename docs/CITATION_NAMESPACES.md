@@ -109,9 +109,9 @@ gain one `object_path_value` hit and 15 move from `validated` to
 - 2 literal `timeline.time_since_previous_death = …` (object path; the
   leaf is `.value`).
 
-The public site recomputes this status when it renders a review, so
-comparable outputs will display the non-blocking status instead of
-`validated`; prose is still shown.
+The public site shows the stored original status of such outputs and labels
+today's non-blocking result separately as a current revalidation; prose is
+still shown (see "Public site: original vs current validation status").
 
 Re-running the
 Experiment I postmortem tool into a scratch directory reproduces all 33
@@ -371,10 +371,12 @@ assessment). No claim rule (`claim_rules`, `claim_integrity`) read labels
 or resolutions. Consumers whose results change for stored old-prompt
 outputs:
 
-- the public site recomputes the status on every review render
-  (`tools/public_site/results.py` `_review`): an old-prompt output whose
-  label citations were accepted now shows the non-blocking "Contains
-  unverified wording" badge; prose is still shown; nothing becomes blocked;
+- the public site's current revalidation (`tools/public_site/results.py`
+  `_review`): an old-prompt output whose label citations were accepted now
+  gets a labelled current-rules "unverified wording" note beside its stored
+  original status; prose is still shown; nothing becomes blocked (until
+  the follow-up commit, this recomputed status replaced the original; see
+  below);
 - `s3-coach coach-reannotate-flags` would rewrite such `*.flags.json` if run
   (not run);
 - experiment tools that validate with the production validator (D, H, I,
@@ -439,6 +441,50 @@ to cite it.
   the strict scorer forbid it;
 - `CV-BARE-OBJECT-REF` (open) and `CV-MAP-AWARENESS-OPEN` (open);
 - empirical coverage for the uncited families (above).
+
+## Public site: original vs current validation status
+
+A displayed status must not change because validator code changed. Two
+values are kept apart on `CoachingMoment`:
+
+- `assessment_status`, the **original**: the `validation_status` in the
+  primary output's `*.flags.json`, written by `coach-prototype` together
+  with the output under the rules in force at generation time. Read through
+  `artifacts.primary_stored_validation`; never recomputed. `None` when none
+  was stored (no flags file, legacy flags without `validation_status`, an
+  unknown value, or no unambiguous primary output). An original is never
+  inferred from today's validator.
+- `current_assessment_status`, the **current revalidation**: today's
+  `annotate_claim_flags` over the output and its stored `llm_view`.
+
+The prose is withheld (`coaching_state = "blocked"`) when either status is
+`blocked_unsupported_claim`. This keeps the reason the site recomputed in
+the first place (flags written before the claim rules existed say
+`validated` for prose that the rules now block), while the original stays
+visible as the original. The page shows the original's "Contains unverified
+wording" badge or blocked note; a current-only result is shown with its
+own wording, which starts "Re-checked with today's evidence rules (not the
+rules used when this coaching was written)".
+
+**Contract version.** `claim_validation.VALIDATION_CONTRACT_VERSION`
+(1 = literal-N2 citations only) is written into every new flags document as
+`validation_contract_version`. It is independent of the prompt hash, model
+and `COACH_EVIDENCE_VERSION`; bump it when a rule change can change the
+status of an unchanged output. Flags without it are unversioned.
+
+**Local population, measured read-only** (50 displayed moments, 41 in the
+public mirror): 29 have a stored original (prototype index schema 3 with
+run provenance, executed 2026-10-07 to 2026-10-11; all unversioned): 12
+unverified -> unverified, 14 validated -> unverified, 2 validated ->
+blocked, 1 validated -> validated. 21 have none (schema 1 legacy flags
+without `validation_status`): current 10 unverified, 9 blocked, 2
+validated. No moment changes between shown and withheld; only the labels
+change. Experiment D-I and N2 records do not go through this path.
+
+**Residual risk.** `s3-coach coach-reannotate-flags` still overwrites
+`*.flags.json` with current results, which would replace stored originals.
+It is an explicit operator command and was not run. The smallest fix is to
+write current results to a separate revalidation file instead.
 
 ## History: Fix 1 results (`db5fa8c`)
 

@@ -21,14 +21,20 @@ from splatoon3_ai_coach.coach.artifacts import (
     PrototypeIndex,
     PrototypeIndexEntry,
     PrototypeOutput,
+    StoredValidation,
     load_unit_artifacts,
     output_file_names,
     primary_assessment,
+    primary_stored_validation,
     read_coaching_index,
     read_prototype_index,
     unit_assessments,
     write_coaching_index,
     write_json,
+)
+from splatoon3_ai_coach.coach.claim_validation import (
+    VALIDATION_CONTRACT_VERSION,
+    ValidationStatus,
 )
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
 
@@ -192,6 +198,70 @@ def test_public_review_states(
     else:
         assert review.assessment == assessment
         assert review.recommendations == recommendations
+
+
+def _set_flags(folder: Path, model_tag: str, flags: dict[str, object]) -> None:
+    write_json(folder / f"{SAFE}.{model_tag}.flags.json", flags)
+
+
+def test_stored_validation_is_read_from_the_primary_output_only(tmp_path: Path) -> None:
+    write_prototype_unit(
+        tmp_path,
+        SAFE,
+        {"primary": "One.", "zz-baseline": "Two."},
+        primary_model="primary",
+    )
+    _set_flags(tmp_path, "zz-baseline", {"validation_status": "validated"})
+    assert primary_stored_validation(tmp_path, SAFE) is None
+    _set_flags(
+        tmp_path,
+        "primary",
+        {"validation_status": "contains_unverified_wording",
+         "validation_contract_version": 1},
+    )
+    assert primary_stored_validation(tmp_path, SAFE) == StoredValidation(
+        status=ValidationStatus.CONTAINS_UNVERIFIED_WORDING, contract_version=1
+    )
+
+
+@pytest.mark.parametrize(
+    ("flags", "expected"),
+    [
+        ({"validation_status": "validated"}, StoredValidation(status="validated")),
+        ({"validation_status": "validated", "validation_contract_version": True},
+         StoredValidation(status="validated")),
+        ({"hit_count": 0}, None),
+        ({"validation_status": "maybe"}, None),
+        ({"validation_status": None}, None),
+    ],
+    ids=["unversioned", "bad_version", "legacy", "unknown", "null"],
+)
+def test_stored_validation_is_never_guessed(
+    tmp_path: Path, flags: dict[str, object], expected: StoredValidation | None
+) -> None:
+    write_prototype_unit(tmp_path, SAFE, {"m": "Text."}, primary_model="m")
+    _set_flags(tmp_path, "m", flags)
+    assert primary_stored_validation(tmp_path, SAFE) == expected
+
+
+def test_stored_validation_absent_without_an_unambiguous_primary(tmp_path: Path) -> None:
+    assert primary_stored_validation(tmp_path, SAFE) is None
+    _legacy_output(tmp_path, "gpt-oss_20b", "One.")
+    _set_flags(tmp_path, "gpt-oss_20b", {"validation_status": "validated"})
+    assert primary_stored_validation(tmp_path, SAFE) == StoredValidation(
+        status="validated"
+    )
+    _legacy_output(tmp_path, "llama3.1_8b", "Two.")
+    assert primary_stored_validation(tmp_path, SAFE) is None
+
+
+def test_new_flags_record_the_validation_contract_version() -> None:
+    from splatoon3_ai_coach.coach.coach import annotate_claim_flags
+    from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
+
+    flags = annotate_claim_flags(CoachingAssessment(assessment="Text."))
+    assert flags["validation_contract_version"] == VALIDATION_CONTRACT_VERSION
+    assert flags["validation_status"] == "not_validated"
 
 
 def test_prototype_index_validates_primary_links() -> None:

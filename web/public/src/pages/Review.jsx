@@ -375,10 +375,13 @@ function Assessment({ moment, locale }) {
   if (state === "not_reviewed") {
     return <p className="note">{t("review.not_reviewed")}</p>;
   }
+  const original = moment.assessment_status;
   if (state === "blocked") {
+    const key =
+      original === "blocked_unsupported_claim" ? "review.blocked" : "review.blocked_current";
     return (
       <p className="note blocked" role="note">
-        {t("review.blocked")}
+        {t(key)}
       </p>
     );
   }
@@ -387,13 +390,20 @@ function Assessment({ moment, locale }) {
   }
   const fellBack = locale !== "en" && moment.assessment_locale === "en";
   const recsFellBack = locale !== "en" && moment.recommendations_locale === "en";
-  const unverified = moment.assessment_status === "contains_unverified_wording";
+  const unverified = original === "contains_unverified_wording";
+  const currentUnverified =
+    !unverified && moment.current_assessment_status === "contains_unverified_wording";
   const recommendations = moment.recommendations || [];
   return (
     <>
       {unverified ? (
         <p className="badge unverified" role="note">
           {t("review.unverified_wording")}
+        </p>
+      ) : null}
+      {currentUnverified ? (
+        <p className="badge unverified" role="note">
+          {t("review.current_unverified")}
         </p>
       ) : null}
       <p className="assessment" lang={fellBack ? "en" : undefined}>

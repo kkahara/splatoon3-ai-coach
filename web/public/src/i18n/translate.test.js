@@ -39,6 +39,15 @@ test("the unverified-wording badge has English and Japanese text", () => {
   assert.notEqual(ja, "review.unverified_wording");
 });
 
+test("current-rule revalidation notes say they are not the original check", () => {
+  for (const key of ["review.blocked_current", "review.current_unverified"]) {
+    const en = translate(resources, "en", key);
+    const ja = translate(resources, "ja", key);
+    assert.match(en, /^Re-checked with today's evidence rules \(not the rules used/);
+    assert.match(ja, /^現在の証拠ルールで再確認しました（作成時のルールではありません）/);
+  }
+});
+
 test("every public coaching state has English and Japanese text", () => {
   for (const key of ["review.not_reviewed", "review.blocked", "review.no_recommendation"]) {
     const en = translate(resources, "en", key);

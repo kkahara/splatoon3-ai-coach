@@ -12,6 +12,7 @@ import pytest
 from coach_artifact_helpers import index_entry
 from fastapi.testclient import TestClient
 from public_site import localize
+from public_site import results as public_results
 from public_site.app import create_app
 from public_site.localize import (
     CACHE_KIND,
@@ -412,40 +413,105 @@ _VIEW = {
 }
 
 
-def _write_view_and_stale_flags(analysis: Path, safe_id: str) -> None:
-    prototype = analysis / "coach_prototype"
-    (prototype / f"{safe_id}.llm_view.json").write_text(
+def _write_view(analysis: Path, safe_id: str) -> None:
+    (analysis / "coach_prototype" / f"{safe_id}.llm_view.json").write_text(
         json.dumps(_VIEW), encoding="utf-8"
     )
-    (prototype / f"{safe_id}.model.flags.json").write_text(
-        json.dumps({"hit_count": 0, "validation_status": "validated"}),
-        encoding="utf-8",
+
+
+def _write_flags(analysis: Path, safe_id: str, flags: dict[str, object]) -> None:
+    (analysis / "coach_prototype" / f"{safe_id}.model.flags.json").write_text(
+        json.dumps(flags), encoding="utf-8"
     )
 
 
-def test_status_is_recomputed_not_read_from_flags(tmp_path: Path) -> None:
+def test_original_status_is_kept_and_current_block_withholds_prose(
+    tmp_path: Path,
+) -> None:
     _seed(tmp_path, {"unit": _CAUSAL})
-    _write_view_and_stale_flags(tmp_path, "unit")
+    _write_view(tmp_path, "unit")
+    _write_flags(tmp_path, "unit", {"hit_count": 0, "validation_status": "validated"})
     english = load_result(tmp_path)
     moment = english.moments[0]
-    assert moment.assessment_status == "blocked_unsupported_claim"
+    assert moment.assessment_status == "validated"
+    assert moment.current_assessment_status == "blocked_unsupported_claim"
     assert moment.coaching_state == "blocked"
     assert moment.assessment is None
     translator = _Translator()
     japanese = localize_result(english, "ja", tmp_path, translator)
     assert japanese.moments[0].coaching_state == "blocked"
+    assert japanese.moments[0].assessment_status == "validated"
     assert translator.calls == []
     assert japanese.moments[0].assessment is None
 
 
-def test_status_validated_and_not_validated(tmp_path: Path) -> None:
+def test_stored_block_withholds_prose_even_if_current_rules_pass(
+    tmp_path: Path,
+) -> None:
+    clean = "No map overlay was observed before the death."
+    _seed(tmp_path, {"unit": clean})
+    _write_view(tmp_path, "unit")
+    _write_flags(tmp_path, "unit", {"validation_status": "blocked_unsupported_claim"})
+    (moment,) = load_result(tmp_path).moments
+    assert moment.assessment_status == "blocked_unsupported_claim"
+    assert moment.current_assessment_status == "validated"
+    assert moment.coaching_state == "blocked"
+    assert moment.assessment is None
+
+
+@pytest.mark.parametrize(
+    "flags",
+    [None, {"hit_count": 0}, {"validation_status": "no_such_status"}],
+    ids=["no_flags_file", "legacy_flags", "unknown_status"],
+)
+def test_no_original_status_is_inferred_from_todays_validator(
+    tmp_path: Path, flags: dict[str, object] | None
+) -> None:
+    clean = "No map overlay was observed before the death."
+    _seed(tmp_path, {"unit": clean})
+    _write_view(tmp_path, "unit")
+    if flags is not None:
+        _write_flags(tmp_path, "unit", flags)
+    (moment,) = load_result(tmp_path).moments
+    assert moment.assessment_status is None
+    assert moment.current_assessment_status == "validated"
+    assert moment.coaching_state == "no_recommendation"
+    assert moment.assessment == clean
+
+
+@pytest.mark.parametrize(
+    "stored",
+    ["validated", "contains_unverified_wording", "blocked_unsupported_claim"],
+)
+@pytest.mark.parametrize(
+    "today",
+    ["validated", "contains_unverified_wording", "blocked_unsupported_claim"],
+)
+def test_validator_changes_never_change_the_original_status(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, stored: str, today: str
+) -> None:
+    _seed(tmp_path, {"unit": "No map overlay was observed before the death."})
+    _write_view(tmp_path, "unit")
+    _write_flags(tmp_path, "unit", {"validation_status": stored})
+    monkeypatch.setattr(
+        public_results, "annotate_claim_flags", lambda *_: {"validation_status": today}
+    )
+    (moment,) = load_result(tmp_path).moments
+    assert moment.assessment_status == stored
+    assert moment.current_assessment_status == today
+    blocked = "blocked_unsupported_claim" in (stored, today)
+    assert (moment.coaching_state == "blocked") is blocked
+    assert (moment.assessment is None) is blocked
+
+
+def test_current_status_validated_and_not_validated(tmp_path: Path) -> None:
     clean = "No map overlay was observed before the death."
     _seed(tmp_path, {"viewed": clean, "unviewed": clean})
-    (tmp_path / "coach_prototype" / "viewed.llm_view.json").write_text(
-        json.dumps(_VIEW), encoding="utf-8"
-    )
-    statuses = {m.video_time: m.assessment_status for m in load_result(tmp_path).moments}
-    assert statuses == {10.0: "validated", 20.0: "not_validated"}
+    _write_view(tmp_path, "viewed")
+    moments = load_result(tmp_path).moments
+    current = {m.video_time: m.current_assessment_status for m in moments}
+    assert current == {10.0: "validated", 20.0: "not_validated"}
+    assert {m.assessment_status for m in moments} == {None}
 
 
 def test_context_mark_offset_labels_localize() -> None:

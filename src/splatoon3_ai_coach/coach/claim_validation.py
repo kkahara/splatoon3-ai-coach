@@ -47,6 +47,12 @@ from splatoon3_ai_coach.coach.evidence_contract import (
     split_sentences,
 )
 
+# Bump whenever a change to these rules (or to the claim rules / integrity
+# checks they run) can change the status of an unchanged output. Persisted
+# flags carry it; flags without it predate versioning ("unversioned").
+# v1: literal-N2 citations only (legacy source_path fallback removed).
+VALIDATION_CONTRACT_VERSION = 1
+
 
 class ValidationStatus(StrEnum):
     """Public-facing validator outcome for one assessment."""

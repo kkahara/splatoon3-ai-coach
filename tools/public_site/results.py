@@ -17,11 +17,13 @@ from splatoon3_ai_coach.coach.artifacts import (
     coach_inputs_staleness,
     coach_prototype_dir,
     primary_assessment,
+    primary_stored_validation,
     read_document,
     unit_file_names,
 )
 from splatoon3_ai_coach.coach.claim_validation import ValidationStatus
 from splatoon3_ai_coach.coach.coach import annotate_claim_flags
+from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
@@ -92,6 +94,7 @@ def _moment(
         statements=statements,
         assessment=review.assessment,
         assessment_status=review.status,
+        current_assessment_status=review.current_status,
         coaching_state=review.state,
         recommendations=review.recommendations,
         frame=has_frame(analysis, entry.safe_id),
@@ -569,33 +572,48 @@ class _Review:
     state: str
     assessment: str | None = None
     status: str | None = None
+    current_status: str | None = None
     recommendations: list[str] = field(default_factory=list)
 
 
 def _review(prototype: Path, inputs: Path, entry: CoachingIndexEntry) -> _Review:
-    """State, prose and a validator status recomputed now (flags not trusted).
+    """State, prose, the stored original status and a current revalidation.
 
     No model prose (never selected, skipped or failed) is "not reviewed", never
-    "no recommendation supported". A blocking claim violation withholds the
-    prose; the deterministic evidence lines are shown instead.
+    "no recommendation supported". ``status`` is the one stored when the output
+    was generated (``None`` if none was stored) and is never recomputed;
+    ``current_status`` is today's validator. If either blocks, the prose is
+    withheld and the deterministic evidence lines are shown instead.
     """
     assessment = primary_assessment(prototype, entry.safe_id)
     text = "" if assessment is None else assessment.assessment.strip()
     if assessment is None or not text or text == _SKIP:
         return _Review(state="not_reviewed")
-    view = read_document(prototype, unit_file_names(entry.safe_id).llm_view)
-    if view is None:
-        view = read_document(inputs, entry.llm_view_json)
-    status = annotate_claim_flags(assessment, view)["validation_status"]
-    if status == ValidationStatus.BLOCKED_UNSUPPORTED_CLAIM.value:
-        return _Review(state="blocked", status=status)
+    stored = primary_stored_validation(prototype, entry.safe_id)
+    original = None if stored is None else stored.status.value
+    current = _current_status(prototype, inputs, entry, assessment)
+    if ValidationStatus.BLOCKED_UNSUPPORTED_CLAIM.value in (original, current):
+        return _Review(state="blocked", status=original, current_status=current)
     recommendations = [r.strip() for r in assessment.recommendations if r.strip()]
     return _Review(
         state="recommendation" if recommendations else "no_recommendation",
         assessment=text,
-        status=status,
+        status=original,
+        current_status=current,
         recommendations=recommendations,
     )
+
+
+def _current_status(
+    prototype: Path,
+    inputs: Path,
+    entry: CoachingIndexEntry,
+    assessment: CoachingAssessment,
+) -> str:
+    view = read_document(prototype, unit_file_names(entry.safe_id).llm_view)
+    if view is None:
+        view = read_document(inputs, entry.llm_view_json)
+    return annotate_claim_flags(assessment, view)["validation_status"]
 
 
 def _read_json(path: Path) -> dict:

@@ -94,7 +94,9 @@ def test_v1_artifacts_get_current_status_but_are_marked_stale(tmp_path: Path) ->
     assert result.stale is True
     assert result.stale_reason == "evidence_version_missing"
     (moment,) = result.moments
-    assert moment.assessment_status == "blocked_unsupported_claim"
+    assert moment.assessment_status is None
+    assert moment.current_assessment_status == "blocked_unsupported_claim"
+    assert moment.coaching_state == "blocked"
     assert "Map-check evidence was unavailable for this video." in moment.context
     assert "No map check observed before death" not in moment.context
 

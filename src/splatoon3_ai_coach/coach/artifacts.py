@@ -40,6 +40,7 @@ from pydantic import (
 )
 
 from splatoon3_ai_coach.coach.claim_catalog import CoachingUnitResult
+from splatoon3_ai_coach.coach.claim_validation import ValidationStatus
 from splatoon3_ai_coach.coach.coach_input import CoachInput
 from splatoon3_ai_coach.coach.llm_client import CoachingAssessment, GenerationSetting
 from splatoon3_ai_coach.coach.llm_view import CoachLlmView
@@ -640,6 +641,47 @@ def primary_assessment(prototype_dir: Path, safe_id: str) -> CoachingAssessment 
         return None
     path = prototype_dir / output.output_json
     return load_assessment(path) if path.is_file() else None
+
+
+class StoredValidation(BaseModel):
+    """Validation result persisted beside an output when it was generated.
+
+    This is the original status under the rules in force at generation time;
+    it is never recomputed. ``contract_version`` is ``None`` for flags written
+    before ``validation_contract_version`` was recorded (unversioned).
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: ValidationStatus
+    contract_version: int | None = None
+
+
+def primary_stored_validation(
+    prototype_dir: Path, safe_id: str
+) -> StoredValidation | None:
+    """Stored validation of the unit's primary output, or ``None`` if not recorded.
+
+    ``None`` when there is no unambiguous primary output, its flags file is
+    missing or unreadable, or the flags carry no recognised
+    ``validation_status`` (legacy flags predate the claim validator).
+    """
+    entry = _unit_outputs(prototype_dir, safe_id)
+    if entry is None or entry.primary_ambiguous:
+        return None
+    output = entry.primary_output()
+    flags = None if output is None else read_document(prototype_dir, output.flags_json)
+    if flags is None:
+        return None
+    version = flags.get("validation_contract_version")
+    if isinstance(version, bool) or not isinstance(version, int):
+        version = None
+    try:
+        return StoredValidation(
+            status=flags.get("validation_status"), contract_version=version
+        )
+    except ValidationError:
+        return None
 
 
 def prototype_outputs(prototype_dir: Path) -> list[PrototypeOutput]:

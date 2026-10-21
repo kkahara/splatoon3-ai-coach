@@ -69,6 +69,8 @@
   "review.unverified_wording": "Contains unverified wording: parts of this text go beyond what the match evidence shows.",
   "review.not_reviewed": "Not reviewed by the coach.",
   "review.blocked": "The coach's wording for this moment went beyond what the match evidence shows, so only the observed facts are shown.",
+  "review.blocked_current": "Re-checked with today's evidence rules (not the rules used when this coaching was written): its wording goes beyond what the match evidence shows, so only the observed facts are shown.",
+  "review.current_unverified": "Re-checked with today's evidence rules (not the rules used when this coaching was written): parts of this text go beyond what the match evidence shows.",
   "review.no_recommendation": "No recommendation supported by the available evidence.",
   "review.recommendations": "Suggestion",
   "review.submit_another": "Submit another video",

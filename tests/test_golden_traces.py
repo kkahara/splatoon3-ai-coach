@@ -271,7 +271,8 @@ def test_trace_b_gpt_oss_text_is_blocked(trace_b: Trace) -> None:
         ("primary_context.death_episode.death_to_active_again", "unknown_block"),
         ("primary_context.death_episode.time", "unknown_block"),
     }
-    assert trace_b.moment.assessment_status == "blocked_unsupported_claim"
+    assert trace_b.moment.assessment_status is None
+    assert trace_b.moment.current_assessment_status == "blocked_unsupported_claim"
     assert trace_b.moment.coaching_state == "blocked"
     assert trace_b.moment.assessment is None
     assert trace_b.moment.context

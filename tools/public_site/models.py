@@ -139,8 +139,13 @@ class CoachingMoment(BaseModel):
     statements: list[str] = Field(default_factory=list)
     assessment: str | None = None
     assessment_locale: DisplayLocale = "en"
-    # Recomputed at load from the assessment + its llm_view; None without prose.
+    # Original status stored with the output when it was generated; never
+    # recomputed. None without prose or when none was stored (legacy flags).
     assessment_status: AssessmentStatus | None = None
+    # Revalidation under today's validator, separate from the original; None
+    # without prose.
+    current_assessment_status: AssessmentStatus | None = None
+    # "blocked" when either status blocks; the prose is then withheld.
     coaching_state: CoachingState | None = None
     recommendations: list[str] = Field(default_factory=list)
     recommendations_locale: DisplayLocale = "en"
