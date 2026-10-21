@@ -1,10 +1,13 @@
 # Experiment J: incremental value of map-awareness coaching
 
-**Status: FREEZE CANDIDATE, revision 4. Not frozen.** Nothing is built,
-analyzed or called. `design.json` is created only after this text is
-approved at stop point 1. After the freeze, gates and thresholds are not
-adjusted after outputs are seen, including for results close to a
-boundary.
+**Status: frozen 2026-10-21 after rater approval of revision 4 (stop point
+1).** Nothing is built, analyzed or called. Machine-readable: `design.json`.
+Hashes: `SHA256SUMS`.
+
+Gates, thresholds, populations, the selection algorithm and the seeds are
+not adjusted after the census or outputs are seen, including for results
+close to a boundary. Any later change is a dated amendment that states what
+had been seen when it was made.
 
 Research only. Production code, prompts, claim catalog, validator and config
 stay unchanged. Experiment H/I artifacts, ratings, flags, the Experiment I
@@ -161,7 +164,9 @@ ablation comparison, and the count is reported with its reasons.
 
 The rule was applied to Experiment I's 28 eligible M outputs. These were
 written under I's prompt, so this is evidence about the output structure,
-not a J result.
+not a J result. **No Experiment I observation enters any J efficacy
+statistic, population or gate.** Experiment I recordings are also excluded
+from the census.
 
 - **27 of 28 are ablatable.** The one failure (22-31-53 @208.5 r1)
   paraphrased the map fact instead of reusing the claim sentence. Rule 2
@@ -207,8 +212,10 @@ not a J result.
 ### Frozen recording order
 
 Before the first recording is analyzed, the tool writes `census_order.json`
-and it is committed. It lists every candidate recording, sorted by recording
-timestamp.
+and it is committed. It lists every candidate recording, sorted by the
+recording timestamp in the file name (`YYYY-MM-DD HH-MM-SS`), with ties
+broken by the full source path. A candidate with no parseable timestamp is
+listed as excluded, with the reason.
 
 - **Candidate sources:**
   - local live player-view recordings;
@@ -246,9 +253,10 @@ timestamp.
 
 - **`unclear` is final.** Labels are sealed. `unclear` deaths are never
   converted later and never enter P1 or P2.
-- **P2 size for no harm.** If P2 has fewer than 5 deaths, the no-harm
-  requirement cannot be evaluated, and J cannot recommend a production
-  change ("inconclusive on no harm").
+- **P2 size for no harm.** If P2 has fewer than 5 deaths, Gate 3 is
+  **unevaluable**. That is not a Gate 3 failure and is never read as
+  evidence of harm. The overall outcome is "inconclusive on no harm", and
+  production is unchanged.
 - **Supporting evidence** needs at least 8 ablatable P2 pairs (see
   "Supporting evidence").
 
@@ -271,15 +279,29 @@ For each worksheet death, the rater watches the footage and records:
 Worksheet rules:
 
 - It contains the 50 eligible deaths, plus a frozen-seed sample of 50
-  not-eligible deaths with `sufficient` map observability from the same
-  analyzed recordings.
+  not-eligible deaths with `sufficient` map observability.
+  - **Sampling frame:** every such death in the analyzed recordings, up to
+    and including the one that holds the 50th eligible death. The frame is
+    sorted by (recording order, death video time).
+  - `random.Random(2026102101).sample(frame, 50)` draws the sample. If the
+    frame has fewer than 50 deaths, all of them are taken.
   - The sample keeps eligibility hidden from the rater, and it gives the
     relevance × eligibility table.
-  - Its labels never form a population.
-  - P3 is drawn from it with the frozen seed.
-- Rows are shuffled with a frozen seed. Eligibility, `back_in_play`, map
-  counts and C points are hidden. The sheet shows only match, death time and
-  a footage link.
+  - Its labels never form an efficacy population, and they cannot affect the
+    50-eligible stopping rule. That rule is mechanical and complete before
+    sampling.
+  - **P3** is `random.Random(2026102103).sample(sample_sorted, 20)`, where
+    `sample_sorted` is the sample sorted by (recording order, death video
+    time). If the sample has fewer than 20 deaths, all of them are taken.
+    P3 does not depend on relevance labels.
+- The worksheet looks like **one shuffled relevance-labelling population**.
+  - It shows only an opaque row id, match, death time and a footage link.
+  - It never shows mechanical eligibility, why a row was included (census
+    or sample), `back_in_play`, map counts or C points.
+  - Rows are shuffled with a frozen seed, and row ids are assigned after the
+    shuffle.
+  - The key that maps row ids to eligibility and sampling reason is written
+    to a separate file. It is not joined until the labels are sealed.
 - It is sealed in a commit before the key is joined and before any model
   call.
 
@@ -288,13 +310,17 @@ Worksheet rules:
 - **Neither the relevance label nor the ideal-coaching note appears anywhere
   on the absolute or pairwise rating sheets.** Population membership (P1 or
   P2) is not shown either; P1 and P2 rows are shuffled together.
-- Every random step uses a seed fixed in `design.json` at the freeze (stop
-  point 1):
-  - the not-eligible worksheet sample;
-  - the worksheet shuffle;
-  - the P3 draw;
-  - the absolute-sheet row order;
-  - pairwise left/right assignment.
+- Every random step uses a seed fixed at the freeze and recorded in
+  `design.json`. Each seed seeds its own `random.Random` instance, applied to
+  input lists in a documented canonical order.
+
+  | step | seed |
+  | --- | --- |
+  | not-eligible worksheet sample (50) | 2026102101 |
+  | worksheet row shuffle | 2026102102 |
+  | P3 draw (20, from the not-eligible sample) | 2026102103 |
+  | absolute-sheet row order | 2026102104 |
+  | pairwise sheet row order and left/right assignment | 2026102105 |
 - The ideal-coaching note stays hidden until both rating sheets are sealed.
   It is then used for one descriptive diagnostic: "Did M identify
   approximately the map issue the footage-first label named?"
@@ -387,6 +413,39 @@ is stated in the report.
 
 Results are **directional, not inferential**: one rater and a small n.
 
+### Units of analysis
+
+**Absolute ratings are aggregated death-first** (Gates 2c and 3, the C
+diagnostic, and the descriptive M − A).
+
+1. For each death and arm, average the usefulness ratings of that arm's
+   valid rated outputs (normally both repeats).
+2. For each death, compute M − A from those averages.
+3. The gate value is the mean of these death-level differences over the
+   population's deaths.
+
+A death enters only if both arms have at least one valid rated output.
+Deaths dropped for this reason are counted and reported. Each death
+therefore has equal weight, however many valid outputs it has.
+
+The `supported_by_footage` rate (Gate 3) is aggregated the same way:
+
+1. For each death and arm, take the share of valid rated outputs marked
+   yes.
+2. Average over deaths, separately for M and for A.
+3. Compare M with A.
+
+**Ablation and uptake measures are counted per output.**
+
+- **2d and 2e** use individual valid ablation pairs: one per ablatable M
+  output (repeat).
+  - The report gives both the number of pairs and the number of unique
+    deaths they represent.
+  - The tie rate is reported alongside.
+- **2a and 2b** are shares of P1 M outputs. "Valid" means the call
+  succeeded and the output parsed. Outputs that fail parsing count as
+  not-uptake and not-ablatable in 2a and 2b.
+
 ### Gate 1: safety (M, and C where run)
 
 - 0 value-fidelity errors.
@@ -400,7 +459,7 @@ Results are **directional, not inferential**: one rater and a small n.
 | --- | --- | --- |
 | 2a | M intended experimental recommendation uptake | >= 50% of P1 M outputs |
 | 2b | M outputs ablatable | >= 75% of P1 M outputs |
-| 2c | mean usefulness M − A | >= 0.25 (pre-registered minimum practically meaningful difference; not a noise floor) |
+| 2c | death-level mean usefulness M − A | >= 0.25 (pre-registered minimum practically meaningful difference; not a noise floor) |
 | 2d | full M wins / (full M wins + ablated wins) | >= 0.65 (ties excluded) |
 | 2e | full M wins / all ablation pairs | >= 0.50 (ties included) |
 
@@ -408,9 +467,11 @@ The tie rate is reported alongside 2d and 2e.
 
 ### Gate 3: no harm
 
-- On P2, mean usefulness M − A >= −0.25. This requires at least 5 P2
-  deaths; otherwise it is not evaluable (see "Populations").
-- M's `supported_by_footage` rate is not lower than A's on P1 ∪ P2.
+- On P2, the death-level mean usefulness M − A is at least −0.25.
+- M's death-level `supported_by_footage` rate is not lower than A's on
+  P1 ∪ P2.
+- **Unevaluable** if P2 has fewer than 5 deaths, counted after the
+  both-arms rule. Unevaluable is a separate result, not a failure.
 
 ### Gate 4: policy (P3)
 
@@ -423,7 +484,8 @@ M gives 0 map-check recommendations on non-eligible deaths.
 | Gates 1–4 pass | Recommend a production change, as a separate decision (block ownership, prompt section, claim). Supporting evidence is reported with it. |
 | Gate 1 fails | Production unchanged; failures recorded. |
 | Gate 2 fails (any of 2a–2e) | Production unchanged; the failing components are named. |
-| Gate 3 fails or is not evaluable | Production unchanged ("harm" or "inconclusive on no harm"). |
+| Gate 3 fails | Production unchanged ("harm"). |
+| Gate 3 unevaluable, all other gates pass | **Inconclusive on no harm.** Production unchanged. This is not a finding of harm. |
 | Gate 4 fails | Production unchanged; investigate. |
 
 ### Supporting evidence (reported, never decides)

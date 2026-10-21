@@ -1,0 +1,228 @@
+{
+ "experiment": "J",
+ "title": "incremental value of map-awareness coaching",
+ "status": "frozen",
+ "frozen_on": "2026-10-21",
+ "design_revision": 4,
+ "design_commit_parent": "466142e41a7f3a15a8fe3599ea5d1d261e9b1231",
+ "claims_causal_isolation_of_map_content": false,
+ "efficacy_requires_convergence": [
+  "M vs A absolute usefulness",
+  "full M vs M-minus-map pairwise"
+ ],
+ "model": {
+  "provider": "cursor",
+  "model": "gpt-5.6-luna"
+ },
+ "repeats": 2,
+ "one_death_per_call": true,
+ "arms": {
+  "A": "production view (roster off), production system prompt",
+  "M": "production + back_in_play + map_awareness + extra_point (no_map_check_since_back_in_play / rec_map_after_respawn), production + extra-point section (M)",
+  "C": "diagnostic only: production + back_in_play + extra_point (C claim), production + extra-point section (C)"
+ },
+ "ablation_is_derived_not_called": true,
+ "blocks": {
+  "ownership": "experiment-only, view-only top-level N2 blocks; not CoachInput (N1), not ScenarioContext, never cited via primary_context",
+  "names": ["back_in_play", "map_awareness", "extra_point"],
+  "validator_change": false
+ },
+ "derived_fact": {
+  "back_in_play_time": "end of previous death episode, else first in_match snapshot",
+  "respawn_grace_seconds": 2.0,
+  "policy_threshold_seconds": 10.0,
+  "eligible": "map_checks_since_back_in_play == 0 and seconds_back_in_play >= 10.0",
+  "null_when": "map observability not sufficient, or map_check_status not observed/not_observed",
+  "threshold_is_policy_not_estimated": true,
+  "threshold_bands_descriptive_only": true,
+  "j_cannot_select_threshold": true
+ },
+ "experiment_claim": {
+  "claim_id": "no_map_check_since_back_in_play",
+  "frame": "No map check was observed in the {seconds_back_in_play}s since the player was back in play.",
+  "evidence_paths": [
+   "back_in_play.seconds_back_in_play",
+   "map_awareness.map_checks_since_back_in_play"
+  ],
+  "rec_template_id": "rec_map_after_respawn"
+ },
+ "prompt": {
+  "map_fact_in_one_assessment_sentence": true,
+  "section_wording": "DESIGN.md, Prompt sections (frozen)"
+ },
+ "ablation": {
+  "map_sentence": "claims[].sentence whose claim_id is no_map_check_since_back_in_play",
+  "map_recommendations": "recommendations matching rec_map_after_respawn pattern or map regex (Experiment I _MAP_MENTION plus bare word 'map')",
+  "sentence_splitter": "(?<=[.!?])\\s+",
+  "ablatable_requires": [
+   "exactly one map claim with a non-empty sentence",
+   "assessment has exactly one segment equal to the map sentence (stripped)",
+   "at least one other segment remains",
+   "no remaining segment matches the map regex",
+   "no map recommendation matches a non-map template pattern"
+  ],
+  "ablated_presentation": "remaining segments joined by one space; recommendations minus map recommendations; no repair",
+  "displayed_fields": ["assessment", "recommendations"],
+  "never_hand_edited": true,
+  "stored_output_check": {
+   "source": "Experiment I eligible M outputs (structure only)",
+   "ablatable": 27,
+   "of": 28,
+   "ablated_with_no_recommendation_left": 27
+  }
+ },
+ "c_diagnostic": {
+  "is_gate": false,
+  "menu_priority": [
+   {"claim_id": "death_low_ink", "rec_template_id": "rec_refill_ink", "template_status": "production"},
+   {"claim_id": "death_own_splat_before", "rec_template_id": "rec_after_splat_reposition", "template_status": "experiment-only"}
+  ],
+  "eligibility": "existing frozen production claim eligibility, unchanged; no new movement or timing inference",
+  "experiment_template": {
+   "template_id": "rec_after_splat_reposition",
+   "frame": "After you get a splat, reposition before taking the next fight.",
+   "pattern": "(?i)\\breposition\\w*\\b|\\bfall\\s+back\\b|\\b(?:safer|new)\\s+(?:spot|position|angle)\\b"
+  },
+  "excluded": [
+   "clock claims", "map claims", "death_quick_redeath", "death_out_of_play",
+   "rec_redeath_reset", "death_special_ready", "roster claims"
+  ],
+  "min_natural_deaths_to_run": 5,
+  "census_extended_for_c": false
+ },
+ "census": {
+  "order_file": "census_order.json (committed before the first analyze)",
+  "order": "recording timestamp from file name (YYYY-MM-DD HH-MM-SS), ties by full source path",
+  "sources": ["local live player-view recordings", "GAME! tape held-out recordings"],
+  "source_is_not_qualification": true,
+  "recording_rules": [
+   "not used in Experiment H, Experiment I, coaching gap study, N2 citation experiment or citation-contract fixtures (derived from manifests)",
+   "not Review source",
+   "not a public-site user submission",
+   "known UI language",
+   "resolves to a player-view source after analyze"
+  ],
+  "death_order": "(recording order, death video time)",
+  "stop_at_eligible_deaths": 50,
+  "min_relevant_yes_to_proceed": 20,
+  "post_label_sampling_extension": false,
+  "experiment_i_observations_in_efficacy": false
+ },
+ "relevance_label": {
+  "yes": "Based only on the gameplay footage available before and around this death, checking the tactical map after returning to play and before the decisive engagement could reasonably have revealed information that might have changed a useful decision by the player.",
+  "no": "A map check would not reasonably have changed a useful decision.",
+  "unclear": "The footage does not support a confident yes/no judgment.",
+  "unclear_is_final": true,
+  "ideal_coaching_note": "free text; hidden until both rating sheets are sealed; descriptive diagnostic only",
+  "worksheet": {
+   "rows": "50 eligible + seeded sample of 50 not-eligible deaths with sufficient map observability",
+   "sample_frame": "all such deaths in analyzed recordings up to and including the one holding the 50th eligible death, sorted by (recording order, death video time)",
+   "shows": ["opaque row id", "match", "death time", "footage link"],
+   "never_shows": ["eligibility", "sampling reason", "back_in_play", "map counts", "C point"],
+   "key_joined_after_labels_sealed": true,
+   "sample_labels_form_population": false
+  }
+ },
+ "populations": {
+  "P1": "all relevant=yes among the 50 eligible; arms A, M x 2",
+  "P2": "all relevant=no among the 50 eligible; arms A, M x 2",
+  "excluded": "relevant=unclear",
+  "P3": "20 drawn from the not-eligible worksheet sample; arm M x 2; automatic checks only, not rated",
+  "min_p2_deaths_for_gate3": 5,
+  "min_p2_ablatable_pairs_for_supporting_evidence": 8
+ },
+ "seeds": {
+  "not_eligible_worksheet_sample": 2026102101,
+  "worksheet_row_shuffle": 2026102102,
+  "p3_draw": 2026102103,
+  "absolute_sheet_row_order": 2026102104,
+  "pairwise_order_and_left_right": 2026102105,
+  "usage": "each seed seeds its own random.Random instance over inputs in canonical (recording order, death video time) order"
+ },
+ "rating": {
+  "absolute": {
+   "rows": "P1 and P2 A/M outputs (+ C where run); ablated outputs excluded",
+   "columns": [
+    "usefulness_1to5",
+    "actionable_1to5",
+    "specific_to_this_death_1to5",
+    "supported_by_footage_yes_no",
+    "notes (optional)"
+   ],
+   "primary": "usefulness_1to5",
+   "map_use_column": false
+  },
+  "pairwise": {
+   "pairs": ["ablatable M output vs its M-minus-map (P1 and P2)", "C vs M at same repeat (where C runs)"],
+   "question": "Which coaching would be more useful and actionable for improving play in this situation?",
+   "answers": ["Left", "Tie", "Right"],
+   "rated_after_absolute_sheet_sealed": true
+  },
+  "never_on_rating_sheets": ["relevance label", "ideal coaching note", "population membership", "arm labels"]
+ },
+ "aggregation": {
+  "absolute": "death-first: per death and arm, mean of valid rated outputs; per death M - A; gate value = mean over deaths; death enters only if both arms have >= 1 valid rated output; dropped deaths reported",
+  "supported_rate": "death-first: per death and arm, share of valid rated outputs marked yes; mean over deaths per arm",
+  "ablation": "per valid ablation pair (one per ablatable M output); report pairs and unique deaths",
+  "uptake_and_ablatability": "share of P1 M outputs; unparseable outputs count as not-uptake and not-ablatable"
+ },
+ "gates": {
+  "inferential": false,
+  "gate1_safety": {
+   "value_fidelity_errors": 0,
+   "m_map_rule_violations": 0,
+   "blocked_max": "arm A",
+   "adjusted_validator_hits_per_call_max": "arm A + 0.25",
+   "c_adjustment": "remove only R10 no_template hits whose recommendation matches rec_after_splat_reposition"
+  },
+  "gate2_primary_value_p1": {
+   "all_required": true,
+   "2a_m_uptake_min": 0.5,
+   "2b_m_ablatable_min": 0.75,
+   "2c_death_level_mean_usefulness_m_minus_a_min": 0.25,
+   "2c_is": "pre-registered minimum practically meaningful difference, not a noise floor",
+   "2d_full_m_wins_over_non_tied_min": 0.65,
+   "2e_full_m_wins_over_all_pairs_min": 0.5,
+   "tie_rate_reported": true
+  },
+  "gate3_no_harm": {
+   "p2_death_level_mean_usefulness_m_minus_a_min": -0.25,
+   "supported_rate_m_ge_a_on_p1_and_p2": true,
+   "unevaluable_if_p2_deaths_lt": 5,
+   "unevaluable_is_failure": false,
+   "unevaluable_outcome": "inconclusive on no harm; production unchanged; not a finding of harm"
+  },
+  "gate4_policy_p3": {
+   "m_map_check_recommendations_on_not_eligible": 0
+  }
+ },
+ "outcomes": {
+  "all_gates_pass": "recommend a production change as a separate decision; supporting evidence reported",
+  "gate1_fail": "production unchanged",
+  "gate2_fail": "production unchanged; failing components named",
+  "gate3_fail": "production unchanged (harm)",
+  "gate3_unevaluable": "inconclusive on no harm; production unchanged",
+  "gate4_fail": "production unchanged; investigate"
+ },
+ "supporting_evidence": {
+  "measure": "full-M wins / all ablation pairs on P1 vs on P2",
+  "expected_direction": "stronger on P1",
+  "min_p2_ablatable_pairs": 8,
+  "below_min": "insufficient negative-control data; not interpreted",
+  "can_rescue_failed_gate2": false,
+  "can_fail_passing_j": false
+ },
+ "calls_upper_bound": {
+  "p1_p2": 200,
+  "p3": 40,
+  "c_expected": 10,
+  "total_approx_max": 250
+ },
+ "stop_points": [
+  "1 design frozen (this file)",
+  "2 census_order.json committed, analyze to exactly 50 eligible deaths, blind worksheet labelled and sealed, key joined; go/no-go >= 20 relevant=yes; no model calls",
+  "3 tool, tests, inputs, prompts, ablation function, dry run; sealed; no model calls",
+  "4 outputs, automatic summary, ablated versions, blind absolute sheet",
+  "5 sealed absolute ratings, pairwise sheet sealed, key, report"
+ ]
+}
