@@ -1,0 +1,1288 @@
+{
+ "dry_run": true,
+ "llm_calls_made": 0,
+ "seal_problems": [],
+ "fact_problems": [],
+ "stale_inputs": [],
+ "invariant_problems": [],
+ "path_problems": [],
+ "populations": {
+  "P1": 35,
+  "P2": 5,
+  "P3": 20,
+  "C": 6
+ },
+ "calls": {
+  "expected": {
+   "P1": 140,
+   "P2": 20,
+   "P3": 40,
+   "C": 12,
+   "total": 212
+  },
+  "upper_bound": {
+   "p1_p2": 200,
+   "p3": 40,
+   "c_expected": 10,
+   "total_approx_max": 250
+  },
+  "within_bound": true,
+  "model_calls_made": 0
+ },
+ "system_chars": {
+  "A": 16628,
+  "M": 17517,
+  "C": 17269
+ },
+ "synthetic_summary": {
+  "M": {
+   "outputs": 40,
+   "with_hits_beyond_c_adjustment": 30,
+   "hits_beyond_c_adjustment": 60,
+   "c_adjustment_removed": 0,
+   "rules": {
+    "R5:map_absence": 30
+   },
+   "by_map_status": {
+    "not_observed": 0,
+    "observed": 30
+   },
+   "value_fidelity_errors": 0,
+   "blocked": 0
+  },
+  "C": {
+   "outputs": 6,
+   "with_hits_beyond_c_adjustment": 0,
+   "hits_beyond_c_adjustment": 0,
+   "c_adjustment_removed": 6,
+   "rules": {
+    "R10:no_template": 6
+   },
+   "by_map_status": {
+    "not_observed": 0,
+    "observed": 0
+   },
+   "value_fidelity_errors": 0,
+   "blocked": 0
+  }
+ },
+ "synthetic": [
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "001|death_episode:72.500",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "001|death_episode:188.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "002|death_episode:46.000",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "002|death_episode:89.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "003|death_episode:48.000",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "003|death_episode:127.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "003|death_episode:197.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "004|death_episode:66.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "006|death_episode:224.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "006|death_episode:263.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "007|death_episode:60.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "007|death_episode:92.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "007|death_episode:143.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "007|death_episode:169.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "007|death_episode:206.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "007|death_episode:251.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "008|death_episode:26.000",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "008|death_episode:105.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "009|death_episode:78.000",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "009|death_episode:191.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "009|death_episode:319.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "010|death_episode:80.500",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "010|death_episode:221.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "010|death_episode:297.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "010|death_episode:321.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "011|death_episode:94.000",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "011|death_episode:132.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "011|death_episode:162.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "012|death_episode:65.500",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "012|death_episode:199.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "013|death_episode:112.500",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "014|death_episode:209.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "014|death_episode:235.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "015|death_episode:63.000",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "015|death_episode:116.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "017|death_episode:106.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "017|death_episode:151.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "018|death_episode:219.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "019|death_episode:83.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "M",
+   "death_id": "019|death_episode:107.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "adjusted_hits": 2,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "compliant",
+   "arm": "C",
+   "death_id": "007|death_episode:143.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 1,
+   "adjusted_hits": 0,
+   "hit_rules": [
+    "R10:no_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": []
+  },
+  {
+   "case": "compliant",
+   "arm": "C",
+   "death_id": "007|death_episode:206.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 1,
+   "adjusted_hits": 0,
+   "hit_rules": [
+    "R10:no_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": []
+  },
+  {
+   "case": "compliant",
+   "arm": "C",
+   "death_id": "007|death_episode:251.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 1,
+   "adjusted_hits": 0,
+   "hit_rules": [
+    "R10:no_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": []
+  },
+  {
+   "case": "compliant",
+   "arm": "C",
+   "death_id": "008|death_episode:105.000",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 1,
+   "adjusted_hits": 0,
+   "hit_rules": [
+    "R10:no_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": []
+  },
+  {
+   "case": "compliant",
+   "arm": "C",
+   "death_id": "010|death_episode:80.500",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 1,
+   "adjusted_hits": 0,
+   "hit_rules": [
+    "R10:no_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": []
+  },
+  {
+   "case": "compliant",
+   "arm": "C",
+   "death_id": "014|death_episode:235.500",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 1,
+   "adjusted_hits": 0,
+   "hit_rules": [
+    "R10:no_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": []
+  },
+  {
+   "case": "causal",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 0,
+   "adjusted_hits": 1,
+   "hit_rules": [
+    "causal_map_claim"
+   ],
+   "blocked": true,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [
+    "causal"
+   ],
+   "uptake": true,
+   "ablation": {
+    "ablatable": false,
+    "reasons": [
+     "map_sentence_not_exactly_one_segment",
+     "map_in_remaining_segment"
+    ]
+   }
+  },
+  {
+   "case": "map_content",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": true,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [
+    "map_content"
+   ],
+   "uptake": false,
+   "ablation": {
+    "ablatable": false,
+    "reasons": [
+     "map_sentence_not_exactly_one_segment",
+     "map_in_remaining_segment"
+    ]
+   }
+  },
+  {
+   "case": "wrong_seconds",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 0,
+   "adjusted_hits": 1,
+   "hit_rules": [
+    "R7:value_mismatch"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [
+    "56.5 in 'No map check was observed in the 56.5s since the player was back in play.'",
+    "56.5 in 'No map check was observed in the 56.5s since the player was back in play.'",
+    "56.5 in 'No map check was observed in the 56.5s since the player was back in play.'"
+   ],
+   "map_rule_violations": [],
+   "uptake": false,
+   "ablation": {
+    "ablatable": true,
+    "reasons": [],
+    "assessment": "This is one habit to build, not the reason for the death.",
+    "recommendations": [],
+    "kept_recommendation": false
+   }
+  },
+  {
+   "case": "paraphrased_map_sentence",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "not_observed",
+   "parsed": true,
+   "validator_hits": 0,
+   "c_adjustment": 0,
+   "adjusted_hits": 0,
+   "hit_rules": [],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": true,
+   "ablation": {
+    "ablatable": false,
+    "reasons": [
+     "map_sentence_not_exactly_one_segment",
+     "map_in_remaining_segment"
+    ]
+   }
+  },
+  {
+   "case": "advice_not_eligible",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 0,
+   "adjusted_hits": 1,
+   "hit_rules": [
+    "R10:ungrounded_template"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [
+    "advice_not_eligible"
+   ],
+   "uptake": false,
+   "ablation": null
+  }
+ ],
+ "stored_ablation": {
+  "of": 28,
+  "ablatable": 27,
+  "no_recommendation_left": 27,
+  "failures": [
+   {
+    "call_id": "M__2026_10_11_22_31_53_death_episode_208_500__r1",
+    "reasons": [
+     "map_sentence_not_exactly_one_segment",
+     "map_in_remaining_segment"
+    ]
+   }
+  ],
+  "matches_design": true
+ },
+ "dry_run_criterion_met": false
+}
