@@ -1,10 +1,10 @@
 """Citation contract: measured over every citation form the prompt teaches.
 
-Decision (``docs/CITATION_NAMESPACES.md``): the model-facing citation
-namespace is N2, the literal CoachLlmView path. A citation names a supplied
-fact by its view path, and the cited value must equal the value at that path.
-CoachInput (N1) paths are provenance only; ``source_path`` label resolution is
-legacy, kept in the validator until the label cleanup.
+Decision (``docs/CITATION_NAMESPACES.md``): the only citation namespace is
+N2, the literal CoachLlmView path. A citation names a supplied fact by its
+view path, and the cited value must equal the scalar at that path. CoachInput
+(N1) paths and ``source_path`` labels are provenance only; the validator's
+legacy label fallback is removed, so every non-literal form is rejected.
 
 The production prompt teaches N2 only (Fix 3): ``TAUGHT`` must match its
 inventory exactly, and every path and example must resolve literally.
@@ -12,10 +12,11 @@ inventory exactly, and every path and example must resolve literally.
 Fix 1 (``db5fa8c``) measured the forms the prompt taught then
 (``TAUGHT_DB5FA8C``), including N1 / hybrid examples. Those measurements are
 kept as evidence for the decision: each violation in ``VIOLATIONS`` has a
-classification and a status. Violations that are not ``fixed`` are strict
+classification and a status. ``open`` and ``not_taught`` violations are strict
 ``xfail`` cases (an XPASS forces the table to be updated); ``fixed`` ones are
-asserted absent; ``HISTORY_DB5FA8C`` records the counts measured before the
-validator-correctness step.
+asserted absent; ``rejected`` ones (legacy forms the fallback used to resolve)
+are asserted rejected. ``HISTORY_DB5FA8C`` records the counts measured before
+the validator-correctness step.
 """
 
 from __future__ import annotations
@@ -38,7 +39,6 @@ from citation_contract_helpers import (
     leaves,
     render,
     same_value,
-    source_blocks_order_matches,
     walk,
 )
 
@@ -52,7 +52,7 @@ from splatoon3_ai_coach.coach.prompts import load_system_prompt
 
 CORRECTNESS = "correctness"  # wrong value could pass / correct value rejected
 SYNTAX = "syntax"  # the grammar could not express a permitted citation
-LEGACY = "legacy"  # N1 / label behavior; irrelevant under N2, cleanup pending
+LEGACY = "legacy"  # N1 / label behavior; the validator rejects it (N2 only)
 DESIGN = "design"  # open question; nothing implemented
 CONTENT = "content"  # claim_basis / prompt content to migrate; validator correct
 
@@ -63,8 +63,8 @@ class Violation:
 
     classification: str
     # open | fixed | not_taught (a defect of the db5fa8c prompt text, gone with
-    # Fix 3) | legacy_only (measures the validator's label fallback on a form
-    # the prompt no longer teaches)
+    # Fix 3) | rejected (a legacy form the removed label fallback resolved; the
+    # validator now rejects it)
     status: str
     description: str
 
@@ -91,28 +91,28 @@ VIOLATIONS: dict[str, Violation] = {
     ),
     "CV-UNLABELLED": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "projected field has no source_path label naming its N1 path",
     ),
     "CV-FLATTENED": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "label block flattens N1 nesting (observation.*, scenario.*)",
     ),
     "CV-RENAMED": Violation(
-        LEGACY, "legacy_only", "view renames the N1 field under the same label"
+        LEGACY, "rejected", "view renames the N1 field under the same label"
     ),
     "CV-MIXED-SOURCE": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "label names one N1 object but the block holds fields projected from "
         "another (durations, score_facts, zone_control_facts, map status)",
     ),
     "CV-SUPPORT-LABEL": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "supporting_evidence items reuse N1 labels for display strings: one label "
-        "string names two facts; the legacy form binds the first that walks",
+        "string names two facts; the legacy form bound the first that walked",
     ),
     "CV-R7-LOCATION": Violation(
         CORRECTNESS,
@@ -122,7 +122,7 @@ VIOLATIONS: dict[str, Violation] = {
     ),
     "CV-BARE-LABEL": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "single-segment legacy labels (durations, playback_clock, "
         "game_clock_samples[label=death]) are not citable",
     ),
@@ -152,18 +152,19 @@ VIOLATIONS: dict[str, Violation] = {
     ),
     "CV-BARE-OBJECT-REF": Violation(
         SYNTAX,
-        "legacy_only",
-        "a path-only reference to a single-segment object path (related[0]) is "
-        "malformed: unanchored paths need a dot (grammar not expanded)",
+        "open",
+        "a path-only reference to a single-segment object path (related[0], "
+        "death) is malformed: unanchored paths need a dot (grammar not "
+        "expanded; the prompt teaches no path-only references)",
     ),
     "CV-NOT-COACHINPUT": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "label-form path resolves in the view but names no N1 field",
     ),
     "CV-CONTRADICTS-COACHINPUT": Violation(
         LEGACY,
-        "legacy_only",
+        "rejected",
         "label-form path resolves to a view value that differs from the N1 value "
         "at the same path",
     ),
@@ -187,11 +188,16 @@ HISTORY_DB5FA8C: dict[tuple[str, str], int] = {
     ("label_exactness", "CV-NOT-COACHINPUT"): 893,
     ("label_exactness", "CV-CONTRADICTS-COACHINPUT"): 61,
 }
+# Forms measured at db5fa8c through the label fallback, now rejected outright.
+HISTORICAL_FORMS = {
+    "label_form": "label and label + leaf citations ('prefer source_path values')",
+    "label_exactness": "label-form citations the fallback accepted, vs CoachInput",
+}
 
 
 def _strict(violation: str) -> Any:
     found = VIOLATIONS[violation]
-    assert found.status != "fixed"
+    assert found.status in ("open", "not_taught")
     reason = f"{violation} ({found.classification}, {found.status}): "
     return pytest.mark.xfail(strict=True, reason=reason + found.description)
 
@@ -200,6 +206,16 @@ def _xfail(case_id: str, violation: str | None, *args: Any) -> Any:
     if violation is None or VIOLATIONS[violation].status == "fixed":
         return pytest.param(*args, id=case_id)
     return pytest.param(*args, id=case_id, marks=_strict(violation))
+
+
+def _rejected_everywhere(cited: str, units: dict[str, FixtureUnit]) -> dict[str, str]:
+    """Units whose validator does not reject ``cited`` (expected: none)."""
+    out = {}
+    for key, unit in units.items():
+        resolution = resolve_evidence_reference(unit.view, cited)
+        if resolution["kind"] != "unresolved":
+            out[key] = resolution["kind"]
+    return out
 
 
 # --- what the production prompt teaches --------------------------------------------
@@ -335,11 +351,6 @@ def _applicable(intended: str | None) -> dict[str, FixtureUnit]:
     return {k: u for k, u in fixture_units().items() if walk(u.view, intended)[0]}
 
 
-def test_fixture_traversal_matches_validator() -> None:
-    for unit in fixture_units().values():
-        assert source_blocks_order_matches(unit.view)
-
-
 def test_prompt_inventory_is_complete() -> None:
     """Every dotted path in the production prompt has a contract entry."""
     found = set(_TOKEN.findall(SYSTEM_PROMPT)) | set(
@@ -403,12 +414,18 @@ def test_example_is_a_valid_n2_citation(example: str) -> None:
     )
 
 
-@pytest.mark.parametrize("case", [_xfail(t.path, t.resolve, t) for t in TAUGHT_DB5FA8C])
-def test_historical_taught_path_resolves_to_intended_fact(case: Taught) -> None:
-    """Legacy measurement of the forms the prompt taught at db5fa8c."""
+@pytest.mark.parametrize("case", TAUGHT_DB5FA8C, ids=lambda t: t.path)
+def test_historical_taught_path_is_literal_or_rejected(case: Taught) -> None:
+    """The forms the prompt taught at db5fa8c, against current views: a literal
+    view path satisfies the contract; every N1, hybrid or relative form is
+    rejected wherever it could have named a fact."""
+    if case.path != case.intended:
+        units = _applicable(case.intended) or fixture_units()
+        assert _rejected_everywhere(case.path, units) == {}
+        return
     units = _applicable(case.intended)
     assert units, "no fixture view supplies the fact this path names"
-    failures = {k: check(u.view, case.path, str(case.intended)) for k, u in units.items()}
+    failures = {k: check(u.view, case.path, case.path) for k, u in units.items()}
     assert {k: r for k, r in failures.items() if r} == {}
 
 
@@ -533,14 +550,17 @@ def test_coachinput_case_pairing_is_correct(
 
 @pytest.mark.parametrize(
     ("coachinput_path", "intended"),
-    [_xfail(p, v, p, i) for p, i, v in COACHINPUT_CASES],
+    [pytest.param(p, i, id=p) for p, i, _ in COACHINPUT_CASES],
 )
-def test_coachinput_path_resolves_to_projected_fact(
-    coachinput_path: str, intended: str
-) -> None:
+def test_coachinput_path_is_rejected(coachinput_path: str, intended: str) -> None:
+    """N1 paths are provenance only. Each is rejected on every view holding the
+    projected fact, which its literal view path still states (the violation
+    column records how the removed label fallback used to mis-bind it)."""
     units = _paired(coachinput_path, intended)
-    failures = {k: check(u.view, coachinput_path, intended) for k, u in units.items()}
-    assert {k: r for k, r in failures.items() if r} == {}
+    assert _rejected_everywhere(coachinput_path, units) == {}
+    assert {k: check(u.view, intended, intended) for k, u in units.items()} == {
+        k: None for k in units
+    }
 
 
 # --- Experiment I postmortem rows -------------------------------------------------------
@@ -603,13 +623,15 @@ POSTMORTEM_CASES = (
 
 
 @pytest.mark.parametrize(
-    ("cited", "intended"), [_xfail(c, v, c, i) for c, i, v in POSTMORTEM_CASES]
+    ("cited", "intended"), [pytest.param(c, i, id=c) for c, i, _ in POSTMORTEM_CASES]
 )
-def test_experiment_i_postmortem_citation(cited: str, intended: str) -> None:
+def test_experiment_i_postmortem_citation_is_rejected(cited: str, intended: str) -> None:
+    """Old-prompt citations from Experiment I outputs: rejected, while the
+    literal view path of the same fact is accepted."""
     units = _applicable(intended)
     assert EXPERIMENT_I_FIXTURE in units
-    failures = {k: check(u.view, cited, intended) for k, u in units.items()}
-    assert {k: r for k, r in failures.items() if r} == {}
+    assert _rejected_everywhere(cited, units) == {}
+    assert all(check(u.view, intended, intended) is None for u in units.values())
 
 
 # --- general forms over every fixture view ------------------------------------------
@@ -624,17 +646,11 @@ def _prose(value: Any) -> bool:
     return text.endswith(".") or " (" in text or ";" in text
 
 
-def _classify(
-    form: str, cited: str, reason: str, value: Any, in_view: bool = False
-) -> str:
-    if "." not in cited and in_view and isinstance(value, dict | list):
-        return "CV-BARE-OBJECT-REF"
+def _classify(cited: str, reason: str, value: Any) -> str:
     if "." not in cited:
-        return "CV-BARE-LABEL" if form == "label_form" else "CV-SINGLE-SEGMENT"
+        return "CV-SINGLE-SEGMENT"
     if reason == "value_rejected" and _prose(value):
         return "CV-PROSE-VALUE"
-    if reason == "binds_other_fact":
-        return "CV-SUPPORT-LABEL"
     return f"unclassified:{reason}"
 
 
@@ -645,27 +661,7 @@ def view_form_failures() -> Counter[tuple[str, str]]:
         for path, value in leaves(unit.view):
             reason = check(unit.view, path, path)
             if reason:
-                out[(_classify("view_form", path, reason, value), _shape(path))] += 1
-    return out
-
-
-def label_form_failures() -> Counter[tuple[str, str]]:
-    """'prefer source_path values': every label, and label + each leaf below it."""
-    out: Counter[tuple[str, str]] = Counter()
-    for unit in fixture_units().values():
-        for loc, block in labelled_blocks(unit.view):
-            label = block["source_path"]
-            cases = [(label, loc, block)] + [
-                (f"{label}.{rel}", f"{loc}.{rel}", value)
-                for rel, value in leaves(block)
-                if rel != "source_path"
-            ]
-            for cited, intended, value in cases:
-                reason = check(unit.view, cited, intended)
-                if reason:
-                    in_view = resolve_view_path(unit.view, cited)[0]
-                    kind = _classify("label_form", cited, reason, value, in_view)
-                    out[(kind, _shape(cited))] += 1
+                out[(_classify(path, reason, value), _shape(path))] += 1
     return out
 
 
@@ -694,54 +690,13 @@ def claim_path_failures() -> Counter[tuple[str, str]]:
     return out
 
 
-def _null_parent(coach_input: dict[str, Any], path: str) -> bool:
-    """Some prefix of ``path`` is present and null in CoachInput (unavailable)."""
-    segments = path.split(".")
-    for end in range(1, len(segments)):
-        found, value = walk(coach_input, ".".join(segments[:end]))
-        if found and value is None:
-            return True
-        if not found:
-            return False
-    return False
-
-
-def exactness_failures() -> Counter[tuple[str, str]]:
-    """Label-form citations the validator accepts, checked against CoachInput."""
-    out: Counter[tuple[str, str]] = Counter()
-    for unit in fixture_units().values():
-        for loc, block in labelled_blocks(unit.view):
-            label = block["source_path"]
-            for rel, value in leaves(block):
-                cited = f"{label}.{rel}"
-                if rel == "source_path" or check(unit.view, cited, f"{loc}.{rel}"):
-                    continue
-                found, ci_value = walk(unit.coach_input, cited)
-                if not found and value is None and _null_parent(unit.coach_input, cited):
-                    continue
-                if not found:
-                    out[("CV-NOT-COACHINPUT", _shape(cited))] += 1
-                elif not same_value(ci_value, value):
-                    out[("CV-CONTRADICTS-COACHINPUT", _shape(cited))] += 1
-    return out
-
-
 FORMS: dict[str, Callable[[], Counter[tuple[str, str]]]] = {
     "view_form": view_form_failures,
-    "label_form": label_form_failures,
     "claim_paths": claim_path_failures,
-    "label_exactness": exactness_failures,
 }
 FORM_VIOLATIONS: dict[str, tuple[str, ...]] = {
     "view_form": ("CV-SINGLE-SEGMENT", "CV-PROSE-VALUE"),
-    "label_form": (
-        "CV-BARE-LABEL",
-        "CV-BARE-OBJECT-REF",
-        "CV-SUPPORT-LABEL",
-        "CV-PROSE-VALUE",
-    ),
     "claim_paths": ("CV-OBJECT-LEAF", "CV-CLAIM-OBJECT-PATH"),
-    "label_exactness": ("CV-NOT-COACHINPUT", "CV-CONTRADICTS-COACHINPUT"),
 }
 
 
@@ -765,6 +720,52 @@ def test_form_has_no_violation(form: str, violation: str) -> None:
     assert hits == {}
 
 
+# Measured at db5fa8c through the label fallback (label_form / label_exactness).
+LABEL_FORM_VIOLATIONS = ("CV-BARE-LABEL", "CV-SUPPORT-LABEL", "CV-NOT-COACHINPUT")
+
+
+def label_form_citations(view: dict[str, Any]) -> list[tuple[str, Any]]:
+    """'prefer source_path values' (db5fa8c): each label not sitting at its own
+    view path, and label + each leaf below it, with the value it names."""
+    out = []
+    for location, block in labelled_blocks(view):
+        label = block["source_path"]
+        if label == location:
+            continue
+        out.append((label, block))
+        out += [(f"{label}.{rel}", v) for rel, v in leaves(block) if rel != "source_path"]
+    return out
+
+
+def test_label_form_citations_are_rejected() -> None:
+    """Every legacy label form over every fixture view is unresolved, even
+    with the correct value (bare labels, duplicated labels, labels naming no
+    N1 field alike)."""
+    accepted: Counter[str] = Counter()
+    total = 0
+    for unit in fixture_units().values():
+        for cited, value in label_form_citations(unit.view):
+            total += 1
+            scalar = not isinstance(value, dict | list)
+            text = f"{cited} = {render(value)}" if scalar else cited
+            if resolve_evidence_reference(unit.view, text)["kind"] != "unresolved":
+                accepted[_shape(cited)] += 1
+    assert total > 0
+    assert accepted == Counter()
+
+
+@_strict("CV-BARE-OBJECT-REF")
+def test_single_segment_object_reference_resolves() -> None:
+    """A path-only reference to a top-level object (or ``related[0]``) is a
+    literal view path, but the grammar reads it as malformed."""
+    for unit in fixture_units().values():
+        for path in ("death", "related[0]"):
+            if isinstance(walk(unit.view, path)[1], dict):
+                assert resolve_evidence_reference(unit.view, path)["kind"] == (
+                    "view_native"
+                )
+
+
 def _rejected(view: dict[str, Any], text: str) -> bool:
     resolution = resolve_evidence_reference(view, text)
     return resolution["kind"] == "unresolved" or bool(
@@ -778,8 +779,9 @@ SUPPORT_LABEL_WRONG_VALUE = (
 
 
 def test_wrong_value_through_duplicated_label_is_rejected() -> None:
-    """CV-R7-LOCATION (fixed): the citation resolves via ``supporting_evidence``;
-    R7 used to walk the first block with the label and skip the check."""
+    """CV-R7-LOCATION (fixed): the citation used to resolve via
+    ``supporting_evidence`` while R7 walked the first block with the label and
+    skipped the check; the label form is now unresolved outright."""
     assert _rejected(
         fixture_units()[EXPERIMENT_I_FIXTURE].view, SUPPORT_LABEL_WRONG_VALUE
     )
@@ -803,11 +805,13 @@ def test_contradiction_is_exercised() -> None:
     assert _contradiction_units()
 
 
-@_strict("CV-CONTRADICTS-COACHINPUT")
 def test_contradicting_label_citation_is_rejected() -> None:
-    """``= null`` contradicts the CoachInput value at that path (legacy form;
-    the literal ``death.death_to_respawn = null`` is the supplied fact)."""
-    assert all(_rejected(u.view, CONTRADICTION) for u in _contradiction_units())
+    """CV-CONTRADICTS-COACHINPUT (rejected): ``= null`` contradicts the
+    CoachInput value at that path; the label fallback used to accept it. The
+    literal ``death.death_to_respawn = null`` is the supplied fact."""
+    units = _contradiction_units()
+    assert all(_rejected(u.view, CONTRADICTION) for u in units)
+    assert not any(_rejected(u.view, "death.death_to_respawn = null") for u in units)
 
 
 # --- N2 contract over every fixture view ----------------------------------------------
@@ -841,8 +845,8 @@ def test_wrong_value_on_any_scalar_leaf_is_rejected() -> None:
 
 
 def test_no_label_shadows_a_view_path() -> None:
-    """A label that is itself a literal view path sits at that path, so legacy
-    label lookup cannot redirect any literal citation in production views."""
+    """A label that is itself a literal view path sits at that path, so the
+    provenance label never names a different fact than the citation would."""
     for unit in fixture_units().values():
         for location, block in labelled_blocks(unit.view):
             label = block["source_path"]
@@ -944,8 +948,15 @@ def test_every_claim_value_traces_to_an_evidence_leaf() -> None:
 @pytest.mark.parametrize(("key", "count"), sorted(HISTORY_DB5FA8C.items()))
 def test_history_classes_are_known(key: tuple[str, str], count: int) -> None:
     form, violation = key
-    assert form in FORMS and count > 0
+    assert (form in FORMS or form in HISTORICAL_FORMS) and count > 0
     assert violation in VIOLATIONS
+
+
+def test_no_legacy_violation_is_open() -> None:
+    """Legacy forms are rejected or were prompt defects; none is still
+    measured as a citation the validator might accept."""
+    statuses = {v.status for v in VIOLATIONS.values() if v.classification == LEGACY}
+    assert statuses <= {"rejected", "not_taught"}
 
 
 # --- projection guard ----------------------------------------------------------------
@@ -969,7 +980,7 @@ def _labelled(value: Any) -> bool:
 
 
 def test_every_top_level_block_is_labelled_or_pinned() -> None:
-    """A new or reshaped projection cannot become uncitable silently."""
+    """A new or reshaped projection cannot lose its provenance silently."""
     unlabelled = {
         key
         for unit in fixture_units().values()
@@ -984,5 +995,8 @@ def test_every_known_violation_is_exercised() -> None:
     used |= {v for *_, v in COACHINPUT_CASES} | {v for *_, v in MAP_AWARENESS_CASES}
     used |= {v for *_, v in POSTMORTEM_CASES}
     used |= {v for violations in FORM_VIOLATIONS.values() for v in violations}
+    used |= set(LABEL_FORM_VIOLATIONS)
     used |= {"CV-R7-LOCATION"}  # test_wrong_value_through_duplicated_label_is_rejected
+    used |= {"CV-CONTRADICTS-COACHINPUT"}  # test_contradicting_label_citation_...
+    used |= {"CV-BARE-OBJECT-REF"}  # test_single_segment_object_reference_resolves
     assert used - {None} == set(VIOLATIONS)

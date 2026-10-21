@@ -12,12 +12,13 @@ prohibited-phrase patterns in ``evidence_contract``:
 * unsupported map recommendations — map-usage advice in ``recommendations``
   or prescriptive ``assessment`` sentences, unless an active map factor has a
   catalog recommendation;
-* evidence paths — every ``evidence_used`` entry must resolve against the
-  serialized view: a literal view path (the model-facing contract), or,
-  only when that path does not exist, a legacy ``source_path`` label +
-  remainder; a cited ``path = value`` must equal the scalar at the resolved
-  location (R7), so a value asserted on an object or list path fails (cite
-  its scalar leaf instead); a path cited without a value is a reference only;
+* evidence paths — every ``evidence_used`` entry must name a literal view
+  path of the serialized view (N2, the only citation namespace); a
+  ``source_path`` label, a CoachInput path or any other form that does not
+  walk the view literally is unresolved. A cited ``path = value`` must equal
+  the scalar at that path (R7), so a value asserted on an object or list path
+  fails (cite its scalar leaf instead); a path cited without a value is a
+  reference only;
 * claim integrity — R5, R7, R8 and R9 in ``claim_integrity``.
 """
 
@@ -60,7 +61,6 @@ class ReferenceKind(StrEnum):
     """How an ``evidence_used`` entry maps onto the LLM view."""
 
     VIEW_NATIVE = "view_native"
-    SOURCE_PATH_REF = "source_path_ref"
     UNRESOLVED = "unresolved"
 
 
@@ -220,27 +220,6 @@ def _walk(node: Any, segments: list[str]) -> tuple[bool, Any]:
     return True, node
 
 
-def _labelled_blocks(node: Any, location: str = "") -> list[tuple[str, dict[str, Any]]]:
-    """``(view path, block)`` for every dict carrying a string ``source_path``."""
-    found: list[tuple[str, dict[str, Any]]] = []
-    if isinstance(node, dict):
-        if isinstance(node.get("source_path"), str):
-            found.append((location, node))
-        for key, value in node.items():
-            found.extend(
-                _labelled_blocks(value, f"{location}.{key}" if location else key)
-            )
-    elif isinstance(node, list):
-        for index, value in enumerate(node):
-            found.extend(_labelled_blocks(value, f"{location}[{index}]"))
-    return found
-
-
-def _source_blocks(node: Any) -> list[dict[str, Any]]:
-    """Every dict in the view that carries a string ``source_path`` label."""
-    return [block for _, block in _labelled_blocks(node)]
-
-
 def _citation_path(view: Mapping[str, Any], text: str) -> str | None:
     """The cited path: a literal view path written first (any depth, top-level
     keys included), else the first dotted path anywhere in the entry."""
@@ -256,39 +235,13 @@ def resolve_view_path(view: Mapping[str, Any], path: str) -> tuple[bool, Any]:
     return _walk(view, path.split("."))
 
 
-def _legacy_label_reference(
-    view: Mapping[str, Any], path: str
-) -> tuple[tuple[str, str] | None, bool]:
-    """Legacy ``source_path`` label + remainder: ``((label, location), _)`` for
-    the first labelled block it walks, and whether any label prefixed ``path``.
-
-    Only consulted when the literal view path does not exist. A label that is
-    itself a literal view path of some other location is ignored, so labels
-    never redirect view-path citations.
-    """
-    block_hit = False
-    for location, block in _labelled_blocks(view):
-        label = block["source_path"]
-        if label != location and resolve_view_path(view, label)[0]:
-            continue
-        if path == label:
-            return (label, location), True
-        if not path.startswith(label + "."):
-            continue
-        block_hit = True
-        rest = path[len(label) + 1 :]
-        if _walk(block, rest.split("."))[0]:
-            return (label, f"{location}.{rest}" if location else rest), True
-    return None, block_hit
-
-
 def resolve_evidence_reference(view: Mapping[str, Any], text: str) -> dict[str, Any]:
     """Resolve one ``evidence_used`` entry against the serialized view.
 
-    ``view_native``: the literal view path exists (model-facing contract).
-    ``source_path_ref``: legacy; the path starts with a block's audit label
-    and the remainder walks that block. It is never a CoachInput JSON path.
-    ``location`` is the view path of the resolved fact; R7 checks it.
+    ``view_native``: the cited path walks the view literally (N2); ``location``
+    is that same path, the one R7 checks. Anything else is ``unresolved``:
+    ``source_path`` labels, CoachInput paths, prefixes and aliases are never
+    reinterpreted.
     """
     path = _citation_path(view, text)
     if path is None:
@@ -297,14 +250,9 @@ def resolve_evidence_reference(view: Mapping[str, Any], text: str) -> dict[str, 
     if resolve_view_path(view, path)[0]:
         kind = ReferenceKind.VIEW_NATIVE.value
         return {"text": text, "kind": kind, "path": path, "location": path}
-    legacy, block_hit = _legacy_label_reference(view, path)
-    if legacy is not None:
-        return _ref(text, path, *legacy)
     top = _SEGMENT.match(path.split(".")[0])
-    if block_hit or (top is not None and top.group(1) in view):
-        reason = "unknown_key"
-    else:
-        reason = "unknown_block"
+    known = top is not None and top.group(1) in view
+    reason = "unknown_key" if known else "unknown_block"
     return {
         "text": text,
         "kind": ReferenceKind.UNRESOLVED.value,
@@ -416,16 +364,6 @@ def evidence_value_hits(
             }
         )
     return hits
-
-
-def _ref(text: str, path: str, label: str, location: str) -> dict[str, Any]:
-    return {
-        "text": text,
-        "kind": ReferenceKind.SOURCE_PATH_REF.value,
-        "path": path,
-        "source_path": label,
-        "location": location,
-    }
 
 
 def validate_assessment(

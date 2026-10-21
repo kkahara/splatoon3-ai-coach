@@ -158,7 +158,7 @@ class _Fake(LLMProvider):
             {
                 "assessment": "Two deaths.",
                 "evidence_used": [
-                    "primary_context.death.death_time_video = 100.0",
+                    "death.death_time_video = 100.0",
                     "related.missing_block",
                 ],
                 "limitations": [],
@@ -205,7 +205,11 @@ def test_round2_sheet_is_blind_and_never_overwritten(
 
 
 def test_member_only_reference_is_counted_separately() -> None:
-    unresolved = [{"text": "primary_context.death.death_time_video = 110.0"}]
+    unresolved = [
+        {"text": "primary_context.death.death_time_video = 110.0"},
+        {"text": "death.death_time_video = 110.0"},
+    ]
     members = [_view(110.0)]
     found = xd.member_only_references(unresolved, members)
-    assert len(found) == 1 and found[0]["member_index"] == 0
+    assert [f["text"] for f in found] == ["death.death_time_video = 110.0"]
+    assert found[0]["member_index"] == 0

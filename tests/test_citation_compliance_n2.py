@@ -289,6 +289,19 @@ def test_sealed_inputs_carry_the_design_hashes() -> None:
     assert run.count_problems(manifest) == []
 
 
+# Validator columns of sealed smoke rows the removed label fallback resolved
+# (``source_path_ref`` in dry_run.json); the frozen scorer columns are unchanged.
+FALLBACK_REMOVED = {
+    "game_clock_samples[label=death].observation.seconds_remaining = 115": {
+        "validator_kind": "unresolved"
+    },
+    'game_clock_samples[label=death].display = "1:55"': {
+        "validator_kind": "unresolved",
+        "validator_accepts": False,
+    },
+}
+
+
 @pytest.mark.skipif(not SEALED, reason="sealed inputs not present")
 def test_sealed_smoke_cases_classify_as_frozen() -> None:
     prompt = (cc.OUT_DIR / "inputs" / f"{cc.SMOKE_UNIT.slug}.user_prompt.txt").read_text(
@@ -297,4 +310,9 @@ def test_sealed_smoke_cases_classify_as_frozen() -> None:
     rows = cc.smoke_test(xd.split_prompt(prompt)[0])
     assert [r["text"] for r in rows if not r["ok"]] == []
     stored = json.loads((cc.OUT_DIR / "dry_run.json").read_text(encoding="utf-8"))
-    assert stored["smoke_test"] == rows and stored["llm_calls_made"] == 0
+    assert stored["llm_calls_made"] == 0
+    changed = [s for s in stored["smoke_test"] if s["text"] in FALLBACK_REMOVED]
+    assert [s["validator_kind"] for s in changed] == ["source_path_ref"] * 2
+    assert rows == [
+        {**s, **FALLBACK_REMOVED.get(s["text"], {})} for s in stored["smoke_test"]
+    ]

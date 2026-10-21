@@ -44,7 +44,7 @@ def test_validator_resolves_against_v1_structure() -> None:
     assert report["validation_status"] == "blocked_unsupported_claim"
     assert report["causal_claim_hits"]
     kinds = {item["kind"] for item in report["evidence_path_resolution"]}
-    assert kinds <= {"view_native", "source_path_ref", "unresolved"}
+    assert kinds <= {"view_native", "unresolved"}
 
 
 def _legacy_analysis(tmp_path: Path) -> Path:

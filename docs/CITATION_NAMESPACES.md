@@ -1,13 +1,14 @@
 # Citation namespaces (design note)
 
 Status: **N2 implemented** (literal CoachLlmView paths are the sole
-model-facing citation namespace). The validator follows it, `claim_basis`
+citation namespace). The validator accepts only literal view paths (the
+legacy `source_path` label fallback is removed, below), `claim_basis`
 evidence paths are literal scalar leaves, and the production prompt teaches
 only N2 (Fix 3, below). Projection and view shape are unchanged. Violations
 are pinned in `tests/test_citation_contract.py` (`VIOLATIONS`, ids `CV-*`,
-each with a classification and status; every status except `fixed` is a
-strict `xfail`). Literal-path regressions live in
-`tests/test_claim_validation_n2.py`.
+each with a classification and status; `open` and `not_taught` are strict
+`xfail`s, `fixed` and `rejected` are asserted). Literal-path regressions
+live in `tests/test_claim_validation_n2.py`.
 
 ## Decision
 
@@ -21,7 +22,7 @@ Three things, kept apart:
 | --- | --- | --- |
 | **N2 model-facing citations** | literal paths over `CoachLlmView.model_dump(mode="json")`, e.g. `death.death_time_video = 205.0`, `clock.display = "0:23"`, `related[0].scenario_type`, `claim_basis[1].evidence_paths`, top-level scalars such as `roster_evidence` | authoritative; validated by `resolve_view_path` + R7 at that location |
 | **N1 provenance / audit metadata** | CoachInput paths (`primary_context.*`, `durations.*`, `game_clock_samples[label=death].observation.*`, …) naming where a view fact came from | not a model contract; may later become generated provenance beside the view (never cited by the model, never a second accepted namespace) |
-| **Legacy hybrid / label behavior** | `source_path` labels on view blocks, and the validator's `source_path_ref` form (label prefix + view-shaped remainder) | not taught by the prompt (Fix 3); the validator fallback remains for stored outputs, scheduled for cleanup; never consulted when the literal path exists |
+| **Legacy hybrid / label behavior** | `source_path` labels on view blocks, and the validator's former `source_path_ref` form (label prefix + view-shaped remainder) | not taught by the prompt (Fix 3); the validator fallback is **removed**: label forms are `unresolved`. `source_path` stays as provenance metadata only |
 
 Fix 4's "either namespace" model contract is not adopted. Legacy labels are
 not repaired to conform to CoachInput: under N2 they are not a contract.
@@ -49,8 +50,8 @@ derives (`low_ink.at_death`) and formats (`supporting_evidence` display
 strings).
 
 **`source_path` labels** are strings on view blocks meant to name the N1
-origin. The legacy form accepts a citation that starts with a label and
-whose remainder walks the *view* block: N1 prefix, N2 remainder.
+origin. The removed legacy form accepted a citation that started with a
+label and whose remainder walked the *view* block: N1 prefix, N2 remainder.
 
 ## Validator semantics (`coach/claim_validation.py`)
 
@@ -61,14 +62,12 @@ whose remainder walks the *view* block: N1 prefix, N2 remainder.
    a view key (`Note: …`, `durations = 12.0`) stays `malformed`.
 2. **Resolution.** `resolve_view_path` walks the view literally and never
    reads labels. If it resolves, the reference is `view_native` with
-   `location = path`. Only when the literal path does not exist is the
-   legacy label form tried (`source_path_ref`, with the concrete view
-   `location` it bound). A label that is itself a different view path is
-   never used as a legacy prefix, so a label cannot capture, redirect or
-   weaken a literal citation.
-3. **R7.** The cited value is compared with the value at the resolved
-   `location`, the same place resolution bound, not the first block that
-   carries a label.
+   `location = path`; a path walks to at most one location (dict keys,
+   numeric list indexes). Otherwise it is `unresolved`: `unknown_key` when
+   the top-level key exists in the view, else `unknown_block`. Nothing is
+   reinterpreted: no `source_path` label, CoachInput (N1) path, alias,
+   prefix stripping, `[label=…]` selector or implicit child.
+3. **R7.** The cited value is compared with the value at that `location`.
 4. **Values.** A JSON string literal is decoded and compared exactly. An
    unquoted value is read up to a trailing remark (` (`, `;`, `,`); the
    full text is also tried, so prose leaves that contain those characters
@@ -78,7 +77,7 @@ whose remainder walks the *view* block: N1 prefix, N2 remainder.
    that location, with no implicit child. Any value asserted on an object
    or list location (`death.death_to_active_again = 8.5`, `= null`, or a
    serialized object) is an R7 hit with `check = "object_path_value"`
-   (counts as a violation), for literal and legacy label citations alike.
+   (counts as a violation).
    The scalar leaf (`death.death_to_active_again.value = 8.5`) is
    value-checked as usual. Nothing compares against `claim_basis.values`.
 6. **Reference vs assertion.** A citation asserts a value only when `=` or
@@ -130,23 +129,32 @@ rewritten.
 | `CV-SINGLE-SEGMENT` | syntax limitation | **fixed** | the path grammar needed a dot, so top-level scalars and null blocks were uncitable |
 | `CV-OBJECT-LEAF` | correctness / safety (design decided: leaf only) | **fixed** | R7 skipped any value asserted on an object path, so a wrong scalar passed unchecked; now `object_path_value` |
 | `CV-CLAIM-OBJECT-PATH` | content (claim_basis migration) | **fixed** | 6 fixture claims named an object path while asserting scalars at its leaves; see below |
-| `CV-BARE-OBJECT-REF` | syntax limitation | legacy_only | path-only reference to a single-segment object path is malformed; only label objects (`related[i]`) hit it; grammar not expanded |
+| `CV-BARE-OBJECT-REF` | syntax limitation | open | path-only reference to a single-segment object path (`death`, `related[0]`) is malformed; grammar not expanded; the prompt teaches no path-only references (was `legacy_only` while measured through `related[i]` labels; now measured on the literal path) |
 | `CV-MAP-AWARENESS-OPEN` | unresolved design question | open | experiment-only fact with no N1 home |
 | `CV-RELATIVE` | syntax (prompt) | not_taught | the db5fa8c prompt prose named fields without their block; the Fix 3 prompt names full view paths |
-| `CV-CONTRADICTS-COACHINPUT` | legacy N1/label | legacy_only | label form `primary_context.death_episode.death_to_respawn = null` (view null: playback unverified; CoachInput 7.0) and `primary_context.map.map_check_before_death = null` (CoachInput `true`). The N2 citations `death.death_to_respawn = null` and `map.map_check_before_death = null` correctly name the supplied facts; `= 7.0` / `= true` on those paths are rejected |
-| `CV-SUPPORT-LABEL` | legacy N1/label | legacy_only | `supporting_evidence` items reuse N1 labels; one label string names two facts. No longer a safety issue (R7 checks the bound location) |
+| `CV-CONTRADICTS-COACHINPUT` | legacy N1/label | rejected | label form `primary_context.death_episode.death_to_respawn = null` (view null: playback unverified; CoachInput 7.0) and `primary_context.map.map_check_before_death = null` (CoachInput `true`) were accepted by the fallback; now unresolved. The N2 citations `death.death_to_respawn = null` and `map.map_check_before_death = null` correctly name the supplied facts; `= 7.0` / `= true` on those paths are rejected |
+| `CV-SUPPORT-LABEL` | legacy N1/label | rejected | `supporting_evidence` items reuse N1 labels; one label string names two facts. Labels are no longer citable, so the collision is provenance-only |
 | `CV-EXAMPLE-NAMESPACE`, `CV-NOT-PROJECTED` | legacy N1/label | not_taught | defects of the db5fa8c examples (N1 / hybrid / unprojected paths); the Fix 3 examples are literal N2 |
-| `CV-NOT-COACHINPUT`, `CV-UNLABELLED`, `CV-FLATTENED`, `CV-RENAMED`, `CV-MIXED-SOURCE`, `CV-BARE-LABEL` | legacy N1/label | legacy_only | label/N1 exactness of the validator's label fallback; irrelevant to N2 validation; no prompt teaches these forms; removed by label cleanup, not by aliases |
+| `CV-NOT-COACHINPUT`, `CV-UNLABELLED`, `CV-FLATTENED`, `CV-RENAMED`, `CV-MIXED-SOURCE`, `CV-BARE-LABEL` | legacy N1/label | rejected | label/N1 exactness of the removed label fallback; every such form is now unresolved, not repaired by aliases |
 
 Statuses: `not_taught` is a defect of the db5fa8c prompt text that the
 Fix 3 prompt no longer contains (pinned over `TAUGHT_DB5FA8C`);
-`legacy_only` measures the label fallback on a form the prompt no longer
-teaches (stored outputs can still use it).
+`rejected` (formerly `legacy_only`, which measured the label fallback) is
+a legacy form the validator now rejects outright: the tests assert the
+rejection (`test_label_form_citations_are_rejected`,
+`test_coachinput_path_is_rejected`,
+`test_historical_taught_path_is_literal_or_rejected`,
+`test_experiment_i_postmortem_citation_is_rejected`,
+`test_contradicting_label_citation_is_rejected`), and
+`test_no_legacy_violation_is_open` keeps every legacy violation `rejected`
+or `not_taught`.
 
 Measured counts over the 26 fixture views (Fix 1 at `db5fa8c`, recorded in
-`HISTORY_DB5FA8C`, versus now):
+`HISTORY_DB5FA8C`, versus the leaf-only re-measurement, made while the
+fallback still existed; the label rows are history: those forms are now
+rejected outright, 1916 label citations over the 26 views):
 
-| form | db5fa8c | now |
+| form | db5fa8c | leaf-only re-measurement |
 | --- | --- | --- |
 | N2 literal, every view leaf | single-segment 170, prose 437 | 0 |
 | label + remainder | single-segment 75, support label 99, prose 5 | bare label 57, bare object reference 18, support-label collision 37 |
@@ -168,12 +176,12 @@ The seven N2 properties and their tests:
 | property | tests |
 | --- | --- |
 | one path, one view location | `test_resolve_view_path_ignores_labels`, `test_every_view_leaf_is_a_valid_n2_citation` |
-| value checked at that location | `test_duplicate_label_wrong_value_is_rejected`, `test_wrong_value_through_duplicated_label_is_rejected`, `test_wrong_value_on_any_scalar_leaf_is_rejected` |
-| no pass by skipped validation | the same, plus `test_contradiction_is_legacy_label_form`, `test_value_asserted_on_object_path_fails`, `test_legacy_label_to_object_cannot_bypass` |
+| value checked at that location | `test_duplicate_label_fact_is_checked_at_its_literal_path`, `test_wrong_value_through_duplicated_label_is_rejected`, `test_wrong_value_on_any_scalar_leaf_is_rejected` |
+| no pass by skipped validation | the same, plus `test_contradicting_label_form_is_rejected`, `test_value_asserted_on_object_path_fails`, `test_legacy_label_to_object_is_rejected` |
 | explicit object rule | leaf only: `test_scalar_leaf_of_object_is_value_checked`, `test_value_asserted_on_object_path_fails`, `test_object_path_reference_without_value_is_allowed`, `test_object_path_claim_is_cited_by_its_leaves` |
 | prose punctuation | `test_correct_prose_value_is_accepted`, `test_wrong_prose_value_is_still_rejected`, `test_scalar_with_trailing_remark_still_accepted` |
 | every permitted scalar leaf, incl. top level | `test_top_level_scalar_paths_are_citable`, `test_single_segment_must_be_a_view_key` |
-| labels never influence literal resolution | `test_literal_path_is_never_redirected_by_a_label`, `test_label_naming_another_view_path_cannot_capture_citations`, `test_legacy_label_only_when_literal_path_is_absent`, `test_no_label_shadows_a_view_path` |
+| labels never influence resolution | `test_literal_path_is_never_redirected_by_a_label`, `test_label_naming_another_view_path_cannot_capture_citations`, `test_label_form_is_never_resolved`, `test_label_form_citations_are_rejected`, `test_no_label_shadows_a_view_path` |
 
 ## Object-valued evidence: leaf only
 
@@ -286,7 +294,8 @@ prompt equal the taught examples (`test_examples_are_the_taught_citation_example
   only as `source_path` values.
 - Remaining legacy mechanisms: the validator's label fallback
   (`source_path_ref`, tried only when the literal path is absent: a fresh
-  output could still pass through it, but nothing teaches it), the
+  output could still pass through it, but nothing teaches it; removed
+  after the N2 experiment, below), the
   `source_path` provenance fields, and `serialize_coach_input_user_prompt`
   (debug fallback of `generate_coaching_assessment`; no production caller).
 
@@ -296,6 +305,140 @@ The prompt is versioned by content: each LLM run records the system prompt
 SHA-256. Sealed Experiment H / I inputs differ from production only by the
 declared drift in `tests/sealed_drift.py` (claim_basis leaves, the preamble
 sentence, the system prompt as of `7008a4c`, one roster sentence).
+
+## N2 citation-compliance experiment: conclusion
+
+Sealed at `4043df1`, run and scored at `5a4c908`
+(`analysis/importance_report/citation_compliance_n2/`, `SCORE.md`; tool
+`tools/reports/citation_compliance_n2.py`). Gate: PASS, accepted. The
+conclusion is deliberately narrow:
+
+> Under the frozen production prompt and the 12 selected death-unit views,
+> both repeats of every unit complied with the literal-N2 citation
+> contract. All 77 emitted citations resolved to scalar values in the
+> supplied view and matched those values exactly. No legacy citation
+> convention was emitted.
+
+Coverage limitation: the outputs cited only `death` (36), `timeline` (12),
+`clock` (11), `low_ink` (11), `playback` (5) and `special` (2).
+`related[...]`, `map.*`, `score.*`, `zone_control.*`, `claim_basis[...]`
+and `supporting_evidence` were not cited, so the experiment makes no
+model-behavior claim about those families. No call was made to exercise
+them.
+
+Two kinds of coverage, kept apart:
+
+- **Deterministic (validator / contract):** exhaustive for literal N2
+  paths. Every scalar leaf of the 26 fixture views (corpus + contract
+  units; `related` present in 17, `map`, `score`, `zone_control`,
+  `claim_basis`, `supporting_evidence` in all) is accepted by its literal
+  path with its exact value and rejected with a wrong value
+  (`test_every_view_leaf_is_a_valid_n2_citation`,
+  `test_wrong_value_on_any_scalar_leaf_is_rejected`); values asserted on
+  objects are rejected; all 1916 label-form citations are rejected.
+- **Empirical (model behavior):** limited to the paths the 24 outputs
+  actually emitted (the six families above, on death units, one provider
+  and model).
+
+## Legacy label fallback removed
+
+N2 is the sole citation namespace in the validator too
+(`coach/claim_validation.py`). For each `evidence_used` entry:
+
+1. parse the citation path (`_citation_path`, unchanged);
+2. walk that exact literal path in the supplied CoachLlmView
+   (`resolve_view_path`);
+3. it resolves to one location or is `unresolved` (a literal walk cannot
+   bind two places);
+4. a value asserted after `=` / `:` must sit on a scalar, compared with
+   exactly that scalar (R7, leaf only, unchanged);
+5. an unresolved path is never reinterpreted through `source_path`,
+   CoachInput / N1 labels, aliases, prefix stripping or implicit children.
+
+Removed: `_legacy_label_reference` (label + remainder lookup), `_ref`,
+`ReferenceKind.SOURCE_PATH_REF`, and the label walkers `_labelled_blocks` /
+`_source_blocks` (the validator no longer reads labels; the Experiment I
+postmortem tool and the contract-test helpers keep their own walker). The
+unresolved reason no longer counts a label prefix: a label-form path is
+`unknown_block` unless its top-level key is in the view (was `unknown_key`
+when a label prefixed it). N2 value semantics are unchanged (JSON string
+literals exact; remark / unit / period leniency; the 0.05 numeric
+tolerance).
+
+**Production dependencies.** No production code produces citations except
+the model (`evidence_used` is otherwise only the empty "not selected"
+assessment). No claim rule (`claim_rules`, `claim_integrity`) read labels
+or resolutions. Consumers whose results change for stored old-prompt
+outputs:
+
+- the public site recomputes the status on every review render
+  (`tools/public_site/results.py` `_review`): an old-prompt output whose
+  label citations were accepted now shows the non-blocking "Contains
+  unverified wording" badge; prose is still shown; nothing becomes blocked;
+- `s3-coach coach-reannotate-flags` would rewrite such `*.flags.json` if run
+  (not run);
+- experiment tools that validate with the production validator (D, H, I,
+  N2) are affected only on re-validation; their sealed records are not
+  rewritten.
+
+**Compatibility, measured read-only** (statuses recomputed with
+`annotate_claim_flags`, before vs after; stored validations and flags are
+not rewritten):
+
+| dataset | outputs | fallback-resolved citations (outputs) | `validated` before -> after |
+| --- | --- | --- | --- |
+| N2 experiment, 24 calls (Fix 3 prompt) | 24 | 0 | 24 -> 24 |
+| claim corpus | 23 | 45 (20) | 1 -> 0 |
+| Experiment H stored calls | 132 | 213 (117) | 99 -> 14 |
+| Experiment I stored calls | 88 | 133 (78) | 42 -> 6 |
+| local `coach_prototype` outputs (public mirror, rerun backups, preview) | 133 | 133 (43) | 94 -> 86 |
+
+In every dataset each change is a formerly fallback-resolved citation that
+is now `unresolved` (`unknown_block`: all start with an N1 root such as
+`primary_context.*`, `game_clock_samples[label=death]`, `playback_clock`,
+`durations`); no other resolution, R7 hit or status changed, and no
+output became or stopped being blocked. 83 of those citations carried a
+wrong value through a label (R7 hits: corpus 22, H 30, I 18, prototype 13)
+and are now counted as unresolved instead. All affected outputs come from
+pre-Fix 3 prompts that taught these forms: compatibility effects, not
+regressions. The 8 changed prototype outputs are all in the local public
+mirror (`analysis/_public/analysis/`, written 2026-09-27 to 2026-10-10).
+
+Also changed on re-run, artifacts untouched: the N2 dry run's validator
+side columns for 2 of 23 smoke cases (`source_path_ref` -> `unresolved`;
+the hybrid `game_clock_samples[label=death].display = "1:55"` is no longer
+accepted; the frozen scorer columns are identical, pinned in
+`test_sealed_smoke_cases_classify_as_frozen`); the Experiment I
+postmortem's `system_prompt_examples` (the two db5fa8c label examples are
+`unresolved`; all 33 evidence-path rows keep their classification).
+
+**`source_path` still has non-validator purposes**, so it stays:
+provenance on every view block (`EVIDENCE_CONTRACT.md`: audit reference to
+the CoachInput origin); `supporting_evidence[i].source_path` carries
+`SupportingEvidenceItem.path`, shown in the VMV dev "why" lines
+(`coach/vmv.py`, `tools/vision_manifest_viewer`); `RosterSample`,
+`ScoreFacts` and `ZoneControlFacts` carry it into the dev evidence
+statements of `death_importance`; the contract tests pin provenance
+invariants (`test_no_label_shadows_a_view_path`,
+`test_every_top_level_block_is_labelled_or_pinned`). The prompt says never
+to cite it.
+
+**Remaining citation debt** (none changed here):
+
+- numeric tolerance: `_same` accepts numbers within 0.05 (`=8.54` passes
+  for 8.5); the strict N2 scorer requires exact values. Separate decision;
+- value leniency: unquoted values are cut at a trailing remark (` (`, `;`),
+  a seconds unit and a final period are ignored, booleans / null compare
+  case-insensitively;
+- parsing: `path: value` counts as an assertion; when an entry does not
+  start with a walking path, the first dotted path anywhere is the
+  citation (prose before the path; only the first of several facts);
+- a path without a value is a reference and is not value-checked;
+- `source_path` fields are literal view paths, so citing one
+  (`clock.source_path = "…"`) resolves `view_native`; only the prompt and
+  the strict scorer forbid it;
+- `CV-BARE-OBJECT-REF` (open) and `CV-MAP-AWARENESS-OPEN` (open);
+- empirical coverage for the uncited families (above).
 
 ## History: Fix 1 results (`db5fa8c`)
 
@@ -395,5 +538,7 @@ should be added before the decision.
 Fix 1 (done) -> authoritative namespace: N2 (done) -> validator correctness
 for N2 (done) -> object-valued evidence: leaf only (done) -> claim_basis
 evidence paths to scalar leaves (done) -> prompt rewrite to N2 (done) ->
-legacy label cleanup -> map-awareness ownership -> rating methodology -> only then
-consider an Experiment I successor.
+N2 citation-compliance experiment (done, PASS) -> legacy label fallback
+removed from the validator (done; `source_path` kept as provenance) ->
+map-awareness ownership -> rating methodology -> only then consider an
+Experiment I successor.

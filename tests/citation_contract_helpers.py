@@ -21,7 +21,6 @@ from claim_corpus import corpus_unit, load_corpus
 from splatoon3_ai_coach.coach.claim_catalog import CoachingUnitResult
 from splatoon3_ai_coach.coach.claim_validation import (
     ReferenceKind,
-    _source_blocks,
     evidence_value_hits,
     resolve_evidence_reference,
 )
@@ -114,8 +113,8 @@ def leaves(node: Any, path: str = "") -> Iterator[tuple[str, Any]]:
 
 
 def labelled_blocks(node: Any, path: str = "") -> Iterator[tuple[str, dict]]:
-    """``(view path, block)`` for every ``source_path``-labelled dict, in the
-    validator's traversal order."""
+    """``(view path, block)`` for every dict carrying a ``source_path``
+    provenance label (the validator never reads labels)."""
     if isinstance(node, dict):
         if isinstance(node.get("source_path"), str):
             yield path, node
@@ -124,15 +123,6 @@ def labelled_blocks(node: Any, path: str = "") -> Iterator[tuple[str, dict]]:
     elif isinstance(node, list):
         for i, value in enumerate(node):
             yield from labelled_blocks(value, f"{path}[{i}]")
-
-
-def source_blocks_order_matches(view: Mapping[str, Any]) -> bool:
-    """``labelled_blocks`` visits exactly the validator's blocks, in order."""
-    ours = [block for _, block in labelled_blocks(view)]
-    theirs = _source_blocks(view)
-    if len(ours) != len(theirs):
-        return False
-    return all(a is b for a, b in zip(ours, theirs, strict=True))
 
 
 def render(value: Any) -> str:

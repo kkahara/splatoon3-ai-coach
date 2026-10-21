@@ -142,27 +142,12 @@ def test_non_map_recommendations_are_not_judged() -> None:
 
 
 @pytest.mark.parametrize(
-    ("text", "kind", "extra"),
-    [
-        ("death.death_to_respawn = 6.0", "view_native", None),
-        ("map.map_check_before_death.status", "view_native", None),
-        (
-            "primary_context.death_episode.death_time_video",
-            "source_path_ref",
-            "primary_context.death_episode",
-        ),
-        (
-            "durations.time_since_previous_death",
-            "source_path_ref",
-            "durations.time_since_previous_death",
-        ),
-    ],
+    "text", ["death.death_to_respawn = 6.0", "map.map_check_before_death.status"]
 )
-def test_resolves_evidence_reference(text: str, kind: str, extra: str | None) -> None:
+def test_resolves_evidence_reference(text: str) -> None:
     result = resolve_evidence_reference(VIEW, text)
-    assert result["kind"] == kind
-    if extra is not None:
-        assert result["source_path"] == extra
+    assert result["kind"] == "view_native"
+    assert result["location"] == result["path"]
 
 
 @pytest.mark.parametrize(
@@ -170,8 +155,11 @@ def test_resolves_evidence_reference(text: str, kind: str, extra: str | None) ->
     [
         ("the death timing", "malformed"),
         ("primary_context.map_check_before_death", "unknown_block"),
-        ("primary_context.death_episode.time", "unknown_key"),
+        ("primary_context.death_episode.time", "unknown_block"),
         ("death.time_of_death", "unknown_key"),
+        # source_path labels (+ remainder) are provenance, never citations
+        ("primary_context.death_episode.death_time_video", "unknown_block"),
+        ("durations.time_since_previous_death", "unknown_block"),
     ],
 )
 def test_flags_unresolved_evidence_path(text: str, reason: str) -> None:
@@ -190,7 +178,7 @@ def test_validation_status_reflects_each_rule() -> None:
     bad_path = {**clean, "evidence_used": ["primary_context.death_episode.time"]}
     result = validate_assessment(bad_path, VIEW)
     assert result["validation_status"] == "contains_unverified_wording"
-    assert result["unresolved_evidence_paths"][0]["reason"] == "unknown_key"
+    assert result["unresolved_evidence_paths"][0]["reason"] == "unknown_block"
 
 
 def test_annotate_claim_flags_never_rewrites_text() -> None:

@@ -74,23 +74,23 @@ def _r7(text: str, view: dict[str, Any] = VIEW) -> list[dict[str, Any]]:
 # --- correctness: R7 checks the location resolution used (CV-R7-LOCATION) ----------
 
 
-def test_duplicate_label_wrong_value_is_rejected() -> None:
-    """Resolution binds ``supporting_evidence[0]``; R7 used to walk the first
-    block with the label (``special.nearest_before_anchor``), find no
-    ``value`` and skip the check."""
-    text = 'primary_context.special.nearest_before_anchor.value = "full"'
+_SUPPORT_VALUE = '"not ready, fill=0.43 (last ready 5.0s before)"'
+
+
+@pytest.mark.parametrize("value", ['"full"', _SUPPORT_VALUE])
+def test_duplicate_label_citation_is_rejected(value: str) -> None:
+    """Two blocks carry this label. The label form used to bind
+    ``supporting_evidence[0]`` while R7 walked the other block; it is now
+    unresolved whatever the value."""
+    text = f"primary_context.special.nearest_before_anchor.value = {value}"
     resolution = resolve_evidence_reference(VIEW, text)
-    assert resolution["kind"] == "source_path_ref"
-    assert resolution["location"] == "supporting_evidence[0].value"
-    assert len(evidence_value_hits(VIEW, [resolution])) == 1
+    assert resolution["kind"] == "unresolved"
+    assert evidence_value_hits(VIEW, [resolution]) == []
 
 
-def test_duplicate_label_correct_value_passes() -> None:
-    text = (
-        "primary_context.special.nearest_before_anchor.value = "
-        '"not ready, fill=0.43 (last ready 5.0s before)"'
-    )
-    assert _r7(text) == []
+def test_duplicate_label_fact_is_checked_at_its_literal_path() -> None:
+    assert len(_r7('supporting_evidence[0].value = "full"')) == 1
+    assert _r7(f"supporting_evidence[0].value = {_SUPPORT_VALUE}") == []
 
 
 # --- legacy: label paths are not CoachInput truth (CV-CONTRADICTS-COACHINPUT) -------
@@ -111,16 +111,15 @@ def test_duplicate_label_correct_value_passes() -> None:
         ),
     ],
 )
-def test_contradiction_is_legacy_label_form(
+def test_contradicting_label_form_is_rejected(
     legacy: str, literal: str, wrong: str
 ) -> None:
     """CoachInput holds 7.0 / ``true`` here, the view holds null (playback
-    unverified / no status). The legacy label form accepts null because it
-    walks the view block; under N2 the literal path states exactly the
-    supplied fact, and a value the view does not hold is rejected."""
-    resolution = resolve_evidence_reference(VIEW, legacy)
-    assert resolution["kind"] == "source_path_ref"
-    assert _r7(legacy) == []
+    unverified / no status). The legacy label form used to accept null by
+    walking the view block; it is now unresolved. Under N2 the literal path
+    states exactly the supplied fact, and a value the view does not hold is
+    rejected."""
+    assert resolve_evidence_reference(VIEW, legacy)["kind"] == "unresolved"
     assert resolve_evidence_reference(VIEW, literal)["kind"] == "view_native"
     assert _r7(literal) == []
     assert len(_r7(wrong)) == 1
@@ -157,13 +156,12 @@ def test_value_asserted_on_object_path_fails(text: str) -> None:
     assert _checks(text) == ["object_path_value"]
 
 
-def test_legacy_label_to_object_cannot_bypass() -> None:
+def test_legacy_label_to_object_is_rejected() -> None:
+    """The label used to bind ``special.nearest_before_anchor`` (an object);
+    it is unresolved now, and the literal object path still rejects a value."""
     text = "primary_context.special.nearest_before_anchor = 0.43"
-    resolution = resolve_evidence_reference(VIEW, text)
-    assert resolution["location"] == "special.nearest_before_anchor"
-    assert [h["check"] for h in evidence_value_hits(VIEW, [resolution])] == [
-        "object_path_value"
-    ]
+    assert resolve_evidence_reference(VIEW, text)["kind"] == "unresolved"
+    assert _checks("special.nearest_before_anchor = 0.43") == ["object_path_value"]
 
 
 CLOCK_LABEL = "game_clock_samples[label=death].observation.seconds_remaining"
@@ -176,16 +174,15 @@ SUPPORT_ONLY: dict[str, Any] = {
 
 
 @pytest.mark.parametrize("cited", ["23", "999"])
-def test_legacy_label_of_a_display_item_asserts_on_an_object(cited: str) -> None:
+def test_legacy_label_of_a_display_item_is_rejected(cited: str) -> None:
     """Legacy (CV-SUPPORT-LABEL / CV-FLATTENED): the whole label is held only
-    by a ``supporting_evidence`` item, so the label form binds that object.
-    Correct or not, the value is no longer skipped; the N2 citation is
+    by a ``supporting_evidence`` item, which the label form used to bind. It is
+    unresolved now, correct value or not; the N2 citation is
     ``clock.seconds_remaining``."""
     resolution = resolve_evidence_reference(SUPPORT_ONLY, f"{CLOCK_LABEL} = {cited}")
-    assert resolution["location"] == "supporting_evidence[0]"
-    hits = evidence_value_hits(SUPPORT_ONLY, [resolution])
-    assert [h["check"] for h in hits] == ["object_path_value"]
+    assert resolution["kind"] == "unresolved"
     assert _r7("clock.seconds_remaining = 23", SUPPORT_ONLY) == []
+    assert len(_r7("clock.seconds_remaining = 999", SUPPORT_ONLY)) == 1
 
 
 @pytest.mark.parametrize(
@@ -326,11 +323,14 @@ def test_label_naming_another_view_path_cannot_capture_citations() -> None:
     assert bare["location"] == "clock"
 
 
-def test_legacy_label_only_when_literal_path_is_absent() -> None:
-    legacy = resolve_evidence_reference(ADVERSARIAL, "clock.missing = 1")
-    assert legacy["kind"] == "unresolved"
+def test_label_form_is_never_resolved() -> None:
+    """``clock`` carries the label ``game_clock_samples[label=death]``; the
+    label + remainder names the same fact but is not a literal view path."""
+    assert resolve_evidence_reference(ADVERSARIAL, "clock.missing = 1")["kind"] == (
+        "unresolved"
+    )
     via_label = resolve_evidence_reference(
         ADVERSARIAL, "game_clock_samples[label=death].display = 0:20"
     )
-    assert via_label["kind"] == "source_path_ref"
-    assert via_label["location"] == "clock.display"
+    assert via_label["kind"] == "unresolved"
+    assert via_label["reason"] == "unknown_block"

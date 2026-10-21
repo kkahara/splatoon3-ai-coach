@@ -264,9 +264,13 @@ def test_trace_b_gpt_oss_text_is_blocked(trace_b: Trace) -> None:
     checks = {(h["rule"], h["check"]) for h in report["integrity_hits"]}
     assert ("R10", "no_template") in checks
     assert ("R8", "internal_identifier") in checks
-    (unresolved,) = report["unresolved_evidence_paths"]
-    assert unresolved["path"] == "primary_context.death_episode.time"
-    assert unresolved["reason"] == "unknown_key"
+    unresolved = {(u["path"], u["reason"]) for u in report["unresolved_evidence_paths"]}
+    assert unresolved == {
+        ("primary_context.map.map_check_before_death", "unknown_block"),
+        ("primary_context.death_episode.death_to_respawn", "unknown_block"),
+        ("primary_context.death_episode.death_to_active_again", "unknown_block"),
+        ("primary_context.death_episode.time", "unknown_block"),
+    }
     assert trace_b.moment.assessment_status == "blocked_unsupported_claim"
     assert trace_b.moment.coaching_state == "blocked"
     assert trace_b.moment.assessment is None

@@ -55,7 +55,6 @@ from pydantic import BaseModel
 from splatoon3_ai_coach.coach.claim_validation import (
     _cited_value,
     _same,
-    _source_blocks,
     _walk,
     resolve_evidence_reference,
 )
@@ -221,6 +220,20 @@ def _container_paths(node: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
     elif isinstance(node, list):
         for i, value in enumerate(node):
             yield from _container_paths(value, f"{prefix}[{i}]")
+
+
+def _source_blocks(node: Any) -> list[dict[str, Any]]:
+    """Every dict carrying a string ``source_path`` label, depth first."""
+    found: list[dict[str, Any]] = []
+    if isinstance(node, dict):
+        if isinstance(node.get("source_path"), str):
+            found.append(node)
+        for value in node.values():
+            found.extend(_source_blocks(value))
+    elif isinstance(node, list):
+        for value in node:
+            found.extend(_source_blocks(value))
+    return found
 
 
 def label_candidates(view: Mapping[str, Any], path: str) -> list[tuple[str, Any]]:

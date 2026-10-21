@@ -143,8 +143,8 @@ def test_r7_cited_value_formats_seen_in_model_output() -> None:
     )
     view["game_clock_samples"][0]["source_path"] = "game_clock_samples[label=death]"
     matching = [
-        "game_clock_samples[label=death].seconds_remaining = 29",
-        'game_clock_samples[label=death].display = "0:29"',
+        "game_clock_samples[0].seconds_remaining = 29",
+        'game_clock_samples[0].display = "0:29"',
         "durations.time_since_previous_death.value = 14.5",
         "death.death_to_active_again.value = 8.5 seconds",
         "clock.seconds_remaining = 7 (source_path: game_clock_samples[label=death])",
@@ -153,14 +153,21 @@ def test_r7_cited_value_formats_seen_in_model_output() -> None:
     for cited in matching:
         assert _value_checks(view, cited) == set(), cited
     wrong = [
-        "game_clock_samples[label=death].seconds_remaining = 28",
-        'game_clock_samples[label=death].display = "0:28"',
+        "game_clock_samples[0].seconds_remaining = 28",
+        'game_clock_samples[0].display = "0:28"',
         "durations.time_since_previous_death.value = 15.5",
         "death.death_to_active_again.value = 9 seconds",
         "clock.seconds_remaining = 8 (source_path: game_clock_samples[label=death])",
     ]
     for cited in wrong:
         assert _value_checks(view, cited) == {"value_mismatch"}, cited
+    for cited in (
+        "game_clock_samples[label=death].seconds_remaining = 29",
+        'game_clock_samples[label=death].display = "0:28"',
+    ):
+        report = validate_assessment({"assessment": "x", "evidence_used": [cited]}, view)
+        assert [r["text"] for r in report["unresolved_evidence_paths"]] == [cited]
+        assert report["integrity_hits"] == []
 
 
 def test_r8_no_internal_identifiers_in_player_text() -> None:
