@@ -321,7 +321,7 @@ def outputs_absent_check(out: Path = OUT) -> dict[str, Any]:
     """A fresh run needs an absent output destination."""
     path = _outputs(out)
     return _check(
-        "output_destination_absent", [f"{path} exists"] if path.exists() else []
+        "output_destination_absent", [f"{path.name}/ exists"] if path.exists() else []
     )
 
 
