@@ -12,6 +12,12 @@ Layout::
     coach_inputs/{safe_id}.llm_view.json    CoachLlmView
     coach_prototype/coaching_index.json     PrototypeIndex
     coach_prototype/{safe_id}.{model_tag}.output.json  CoachingAssessment
+    coach_prototype/{safe_id}.{model_tag}.flags.json   generation-time flags
+    coach_prototype/{safe_id}.{model_tag}.revalidation.json  Revalidation
+
+``*.flags.json`` is written once, with its output, and is the immutable
+original validation result. A later check under the current validator is a
+separate :class:`Revalidation` and never rewrites the flags.
 
 Legacy compatibility (schema version 1): index files written as a bare JSON
 list are still read. A legacy coach-prototype unit names its primary output
@@ -64,6 +70,7 @@ PROTOTYPE_INDEX_SCHEMA_VERSION = 3
 OUTPUT_SUFFIX = ".output.json"
 RAW_SUFFIX = ".raw.txt"
 FLAGS_SUFFIX = ".flags.json"
+REVALIDATION_SUFFIX = ".revalidation.json"
 _COACH_INPUT_SUFFIX = ".coach_input.json"
 
 _ModelT = TypeVar("_ModelT", bound=BaseModel)
@@ -682,6 +689,66 @@ def primary_stored_validation(
         )
     except ValidationError:
         return None
+
+
+def revalidation_file_name(output_json: str) -> str:
+    """``{safe_id}.{model_tag}.revalidation.json`` beside an ``*.output.json``."""
+    name = _bare_filename(output_json)
+    if not name.endswith(OUTPUT_SUFFIX):
+        raise ValueError(f"not a model output file name: {name!r}")
+    return name[: -len(OUTPUT_SUFFIX)] + REVALIDATION_SUFFIX
+
+
+class Revalidation(BaseModel):
+    """A current-validator recheck of one stored output.
+
+    Not the output's original validation: that stays in its generation-time
+    ``*.flags.json``, which is never rewritten, and is not copied here.
+    Hashes are sha256 of the exact file bytes (as ``RunProvenance``).
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1] = 1
+    validation_contract_version: int
+    validation_status: ValidationStatus
+    details: dict[str, Any] = Field(
+        description="Validator hits and lists, without status and version."
+    )
+    output_json: BareName
+    output_sha256: str
+    llm_view_json: BareName | None = None
+    llm_view_sha256: str | None = None
+    revalidated_at: str
+
+    def same_result(self, other: Revalidation) -> bool:
+        """Equal in everything but ``revalidated_at``."""
+        keep = {"revalidated_at"}
+        return self.model_dump(mode="json", exclude=keep) == other.model_dump(
+            mode="json", exclude=keep
+        )
+
+
+def read_revalidation(prototype_dir: Path, output_json: str) -> Revalidation | None:
+    """The stored revalidation of one output, or ``None`` if there is none.
+
+    Raises:
+        ArtifactError: The file exists but is not a valid :class:`Revalidation`.
+    """
+    path = prototype_dir / revalidation_file_name(output_json)
+    if not path.is_file():
+        return None
+    try:
+        return Revalidation.model_validate(load_json(path))
+    except (json.JSONDecodeError, ValidationError) as exc:
+        raise ArtifactError(f"{path}: not a valid revalidation: {exc}") from exc
+
+
+def write_revalidation(prototype_dir: Path, revalidation: Revalidation) -> Path:
+    """Write one revalidation beside its output; never touches ``*.flags.json``."""
+    path = prototype_dir / revalidation_file_name(revalidation.output_json)
+    write_json(path, revalidation.model_dump(mode="json"))
+    return path
 
 
 def prototype_outputs(prototype_dir: Path) -> list[PrototypeOutput]:

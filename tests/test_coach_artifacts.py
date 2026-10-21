@@ -321,8 +321,9 @@ def test_reannotate_uses_recorded_outputs(tmp_path: Path) -> None:
     flags.unlink()
     result = CliRunner().invoke(app, ["coach-reannotate-flags", str(tmp_path)])
     assert result.exit_code == 0, result.output
-    assert flags.is_file()
-    assert "llama3.1:8b" in result.output
+    assert not flags.exists()
+    assert (tmp_path / f"{SAFE}.llama3.1_8b.revalidation.json").is_file()
+    assert f"{SAFE}.llama3.1_8b.output.json" in result.output
 
 
 def test_reannotate_requires_a_prototype_index(tmp_path: Path) -> None:

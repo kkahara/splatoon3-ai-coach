@@ -377,8 +377,9 @@ outputs:
   original status; prose is still shown; nothing becomes blocked (until
   the follow-up commit, this recomputed status replaced the original; see
   below);
-- `s3-coach coach-reannotate-flags` would rewrite such `*.flags.json` if run
-  (not run);
+- `s3-coach coach-reannotate-flags` would have rewritten such `*.flags.json`
+  if run (not run; it now writes a separate `*.revalidation.json` and never
+  touches flags, see "Revalidation artifacts");
 - experiment tools that validate with the production validator (D, H, I,
   N2) are affected only on re-validation; their sealed records are not
   rewritten.
@@ -481,10 +482,33 @@ without `validation_status`): current 10 unverified, 9 blocked, 2
 validated. No moment changes between shown and withheld; only the labels
 change. Experiment D-I and N2 records do not go through this path.
 
-**Residual risk.** `s3-coach coach-reannotate-flags` still overwrites
-`*.flags.json` with current results, which would replace stored originals.
-It is an explicit operator command and was not run. The smallest fix is to
-write current results to a separate revalidation file instead.
+### Revalidation artifacts
+
+A generation-time `*.flags.json` is immutable. `s3-coach
+coach-reannotate-flags <coach_prototype>` (until this change it rewrote
+every `*.flags.json`, and created missing ones) now writes one sibling
+`{safe_id}.{model_tag}.revalidation.json` per recorded output
+(`artifacts.Revalidation`, schema 1): `validation_contract_version`,
+`validation_status`, `details` (the validator's hits and lists),
+`output_json` + `output_sha256`, `llm_view_json` + `llm_view_sha256` (the
+saved view; both `null` without one) and `revalidated_at`. Hashes are
+sha256 of the exact file bytes, as in `RunProvenance`, so
+`llm_view_sha256` is comparable with the generation run's. The original
+status is not copied into it. It never creates, modifies or replaces
+`*.output.json` or `*.flags.json`. A legacy output without a stored original
+keeps none.
+
+Overwrite rules: everything is computed first and written all-or-nothing.
+An existing revalidation equal in everything but `revalidated_at` is
+`unchanged` and left byte-identical. One that differs (another contract
+version, output or view hash, status or details) or cannot be read is a
+`conflict`; the run writes nothing and exits 1, naming the differing
+fields, unless `--replace-revalidation` is given.
+
+The public site does not read revalidation files: it computes the current
+revalidation live (cheap, and always today's code, whereas a stored
+revalidation can be stale within one contract version), and
+`assessment_status` comes only from the generation-time flags.
 
 ## History: Fix 1 results (`db5fa8c`)
 

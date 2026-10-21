@@ -1,4 +1,4 @@
-"""Re-annotate coach_prototype ``*.flags.json`` without calling the LLM."""
+"""Revalidate coach_prototype outputs with today's validator, without the LLM."""
 
 from __future__ import annotations
 
@@ -8,17 +8,15 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from splatoon3_ai_coach.coach.artifacts import (
-    ArtifactError,
-    load_assessment,
-    prototype_outputs,
-    read_document,
-    read_prototype_index,
-    write_json,
+from splatoon3_ai_coach.coach.artifacts import ArtifactError
+from splatoon3_ai_coach.coach.revalidation import (
+    RevalidationOutcome,
+    RevalidationPlan,
+    apply_revalidations,
+    plan_revalidations,
 )
-from splatoon3_ai_coach.coach.coach import annotate_claim_flags
 
-console = Console()
+console = Console(soft_wrap=True)
 
 
 def coach_reannotate_flags(
@@ -29,63 +27,58 @@ def coach_reannotate_flags(
         dir_okay=True,
         help="coach_prototype directory containing *.output.json files.",
     ),
+    replace_revalidation: bool = typer.Option(
+        False,
+        "--replace-revalidation",
+        help=(
+            "Replace existing *.revalidation.json files whose result differs. "
+            "Never affects *.flags.json."
+        ),
+    ),
 ) -> None:
-    """Rewrite ``*.flags.json`` from existing assessments. Never touches outputs."""
+    """Write a current-validator recheck beside each output.
+
+    Writes ``{safe_id}.{model_tag}.revalidation.json``. Never modifies,
+    creates or replaces ``*.output.json`` or the generation-time
+    ``*.flags.json`` (the original validation status). Identical existing
+    revalidations are kept as they are; a differing one stops the run and
+    nothing is written unless ``--replace-revalidation`` is given.
+    """
     try:
-        outputs = prototype_outputs(prototype_dir)
+        plan = plan_revalidations(prototype_dir, replace=replace_revalidation)
     except ArtifactError as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc
-    if not outputs:
+    if not plan.items and not plan.errors:
         console.print(f"[yellow]No model outputs recorded in {prototype_dir}[/yellow]")
         raise typer.Exit(code=1)
-
-    by_model_outputs: Counter[str] = Counter()
-    by_model_violations: Counter[str] = Counter()
-    rewritten = 0
-    errors = 0
-
-    views = _views_by_output(prototype_dir)
-    for output in outputs:
-        try:
-            assessment = load_assessment(prototype_dir / output.output_json)
-            flags = annotate_claim_flags(assessment, views.get(output.output_json))
-            write_json(prototype_dir / output.flags_json, flags)
-            rewritten += 1
-            by_model_outputs[output.model] += 1
-            by_model_violations[output.model] += int(flags.get("hit_count", 0))
-            console.print(
-                f"[green]OK[/green] {output.output_json} → {output.flags_json} "
-                f"(hit_count={flags.get('hit_count', 0)}, "
-                f"status={flags.get('validation_status')})"
-            )
-        except Exception as exc:  # noqa: BLE001 — report and continue
-            errors += 1
-            console.print(f"[red]FAIL[/red] {output.output_json}: {exc}")
-
-    console.print("")
-    console.print(f"{'model':<24} {'outputs':>8} {'violations':>10}")
-    for model in sorted(by_model_outputs):
+    _print_plan(plan)
+    if not plan.writable:
         console.print(
-            f"{model:<24} {by_model_outputs[model]:>8} "
-            f"{by_model_violations[model]:>10}"
+            "\n[red]Nothing written.[/red] Fix the errors, or re-run with "
+            "--replace-revalidation to replace differing revalidations. "
+            "Flags and outputs were not modified."
         )
-    console.print(
-        f"\nRewrote {rewritten} flags file(s); {errors} error(s). "
-        "Output JSON files were not modified."
-    )
-    if errors:
         raise typer.Exit(code=1)
+    written = apply_revalidations(prototype_dir, plan)
+    console.print(
+        f"\nWrote {len(written)} revalidation file(s). "
+        "Flags and outputs were not modified."
+    )
 
 
-def _views_by_output(prototype_dir: Path) -> dict[str, dict]:
-    """The unit's saved ``llm_view.json`` for each output file name."""
-    index = read_prototype_index(prototype_dir)
-    views: dict[str, dict] = {}
-    for entry in index.entries if index is not None else []:
-        view = read_document(prototype_dir, entry.llm_view_json)
-        if view is None:
-            continue
-        for output in entry.outputs:
-            views[output.output_json] = view
-    return views
+def _print_plan(plan: RevalidationPlan) -> None:
+    for item in plan.items:
+        rev = item.revalidation
+        note = f" (differs: {', '.join(item.differing)})" if item.differing else ""
+        colour = "red" if item.outcome is RevalidationOutcome.CONFLICT else "green"
+        console.print(
+            f"[{colour}]{item.outcome.value}[/{colour}] {rev.output_json} "
+            f"(status={rev.validation_status.value}, "
+            f"contract=v{rev.validation_contract_version}){note}"
+        )
+    for name, message in plan.errors:
+        console.print(f"[red]FAIL[/red] {name}: {message}")
+    counts = Counter(item.outcome.value for item in plan.items)
+    summary = ", ".join(f"{n} {k}" for k, n in sorted(counts.items()))
+    console.print(f"\n{summary or 'no outputs'}; {len(plan.errors)} error(s)")

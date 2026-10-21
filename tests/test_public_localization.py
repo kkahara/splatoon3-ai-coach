@@ -504,6 +504,19 @@ def test_validator_changes_never_change_the_original_status(
     assert (moment.assessment is None) is blocked
 
 
+def test_revalidation_files_are_never_read_as_either_status(tmp_path: Path) -> None:
+    _seed(tmp_path, {"unit": _CAUSAL})
+    _write_view(tmp_path, "unit")
+    (tmp_path / "coach_prototype" / "unit.model.revalidation.json").write_text(
+        json.dumps({"validation_status": "validated", "validation_contract_version": 1}),
+        encoding="utf-8",
+    )
+    (moment,) = load_result(tmp_path).moments
+    assert moment.assessment_status is None
+    assert moment.current_assessment_status == "blocked_unsupported_claim"
+    assert moment.coaching_state == "blocked"
+
+
 def test_current_status_validated_and_not_validated(tmp_path: Path) -> None:
     clean = "No map overlay was observed before the death."
     _seed(tmp_path, {"viewed": clean, "unviewed": clean})

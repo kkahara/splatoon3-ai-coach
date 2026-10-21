@@ -62,7 +62,7 @@ Run any command with `--help` for its options. Add `-v` for verbose logging.
 | `vision-view` | Open the read-only Vision Manifest Viewer |
 | `coach-inputs` | Build `CoachInput` evidence units + importance-scored candidates (no LLM) |
 | `coach-prototype` | Build prompts; call the LLM only with `--call-llm` |
-| `coach-reannotate-flags` | Rewrite claim-pattern flag files from existing assessments |
+| `coach-reannotate-flags` | Recheck existing assessments with today's validator into `*.revalidation.json` (never rewrites the generation-time `*.flags.json`) |
 | `review timeline-import` | Import a folder of Review timeline screenshots |
 | `review timeline-video-import` | Adapt a Review timeline video and import it |
 | `review special-facts` | Write Review-clock SPECIAL_USE facts (`special_use_facts.json`) for an import |
