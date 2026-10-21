@@ -1510,6 +1510,39 @@ def test_public_context_marks_time_bounded(tmp_path: Path) -> None:
         assert "because" not in mark["offset_label"]
 
 
+def test_only_the_death_mark_carries_the_observed_game_clock(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir(parents=True)
+    entries = [
+        _indexed("timed", "death_episode", 100.0, 1),
+        _indexed("untimed", "death_episode", 200.0, 2),
+    ]
+    (inputs / "coaching_index.json").write_text(json.dumps(entries), encoding="utf-8")
+    for safe_id, death_time, seconds in (("timed", 100.0, 207), ("untimed", 200.0, None)):
+        _write_episode(
+            inputs,
+            safe_id,
+            death={"death_time": death_time},
+            samples=[_sample("death", seconds)],
+            factors=[],
+        )
+    _write_events(
+        analysis, [("splat", 94.5), ("death", 100.0), ("splat", 196.0), ("death", 200.0)]
+    )
+
+    timed, untimed = [item.model_dump() for item in load_result(analysis).moments]
+
+    assert [(m["title"], m["seconds_remaining"]) for m in timed["marks"]] == [
+        ("Splat", None),
+        ("Death", 207),
+    ]
+    assert [(m["title"], m["seconds_remaining"]) for m in untimed["marks"]] == [
+        ("Splat", None),
+        ("Death", None),
+    ]
+
+
 def _indexed(safe_id: str, candidate_type: str, video_time: float, rank: int) -> dict:
     return index_entry(
         safe_id, candidate_type=candidate_type, video_time=video_time, rank=rank

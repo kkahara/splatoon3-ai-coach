@@ -373,10 +373,11 @@ outputs:
 
 - the public site's current revalidation (`tools/public_site/results.py`
   `_review`): an old-prompt output whose label citations were accepted now
-  gets a labelled current-rules "unverified wording" note beside its stored
-  original status; prose is still shown; nothing becomes blocked (until
-  the follow-up commit, this recomputed status replaced the original; see
-  below);
+  gets a current-rules `contains_unverified_wording` status beside its
+  stored original status; nothing becomes blocked (until the follow-up
+  commit, this recomputed status replaced the original; see below). The
+  review page no longer shows such prose (see "Public site: original vs
+  current validation status");
 - `s3-coach coach-reannotate-flags` would have rewritten such `*.flags.json`
   if run (not run; it now writes a separate `*.revalidation.json` and never
   touches flags, see "Revalidation artifacts");
@@ -462,10 +463,18 @@ The prose is withheld (`coaching_state = "blocked"`) when either status is
 `blocked_unsupported_claim`. This keeps the reason the site recomputed in
 the first place (flags written before the claim rules existed say
 `validated` for prose that the rules now block), while the original stays
-visible as the original. The page shows the original's "Contains unverified
-wording" badge or blocked note; a current-only result is shown with its
-own wording, which starts "Re-checked with today's evidence rules (not the
-rules used when this coaching was written)".
+available as the original.
+
+The review page (`web/public/src/pages/reviewMoments.js`) shows no
+validation badge. It lets either status decide what is displayed: only a
+`recommendation` whose original and current statuses are both outside
+`contains_unverified_wording` / `blocked_unsupported_claim` is a key
+coaching moment. Any output flagged under either rule set (assessment and
+recommendations alike, since one status covers both) is not shown; the
+moment falls back to its observed facts with "No coaching recommendation
+for this moment". `no_recommendation` prose that passes both is shown as
+"What happened", never as advice. The API still returns the statuses and
+the unblocked prose; withholding unverified prose is a display rule.
 
 **Contract version.** `claim_validation.VALIDATION_CONTRACT_VERSION`
 (1 = literal-N2 citations only) is written into every new flags document as

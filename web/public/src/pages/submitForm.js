@@ -47,6 +47,41 @@ export function reviewCodeComplete(value) {
   return /^[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/.test(String(value || ""));
 }
 
+const VIDEO_EXTENSIONS = [".mp4", ".mov"];
+const VIDEO_TYPES = ["video/mp4", "video/quicktime"];
+
+/** MP4 or MOV by MIME type or extension. Dropped files bypass the input's `accept`. */
+export function isAcceptedVideo(file) {
+  if (!file) {
+    return false;
+  }
+  if (VIDEO_TYPES.includes(file.type)) {
+    return true;
+  }
+  const name = String(file.name || "").toLowerCase();
+  return VIDEO_EXTENSIONS.some((extension) => name.endsWith(extension));
+}
+
+/** i18n key for a chosen file that cannot be sent, or null when it is usable. */
+export function videoProblem(file, maxBytes) {
+  if (!isAcceptedVideo(file)) {
+    return "submit.error_file";
+  }
+  if (maxBytes && file.size > maxBytes) {
+    return "submit.error_size";
+  }
+  return null;
+}
+
+/** Human file size in MB (or KB below 1 MB), such as 512.3 MB. */
+export function formatFileSize(bytes) {
+  const size = Number(bytes) || 0;
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /** Language plus a video. A review code is optional and does not enable submit. */
 export function submitReady({ file, language }) {
   if (!GAME_LANGUAGES.includes(language)) {

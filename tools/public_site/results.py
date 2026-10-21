@@ -193,7 +193,7 @@ def _context_marks(
         recovery_end=_recovery_end(death, death_time),
     )
     marks = [_event_mark(*item, death_time, playback) for item in before]
-    marks.append(_anchor(death_time))
+    marks.append(_anchor(death_time, remaining))
     marks.extend(_event_mark(*item, death_time, playback) for item in after)
     return marks, remaining
 
@@ -327,11 +327,13 @@ def _playback_info(coach_input: dict) -> PlaybackClockInfo | None:
         return None
 
 
-def _anchor(death_time: float) -> LifecycleMark:
+def _anchor(death_time: float, remaining: int | None) -> LifecycleMark:
+    """The death mark; ``remaining`` is the observed whole-second timer, never derived."""
     return LifecycleMark(
         label="death",
         title="Death",
         video_time=death_time,
+        seconds_remaining=remaining,
         clock=_video_clock(death_time),
         anchor=True,
     )

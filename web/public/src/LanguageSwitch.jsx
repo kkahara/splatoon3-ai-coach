@@ -1,4 +1,4 @@
-import { useLocale } from "./i18n/LocaleContext.jsx";
+import { useLocale, useT } from "./i18n/LocaleContext.jsx";
 
 const CHOICES = [
   ["en", "English"],
@@ -7,8 +7,9 @@ const CHOICES = [
 
 export function LanguageSwitch() {
   const { locale, setLocale } = useLocale();
+  const t = useT();
   return (
-    <nav className="lang-switch" aria-label="Language">
+    <nav className="lang-switch" aria-label={t("nav.site_language")} title={t("nav.site_language")}>
       {CHOICES.map(([value, label], index) => (
         <span key={value}>
           {index > 0 ? <span className="lang-sep"> | </span> : null}

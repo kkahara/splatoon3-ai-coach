@@ -21,6 +21,7 @@
     "Hiragino Maru Gothic ProN", "Trebuchet MS", sans-serif;
   --s3-font-body: "Avenir Next", "Hiragino Kaku Gothic ProN", "Trebuchet MS",
     sans-serif;
+  --s3-sheet-width: 44rem;
   color: var(--s3-text);
   background: var(--s3-void);
   font-family: var(--s3-font-body);
@@ -45,13 +46,13 @@ body {
 }
 
 .sheet {
-  max-width: 40rem;
+  max-width: var(--s3-sheet-width);
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
 }
 
 .lang-switch {
-  max-width: 40rem;
+  max-width: var(--s3-sheet-width);
   margin: 0 auto;
   padding: 0.75rem 1.25rem 0;
   display: flex;
@@ -82,9 +83,15 @@ body {
 
 .top nav {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem 1rem;
   align-items: center;
   margin-left: auto;
+}
+
+.top nav > * {
+  white-space: nowrap;
 }
 
 .top a,
@@ -126,7 +133,6 @@ h1 {
 }
 
 form,
-.steps,
 .moments {
   display: grid;
   gap: 0.9rem;
@@ -141,17 +147,6 @@ label {
   display: flex;
   gap: 0.6rem;
   align-items: center;
-}
-
-.file-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.file-row input[type="file"] {
-  flex: 1;
-  min-width: 0;
 }
 
 button.file-cancel {
@@ -216,35 +211,11 @@ button:disabled {
 
 .notice.stale {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d9a441;
-  border-radius: 4px;
-  color: #f2c879;
-}
-
-.note.blocked {
-  font-style: italic;
-}
-
-.badge.unverified {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid #d9a441;
-  border-radius: 4px;
-  color: #f2c879;
-  font-size: 0.9em;
-}
-
-.steps {
-  list-style: none;
-  padding: 0;
-}
-
-.steps li.done {
-  color: #d7c39a;
-}
-
-.steps li.current {
-  color: #e8e6e3;
+  border: 1px solid rgb(217 164 65 / 45%);
+  border-radius: 0.5rem;
+  background: rgb(217 164 65 / 6%);
+  font-size: 0.85rem;
+  color: #e6c789;
 }
 
 .spinner {
@@ -263,22 +234,6 @@ button:disabled {
   to {
     transform: rotate(360deg);
   }
-}
-
-.link-row {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-}
-
-.link-row input {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-}
-
-.link-row button {
-  flex: none;
 }
 
 .share {
@@ -349,7 +304,7 @@ dialog.share-panel::backdrop {
   padding: 0;
 }
 
-.moments li {
+.moments > li {
   border-top: 1px solid #3a3f48;
   padding-top: 0.8rem;
 }
@@ -718,10 +673,6 @@ h3 {
 }
 
 /* Splatoon 3 ink palette */
-.steps li.done {
-  color: var(--s3-yellow);
-}
-
 button,
 .admin-nav,
 .admin-status {
@@ -745,31 +696,531 @@ button,
   height: auto;
 }
 
+.hero-copy {
+  padding: 0.85rem 1.1rem 1rem;
+  text-align: center;
+}
+
 .hero h1 {
   margin: 0;
-  padding: 0.5rem 0.9rem 0.6rem;
-  text-align: center;
-  font-size: clamp(0.95rem, 2.6vw, 1.2rem);
+  font-size: clamp(1.15rem, 3.4vw, 1.6rem);
   line-height: 1.3;
   color: var(--s3-yellow);
   letter-spacing: -0.02em;
 }
 
-.unofficial {
-  margin: -0.3rem 0 1.1rem;
-  padding: 0.5rem 0.8rem;
-  border: 1px solid rgba(215, 255, 0, 0.35);
-  border-radius: 0.6rem;
-  background: rgba(215, 255, 0, 0.06);
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.45;
+.hero-lede {
+  max-width: 34rem;
+  margin: 0.45rem auto 0;
+  color: var(--s3-muted);
+  font-size: 0.98rem;
+}
+
+.sample-card,
+.upload-card {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1px solid var(--s3-border);
+  border-radius: 0.85rem;
+  background: var(--s3-surface);
+}
+
+.sample-card {
+  border-left: 4px solid var(--s3-cyan);
+}
+
+.sample-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sample-card h2,
+.upload-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.sample-tag {
+  flex: none;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--s3-border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--s3-muted);
+}
+
+.sample-card dl {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.7rem 0 0;
+}
+
+.sample-card dt {
+  margin-top: 0.45rem;
+  font-family: var(--s3-font-rounded);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--s3-cyan);
+}
+
+.sample-card dt:first-child {
+  margin-top: 0;
+}
+
+.sample-card dd {
+  margin: 0;
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+  margin: 0.6rem 0 1rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: flow;
+  font-size: 0.9rem;
+  color: var(--s3-muted);
+}
+
+.flow li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  counter-increment: flow;
+}
+
+.flow li::before {
+  content: counter(flow);
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: var(--s3-surface-raised);
+  border: 1px solid var(--s3-border);
+  font-family: var(--s3-font-rounded);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--s3-yellow);
+}
+
+.flow li + li::after {
+  content: "→";
+  position: absolute;
+  left: -1.15rem;
+  color: var(--s3-border);
+}
+
+.drop-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dropzone {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  padding: 1.6rem 1rem;
+  border: 2px dashed var(--s3-border);
+  border-radius: 0.85rem;
+  background: var(--s3-surface-raised);
   text-align: center;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.dropzone > * {
+  pointer-events: none;
+}
+
+.dropzone:hover,
+.dropzone.dragging {
+  border-color: var(--s3-yellow);
+  background: rgb(215 255 0 / 6%);
+}
+
+.drop-input:focus-visible + .dropzone {
+  outline: 2px solid var(--s3-cyan);
+  outline-offset: 2px;
+}
+
+.drop-title {
+  font-family: var(--s3-font-rounded);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--s3-yellow);
+}
+
+.drop-limits {
+  font-size: 0.9rem;
+}
+
+.drop-hint {
+  font-size: 0.85rem;
+  color: var(--s3-muted);
+}
+
+.file-chosen {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--s3-yellow);
+  border-radius: 0.85rem;
+  background: var(--s3-surface-raised);
+}
+
+.file-icon {
+  flex: none;
+  color: var(--s3-yellow);
+}
+
+.file-meta {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.file-size {
+  font-size: 0.85rem;
+  color: var(--s3-muted);
+}
+
+.field-help {
+  font-size: 0.85rem;
+  color: var(--s3-muted);
+}
+
+.upload-card form p {
+  margin: 0;
+}
+
+.upload-facts {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--s3-muted);
+}
+
+.unofficial {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--s3-muted);
+}
+
+.top nav .nav-quiet {
+  font-size: 0.8rem;
+  color: var(--s3-muted);
+  opacity: 0.7;
+}
+
+.review-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--s3-muted);
+}
+
+.review-link button.linkish {
+  font-family: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.5rem;
+  margin: 0.4rem 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.progress-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--s3-muted);
+}
+
+.progress-step + .progress-step::before {
+  content: "→";
+  margin-right: 0.15rem;
+  color: var(--s3-border);
+}
+
+.progress-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1px solid var(--s3-border);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.progress-step.done {
   color: var(--s3-text);
 }
 
+.progress-step.done .progress-mark {
+  border-color: var(--s3-yellow);
+  background: var(--s3-yellow);
+  color: var(--s3-void);
+}
+
+.progress-step.current {
+  color: var(--s3-yellow);
+  font-weight: 700;
+}
+
+.progress-step.current .progress-mark {
+  border-color: var(--s3-yellow);
+}
+
+.progress-step.current .progress-mark::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--s3-yellow);
+}
+
+.progress-step .spinner {
+  margin-left: 0.1rem;
+}
+
+.progress-done {
+  margin: 0 0 1.25rem;
+}
+
+.progress-done .progress {
+  margin: 0.6rem 0 0;
+}
+
+.progress-summary {
+  margin: 0;
+  font-family: var(--s3-font-rounded);
+  font-weight: 800;
+  color: var(--s3-success);
+}
+
+.progress-done details {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+}
+
+.match-summary {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--s3-border);
+  border-left: 4px solid var(--s3-yellow);
+  border-radius: 0.85rem;
+  background: var(--s3-surface);
+}
+
+.match-summary h2 {
+  margin: 0;
+}
+
+.match-summary > .note {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+}
+
+.match-summary h3 {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 1rem;
+}
+
+.tips {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.tips li::marker {
+  font-family: var(--s3-font-rounded);
+  font-weight: 800;
+  color: var(--s3-yellow);
+}
+
+.tip-text {
+  display: block;
+  font-weight: 600;
+}
+
+.tip-from {
+  font-size: 0.82rem;
+  color: var(--s3-cyan);
+}
+
+.key-moments h2,
+.other-moments h2 {
+  margin-top: 0;
+}
+
+.moments > li.moment-card {
+  margin-bottom: 0.4rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--s3-border);
+  border-radius: 0.85rem;
+  background: var(--s3-surface);
+}
+
+.moment-card h3 {
+  margin-top: 0;
+}
+
+.coaching h4,
+.evidence h4 {
+  margin: 0.8rem 0 0.25rem;
+  font-family: var(--s3-font-rounded);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.coaching h4 {
+  color: var(--s3-yellow);
+}
+
+.coaching > h4:first-child {
+  margin-top: 0.2rem;
+}
+
+.coaching-text {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.coaching-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.coaching h4.quiet-label,
+.other-moments h4.quiet-label {
+  margin: 0.8rem 0 0.2rem;
+  font-family: var(--s3-font-rounded);
+  font-size: 0.8rem;
+  color: var(--s3-muted);
+}
+
+.coach-note {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--s3-text);
+}
+
+.no-recommendation {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0.6rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--s3-border);
+  border-radius: 0.6rem;
+  background: var(--s3-surface);
+  font-size: 0.9rem;
+}
+
+.no-recommendation span {
+  color: var(--s3-muted);
+}
+
+.tips.single {
+  gap: 0.15rem;
+  padding-left: 0;
+}
+
+.review-link-note {
+  flex-basis: 100%;
+  font-size: 0.82rem;
+}
+
+.evidence {
+  margin-top: 0.9rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--s3-border);
+  font-size: 0.9rem;
+  color: var(--s3-muted);
+}
+
+.evidence h4 {
+  color: var(--s3-muted);
+}
+
+.evidence ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.analysis-details {
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+}
+
+.analysis-details[open] .episode-timeline,
+.analysis-details[open] .episode-row {
+  margin-bottom: 0.4rem;
+}
+
+.other-moments {
+  margin-top: 1.75rem;
+}
+
+.other-moments > .note {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.other-moments h3 {
+  font-size: 1rem;
+}
+
+.other-moments .evidence {
+  margin-top: 0.3rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--s3-yellow);
+  border: 1px solid var(--s3-yellow);
+}
+
 .site-footer {
-  max-width: 40rem;
+  max-width: var(--s3-sheet-width);
   margin: 0 auto;
   padding: 1rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -886,12 +1337,6 @@ dialog.share-panel {
   border-color: var(--s3-pink);
 }
 
-.notice.stale,
-.badge.unverified {
-  color: var(--s3-yellow);
-  border-color: var(--s3-yellow);
-}
-
 .admin-status.status-completed {
   color: var(--s3-success);
   border-color: var(--s3-success);
@@ -942,7 +1387,6 @@ dialog.share-panel {
   }
 
   .top nav,
-  .link-row,
   .admin-pagination,
   .share-actions {
     flex-wrap: wrap;
@@ -953,7 +1397,7 @@ dialog.share-panel {
   .lang-switch button,
   .admin-nav a,
   form > button,
-  .link-row button {
+  .review-link button {
     min-height: 2.75rem;
   }
 
@@ -972,6 +1416,26 @@ dialog.share-panel {
 
   .check {
     align-items: flex-start;
+  }
+
+  .flow,
+  .progress {
+    flex-direction: column;
+  }
+
+  .flow li + li::after,
+  .progress-step + .progress-step::before {
+    content: none;
+  }
+
+  .match-summary,
+  .moments > li.moment-card {
+    padding: 0.9rem 0.9rem 1rem;
+  }
+
+  .sample-card,
+  .upload-card {
+    padding: 0.9rem 0.9rem 1rem;
   }
 
   .admin-filters {

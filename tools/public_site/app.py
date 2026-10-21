@@ -479,6 +479,9 @@ def _public_config(request: Request, settings, accounts, payments) -> PublicConf
         dev_mode=settings.dev_mode,
         max_video_bytes=None if admin else settings.max_video_bytes,
         max_duration_seconds=int(settings.max_duration_seconds),
+        retention_days=(
+            settings.retention_days if user is None else settings.account_retention_days
+        ),
         feedback=accounts is not None,
         price_cents=None if price is None else price.price_cents,
         currency=None if price is None else price.currency,

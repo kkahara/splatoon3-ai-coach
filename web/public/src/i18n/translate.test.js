@@ -8,12 +8,16 @@ const load = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url), "
 const resources = { en: load("./en.json"), ja: load("./ja.json") };
 
 test("English and Japanese resolve", () => {
-  assert.equal(translate(resources, "en", "submit.submit"), "Submit Match");
-  assert.notEqual(translate(resources, "ja", "submit.submit"), "Submit Match");
+  assert.equal(translate(resources, "en", "submit.submit"), "Start analysis");
+  assert.equal(translate(resources, "ja", "submit.submit"), "分析を開始");
   assert.equal(translate(resources, "ja", "common.deaths"), resources.ja["common.deaths"]);
   assert.equal(
-    translate(resources, "en", "submit.choose_video", { mb: 500 }),
-    "Choose video (500MB max)",
+    translate(resources, "en", "submit.drop_limits", { mb: 500 }),
+    "MP4 / MOV • Up to 500 MB",
+  );
+  assert.equal(
+    translate(resources, "ja", "submit.retention", { days: 30 }),
+    "アップロードした動画とレビューは30日後に自動削除されます。",
   );
 });
 
@@ -31,25 +35,14 @@ test("unknown locales use English", () => {
   assert.equal(normalizeLocale("ja"), "ja");
 });
 
-test("the unverified-wording badge has English and Japanese text", () => {
-  const en = translate(resources, "en", "review.unverified_wording");
-  const ja = translate(resources, "ja", "review.unverified_wording");
-  assert.match(en, /^Contains unverified wording/);
-  assert.notEqual(ja, en);
-  assert.notEqual(ja, "review.unverified_wording");
-});
-
-test("current-rule revalidation notes say they are not the original check", () => {
-  for (const key of ["review.blocked_current", "review.current_unverified"]) {
-    const en = translate(resources, "en", key);
-    const ja = translate(resources, "ja", key);
-    assert.match(en, /^Re-checked with today's evidence rules \(not the rules used/);
-    assert.match(ja, /^現在の証拠ルールで再確認しました（作成時のルールではありません）/);
-  }
-});
-
 test("every public coaching state has English and Japanese text", () => {
-  for (const key of ["review.not_reviewed", "review.blocked", "review.no_recommendation"]) {
+  const keys = [
+    "review.other_intro",
+    "review.what_happened",
+    "review.no_recommendation",
+    "review.no_recommendation_detail",
+  ];
+  for (const key of keys) {
     const en = translate(resources, "en", key);
     const ja = translate(resources, "ja", key);
     assert.notEqual(en, key);
@@ -57,18 +50,35 @@ test("every public coaching state has English and Japanese text", () => {
   }
   assert.equal(
     translate(resources, "en", "review.no_recommendation"),
-    "No recommendation supported by the available evidence.",
+    "No coaching recommendation for this moment",
   );
+});
+
+test("the review page has no engineering-style validation warning", () => {
+  for (const locale of ["en", "ja"]) {
+    for (const value of Object.values(resources[locale])) {
+      assert.doesNotMatch(value, /unverified wording|Re-checked with today's evidence rules/i);
+      assert.doesNotMatch(value, /未検証の表現|現在の証拠ルールで再確認/);
+    }
+  }
 });
 
 test("the unofficial and trademark notices have English and Japanese text", () => {
   for (const key of ["legal.unofficial", "legal.trademark"]) {
     const en = translate(resources, "en", key);
     const ja = translate(resources, "ja", key);
-    assert.match(en, /not affiliated with, endorsed by, or sponsored by Nintendo/i);
-    assert.match(ja, /任天堂/);
+    assert.match(en, /not affiliated with/i);
+    assert.match(ja, /任天堂とは関係/);
     assert.notEqual(ja, en);
   }
+  assert.match(
+    translate(resources, "en", "legal.trademark"),
+    /not affiliated with, endorsed by, or sponsored by Nintendo/,
+  );
+});
+
+test("English and Japanese define the same keys", () => {
+  assert.deepEqual(Object.keys(resources.ja).sort(), Object.keys(resources.en).sort());
 });
 
 test("payment terms do not promise an administrator refund", () => {
@@ -83,7 +93,7 @@ test("payment terms do not promise an administrator refund", () => {
 test("the about page keeps the supplied Japanese story", () => {
   const japanese = translate(resources, "ja", "about.p1");
   const english = translate(resources, "en", "about.p1");
-  assert.match(japanese, /ガチパワーは1800ぐらいが最高/);
+  assert.match(japanese, /Xパワーは1800ぐらいが最高/);
   assert.notEqual(english, japanese);
 });
 

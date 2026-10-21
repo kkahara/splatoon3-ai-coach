@@ -11,8 +11,18 @@ import {
   shareOwnedReview,
 } from "../api.js";
 import { useLocale, useT } from "../i18n/LocaleContext.jsx";
-
-const STEPS = ["received", "checked", "queued", "analyzing", "coaching", "ready"];
+import {
+  coachAttempted,
+  evidenceLines,
+  formatDate,
+  formatRemaining,
+  momentAnchor,
+  nextGameTips,
+  reachedStep,
+  REVIEW_STEPS,
+  shownObservation,
+  splitMoments,
+} from "./reviewMoments.js";
 
 export function ReviewPage() {
   const { token, id } = useParams();
@@ -95,24 +105,21 @@ export function ReviewPage() {
     }
   }
 
-  const reached = view ? reachedStep(view) : 0;
-  const spinning = Boolean(view)
-    && !awaitingPayment(view)
-    && !["complete", "failed", "expired"].includes(view.status);
-
   return (
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
       <p className="brand">{t("brand")}</p>
       <h1>{t(headingKey(view))}</h1>
       {view?.notice_pending ? <p className="note">{t("review.notice_pending")}</p> : null}
-      <p>{t("review.keep_link")}</p>
-      <div className="link-row">
-        <input readOnly value={window.location.href} aria-label={t("review.private_link")} />
-        <button type="button" onClick={copyLink}>
-          {copied ? t("review.copied") : t("review.copy_link")}
-        </button>
-      </div>
+      {view?.status === "expired" ? null : (
+        <ReviewLink
+          view={view}
+          locale={locale}
+          copied={copied}
+          onCopy={copyLink}
+          shared={!owned}
+        />
+      )}
       {error ? <p className="error">{error}</p> : null}
       {payError ? <p className="error">{payError}</p> : null}
       {view?.error ? <p className="error">{view.error}</p> : null}
@@ -124,16 +131,7 @@ export function ReviewPage() {
       {confirming || (view?.payment_state === "paid" && view.status === "received") ? (
         <p className="note">{t("review.waiting_payment")}</p>
       ) : null}
-      <ol className="steps">
-        {STEPS.map((step, index) => (
-          <li key={step} className={index < reached ? "done" : spinning && index === reached ? "current" : ""}>
-            {t(`review.step.${step}`)}
-            {spinning && index === reached ? (
-              <span className="spinner" role="status" aria-label={t("review.in_progress")} />
-            ) : null}
-          </li>
-        ))}
-      </ol>
+      <ReviewProgress view={view} />
       {noDeaths(view) ? <p className="note">{t("review.no_deaths")}</p> : null}
       {view?.status === "complete" && !noDeaths(view) ? (
         <Result
@@ -226,7 +224,7 @@ function ShareReview({ moments, frameBase, matchSeconds, owned, id }) {
     <section className="share">
       <h2>{t("share.heading")}</h2>
       <p>{t("share.prompt")}</p>
-      <button type="button" onClick={openPanel}>
+      <button type="button" className="secondary" onClick={openPanel}>
         {t("share.button")}
       </button>
       {error ? <p className="error">{error}</p> : null}
@@ -347,21 +345,244 @@ function FeedbackForm({ owned, token, id }) {
   );
 }
 
-function Result({ frameBase, moments, stale, locale }) {
+function ReviewLink({ view, locale, copied, onCopy, shared }) {
+  const t = useT();
+  const date = view?.status === "complete" ? formatDate(view.expires_at, locale) : null;
+  return (
+    <p className="review-link">
+      <span>{date ? t("review.saved_until", { date }) : t("review.keep_link")}</span>
+      <button type="button" className="linkish" onClick={onCopy}>
+        {copied ? t("review.copied") : t("review.copy_link")}
+      </button>
+      {copied && shared ? (
+        <span className="review-link-note" role="status">
+          {t("share.anyone")}
+        </span>
+      ) : null}
+    </p>
+  );
+}
+
+function ReviewProgress({ view }) {
+  const t = useT();
+  const reached = view ? reachedStep(view) : 0;
+  const spinning = Boolean(view)
+    && !awaitingPayment(view)
+    && !["complete", "failed", "expired"].includes(view.status);
+  const steps = <ProgressSteps reached={reached} spinning={spinning} />;
+  if (view?.status !== "complete") {
+    return steps;
+  }
+  return (
+    <div className="progress-done">
+      <p className="progress-summary">
+        <span aria-hidden="true">✓ </span>
+        {t("review.progress.complete")}
+      </p>
+      <details>
+        <summary>{t("review.progress.details")}</summary>
+        {steps}
+      </details>
+    </div>
+  );
+}
+
+function ProgressSteps({ reached, spinning }) {
   const t = useT();
   return (
-    <section>
-      <h2>{t("review.key_moments")}</h2>
+    <ol className="progress">
+      {REVIEW_STEPS.map((step, index) => {
+        const state = index < reached ? "done" : spinning && index === reached ? "current" : "pending";
+        return (
+          <li
+            key={step}
+            className={`progress-step ${state}`}
+            aria-current={state === "current" ? "step" : undefined}
+          >
+            <span className="progress-mark" aria-hidden="true">
+              {state === "done" ? "✓" : ""}
+            </span>
+            <span>{t(`review.step.${step}`)}</span>
+            {state === "current" ? (
+              <span className="spinner" role="status" aria-label={t("review.in_progress")} />
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function Result({ frameBase, moments, stale, locale }) {
+  const t = useT();
+  const { key: coached, other } = splitMoments(moments);
+  return (
+    <>
       {stale ? <p className="notice stale">{t("review.stale_evidence")}</p> : null}
-      {moments.length === 0 ? <p>{t("review.no_moments")}</p> : null}
+      {moments.length === 0 ? (
+        <p>{t("review.no_moments")}</p>
+      ) : (
+        <>
+          <MatchSummary coached={coached} total={moments.length} locale={locale} />
+          {coached.length ? (
+            <section className="key-moments">
+              <h2>{t("review.key_moments")}</h2>
+              <ul className="moments">
+                {coached.map(({ moment, index }) => (
+                  <li key={index} id={momentAnchor(index)} className="moment-card">
+                    <KeyMoment moment={moment} frameBase={frameBase} index={index} locale={locale} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          <OtherMoments items={other} frameBase={frameBase} locale={locale} />
+        </>
+      )}
+    </>
+  );
+}
+
+function MatchSummary({ coached, total, locale }) {
+  const t = useT();
+  const tips = nextGameTips(coached);
+  return (
+    <section className="match-summary">
+      <h2>{t("review.match_heading")}</h2>
+      <p className="note">
+        {coached.length
+          ? t("review.match_counts", { count: coached.length, total })
+          : t("review.no_key_moments")}
+      </p>
+      {tips.length ? <h3>{t("review.tips_heading")}</h3> : null}
+      {tips.length === 1 ? (
+        <div className="tips single">
+          <Tip tip={tips[0]} locale={locale} />
+        </div>
+      ) : null}
+      {tips.length > 1 ? (
+        <ol className="tips">
+          {tips.map((tip) => (
+            <li key={tip.index}>
+              <Tip tip={tip} locale={locale} />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </section>
+  );
+}
+
+function Tip({ tip, locale }) {
+  const t = useT();
+  const anchor = momentAnchor(tip.index);
+  return (
+    <>
+      <span
+        className="tip-text"
+        lang={locale !== "en" && tip.moment.recommendations_locale === "en" ? "en" : undefined}
+      >
+        {tip.text}
+      </span>
+      <a
+        className="tip-from"
+        href={`#${anchor}`}
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth" });
+        }}
+      >
+        {t("review.tip_from", { moment: momentTitle(tip.moment, t) })}
+      </a>
+    </>
+  );
+}
+
+function KeyMoment({ moment, frameBase, index, locale }) {
+  const t = useT();
+  return (
+    <>
+      <h3>{momentTitle(moment, t)}</h3>
+      <Coaching moment={moment} locale={locale} />
+      {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
+      <Evidence moment={moment} label={t("review.match_evidence")} />
+      {moment.marks?.length ? (
+        <AnalysisDetails>
+          <EpisodeTimeline marks={moment.marks} gaps={moment.gaps || []} />
+        </AnalysisDetails>
+      ) : null}
+    </>
+  );
+}
+
+function Coaching({ moment, locale }) {
+  const t = useT();
+  const fellBack = locale !== "en" && moment.assessment_locale === "en";
+  const recsFellBack = locale !== "en" && moment.recommendations_locale === "en";
+  const recommendations = moment.recommendations;
+  return (
+    <div className="coaching">
+      <h4>{t("review.work_on")}</h4>
+      {recommendations.length === 1 ? (
+        <p className="coaching-text" lang={recsFellBack ? "en" : undefined}>
+          {recommendations[0]}
+        </p>
+      ) : (
+        <ul className="coaching-list" lang={recsFellBack ? "en" : undefined}>
+          {recommendations.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      )}
+      <h4 className="quiet-label">{t("review.coach_note")}</h4>
+      <p className="coach-note" lang={fellBack ? "en" : undefined}>
+        {moment.assessment}
+      </p>
+      {fellBack || recsFellBack ? <p className="note">{t("review.english_fallback")}</p> : null}
+    </div>
+  );
+}
+
+function Evidence({ moment, label }) {
+  const lines = evidenceLines(moment);
+  if (!lines.length) {
+    return null;
+  }
+  return (
+    <div className="evidence">
+      <h4>{label}</h4>
+      <ul>
+        {lines.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AnalysisDetails({ children }) {
+  const t = useT();
+  return (
+    <details className="analysis-details">
+      <summary>{t("review.analysis_details")}</summary>
+      {children}
+    </details>
+  );
+}
+
+function OtherMoments({ items, frameBase, locale }) {
+  const t = useT();
+  if (!items.length) {
+    return null;
+  }
+  return (
+    <section className="other-moments">
+      <h2>{t("review.other_moments")}</h2>
+      <p className="note">{t("review.other_intro")}</p>
       <ul className="moments">
-        {moments.map((moment, index) => (
-          <li key={`${moment.scenario_type}-${moment.video_time}-${index}`}>
-            {moment.heading ? (
-              <Episode moment={moment} frameBase={frameBase} index={index} locale={locale} />
-            ) : (
-              <PlainMoment moment={moment} frameBase={frameBase} index={index} locale={locale} />
-            )}
+        {items.map(({ moment, index }) => (
+          <li key={index} id={momentAnchor(index)}>
+            <OtherMoment moment={moment} frameBase={frameBase} index={index} locale={locale} />
           </li>
         ))}
       </ul>
@@ -369,87 +590,47 @@ function Result({ frameBase, moments, stale, locale }) {
   );
 }
 
-function Assessment({ moment, locale }) {
+function OtherMoment({ moment, frameBase, index, locale }) {
   const t = useT();
-  const state = moment.coaching_state;
-  if (state === "not_reviewed") {
-    return <p className="note">{t("review.not_reviewed")}</p>;
-  }
-  const original = moment.assessment_status;
-  if (state === "blocked") {
-    const key =
-      original === "blocked_unsupported_claim" ? "review.blocked" : "review.blocked_current";
-    return (
-      <p className="note blocked" role="note">
-        {t(key)}
-      </p>
-    );
-  }
-  if (!moment.assessment) {
-    return null;
-  }
-  const fellBack = locale !== "en" && moment.assessment_locale === "en";
-  const recsFellBack = locale !== "en" && moment.recommendations_locale === "en";
-  const unverified = original === "contains_unverified_wording";
-  const currentUnverified =
-    !unverified && moment.current_assessment_status === "contains_unverified_wording";
-  const recommendations = moment.recommendations || [];
+  const marks = moment.marks || [];
+  const observation = shownObservation(moment);
   return (
     <>
-      {unverified ? (
-        <p className="badge unverified" role="note">
-          {t("review.unverified_wording")}
-        </p>
-      ) : null}
-      {currentUnverified ? (
-        <p className="badge unverified" role="note">
-          {t("review.current_unverified")}
-        </p>
-      ) : null}
-      <p className="assessment" lang={fellBack ? "en" : undefined}>
-        {moment.assessment}
-      </p>
-      {recommendations.length ? (
+      <h3>{momentTitle(moment, t)}</h3>
+      {observation ? (
         <>
-          <h5>{t("review.recommendations")}</h5>
-          <ul className="recommendations" lang={recsFellBack ? "en" : undefined}>
-            {recommendations.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <h4 className="quiet-label">{t("review.what_happened")}</h4>
+          <p
+            className="coach-note"
+            lang={locale !== "en" && moment.assessment_locale === "en" ? "en" : undefined}
+          >
+            {observation}
+          </p>
         </>
       ) : null}
-      {state === "no_recommendation" ? (
-        <p className="note">{t("review.no_recommendation")}</p>
+      {coachAttempted(moment) ? (
+        <p className="no-recommendation">
+          <strong>{t("review.no_recommendation")}</strong>
+          <span>{t("review.no_recommendation_detail")}</span>
+        </p>
       ) : null}
-      {fellBack || recsFellBack ? <p className="note">{t("review.english_fallback")}</p> : null}
+      <Evidence moment={moment} label={t("review.match_evidence")} />
+      {moment.frame || marks.length ? (
+        <AnalysisDetails>
+          {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
+          {marks.length ? <EpisodeTimeline marks={marks} gaps={moment.gaps || []} /> : null}
+        </AnalysisDetails>
+      ) : null}
     </>
   );
 }
 
-function Episode({ moment, frameBase, index, locale }) {
-  const t = useT();
-  return (
-    <>
-      <h3>{moment.heading}</h3>
-      <EpisodeTimeline marks={moment.marks || []} gaps={moment.gaps || []} />
-      {moment.until_active_again ? <p className="until">{moment.until_active_again}</p> : null}
-      {moment.recovery_context ? <p>{moment.recovery_context}</p> : null}
-      {moment.context?.length ? (
-        <>
-          <h4>{t("review.before_death")}</h4>
-          <ul className="context">
-            {moment.context.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-      <h4>{t("review.coaching")}</h4>
-      <Assessment moment={moment} locale={locale} />
-      {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
-    </>
-  );
+function momentTitle(moment, t) {
+  if (moment.heading) {
+    return moment.heading;
+  }
+  const time = t("review.video_time", { time: formatMatch(moment.video_time) });
+  return `${scenarioTitle(moment.scenario_type, t)} — ${time}`;
 }
 
 function EpisodeTimeline({ marks, gaps }) {
@@ -503,7 +684,9 @@ function markLanes(times, span, spread) {
 }
 
 function EpisodeMark({ mark, spread, lane, left, align, gap, gapLeft }) {
+  const t = useT();
   const place = spread ? { left: `${left}%` } : undefined;
+  const remaining = mark.anchor ? formatRemaining(mark.seconds_remaining) : null;
   return (
     <>
       <div className={spread ? "episode-mark" : "episode-mark inline"} style={place}>
@@ -513,8 +696,12 @@ function EpisodeMark({ mark, spread, lane, left, align, gap, gapLeft }) {
           style={spread ? { transform: align } : undefined}
         >
           <span className="episode-name">{mark.title}</span>
-          {mark.clock ? <span className="episode-clock">{mark.clock}</span> : null}
-          {mark.offset_label ? <span className="episode-clock">{mark.offset_label}</span> : null}
+          {remaining ? (
+            <span className="episode-clock">{t("review.remaining", { time: remaining })}</span>
+          ) : null}
+          {!mark.anchor && mark.offset_label ? (
+            <span className="episode-clock">{mark.offset_label}</span>
+          ) : null}
         </span>
       </div>
       {gap ? (
@@ -557,22 +744,6 @@ function markAlign(index, count) {
   return "translateX(-50%)";
 }
 
-function PlainMoment({ moment, frameBase, index, locale }) {
-  const t = useT();
-  return (
-    <>
-      <h3>
-        {scenarioTitle(moment.scenario_type, t)} — {formatTime(moment.video_time)}
-      </h3>
-      {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
-      {moment.statements.map((statement) => (
-        <p key={statement}>{statement}</p>
-      ))}
-      <Assessment moment={moment} locale={locale} />
-    </>
-  );
-}
-
 function scenarioTitle(type, t) {
   if (!type) {
     return t("review.moment");
@@ -591,6 +762,7 @@ function MomentStill({ frameBase, index }) {
     <img
       className="still"
       alt=""
+      loading="lazy"
       src={`${frameBase}/moments/${index}/frame`}
       onError={() => setHidden(true)}
     />
@@ -635,29 +807,9 @@ function headingKey(view) {
   return "review.heading.processing";
 }
 
-function reachedStep(view) {
-  if (view.status === "complete") {
-    return STEPS.length;
-  }
-  if (view.status === "validating") {
-    return 1;
-  }
-  const index = STEPS.indexOf(view.step);
-  return index < 0 ? 0 : index;
-}
-
 function titleCase(value) {
   return String(value || "Moment")
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function formatTime(seconds) {
-  const safe = Number(seconds) || 0;
-  const whole = Math.floor(safe);
-  const minutes = Math.floor(whole / 60);
-  const secs = String(whole % 60).padStart(2, "0");
-  const tenths = Math.floor((safe - whole) * 10);
-  return `${minutes}:${secs}.${tenths}`;
 }

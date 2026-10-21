@@ -190,6 +190,19 @@ class _Roles:
         return None
 
 
+def test_config_reports_the_retention_this_session_gets(tmp_path: Path) -> None:
+    accounts = _Roles({"user-session": ("user-id", "player@example.com", "user")})
+    client = _client(
+        tmp_path,
+        retention_days=30,
+        account_retention_days=365,
+        accounts=accounts,
+    )
+    assert client.get("/api/config").json()["retention_days"] == 30
+    client.cookies.set(SESSION_COOKIE, "user-session")
+    assert client.get("/api/config").json()["retention_days"] == 365
+
+
 def test_admins_skip_the_size_and_hourly_caps(tmp_path: Path) -> None:
     accounts = _Roles(
         {

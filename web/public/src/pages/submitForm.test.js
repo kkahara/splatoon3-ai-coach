@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   centsFromDollars,
+  formatFileSize,
   formatReviewCode,
   formatUsd,
+  isAcceptedVideo,
   rememberedGameLanguage,
   rememberGameLanguage,
   reviewCodeComplete,
@@ -11,6 +13,7 @@ import {
   submitButtonLabel,
   submitError,
   submitReady,
+  videoProblem,
 } from "./submitForm.js";
 
 const file = { name: "match.mov", size: 10, type: "video/quicktime" };
@@ -142,6 +145,23 @@ test("the submit button waits for a language and a video", () => {
     submitReady({ file: null, language: "en", reviewCode: "ABCD-1234-EFGH-5678" }),
     false,
   );
+});
+
+test("a dropped file must be an MP4 or MOV within the cap", () => {
+  assert.equal(isAcceptedVideo({ name: "clip.MOV", type: "" }), true);
+  assert.equal(isAcceptedVideo({ name: "clip", type: "video/mp4" }), true);
+  assert.equal(isAcceptedVideo({ name: "clip.webm", type: "video/webm" }), false);
+  assert.equal(isAcceptedVideo(null), false);
+  assert.equal(videoProblem({ name: "a.png", type: "image/png", size: 1 }, 100), "submit.error_file");
+  assert.equal(videoProblem({ ...file, size: 200 }, 100), "submit.error_size");
+  assert.equal(videoProblem({ ...file, size: 200 }, null), null);
+  assert.equal(videoProblem(file, 100), null);
+});
+
+test("file sizes read in KB or MB", () => {
+  assert.equal(formatFileSize(10), "1 KB");
+  assert.equal(formatFileSize(512 * 1024), "512 KB");
+  assert.equal(formatFileSize(1.5 * 1024 * 1024), "1.5 MB");
 });
 
 test("a priced submit button shows the amount before upload", () => {

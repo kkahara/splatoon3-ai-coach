@@ -203,12 +203,15 @@ class PublicConfig(BaseModel):
     """Values the submit page needs. Secrets are not included.
 
     ``max_video_bytes`` is null for an administrator, who has no size cap.
+    ``retention_days`` is the expiry a new submission from this session gets:
+    the guest value, or the account value when logged in.
     """
 
     turnstile_site_key: str | None = None
     dev_mode: bool = False
     max_video_bytes: int | None = None
     max_duration_seconds: int
+    retention_days: int
     feedback: bool = False
     price_cents: int | None = None
     currency: str | None = None
