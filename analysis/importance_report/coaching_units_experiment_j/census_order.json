@@ -1,0 +1,3277 @@
+{
+ "experiment": "J",
+ "stop_point": "2A",
+ "design_sha256": {
+  "DESIGN.md": "fcb3296f6b0317344d3382e2b4a157fc87b6b885324908229279468bb3e98f04",
+  "design.json": "45c44a516af433bcee37eef0d4f948a3736a8de42fa2c9402c9c1fd4100c03f5"
+ },
+ "pool": {
+  "game_tape_heldout": "analysis/game_tape_probe/heldout/heldout.json",
+  "live_playerview": "~/Movies/en-live-playerview-*"
+ },
+ "order_rule": "timestamp from file name (YYYY-MM-DD HH-MM-SS), ties by full source path",
+ "rules_applied": [
+  "file present with the listed size",
+  "parseable timestamp",
+  "not used in Experiment H, Experiment I, coaching gap study, N2 citation experiment or citation-contract fixtures (timestamps referenced in their folders / tests/*citation*.py)",
+  "no review / preview / timeline in the file name",
+  "known UI language from the file-name prefix (en / ja / jp)",
+  "public-site submissions: none in the pool (local recordings only)"
+ ],
+ "rules_deferred_to_2b": [
+  "resolves to a player-view source after analyze (2B)",
+  "per-death sufficient map observability (2B)"
+ ],
+ "frozen_prior_use": {
+  "experiment_h": [
+   "2026-10-11 18-18-00",
+   "2026-10-11 18-25-16",
+   "2026-10-11 20-33-31",
+   "2026-10-11 22-20-42",
+   "2026-10-11 22-31-53",
+   "2026-10-11 22-37-47",
+   "2026-10-11 22-57-30",
+   "2026-10-12 17-42-59",
+   "2026-10-12 19-47-46",
+   "2026-10-12 19-59-26",
+   "2026-10-12 20-17-32",
+   "2026-10-12 20-25-22"
+  ],
+  "experiment_i": [
+   "2026-10-11 18-18-00",
+   "2026-10-11 18-25-16",
+   "2026-10-11 20-33-31",
+   "2026-10-11 22-20-42",
+   "2026-10-11 22-31-53",
+   "2026-10-11 22-37-47",
+   "2026-10-11 22-57-30",
+   "2026-10-12 20-17-32"
+  ],
+  "coaching_gap_study": [
+   "2026-10-11 18-18-00",
+   "2026-10-11 18-25-16",
+   "2026-10-11 20-33-31",
+   "2026-10-11 22-20-42",
+   "2026-10-11 22-31-53",
+   "2026-10-11 22-37-47",
+   "2026-10-11 22-57-30",
+   "2026-10-12 20-17-32"
+  ],
+  "n2_citation_experiment": [
+   "2026-10-10 23-43-31",
+   "2026-10-10 23-56-41",
+   "2026-10-11 18-25-16",
+   "2026-10-11 20-33-31",
+   "2026-10-11 22-20-42",
+   "2026-10-11 22-31-53",
+   "2026-10-11 22-37-47",
+   "2026-10-11 22-57-30",
+   "2026-10-12 19-47-46",
+   "2026-10-12 20-17-32"
+  ],
+  "citation_contract_fixtures": [
+   "2026-10-10 23-43-31",
+   "2026-10-11 22-37-47",
+   "2026-10-11 22-57-30"
+  ]
+ },
+ "counts": {
+  "pool": 199,
+  "ordered": 123,
+  "excluded": 76,
+  "exclusion_reasons": {
+   "unknown_ui_language": 64,
+   "used_in:citation_contract_fixtures": 2,
+   "used_in:coaching_gap_study": 8,
+   "used_in:experiment_h": 12,
+   "used_in:experiment_i": 8,
+   "used_in:n2_citation_experiment": 8
+  },
+  "ordered_by_source": {
+   "game_tape_heldout": 123
+  },
+  "ordered_by_language": {
+   "en": 74,
+   "ja": 49
+  },
+  "ordered_with_other_prior_references": 88
+ },
+ "recordings": [
+  {
+   "order": 1,
+   "video": "en-2026-06-30 21-17-03.mov",
+   "path": "~/Movies/en-2026-06-30 21-17-03.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-06-30 21-17-03",
+   "bytes": 473688547,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "ba01aa10fddb6d1111655f15c57cad44f34a875bb6b1da6c06b20177dce9b5e9"
+  },
+  {
+   "order": 2,
+   "video": "en-2026-07-04 15-27-20.mp4",
+   "path": "~/Movies/en-2026-07-04 15-27-20.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-04 15-27-20",
+   "bytes": 452450107,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "1f0a140a4bebcf55c2598524a589143b9cbcb64123e1276123a78042fc40c2eb"
+  },
+  {
+   "order": 3,
+   "video": "en-2026-07-04 15-34-49.mp4",
+   "path": "~/Movies/en-2026-07-04 15-34-49.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-04 15-34-49",
+   "bytes": 569891836,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "1f36359a31855b6d61d7b78aff6dd1d7139c6bdf0aaab420c9a57ff72eaab33d"
+  },
+  {
+   "order": 4,
+   "video": "en-2026-07-04 15-43-13.mp4",
+   "path": "~/Movies/en-2026-07-04 15-43-13.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-04 15-43-13",
+   "bytes": 258079605,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "62b444ce951d069e1c23c825d46e3dda9aac8d532b235b732602ce6db1071144"
+  },
+  {
+   "order": 5,
+   "video": "en-2026-07-04 16-00-03.mp4",
+   "path": "~/Movies/en-2026-07-04 16-00-03.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-04 16-00-03",
+   "bytes": 378813280,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "500b74b7e42b8271216480229aaa09476bc4381e630e06c39d6fee698e5c4d34"
+  },
+  {
+   "order": 6,
+   "video": "en-2026-07-04 17-42-08.mp4",
+   "path": "~/Movies/en-2026-07-04 17-42-08.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-04 17-42-08",
+   "bytes": 443943584,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "8ae60ed265ffd91757984930983ad1641182ed0f72e76452209268efc182bfd2"
+  },
+  {
+   "order": 7,
+   "video": "en-2026-07-05 14-40-32.mp4",
+   "path": "~/Movies/en-2026-07-05 14-40-32.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 14-40-32",
+   "bytes": 493849007,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "f3d5f41ac73b86891e35329d2c4b95c1a20027c3180327887b7e048f7fc9e8b0"
+  },
+  {
+   "order": 8,
+   "video": "en-2026-07-05 16-02-45.mp4",
+   "path": "~/Movies/en-2026-07-05 16-02-45.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 16-02-45",
+   "bytes": 532829193,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "b4a60e430fc7d512f0676c90138ef17c058cc5dd21a26506cc1dc414f8c1fdeb"
+  },
+  {
+   "order": 9,
+   "video": "en-2026-07-05 16-30-49.mp4",
+   "path": "~/Movies/en-2026-07-05 16-30-49.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 16-30-49",
+   "bytes": 459024358,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "44f0baf52816f054a7c4f4d9d95c7b4e1b838bcd67611a32b93d6e92618a5273"
+  },
+  {
+   "order": 10,
+   "video": "en-2026-07-05 16-37-14.mp4",
+   "path": "~/Movies/en-2026-07-05 16-37-14.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 16-37-14",
+   "bytes": 785609189,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "76a6a9985049d956beeb7e0292475e9cf4fea80fd88c116d572889c12e5dea1e"
+  },
+  {
+   "order": 11,
+   "video": "en-2026-07-05 17-13-47.mp4",
+   "path": "~/Movies/en-2026-07-05 17-13-47.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 17-13-47",
+   "bytes": 399833275,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "b63d32326ddc7f95f22e061d761a503566da482a1db22136a5b9e58cd135fe42"
+  },
+  {
+   "order": 12,
+   "video": "en-2026-07-05 17-27-06.mp4",
+   "path": "~/Movies/en-2026-07-05 17-27-06.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 17-27-06",
+   "bytes": 174617149,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "40274b4eb0f52baedf86f38f4b7cfda8ec923751c5394dc46d61e9448b15af66"
+  },
+  {
+   "order": 13,
+   "video": "en-2026-07-05 17-34-46.mp4",
+   "path": "~/Movies/en-2026-07-05 17-34-46.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 17-34-46",
+   "bytes": 530430130,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "954c84671ceb9794be90495ddfb889557377de4cf4d77a459e17e0dfcfdbf3e7"
+  },
+  {
+   "order": 14,
+   "video": "en-2026-07-05 17-46-52.mp4",
+   "path": "~/Movies/en-2026-07-05 17-46-52.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 17-46-52",
+   "bytes": 745789358,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "6d5ea38250e5478858c93a5804fb9af30ff94dfd30b6eb2ac7347f9d3f97ec9f"
+  },
+  {
+   "order": 15,
+   "video": "en-2026-07-05 18-02-24.mov",
+   "path": "~/Movies/en-2026-07-05 18-02-24.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 18-02-24",
+   "bytes": 356875748,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a58cd1eb6e95a9de461e34a42eb913b9062841c76fb1f07865f3bce0702446a0"
+  },
+  {
+   "order": 16,
+   "video": "en-2026-07-05 20-41-37.mov",
+   "path": "~/Movies/en-2026-07-05 20-41-37.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 20-41-37",
+   "bytes": 601500862,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "778d299f9baad9862046e2f667f55b16b1798a0e72dc51d66ceb44408f18c9e8"
+  },
+  {
+   "order": 17,
+   "video": "en-2026-07-05 21-30-18.mov",
+   "path": "~/Movies/en-2026-07-05 21-30-18.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 21-30-18",
+   "bytes": 319061864,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "2d6ac7a4791eb537182bc3171424c0aaf5f3fbc14f38bb5c249199c9abbd285e"
+  },
+  {
+   "order": 18,
+   "video": "en-2026-07-05 23-32-19.mov",
+   "path": "~/Movies/en-2026-07-05 23-32-19.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-05 23-32-19",
+   "bytes": 565794778,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "447a1d4b6bd521423d5aed3fba628f2cca24db4f92d4f2ae51c15503e30fc79f"
+  },
+  {
+   "order": 19,
+   "video": "en-2026-07-06 21-45-19.mov",
+   "path": "~/Movies/en-2026-07-06 21-45-19.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-06 21-45-19",
+   "bytes": 283084488,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a5789030289b3d1457ec68c154b2c9919645b4161c33fc10a57c400263433850"
+  },
+  {
+   "order": 20,
+   "video": "en-2026-07-06 22-16-05.mov",
+   "path": "~/Movies/en-2026-07-06 22-16-05.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-06 22-16-05",
+   "bytes": 688153570,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "fc0468955d471e2b6140e6c92b19d09c31abffc7562f8078f29e3a1858f06258"
+  },
+  {
+   "order": 21,
+   "video": "en-2026-07-07 22-47-30.mov",
+   "path": "~/Movies/en-2026-07-07 22-47-30.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-07 22-47-30",
+   "bytes": 193479293,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "2a9e187580316b42a1258dfe209b83deea39ef7f0ed0107defbc4f4ae5db8298"
+  },
+  {
+   "order": 22,
+   "video": "en-2026-07-07 23-23-43.mov",
+   "path": "~/Movies/en-2026-07-07 23-23-43.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-07-07 23-23-43",
+   "bytes": 565240064,
+   "other_prior_references": [],
+   "video_identity": "d54395c48cbf8c65bf09dc6b5d8224faa44f555e89188fa78dd901e21ecc497f"
+  },
+  {
+   "order": 23,
+   "video": "en-2026-09-04 21-39-09.mov",
+   "path": "~/Movies/en-2026-09-04 21-39-09.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-04 21-39-09",
+   "bytes": 441559243,
+   "other_prior_references": [
+    "1hz_experiment",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "9d77090ae6ac1c6c867bc2bb375e358333a6a11f06d0d08bbe15d4235926f749"
+  },
+  {
+   "order": 24,
+   "video": "en-2026-09-04 21-51-26.mov",
+   "path": "~/Movies/en-2026-09-04 21-51-26.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-04 21-51-26",
+   "bytes": 627138714,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "8d883be50da552174f8b517e0da91e1fdb326979e180ee622c814adcaaaef13d"
+  },
+  {
+   "order": 25,
+   "video": "en-2026-09-04 23-47-07.mov",
+   "path": "~/Movies/en-2026-09-04 23-47-07.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-04 23-47-07",
+   "bytes": 575119312,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "bb31252bdf0491613eec9e81ad615dc430b10e82d6e6b3a6add41b1f380a34a8"
+  },
+  {
+   "order": 26,
+   "video": "ja-2026-09-05 09-20-18.mov",
+   "path": "~/Movies/ja-2026-09-05 09-20-18.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-05 09-20-18",
+   "bytes": 628758981,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "aad05e42eb0972916434c8324a7ae3314811d7b0c4a08987f6b0a881be41908a"
+  },
+  {
+   "order": 27,
+   "video": "ja-2026-09-05 23-01-33.mov",
+   "path": "~/Movies/ja-2026-09-05 23-01-33.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-05 23-01-33",
+   "bytes": 537681285,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a59beef3bc1a36d1f8c97621eab1068d417d24bb5061577721adcb2422a32b85"
+  },
+  {
+   "order": 28,
+   "video": "ja-2026-09-05 23-15-32.mov",
+   "path": "~/Movies/ja-2026-09-05 23-15-32.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-05 23-15-32",
+   "bytes": 494832699,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a0be86d71b85661a2e9793a223fd32d0d039c2691aaad6257e9ab774e367a24b"
+  },
+  {
+   "order": 29,
+   "video": "ja-2026-09-06 14-54-11.mov",
+   "path": "~/Movies/ja-2026-09-06 14-54-11.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-06 14-54-11",
+   "bytes": 457500895,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "78c7a44d65a974a00f415c04ded06a09bf281c6c5ee12b761d3e111ba249a5df"
+  },
+  {
+   "order": 30,
+   "video": "ja-2026-09-06 15-40-39.mov",
+   "path": "~/Movies/ja-2026-09-06 15-40-39.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-06 15-40-39",
+   "bytes": 468217153,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "9f97dcd774106ea9fe029bd7c06c74f160bceb0e145f583d4c8721af92754315"
+  },
+  {
+   "order": 31,
+   "video": "ja-2026-09-06 16-03-41.mov",
+   "path": "~/Movies/ja-2026-09-06 16-03-41.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-06 16-03-41",
+   "bytes": 708095738,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "e396698a85ea590cbcca786ec8d54562a99f5fa04f2f2c172df92540c31803b7"
+  },
+  {
+   "order": 32,
+   "video": "ja-2026-09-06 22-35-09.mov",
+   "path": "~/Movies/ja-2026-09-06 22-35-09.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-06 22-35-09",
+   "bytes": 626289260,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "e2a289f0a66c1d9ced5f69cb57c2a27e0c444ec2d6f7f861cde3e107b2a4ea11"
+  },
+  {
+   "order": 33,
+   "video": "ja-2026-09-07 09-45-26.mov",
+   "path": "~/Movies/ja-2026-09-07 09-45-26.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-07 09-45-26",
+   "bytes": 461939821,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "df3a5f6bc79de10347586c4a46c828087f27429e21d6dcc1e86d4a66f12b8e22"
+  },
+  {
+   "order": 34,
+   "video": "ja-2026-09-07 10-35-50.mov",
+   "path": "~/Movies/ja-2026-09-07 10-35-50.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-07 10-35-50",
+   "bytes": 511880846,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "5f2cb5aecb08b464221e61335c5a94b8d31807f0dd71a76602e7f5e3dd103530"
+  },
+  {
+   "order": 35,
+   "video": "ja_mahi_mahi_resort_2026-09-07 14-02-14.mov",
+   "path": "~/Movies/ja_mahi_mahi_resort_2026-09-07 14-02-14.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-07 14-02-14",
+   "bytes": 771787925,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "0622e2b17afc30866a0eba2bf1ddf5f30952f77967eceae28773fd51c0a53fd0"
+  },
+  {
+   "order": 36,
+   "video": "jp-2026-09-09 21-10-07.mov",
+   "path": "~/Movies/jp-2026-09-09 21-10-07.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-09 21-10-07",
+   "bytes": 567692164,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "028b74f434c9a8d3b986471c3b2f2a0ff1c5fe3c793f17afb773e4c50efa11a6"
+  },
+  {
+   "order": 37,
+   "video": "ja-2026-09-10 13-51-45.mov",
+   "path": "~/Movies/ja-2026-09-10 13-51-45.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-10 13-51-45",
+   "bytes": 185001680,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "32816ddd97305afd1389ac450aaad858cddcc59a6c586aac9e9fad4e8dc275b0"
+  },
+  {
+   "order": 38,
+   "video": "en-2026-09-12 12-48-02.mov",
+   "path": "~/Movies/en-2026-09-12 12-48-02.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-12 12-48-02",
+   "bytes": 193930167,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "0375eb20e663744f179f2859202f38becd3e42186fcf2413d4ce31e72d8563ea"
+  },
+  {
+   "order": 39,
+   "video": "en-2026-09-14 20-39-31.mov",
+   "path": "~/Movies/en-2026-09-14 20-39-31.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-14 20-39-31",
+   "bytes": 326389670,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "e44ba4509a224af8b78c9d2fd0e6b4cd679e67b7618e7b81e8cc020743d9aece"
+  },
+  {
+   "order": 40,
+   "video": "en-barnicle_and_dime_2026-09-14 21-13-09.mov",
+   "path": "~/Movies/en-barnicle_and_dime_2026-09-14 21-13-09.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-14 21-13-09",
+   "bytes": 189867353,
+   "other_prior_references": [],
+   "video_identity": "0d886d21659cd906f7f2f6b646f9ba54adbccd01dd7209b3cbe3a07ca63da4ff"
+  },
+  {
+   "order": 41,
+   "video": "en_undertow_spillway_2026-09-14 21-51-23.mov",
+   "path": "~/Movies/en_undertow_spillway_2026-09-14 21-51-23.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-14 21-51-23",
+   "bytes": 374452491,
+   "other_prior_references": [],
+   "video_identity": "d8148652a5b3704fbe2ebb4597a2692229108cc1e4c6fadcac44baa2ee4380cd"
+  },
+  {
+   "order": 42,
+   "video": "en-hagglefish_market_2026-09-15 20-18-11.mov",
+   "path": "~/Movies/en-hagglefish_market_2026-09-15 20-18-11.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-15 20-18-11",
+   "bytes": 423419761,
+   "other_prior_references": [],
+   "video_identity": "5e24ef9232a273519358f7970665abd781d7fff5c8200b5ad64bfc14d56edcb5"
+  },
+  {
+   "order": 43,
+   "video": "ja_inkblot_academy_ink_storm_2026-09-15 22-00-54.mov",
+   "path": "~/Movies/ja_inkblot_academy_ink_storm_2026-09-15 22-00-54.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-15 22-00-54",
+   "bytes": 608889470,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "844283676966de767e7cfcd1efe5ed8f024ea245779d7ce0b723a3896cb13e69"
+  },
+  {
+   "order": 44,
+   "video": "ja_eeltail_alley_zip_caster_2026-09-16 19-06-13.mov",
+   "path": "~/Movies/ja_eeltail_alley_zip_caster_2026-09-16 19-06-13.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 19-06-13",
+   "bytes": 539223632,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "83812583a9a9503d027ec97e8005ca61f9c24e64bee22a87679f604fbfb459fe"
+  },
+  {
+   "order": 45,
+   "video": "ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39.mov",
+   "path": "~/Movies/ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 19-12-39",
+   "bytes": 648014585,
+   "other_prior_references": [
+    "1hz_experiment",
+    "assessment_layout_fix",
+    "coaching_units_deferred",
+    "coaching_units_experiment_d",
+    "coaching_units_experiment_e",
+    "coaching_units_experiment_f",
+    "coaching_units_experiment_g",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "episodes.md",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "c53faf5db727c29e511a61491aeb948fb13e21807a7db3fd7ced86b240f153d8"
+  },
+  {
+   "order": 46,
+   "video": "ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16.mov",
+   "path": "~/Movies/ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 19-19-16",
+   "bytes": 681132480,
+   "other_prior_references": [
+    "1hz_experiment",
+    "assessment_layout_fix",
+    "coaching_units_deferred",
+    "coaching_units_experiment_d",
+    "coaching_units_experiment_e",
+    "coaching_units_experiment_f",
+    "coaching_units_experiment_g",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "d48928a0ded4c7ea4da011d2186fdfab1590c5f63b4b52062e79d9305a65bbab"
+  },
+  {
+   "order": 47,
+   "video": "ja_lumira_hub_inkjet_2026-09-16 19-33-24.mov",
+   "path": "~/Movies/ja_lumira_hub_inkjet_2026-09-16 19-33-24.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 19-33-24",
+   "bytes": 575014112,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "52696e89682c9966935f02e26c38ec9d3220bddcd76397a98569a5627d3707bd"
+  },
+  {
+   "order": 48,
+   "video": "ja_brinewater_springs_crab_tank_2026-09-16 19-49-36.mp4",
+   "path": "~/Movies/ja_brinewater_springs_crab_tank_2026-09-16 19-49-36.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 19-49-36",
+   "bytes": 405971208,
+   "other_prior_references": [
+    "1hz_experiment",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "a2e9dcede1b4fa44d0879c8da4cf07550c7ec631fbbbb917855a6f74241d8543"
+  },
+  {
+   "order": 49,
+   "video": "ja_mahi_mahi_resort_ultra_stamp_2026-09-16 19-49-36.mp4",
+   "path": "~/Movies/ja_mahi_mahi_resort_ultra_stamp_2026-09-16 19-49-36.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 19-49-36",
+   "bytes": 355307400,
+   "other_prior_references": [
+    "1hz_experiment",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "f004e35156d9ee9ab460241c352b619d310b644d6b1face3abb35410815637d7"
+  },
+  {
+   "order": 50,
+   "video": "ja_mahi_mahi_reef_slider_2026-09-16 20-00-03.mov",
+   "path": "~/Movies/ja_mahi_mahi_reef_slider_2026-09-16 20-00-03.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-00-03",
+   "bytes": 883228520,
+   "other_prior_references": [
+    "1hz_experiment",
+    "cases.md",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "64f91749ede273d6ad7ce022f92a3b53e64fb606418a38e0b41a6615b35d9176"
+  },
+  {
+   "order": 51,
+   "video": "ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30.mov",
+   "path": "~/Movies/ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-06-30",
+   "bytes": 620849142,
+   "other_prior_references": [
+    "1hz_experiment",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "1d4c3bc45d5269f51a9e62b57f8126bf6c4864807e2127273b32566168bcca51"
+  },
+  {
+   "order": 52,
+   "video": "ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03.mov",
+   "path": "~/Movies/ja_brinewater_springs_sumper_chump_2026-09-16 20-13-03.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-13-03",
+   "bytes": 425627788,
+   "other_prior_references": [
+    "1hz_experiment",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "7bd26d247bc34cad5a893096882d7673412f1fadc01b4776225c42309fa1387c"
+  },
+  {
+   "order": 53,
+   "video": "ja_mahi_mahi_kraken_2026-09-16 20-18-04.mov",
+   "path": "~/Movies/ja_mahi_mahi_kraken_2026-09-16 20-18-04.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-18-04",
+   "bytes": 440416652,
+   "other_prior_references": [
+    "1hz_experiment",
+    "cases.md",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "3e03f298e3de7d74568c456a13d4188f50254aef77609700bf5cafae757d2534"
+  },
+  {
+   "order": 54,
+   "video": "ja_brinewater_springs_triple_splashdown_2026-09-16 20-27-13.mov",
+   "path": "~/Movies/ja_brinewater_springs_triple_splashdown_2026-09-16 20-27-13.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-27-13",
+   "bytes": 280272062,
+   "other_prior_references": [
+    "1hz_experiment",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "v2_1hz"
+   ],
+   "video_identity": "d25fd31d6f3ee3a73f4a5060aa585db7ae0c7072940b7680a8446c63f5699088"
+  },
+  {
+   "order": 55,
+   "video": "ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24.mov",
+   "path": "~/Movies/ja_mahi_mahi_resort_splattercolor_screen_2026-09-16 20-31-24.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-31-24",
+   "bytes": 805335945,
+   "other_prior_references": [
+    "1hz_experiment",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "5338767e2640a12921aff75ffd73114ce5cb72f368556b5e6807b327a2491004"
+  },
+  {
+   "order": 56,
+   "video": "ja_inkblot_art_academy_big_bubbler_2026-09-16 20-53-49.mov",
+   "path": "~/Movies/ja_inkblot_art_academy_big_bubbler_2026-09-16 20-53-49.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-16 20-53-49",
+   "bytes": 334533632,
+   "other_prior_references": [
+    "1hz_experiment",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "v2_1hz"
+   ],
+   "video_identity": "885ed8c7be73dbf987f738a282fb258bcdefe5b3464e829e3ea9d8219b86615f"
+  },
+  {
+   "order": 57,
+   "video": "ja-2026-09-18 19-03-54.mov",
+   "path": "~/Movies/ja-2026-09-18 19-03-54.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-18 19-03-54",
+   "bytes": 680040442,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "111f4e183433a79ce28dac6f9325b6813d5fe801bffe505d6ed5aca3ed2e49d0"
+  },
+  {
+   "order": 58,
+   "video": "ja-2026-09-18 19-29-29.mov",
+   "path": "~/Movies/ja-2026-09-18 19-29-29.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-18 19-29-29",
+   "bytes": 335066471,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "4652c5894b3b50a4a5d6563bce4b970b1d462201b25fbfb71509f4526e54311b"
+  },
+  {
+   "order": 59,
+   "video": "ja-2026-09-19 11-56-23.mov",
+   "path": "~/Movies/ja-2026-09-19 11-56-23.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-19 11-56-23",
+   "bytes": 516249296,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "fae987494e46e63d939b485d61bad80d0e0eadc0b848d212ee460efae75f77f5"
+  },
+  {
+   "order": 60,
+   "video": "ja-2026-09-19 12-30-46.mov",
+   "path": "~/Movies/ja-2026-09-19 12-30-46.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-19 12-30-46",
+   "bytes": 417010425,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "8a087502770235845718d5568898e3d6d7b1d6b6dc162b7c9024bb35fd3414b5"
+  },
+  {
+   "order": 61,
+   "video": "ja-2026-09-19 12-38-47.mov",
+   "path": "~/Movies/ja-2026-09-19 12-38-47.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-19 12-38-47",
+   "bytes": 547057183,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "6157fe97a939d0aab0e2eedac0bec65a5eae580f6fba11eadb2272745afb2951"
+  },
+  {
+   "order": 62,
+   "video": "ja-2026-09-20 14-39-55.mov",
+   "path": "~/Movies/ja-2026-09-20 14-39-55.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 14-39-55",
+   "bytes": 759904736,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "789685fcf3dfdcf95970779aa6680d9343a0135b444aa4a60bf0a9fb2daab60c"
+  },
+  {
+   "order": 63,
+   "video": "ja-2026-09-20 20-02-59.mov",
+   "path": "~/Movies/ja-2026-09-20 20-02-59.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 20-02-59",
+   "bytes": 698207817,
+   "other_prior_references": [],
+   "video_identity": "808589504d0bcdd5822e6f809a5a8b29ac5960b3d382edaccd897faf98fe767a"
+  },
+  {
+   "order": 64,
+   "video": "ja-2026-09-20 20-17-05.mov",
+   "path": "~/Movies/ja-2026-09-20 20-17-05.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 20-17-05",
+   "bytes": 636939028,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "36151eafb23575864ba0585e1fe208d93c499f2f1ba62831854c527ec170ce0c"
+  },
+  {
+   "order": 65,
+   "video": "ja-2026-09-20 20-35-50.mov",
+   "path": "~/Movies/ja-2026-09-20 20-35-50.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 20-35-50",
+   "bytes": 603234082,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "50fa6040753fdef4d80bb00021071a7f6c129879a7cbe2490393f4183386ab2d"
+  },
+  {
+   "order": 66,
+   "video": "ja-2026-09-20 20-43-42.mov",
+   "path": "~/Movies/ja-2026-09-20 20-43-42.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 20-43-42",
+   "bytes": 347501064,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "ed1d2c5f5824b4d1922c433c8ef4d6da7f1f9bf46e501c0b4576b947c0698df0"
+  },
+  {
+   "order": 67,
+   "video": "ja-2026-09-20 20-48-13.mov",
+   "path": "~/Movies/ja-2026-09-20 20-48-13.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 20-48-13",
+   "bytes": 360856693,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "b60f2cefec5f866ab141f9fe81416424b17820c4baadca61d9ac8178a8f93370"
+  },
+  {
+   "order": 68,
+   "video": "ja-2026-09-20 21-07-02.mov",
+   "path": "~/Movies/ja-2026-09-20 21-07-02.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 21-07-02",
+   "bytes": 360785918,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "53e94059d875ced04ba8f3a106e91cc7fccfdfd13e40466d7c8a61acce79ae6b"
+  },
+  {
+   "order": 69,
+   "video": "ja-2026-09-20 21-12-28.mov",
+   "path": "~/Movies/ja-2026-09-20 21-12-28.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 21-12-28",
+   "bytes": 346749556,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "cc000321f5e8825d761d4c5b00e2f2996f34db9c7a9ac2980d1c27f978d67579"
+  },
+  {
+   "order": 70,
+   "video": "ja-2026-09-20 21-17-29.mov",
+   "path": "~/Movies/ja-2026-09-20 21-17-29.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 21-17-29",
+   "bytes": 325934311,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "e46aaef308d071c2c5f6bad2081f9cb0d3bb7de738bf0972b64828da296891d2"
+  },
+  {
+   "order": 71,
+   "video": "ja-2026-09-20 21-21-48.mov",
+   "path": "~/Movies/ja-2026-09-20 21-21-48.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 21-21-48",
+   "bytes": 319704121,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "f7e7304a0cbf70639e5d4199a7d454e84d2e6e396cdf223627d191cf7b04253b"
+  },
+  {
+   "order": 72,
+   "video": "ja-2026-09-20 21-26-50.mov",
+   "path": "~/Movies/ja-2026-09-20 21-26-50.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 21-26-50",
+   "bytes": 333389678,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a4b6338a648a236a3b3cfd7911452e40f911c7034b14519a1d86ea6ca249b6f1"
+  },
+  {
+   "order": 73,
+   "video": "ja-2026-09-20 21-46-11.mov",
+   "path": "~/Movies/ja-2026-09-20 21-46-11.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 21-46-11",
+   "bytes": 526083905,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "68a5f78cbeaea232942752985732069e9f6f6e10429f4ff511120fcb1fa3dc43"
+  },
+  {
+   "order": 74,
+   "video": "en-2026-09-20 22-35-00.mov",
+   "path": "~/Movies/en-2026-09-20 22-35-00.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 22-35-00",
+   "bytes": 242182240,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "34586a63cc9cecf90ab7e550596c1ca048085bf167ee7509b8b0dd18db5f22d0"
+  },
+  {
+   "order": 75,
+   "video": "en-2026-09-20 22-38-46.mov",
+   "path": "~/Movies/en-2026-09-20 22-38-46.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 22-38-46",
+   "bytes": 351092175,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "efd51278238a2cc09ca8ae150b094219a39cf8c5e8a16fa8f277b08447083b64"
+  },
+  {
+   "order": 76,
+   "video": "en-2026-09-20 22-43-37.mov",
+   "path": "~/Movies/en-2026-09-20 22-43-37.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 22-43-37",
+   "bytes": 303873335,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "7879ef134c19576c55fc0031ba1820066cfe14c390fcc1bd667fb7b3499b8a54"
+  },
+  {
+   "order": 77,
+   "video": "en-2026-09-20 22-48-24.mov",
+   "path": "~/Movies/en-2026-09-20 22-48-24.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 22-48-24",
+   "bytes": 705301532,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "ad99d6f223b34fd29b7c74f97a88a60755ee89d7601abba1de92cb8132ded906"
+  },
+  {
+   "order": 78,
+   "video": "en_2026-09-20 22-55-56.mov",
+   "path": "~/Movies/en_2026-09-20 22-55-56.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 22-55-56",
+   "bytes": 285657438,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "89b8d1802efc21c3b538a1ec678f8d2dcf8d5709331c6f5a24a1341330c2f3bd"
+  },
+  {
+   "order": 79,
+   "video": "en_2026-09-20 23-04-54.mov",
+   "path": "~/Movies/en_2026-09-20 23-04-54.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 23-04-54",
+   "bytes": 329414235,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a205dfb33de206acb52a88112dd55584a7cd7b706ae877e4b1e9612a095707f5"
+  },
+  {
+   "order": 80,
+   "video": "en_2026-09-20 23-22-34.mov",
+   "path": "~/Movies/en_2026-09-20 23-22-34.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 23-22-34",
+   "bytes": 116618273,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "14bb2e3704cbfec50d376e4fc8b1db51c8070feb78b08d4984c66b18edee04bb"
+  },
+  {
+   "order": 81,
+   "video": "en_2026-09-20 23-25-42.mov",
+   "path": "~/Movies/en_2026-09-20 23-25-42.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-20 23-25-42",
+   "bytes": 635016458,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "fb0856eac7e1077122e3b02f1c8a858c61e4f52faee78ea937000cac03bf2b34"
+  },
+  {
+   "order": 82,
+   "video": "jp_2026-09-20 23-34-42.mov",
+   "path": "~/Movies/jp_2026-09-20 23-34-42.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 23-34-42",
+   "bytes": 37354727,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "d39df6a438b17fc7d32e5424c09b3da3eaaa1d6341436ade2b2887bf7ff8ee28"
+  },
+  {
+   "order": 83,
+   "video": "jp_2026-09-20 23-38-13.mov",
+   "path": "~/Movies/jp_2026-09-20 23-38-13.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 23-38-13",
+   "bytes": 499735339,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "a8f09ad120b7106d50a91a192bfedd25f90742d23e2016d7aa233673e7895e8e"
+  },
+  {
+   "order": 84,
+   "video": "jp_2026-09-20 23-44-11.mov",
+   "path": "~/Movies/jp_2026-09-20 23-44-11.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 23-44-11",
+   "bytes": 31518444,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "b4e146f1f069f63917569d2db09a821bca65dea4025c2bb3c62ba92580eff6c4"
+  },
+  {
+   "order": 85,
+   "video": "jp-2026-09-20 23-46-44.mov",
+   "path": "~/Movies/jp-2026-09-20 23-46-44.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-20 23-46-44",
+   "bytes": 314073136,
+   "other_prior_references": [
+    "1hz_experiment",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "v2_1hz"
+   ],
+   "video_identity": "68bd96360c60166fa9c7e3abbd6bc61c907779e34b94327a4a1be51b537f2634"
+  },
+  {
+   "order": 86,
+   "video": "jp-2026-09-21 06-57-14.mov",
+   "path": "~/Movies/jp-2026-09-21 06-57-14.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-21 06-57-14",
+   "bytes": 245538169,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "0cfd1dc4b41ce8fde901179fa2707086bcd0f14b3bd7c2635afb341be7a89556"
+  },
+  {
+   "order": 87,
+   "video": "en-2026-09-21 07-15-56.mov",
+   "path": "~/Movies/en-2026-09-21 07-15-56.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-21 07-15-56",
+   "bytes": 678470694,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "0ed5223c613de21bc778efd11bea56c63d3df30924e88512695a15256d229db6"
+  },
+  {
+   "order": 88,
+   "video": "jp-2026-09-21 07-24-31.mov",
+   "path": "~/Movies/jp-2026-09-21 07-24-31.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "ja",
+   "timestamp": "2026-09-21 07-24-31",
+   "bytes": 218663672,
+   "other_prior_references": [],
+   "video_identity": "ce5484d8dfe077370391bc34773e71aac10500aa5a273fb0289700698351e33a"
+  },
+  {
+   "order": 89,
+   "video": "en-2026-09-21 22-48-34.mov",
+   "path": "~/Movies/en-2026-09-21 22-48-34.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-21 22-48-34",
+   "bytes": 622073029,
+   "other_prior_references": [
+    "final30_score_gate",
+    "roster_evidence"
+   ],
+   "video_identity": "55d6e6997c6b46f3c2997b2f3ae55da31441c87df591561d9707b125143a16bf"
+  },
+  {
+   "order": 90,
+   "video": "en-2026-09-21 22-55-33.mov",
+   "path": "~/Movies/en-2026-09-21 22-55-33.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-21 22-55-33",
+   "bytes": 597582529,
+   "other_prior_references": [],
+   "video_identity": "3965ed32e35ec47629d1e385e959bab86c8b1b88b5af32879c454b66fe3780fd"
+  },
+  {
+   "order": 91,
+   "video": "en-2026-09-21 23-13-21.mov",
+   "path": "~/Movies/en-2026-09-21 23-13-21.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-21 23-13-21",
+   "bytes": 532771022,
+   "other_prior_references": [
+    "1hz_experiment",
+    "assessment_layout_fix",
+    "cases.md",
+    "cleanup_ranking",
+    "coaching_units.md",
+    "coaching_units_deferred",
+    "coaching_units_experiment_d",
+    "coaching_units_experiment_e",
+    "coaching_units_experiment_f",
+    "coaching_units_experiment_g",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "competition.md",
+    "episodes.md",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "video_identity": "83d9eb2fbda05a6dd8813321928c67dead62c2c4c6334120b1f68e7864a4990a"
+  },
+  {
+   "order": 92,
+   "video": "en-2026-09-21 23-20-25.mov",
+   "path": "~/Movies/en-2026-09-21 23-20-25.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-21 23-20-25",
+   "bytes": 314689189,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "80b46f11fa1246cb6f198913b0722241eaa5e3e895a2f4c2a3939f61357836f5"
+  },
+  {
+   "order": 93,
+   "video": "en-2026-09-23 21-13-04.mov",
+   "path": "~/Movies/en-2026-09-23 21-13-04.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-09-23 21-13-04",
+   "bytes": 498267038,
+   "other_prior_references": [],
+   "video_identity": "afbf62ae3d51fbb2e8d0f7043af9c617e4d2a46a270a6194e9c6a503ead4772d"
+  },
+  {
+   "order": 94,
+   "video": "en-2026-10-13 19-28-40.mov",
+   "path": "~/Movies/en-2026-10-13 19-28-40.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-13 19-28-40",
+   "bytes": 396976966,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "8e1a13fd5f2dc6e2a200e6988b336cb5f04c47244ee87fc56199beadd6216bb2"
+  },
+  {
+   "order": 95,
+   "video": "en-2026-10-13 19-43-30.mov",
+   "path": "~/Movies/en-2026-10-13 19-43-30.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-13 19-43-30",
+   "bytes": 361575477,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "6b5cb3bd9fc576ef6f7a15591a8449d57128f9a2b3f5a65cc8dd3eadedd9d977"
+  },
+  {
+   "order": 96,
+   "video": "en-2026-10-14 23-00-10.mov",
+   "path": "~/Movies/en-2026-10-14 23-00-10.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-14 23-00-10",
+   "bytes": 701382266,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "video_identity": "ec30bb5ebbe0d0d51501668f56545de61e141e778df948a53ac529e83cf041f3"
+  },
+  {
+   "order": 97,
+   "video": "en-2026-10-16 21-44-08.mov",
+   "path": "~/Movies/en-2026-10-16 21-44-08.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-16 21-44-08",
+   "bytes": 275612111,
+   "other_prior_references": [],
+   "video_identity": "c0e50488eb24c815df6e5af3d0efbee39b8b36155c38f8a8b3eca3d0ea9a2a96"
+  },
+  {
+   "order": 98,
+   "video": "en-2026-10-16 22-06-16.mov",
+   "path": "~/Movies/en-2026-10-16 22-06-16.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-16 22-06-16",
+   "bytes": 136159580,
+   "other_prior_references": [],
+   "video_identity": "baeea3f17feb260bbff739e8066d103a0996a89d201e7a463d2e6d30b959510e"
+  },
+  {
+   "order": 99,
+   "video": "en-2026-10-17 22-17-38.mov",
+   "path": "~/Movies/en-2026-10-17 22-17-38.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-17 22-17-38",
+   "bytes": 392239731,
+   "other_prior_references": [],
+   "video_identity": "048bcfb7952c0e101c2e9107ed984605b967e67659753cde5a1faf7f09266216"
+  },
+  {
+   "order": 100,
+   "video": "en-2026-10-17 22-28-38.mov",
+   "path": "~/Movies/en-2026-10-17 22-28-38.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-17 22-28-38",
+   "bytes": 419660714,
+   "other_prior_references": [],
+   "video_identity": "8bf9736034516ee22ade79b95b004e376494228f60e3328c8ac8685305c50204"
+  },
+  {
+   "order": 101,
+   "video": "en-2026-10-17 22-36-34.mov",
+   "path": "~/Movies/en-2026-10-17 22-36-34.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-17 22-36-34",
+   "bytes": 223990332,
+   "other_prior_references": [],
+   "video_identity": "f1821316a09add305b8ae5d8c4bcd10b66ad69a78b29cbf32082e53194ff6a11"
+  },
+  {
+   "order": 102,
+   "video": "en-2026-10-17 22-41-01.mov",
+   "path": "~/Movies/en-2026-10-17 22-41-01.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-17 22-41-01",
+   "bytes": 200224580,
+   "other_prior_references": [],
+   "video_identity": "269834e6642c22d755d0cd9f6756105331cdeca3f0a443d6b41b3522ca1086f5"
+  },
+  {
+   "order": 103,
+   "video": "en-2026-10-17 23-04-58.mov",
+   "path": "~/Movies/en-2026-10-17 23-04-58.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-17 23-04-58",
+   "bytes": 448406179,
+   "other_prior_references": [],
+   "video_identity": "b416bc9fcf3f19a1cc48e1ab71795b656908ef933664634603a5bf14f7da5c3e"
+  },
+  {
+   "order": 104,
+   "video": "en-2026-10-17 23-12-04.mov",
+   "path": "~/Movies/en-2026-10-17 23-12-04.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-17 23-12-04",
+   "bytes": 135688409,
+   "other_prior_references": [],
+   "video_identity": "64eb42210311db7bad0d6a20c518dbdbb69340133563d5aef353c6e9564ad64d"
+  },
+  {
+   "order": 105,
+   "video": "en-2026-10-18 20-23-41.mov",
+   "path": "~/Movies/en-2026-10-18 20-23-41.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 20-23-41",
+   "bytes": 301321912,
+   "other_prior_references": [],
+   "video_identity": "0b0be27c6c4cfee89b922cf536e9560a28ac237544ebaa03dfe349b61fbb0714"
+  },
+  {
+   "order": 106,
+   "video": "en-2026-10-18 20-31-55.mov",
+   "path": "~/Movies/en-2026-10-18 20-31-55.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 20-31-55",
+   "bytes": 117960817,
+   "other_prior_references": [],
+   "video_identity": "4ac4411d857d118e42c1904d024535be4f1823ae92272fd3bfe19efc51539d35"
+  },
+  {
+   "order": 107,
+   "video": "en-2026-10-18 20-38-48.mov",
+   "path": "~/Movies/en-2026-10-18 20-38-48.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 20-38-48",
+   "bytes": 407435458,
+   "other_prior_references": [],
+   "video_identity": "ab31d0e0488bdd4d721433e99f55f07fd639b57c953365344e5c672bc4ffbf88"
+  },
+  {
+   "order": 108,
+   "video": "en-2026-10-18 20-58-22.mov",
+   "path": "~/Movies/en-2026-10-18 20-58-22.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 20-58-22",
+   "bytes": 388191885,
+   "other_prior_references": [],
+   "video_identity": "10822451e1483c790de5d52ebab0979d7f2193a3c1d778c4b79390d6b3b6d997"
+  },
+  {
+   "order": 109,
+   "video": "en-2026-10-18 21-36-32.mov",
+   "path": "~/Movies/en-2026-10-18 21-36-32.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 21-36-32",
+   "bytes": 448735986,
+   "other_prior_references": [],
+   "video_identity": "4a6f6ede6aa7e106cbf5c663f88d27ed19d27bf62edcae831d2f71d8ba337447"
+  },
+  {
+   "order": 110,
+   "video": "en-2026-10-18 21-48-35.mov",
+   "path": "~/Movies/en-2026-10-18 21-48-35.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 21-48-35",
+   "bytes": 467971895,
+   "other_prior_references": [],
+   "video_identity": "add6df84f8997616d998cfbc15f16f8715269c5ee57606e92c6f1bacbeeaaf9a"
+  },
+  {
+   "order": 111,
+   "video": "en-2026-10-18 21-59-44.mov",
+   "path": "~/Movies/en-2026-10-18 21-59-44.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 21-59-44",
+   "bytes": 437483511,
+   "other_prior_references": [],
+   "video_identity": "9eceb98988dc110b6c8a0f0482d13b455a8e5812e9f2d7f992919ef448b30fa9"
+  },
+  {
+   "order": 112,
+   "video": "en-2026-10-18 22-10-35.mov",
+   "path": "~/Movies/en-2026-10-18 22-10-35.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 22-10-35",
+   "bytes": 462777891,
+   "other_prior_references": [],
+   "video_identity": "60d7b132ead1ef9d3f83cbd7e182a285136a94dda0d74f5afb70c96d100517f9"
+  },
+  {
+   "order": 113,
+   "video": "en-2026-10-18 22-18-04.mov",
+   "path": "~/Movies/en-2026-10-18 22-18-04.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 22-18-04",
+   "bytes": 467048034,
+   "other_prior_references": [],
+   "video_identity": "5803cb657ecbeb15e2a5309ca18a03b89c768382e047193a371af0bac4147fd8"
+  },
+  {
+   "order": 114,
+   "video": "en-2026-10-18 22-26-19.mov",
+   "path": "~/Movies/en-2026-10-18 22-26-19.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 22-26-19",
+   "bytes": 523649494,
+   "other_prior_references": [],
+   "video_identity": "6217e7df4e9d0a8fbebfdc7870e5f19b17f77987a82f0fea9ab2b642247fe2c2"
+  },
+  {
+   "order": 115,
+   "video": "en-2026-10-18 22-34-06.mov",
+   "path": "~/Movies/en-2026-10-18 22-34-06.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 22-34-06",
+   "bytes": 393453871,
+   "other_prior_references": [],
+   "video_identity": "6f07eec18bc84b8e4aa8d4226b921e74ee12bb61d7f4243f5dde4250fc182cb1"
+  },
+  {
+   "order": 116,
+   "video": "en-2026-10-18 22-47-35.mov",
+   "path": "~/Movies/en-2026-10-18 22-47-35.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 22-47-35",
+   "bytes": 452125841,
+   "other_prior_references": [],
+   "video_identity": "e6edebcd29be675f8c91bcf1c59091175de336bdb18ed94e6ac0eeda03f9dbed"
+  },
+  {
+   "order": 117,
+   "video": "en-2026-10-18 22-56-07.mov",
+   "path": "~/Movies/en-2026-10-18 22-56-07.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 22-56-07",
+   "bytes": 407295784,
+   "other_prior_references": [],
+   "video_identity": "5b3944c1a008af014a0ef6aea164d658dcba3b2e80c2d97aa5fd17cc7a081956"
+  },
+  {
+   "order": 118,
+   "video": "en-2026-10-18 23-26-44.mov",
+   "path": "~/Movies/en-2026-10-18 23-26-44.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 23-26-44",
+   "bytes": 362228552,
+   "other_prior_references": [],
+   "video_identity": "84fc71f49519ea3a818fd5738ec84c8766699110b39aeb2fbd07e6cb04507a71"
+  },
+  {
+   "order": 119,
+   "video": "en-2026-10-18 23-34-26.mov",
+   "path": "~/Movies/en-2026-10-18 23-34-26.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 23-34-26",
+   "bytes": 409330223,
+   "other_prior_references": [],
+   "video_identity": "c43675f24a29c9b8d5fa5bfaf373d73daeae48c5d42be83480df01f4a282ba6d"
+  },
+  {
+   "order": 120,
+   "video": "en-2026-10-18 23-41-15.mov",
+   "path": "~/Movies/en-2026-10-18 23-41-15.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-18 23-41-15",
+   "bytes": 362185205,
+   "other_prior_references": [],
+   "video_identity": "a7cff3b5c19822a606280fed8001bbd812a9d836a24fc3e1f447ff79ba6a7f4a"
+  },
+  {
+   "order": 121,
+   "video": "en-2026-10-19 00-02-16.mov",
+   "path": "~/Movies/en-2026-10-19 00-02-16.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-19 00-02-16",
+   "bytes": 403128907,
+   "other_prior_references": [],
+   "video_identity": "877395b22155a8cdd976fce11b126e79d8f84ee4e955a0371f23ec99e78bb008"
+  },
+  {
+   "order": 122,
+   "video": "en_SW2--2026-10-19 23-13-06.mov",
+   "path": "~/Movies/en_SW2--2026-10-19 23-13-06.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-19 23-13-06",
+   "bytes": 339350640,
+   "other_prior_references": [],
+   "video_identity": "122723df33399d5909ee7bc90d7357b42d7d6e08867a8dad12b1e1ac62765a7e"
+  },
+  {
+   "order": 123,
+   "video": "en_SW2--2026-10-19 23-20-28.mov",
+   "path": "~/Movies/en_SW2--2026-10-19 23-20-28.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-19 23-20-28",
+   "bytes": 402126201,
+   "other_prior_references": [],
+   "video_identity": "69d8844428774d1cf646db3a6e307c709fb5603fb8c939c7547ce95cd01552db"
+  }
+ ],
+ "excluded": [
+  {
+   "video": "2026-07-04 16-06-41.mp4",
+   "path": "~/Movies/2026-07-04 16-06-41.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-04 16-06-41",
+   "bytes": 389471744,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-04 23-55-59.mp4",
+   "path": "~/Movies/2026-07-04 23-55-59.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-04 23-55-59",
+   "bytes": 496458968,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 15-57-07.mp4",
+   "path": "~/Movies/2026-07-05 15-57-07.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 15-57-07",
+   "bytes": 366926450,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 16-10-48.mp4",
+   "path": "~/Movies/2026-07-05 16-10-48.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 16-10-48",
+   "bytes": 474138579,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 17-17-56.mp4",
+   "path": "~/Movies/2026-07-05 17-17-56.mp4",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 17-17-56",
+   "bytes": 781402147,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 20-28-22.mov",
+   "path": "~/Movies/2026-07-05 20-28-22.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 20-28-22",
+   "bytes": 583236588,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 20-35-00.mov",
+   "path": "~/Movies/2026-07-05 20-35-00.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 20-35-00",
+   "bytes": 630801652,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 20-48-23.mov",
+   "path": "~/Movies/2026-07-05 20-48-23.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 20-48-23",
+   "bytes": 618932913,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 23-16-52.mov",
+   "path": "~/Movies/2026-07-05 23-16-52.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 23-16-52",
+   "bytes": 519536086,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 23-24-21.mov",
+   "path": "~/Movies/2026-07-05 23-24-21.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 23-24-21",
+   "bytes": 532333593,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-05 23-47-36.mov",
+   "path": "~/Movies/2026-07-05 23-47-36.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-05 23-47-36",
+   "bytes": 624758269,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-06 22-06-50.mov",
+   "path": "~/Movies/2026-07-06 22-06-50.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-06 22-06-50",
+   "bytes": 336338591,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-06 22-37-08.mov",
+   "path": "~/Movies/2026-07-06 22-37-08.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-06 22-37-08",
+   "bytes": 573023792,
+   "other_prior_references": [
+    "final30_score_gate",
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-06 22-55-06.mov",
+   "path": "~/Movies/2026-07-06 22-55-06.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-06 22-55-06",
+   "bytes": 710605677,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 22-28-43.mov",
+   "path": "~/Movies/2026-07-07 22-28-43.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 22-28-43",
+   "bytes": 737160717,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 22-49-54.mov",
+   "path": "~/Movies/2026-07-07 22-49-54.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 22-49-54",
+   "bytes": 690267883,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 23-09-07.mov",
+   "path": "~/Movies/2026-07-07 23-09-07.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 23-09-07",
+   "bytes": 436719778,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 23-14-50.mov",
+   "path": "~/Movies/2026-07-07 23-14-50.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 23-14-50",
+   "bytes": 864748728,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 23-30-14.mov",
+   "path": "~/Movies/2026-07-07 23-30-14.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 23-30-14",
+   "bytes": 650493142,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 23-37-00.mov",
+   "path": "~/Movies/2026-07-07 23-37-00.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 23-37-00",
+   "bytes": 642099082,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-07-07 23-49-06.mov",
+   "path": "~/Movies/2026-07-07 23-49-06.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-07-07 23-49-06",
+   "bytes": 458595769,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 21-32-25.mov",
+   "path": "~/Movies/2026-09-04 21-32-25.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 21-32-25",
+   "bytes": 526179958,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 21-57-34.mov",
+   "path": "~/Movies/2026-09-04 21-57-34.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 21-57-34",
+   "bytes": 634137721,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 22-05-25.mov",
+   "path": "~/Movies/2026-09-04 22-05-25.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 22-05-25",
+   "bytes": 598481315,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 22-12-51.mov",
+   "path": "~/Movies/2026-09-04 22-12-51.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 22-12-51",
+   "bytes": 444810439,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 22-50-19.mov",
+   "path": "~/Movies/2026-09-04 22-50-19.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 22-50-19",
+   "bytes": 392590135,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 23-02-31.mov",
+   "path": "~/Movies/2026-09-04 23-02-31.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 23-02-31",
+   "bytes": 590899580,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-04 23-08-27.mov",
+   "path": "~/Movies/2026-09-04 23-08-27.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-04 23-08-27",
+   "bytes": 534539331,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-05 09-34-24.mov",
+   "path": "~/Movies/2026-09-05 09-34-24.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-05 09-34-24",
+   "bytes": 568503000,
+   "other_prior_references": [
+    "1hz_experiment",
+    "coaching_units_rating_key.csv",
+    "coaching_units_rating_sheet.csv",
+    "report-843ba48a835c-vs-baseline.md",
+    "report-c9f44d6d8209-vs-baseline.md",
+    "report-c9f44d6d8209.md",
+    "report-debounced-vs-undebounced.md",
+    "rescore_v2",
+    "rescore_v2_rules",
+    "roster_detector_fix",
+    "roster_evidence",
+    "v2_1hz"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-05 23-08-26.mov",
+   "path": "~/Movies/2026-09-05 23-08-26.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-05 23-08-26",
+   "bytes": 472572349,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-06 22-15-08.mov",
+   "path": "~/Movies/2026-09-06 22-15-08.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-06 22-15-08",
+   "bytes": 364069230,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-07 13-41-08.mov",
+   "path": "~/Movies/2026-09-07 13-41-08.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-07 13-41-08",
+   "bytes": 278114168,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-09 20-32-39.mov",
+   "path": "~/Movies/2026-09-09 20-32-39.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-09 20-32-39",
+   "bytes": 575278210,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-09 21-56-22.mov",
+   "path": "~/Movies/2026-09-09 21-56-22.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-09 21-56-22",
+   "bytes": 234287679,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-09 23-29-20.mov",
+   "path": "~/Movies/2026-09-09 23-29-20.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-09 23-29-20",
+   "bytes": 422280733,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-10 13-44-28.mov",
+   "path": "~/Movies/2026-09-10 13-44-28.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-10 13-44-28",
+   "bytes": 389231589,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-10 14-20-12.mov",
+   "path": "~/Movies/2026-09-10 14-20-12.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-10 14-20-12",
+   "bytes": 648710818,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-10 15-26-49.mov",
+   "path": "~/Movies/2026-09-10 15-26-49.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-10 15-26-49",
+   "bytes": 242386661,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-10 15-58-36.mov",
+   "path": "~/Movies/2026-09-10 15-58-36.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-10 15-58-36",
+   "bytes": 806771715,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-12 12-42-53.mov",
+   "path": "~/Movies/2026-09-12 12-42-53.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-12 12-42-53",
+   "bytes": 226677196,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-12 13-34-57.mov",
+   "path": "~/Movies/2026-09-12 13-34-57.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-12 13-34-57",
+   "bytes": 566220270,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-14 21-02-41.mov",
+   "path": "~/Movies/2026-09-14 21-02-41.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-14 21-02-41",
+   "bytes": 186572382,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-15 19-42-35.mov",
+   "path": "~/Movies/2026-09-15 19-42-35.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-15 19-42-35",
+   "bytes": 584883262,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-15 19-56-29.mov",
+   "path": "~/Movies/2026-09-15 19-56-29.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-15 19-56-29",
+   "bytes": 876681671,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-18 18-37-10.mov",
+   "path": "~/Movies/2026-09-18 18-37-10.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-18 18-37-10",
+   "bytes": 263935002,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-18 18-45-40.mov",
+   "path": "~/Movies/2026-09-18 18-45-40.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-18 18-45-40",
+   "bytes": 235944756,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-18 19-36-27.mov",
+   "path": "~/Movies/2026-09-18 19-36-27.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-18 19-36-27",
+   "bytes": 650342353,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-19 12-24-32.mov",
+   "path": "~/Movies/2026-09-19 12-24-32.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-19 12-24-32",
+   "bytes": 469538464,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-19 12-46-14.mov",
+   "path": "~/Movies/2026-09-19 12-46-14.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-19 12-46-14",
+   "bytes": 658636930,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 14-47-03.mov",
+   "path": "~/Movies/2026-09-20 14-47-03.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 14-47-03",
+   "bytes": 966259551,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 15-07-24.mov",
+   "path": "~/Movies/2026-09-20 15-07-24.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 15-07-24",
+   "bytes": 518853100,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 15-45-17.mov",
+   "path": "~/Movies/2026-09-20 15-45-17.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 15-45-17",
+   "bytes": 472772008,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 15-50-36.mov",
+   "path": "~/Movies/2026-09-20 15-50-36.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 15-50-36",
+   "bytes": 141451367,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 15-53-31.mov",
+   "path": "~/Movies/2026-09-20 15-53-31.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 15-53-31",
+   "bytes": 579840637,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 16-03-58.mov",
+   "path": "~/Movies/2026-09-20 16-03-58.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 16-03-58",
+   "bytes": 425077171,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 16-09-34.mov",
+   "path": "~/Movies/2026-09-20 16-09-34.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 16-09-34",
+   "bytes": 503835888,
+   "other_prior_references": [
+    "final30_score_gate",
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 16-18-22.mov",
+   "path": "~/Movies/2026-09-20 16-18-22.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 16-18-22",
+   "bytes": 145407247,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 16-44-17.mov",
+   "path": "~/Movies/2026-09-20 16-44-17.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 16-44-17",
+   "bytes": 303353916,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 16-48-47.mov",
+   "path": "~/Movies/2026-09-20 16-48-47.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 16-48-47",
+   "bytes": 294313159,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 16-53-13.mov",
+   "path": "~/Movies/2026-09-20 16-53-13.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 16-53-13",
+   "bytes": 349233021,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 17-00-29.mov",
+   "path": "~/Movies/2026-09-20 17-00-29.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 17-00-29",
+   "bytes": 572334022,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "2026-09-20 17-17-57.mov",
+   "path": "~/Movies/2026-09-20 17-17-57.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-20 17-17-57",
+   "bytes": 587582704,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 18-18-00.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 18-18-00.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 18-18-00",
+   "bytes": 749087389,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 18-25-16.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 18-25-16.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 18-25-16",
+   "bytes": 353113045,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 20-33-31.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 20-33-31.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 20-33-31",
+   "bytes": 351451877,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 22-20-42.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 22-20-42.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 22-20-42",
+   "bytes": 603050500,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 22-31-53.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 22-31-53.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 22-31-53",
+   "bytes": 386146364,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 22-37-47.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 22-37-47.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 22-37-47",
+   "bytes": 558494183,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment",
+    "used_in:citation_contract_fixtures"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-11 22-57-30.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-11 22-57-30.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-11 22-57-30",
+   "bytes": 470155066,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment",
+    "used_in:citation_contract_fixtures"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-12 17-42-59.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-12 17-42-59.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-12 17-42-59",
+   "bytes": 250277449,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "used_in:experiment_h"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-12 19-47-46.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-12 19-47-46.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-12 19-47-46",
+   "bytes": 197176680,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:n2_citation_experiment"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-12 19-59-26.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-12 19-59-26.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-12 19-59-26",
+   "bytes": 127669020,
+   "other_prior_references": [
+    "roster_evidence"
+   ],
+   "reasons": [
+    "used_in:experiment_h"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-12 20-17-32.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-12 20-17-32.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-12 20-17-32",
+   "bytes": 341001710,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h",
+    "used_in:experiment_i",
+    "used_in:coaching_gap_study",
+    "used_in:n2_citation_experiment"
+   ]
+  },
+  {
+   "video": "en-live-playerview-2026-10-12 20-25-22.mov",
+   "path": "~/Movies/en-live-playerview-2026-10-12 20-25-22.mov",
+   "sources": [
+    "live_playerview"
+   ],
+   "language": "en",
+   "timestamp": "2026-10-12 20-25-22",
+   "bytes": 451573707,
+   "other_prior_references": [],
+   "reasons": [
+    "used_in:experiment_h"
+   ]
+  },
+  {
+   "video": "jn_barnacle_and_dime_2026-09-15 21-28-49.mov",
+   "path": "~/Movies/jn_barnacle_and_dime_2026-09-15 21-28-49.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-15 21-28-49",
+   "bytes": 718641445,
+   "other_prior_references": [],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  },
+  {
+   "video": "jn_robo_rom_en_2026-09-15 21-19-51.mov",
+   "path": "~/Movies/jn_robo_rom_en_2026-09-15 21-19-51.mov",
+   "sources": [
+    "game_tape_heldout"
+   ],
+   "language": "unknown",
+   "timestamp": "2026-09-15 21-19-51",
+   "bytes": 563348846,
+   "other_prior_references": [],
+   "reasons": [
+    "unknown_ui_language"
+   ]
+  }
+ ]
+}
