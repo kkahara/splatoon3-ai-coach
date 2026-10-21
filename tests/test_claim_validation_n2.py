@@ -14,6 +14,7 @@ reproduces and its classification:
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pytest
@@ -125,23 +126,89 @@ def test_contradiction_is_legacy_label_form(
     assert len(_r7(wrong)) == 1
 
 
-# --- design: object-valued claim evidence (CV-OBJECT-LEAF) -------------------------
+# --- correctness: object-valued evidence, leaf only (CV-OBJECT-LEAF) ---------------
 
 
-def test_leaf_of_object_evidence_is_checked() -> None:
-    assert _r7("death.death_to_active_again.value = 8.5") == []
-    assert len(_r7("death.death_to_active_again.value = 9.9")) == 1
+def _checks(text: str) -> list[str]:
+    return [hit["check"] for hit in _r7(text)]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "CV-OBJECT-LEAF (design): claim_basis cites death.death_to_active_again, "
-        "an object; no rule says which leaf a scalar cited on it means"
-    ),
+def test_scalar_leaf_of_object_is_value_checked() -> None:
+    assert _checks("death.death_to_active_again.value = 8.5") == []
+    assert _checks("death.death_to_active_again.value = 9.9") == ["value_mismatch"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "death.death_to_active_again = 8.5",
+        "death.death_to_active_again = 999",
+        'death.death_to_active_again = "8.5s"',
+        "death.death_to_active_again: out of play for 8.5s",
+        "death.death_to_active_again = null",
+        f"death.death_to_active_again = {json.dumps(CLOCKED)}",
+        'evidence_limits = [{"code": "x"}]',
+        "death = {}",
+    ],
 )
-def test_wrong_scalar_on_object_path_is_rejected() -> None:
-    assert len(_r7("death.death_to_active_again = 999")) == 1
+def test_value_asserted_on_object_path_fails(text: str) -> None:
+    """The literal path holds an object: no implicit ``.value``, no claim
+    values, no serialization rule; any asserted value fails explicitly."""
+    assert _checks(text) == ["object_path_value"]
+
+
+def test_legacy_label_to_object_cannot_bypass() -> None:
+    text = "primary_context.special.nearest_before_anchor = 0.43"
+    resolution = resolve_evidence_reference(VIEW, text)
+    assert resolution["location"] == "special.nearest_before_anchor"
+    assert [h["check"] for h in evidence_value_hits(VIEW, [resolution])] == [
+        "object_path_value"
+    ]
+
+
+CLOCK_LABEL = "game_clock_samples[label=death].observation.seconds_remaining"
+SUPPORT_ONLY: dict[str, Any] = {
+    "clock": {"seconds_remaining": 23, "source_path": "game_clock_samples[label=death]"},
+    "supporting_evidence": [
+        {"label": "Game clock", "value": "0:23", "source_path": CLOCK_LABEL}
+    ],
+}
+
+
+@pytest.mark.parametrize("cited", ["23", "999"])
+def test_legacy_label_of_a_display_item_asserts_on_an_object(cited: str) -> None:
+    """Legacy (CV-SUPPORT-LABEL / CV-FLATTENED): the whole label is held only
+    by a ``supporting_evidence`` item, so the label form binds that object.
+    Correct or not, the value is no longer skipped; the N2 citation is
+    ``clock.seconds_remaining``."""
+    resolution = resolve_evidence_reference(SUPPORT_ONLY, f"{CLOCK_LABEL} = {cited}")
+    assert resolution["location"] == "supporting_evidence[0]"
+    hits = evidence_value_hits(SUPPORT_ONLY, [resolution])
+    assert [h["check"] for h in hits] == ["object_path_value"]
+    assert _r7("clock.seconds_remaining = 23", SUPPORT_ONLY) == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "death.death_to_active_again",
+        "see death.death_to_active_again",
+        "death.death_to_active_again was 8.5s",
+    ],
+)
+def test_object_path_reference_without_value_is_allowed(text: str) -> None:
+    """No ``=`` / ``:`` right after the path: a reference, not an assertion."""
+    resolution = resolve_evidence_reference(VIEW, text)
+    assert resolution["kind"] == "view_native"
+    assert resolution["location"] == "death.death_to_active_again"
+    assert evidence_value_hits(VIEW, [resolution]) == []
+
+
+def test_single_segment_object_reference_is_not_expressible() -> None:
+    """CV-BARE-OBJECT-REF (syntax, open; grammar not expanded): an unanchored
+    path needs a dot, so a bare ``death`` reference is malformed."""
+    resolution = resolve_evidence_reference(VIEW, "death")
+    assert (resolution["kind"], resolution["reason"]) == ("unresolved", "malformed")
 
 
 # --- correctness: prose values (CV-PROSE-VALUE) ------------------------------------

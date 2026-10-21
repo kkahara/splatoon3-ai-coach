@@ -15,8 +15,9 @@ prohibited-phrase patterns in ``evidence_contract``:
 * evidence paths — every ``evidence_used`` entry must resolve against the
   serialized view: a literal view path (the model-facing contract), or,
   only when that path does not exist, a legacy ``source_path`` label +
-  remainder; a cited ``path = value`` must equal the value at the resolved
-  location (R7);
+  remainder; a cited ``path = value`` must equal the scalar at the resolved
+  location (R7), so a value asserted on an object or list path fails (cite
+  its scalar leaf instead); a path cited without a value is a reference only;
 * claim integrity — R5, R7, R8 and R9 in ``claim_integrity``.
 """
 
@@ -384,8 +385,10 @@ def evidence_value_hits(
 ) -> list[dict[str, Any]]:
     """R7: ``path = value`` citations whose value differs from the view.
 
-    Object and list values are not compared (see
-    ``docs/CITATION_NAMESPACES.md``, object-valued evidence).
+    A value is checked against the scalar at the resolved location only.
+    Asserting any value on an object or list location is ``object_path_value``
+    (leaf-only rule, ``docs/CITATION_NAMESPACES.md``); the path with no
+    asserted value is a reference and is not value-checked.
     """
     hits: list[dict[str, Any]] = []
     for resolution in resolutions:
@@ -394,19 +397,24 @@ def evidence_value_hits(
         text = str(resolution["text"])
         cited = _cited_values(text, str(resolution["path"]))
         found, actual = _resolved_value(view, resolution)
-        if not cited or not found or isinstance(actual, dict | list):
+        if not cited or not found:
             continue
-        if not any(_same(value, actual) for value in cited):
-            hits.append(
-                {
-                    "rule": "R7",
-                    "check": "value_mismatch",
-                    "field": "evidence_used",
-                    "text": text,
-                    "view_value": actual,
-                    "counts_as_violation": True,
-                }
-            )
+        if isinstance(actual, dict | list):
+            check = "object_path_value"
+        elif not any(_same(value, actual) for value in cited):
+            check = "value_mismatch"
+        else:
+            continue
+        hits.append(
+            {
+                "rule": "R7",
+                "check": check,
+                "field": "evidence_used",
+                "text": text,
+                "view_value": actual,
+                "counts_as_violation": True,
+            }
+        )
     return hits
 
 

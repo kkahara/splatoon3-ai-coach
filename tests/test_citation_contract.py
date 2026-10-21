@@ -31,6 +31,7 @@ from citation_contract_helpers import (
     fixture_units,
     labelled_blocks,
     leaves,
+    render,
     same_value,
     source_blocks_order_matches,
     walk,
@@ -48,6 +49,7 @@ CORRECTNESS = "correctness"  # wrong value could pass / correct value rejected
 SYNTAX = "syntax"  # the grammar could not express a permitted citation
 LEGACY = "legacy"  # N1 / label behavior; irrelevant under N2, cleanup pending
 DESIGN = "design"  # open question; nothing implemented
+CONTENT = "content"  # claim_basis / prompt content to migrate; validator correct
 
 
 @dataclass(frozen=True)
@@ -125,10 +127,23 @@ VIOLATIONS: dict[str, Violation] = {
         "text only; quoted values cut at ' (' and ';')",
     ),
     "CV-OBJECT-LEAF": Violation(
-        DESIGN,
+        CORRECTNESS,
+        "fixed",
+        "R7 skipped any value asserted on an object path, so a wrong scalar "
+        "passed unchecked (design decided: leaf only; now object_path_value)",
+    ),
+    "CV-CLAIM-OBJECT-PATH": Violation(
+        CONTENT,
         "open",
-        "claim evidence path names an object; no rule says which value a scalar "
-        "cited on it is checked against, so R7 skips it",
+        "claim_basis evidence path names an object while the claim asserts "
+        "scalars at its leaves; citing the path with the claim's value is "
+        "rejected (claim_basis content to move to the leaves)",
+    ),
+    "CV-BARE-OBJECT-REF": Violation(
+        SYNTAX,
+        "open",
+        "a path-only reference to a single-segment object path (related[0]) is "
+        "malformed: unanchored paths need a dot (grammar not expanded)",
     ),
     "CV-NOT-COACHINPUT": Violation(
         LEGACY, "open", "label-form path resolves in the view but names no N1 field"
@@ -489,7 +504,11 @@ def _prose(value: Any) -> bool:
     return text.endswith(".") or " (" in text or ";" in text
 
 
-def _classify(form: str, cited: str, reason: str, value: Any) -> str:
+def _classify(
+    form: str, cited: str, reason: str, value: Any, in_view: bool = False
+) -> str:
+    if "." not in cited and in_view and isinstance(value, dict | list):
+        return "CV-BARE-OBJECT-REF"
     if "." not in cited:
         return "CV-BARE-LABEL" if form == "label_form" else "CV-SINGLE-SEGMENT"
     if reason == "value_rejected" and _prose(value):
@@ -524,9 +543,16 @@ def label_form_failures() -> Counter[tuple[str, str]]:
             for cited, intended, value in cases:
                 reason = check(unit.view, cited, intended)
                 if reason:
-                    kind = _classify("label_form", cited, reason, value)
+                    in_view = resolve_view_path(unit.view, cited)[0]
+                    kind = _classify("label_form", cited, reason, value, in_view)
                     out[(kind, _shape(cited))] += 1
     return out
+
+
+def _object_value_check(view: dict[str, Any], text: str) -> str | None:
+    resolution = resolve_evidence_reference(view, text)
+    hits = evidence_value_hits(view, [resolution])
+    return hits[0]["check"] if hits else None
 
 
 def claim_path_failures() -> Counter[tuple[str, str]]:
@@ -536,13 +562,15 @@ def claim_path_failures() -> Counter[tuple[str, str]]:
         for claim in unit.view["claim_basis"]:
             for path in claim["evidence_paths"]:
                 value = claim["values"].get(path.split(".")[-1])
-                reason = check(unit.view, path, path, value)
-                leaf = walk(unit.view, path)[1]
-                if reason is None and isinstance(leaf, dict | list):
-                    reason = "object_leaf"
-                if reason:
-                    kind = "CV-OBJECT-LEAF" if reason == "object_leaf" else reason
+                if isinstance(walk(unit.view, path)[1], dict | list):
+                    text = f"{path} = {render(value)}"
+                    rejected = _object_value_check(unit.view, text)
+                    kind = "CV-CLAIM-OBJECT-PATH"
+                    if rejected != "object_path_value":
+                        kind = "CV-OBJECT-LEAF"
                     out[(kind, _shape(path))] += 1
+                elif reason := check(unit.view, path, path, value):
+                    out[(reason, _shape(path))] += 1
     return out
 
 
@@ -586,8 +614,13 @@ FORMS: dict[str, Callable[[], Counter[tuple[str, str]]]] = {
 }
 FORM_VIOLATIONS: dict[str, tuple[str, ...]] = {
     "view_form": ("CV-SINGLE-SEGMENT", "CV-PROSE-VALUE"),
-    "label_form": ("CV-BARE-LABEL", "CV-SUPPORT-LABEL", "CV-PROSE-VALUE"),
-    "claim_paths": ("CV-OBJECT-LEAF",),
+    "label_form": (
+        "CV-BARE-LABEL",
+        "CV-BARE-OBJECT-REF",
+        "CV-SUPPORT-LABEL",
+        "CV-PROSE-VALUE",
+    ),
+    "claim_paths": ("CV-OBJECT-LEAF", "CV-CLAIM-OBJECT-PATH"),
     "label_exactness": ("CV-NOT-COACHINPUT", "CV-CONTRADICTS-COACHINPUT"),
 }
 
@@ -702,6 +735,76 @@ def test_no_label_shadows_a_view_path() -> None:
             label = block["source_path"]
             if resolve_view_path(unit.view, label)[0]:
                 assert label == location
+
+
+_OUT_OF_PLAY = {"death_to_active_again": "value", "clock": "clock"}
+# CV-CLAIM-OBJECT-PATH: (fixture unit, claim_basis index) -> claim id, the object
+# path it names, and the leaf holding each value the claim asserts. The
+# own-splat gap is raw video seconds (``video_seconds``; ``value`` is null).
+OBJECT_PATH_CLAIMS: dict[tuple[str, int], tuple[str, str, dict[str, str]]] = {
+    ("contract/2026-10-10_23-43-31_death_episode_205.000", 1): (
+        "death_out_of_play",
+        "death.death_to_active_again",
+        _OUT_OF_PLAY,
+    ),
+    ("contract/2026-10-11_22-37-47_death_episode_58.000", 0): (
+        "death_out_of_play",
+        "death.death_to_active_again",
+        _OUT_OF_PLAY,
+    ),
+    ("contract/2026-10-11_22-57-30_death_episode_308.000", 0): (
+        "death_out_of_play",
+        "death.death_to_active_again",
+        _OUT_OF_PLAY,
+    ),
+    ("corpus/5d42_145.000", 0): (
+        "death_own_splat_before",
+        "death.time_since_previous_splat",
+        {"time_since_previous_splat": "video_seconds"},
+    ),
+    ("corpus/ed95_156.000", 0): (
+        "death_out_of_play",
+        "death.death_to_active_again",
+        _OUT_OF_PLAY,
+    ),
+    ("corpus/ed95_72.000", 1): (
+        "death_out_of_play",
+        "death.death_to_active_again",
+        _OUT_OF_PLAY,
+    ),
+}
+
+
+def test_object_path_claims_are_exactly_these() -> None:
+    found = {
+        (key, index)
+        for key, unit in fixture_units().items()
+        for index, claim in enumerate(unit.view["claim_basis"])
+        if any(
+            isinstance(walk(unit.view, path)[1], dict | list)
+            for path in claim["evidence_paths"]
+        )
+    }
+    assert found == set(OBJECT_PATH_CLAIMS)
+
+
+@pytest.mark.parametrize(("key", "index"), sorted(OBJECT_PATH_CLAIMS))
+def test_object_path_claim_is_cited_by_its_leaves(key: str, index: int) -> None:
+    """Leaf only: the object path is a valid reference, a claim value asserted
+    on it is ``object_path_value``, and the same value on its leaf passes."""
+    view = fixture_units()[key].view
+    claim = view["claim_basis"][index]
+    claim_id, path, leaf_of = OBJECT_PATH_CLAIMS[(key, index)]
+    assert (claim["claim_id"], claim["evidence_paths"]) == (claim_id, [path])
+    assert set(claim["values"]) == set(leaf_of)
+    assert _object_value_check(view, path) is None
+    for name, value in claim["values"].items():
+        assert _object_value_check(view, f"{path} = {render(value)}") == (
+            "object_path_value"
+        )
+        leaf = f"{path}.{leaf_of[name]}"
+        assert walk(view, leaf) == (True, value)
+        assert check(view, leaf, leaf, value) is None
 
 
 @pytest.mark.parametrize(("key", "count"), sorted(HISTORY_DB5FA8C.items()))

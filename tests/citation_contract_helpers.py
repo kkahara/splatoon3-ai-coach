@@ -149,11 +149,18 @@ def check(
     view: Mapping[str, Any], cited_path: str, intended: str, value: Any = None
 ) -> str | None:
     """``None`` if ``cited_path`` satisfies the contract for ``intended``,
-    else why not. ``value`` overrides the value cited (default: the leaf's)."""
+    else why not. ``value`` overrides the value cited (default: the leaf's).
+
+    An object or list is cited as a bare path (a reference): under the
+    leaf-only rule it has no value a citation can assert.
+    """
     found, actual = walk(view, intended)
     if not found:
         return "intended_leaf_absent"
-    text = f"{cited_path} = {render(actual if value is None else value)}"
+    if value is None and isinstance(actual, dict | list):
+        text = cited_path
+    else:
+        text = f"{cited_path} = {render(actual if value is None else value)}"
     resolution = resolve_evidence_reference(view, text)
     if resolution["kind"] == ReferenceKind.UNRESOLVED.value:
         return f"unresolved:{resolution['reason']}"

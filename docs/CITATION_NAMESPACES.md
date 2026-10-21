@@ -73,13 +73,47 @@ whose remainder walks the *view* block: N1 prefix, N2 remainder.
    full text is also tried, so prose leaves that contain those characters
    match. A sentence-final period is ignored on both sides. Numbers,
    booleans and `null` compare by value. Wrong values are still rejected.
-5. **Objects and lists.** R7 does not compare them (open design question,
-   below). This is the only place value validation is skipped for a
-   resolved citation that carries a value.
+5. **Objects and lists: leaf only.** A path denotes exactly the value at
+   that location, with no implicit child. Any value asserted on an object
+   or list location (`death.death_to_active_again = 8.5`, `= null`, or a
+   serialized object) is an R7 hit with `check = "object_path_value"`
+   (counts as a violation), for literal and legacy label citations alike.
+   The scalar leaf (`death.death_to_active_again.value = 8.5`) is
+   value-checked as usual. Nothing compares against `claim_basis.values`.
+6. **Reference vs assertion.** A citation asserts a value only when `=` or
+   `:` directly follows the path. Otherwise (`death.death_to_active_again`,
+   `see death.death_to_active_again`, `death.death_to_active_again was
+   8.5s`) it is a reference: it must resolve, and it is not value-checked,
+   whatever the location holds. Limitation, not expanded here
+   (`CV-BARE-OBJECT-REF`): a reference without `=` / `:` needs a dotted
+   path, so a bare single-segment object path (`death`, `related[0]`) is
+   `malformed`; with `=` / `:` it resolves and the value fails as above.
 
 Effect on stored outputs: over the claim corpus (95 citations, 24 R7 hits)
 the resolution kind and reason of every citation, the R7 hits and the
-validation status are identical before and after this change. Re-running the
+validation status are identical before and after this change, and after
+the leaf-only rule (no corpus output asserts a value on an object path).
+
+The leaf-only rule does change the result of re-validating Experiment I's
+stored calls (read-only; stored validation is not rewritten). At `2dac13b`
+all 88 recomputed statuses equal the stored ones. Under leaf only, 20 calls
+gain one `object_path_value` hit and 15 move from `validated` to
+`contains_unverified_wording` (non-blocking):
+
+- 18 legacy label citations whose whole text is a `supporting_evidence`
+  label (`game_clock_samples[label=death].observation.seconds_remaining =
+  23`: 14; `durations.time_since_previous_death = 19.0`: 4). The label
+  form binds the display item, an object, so its value was never checked
+  (a wrong number passed too); the N2 citations are
+  `clock.seconds_remaining` and `timeline.time_since_previous_death.value`.
+- 2 literal `timeline.time_since_previous_death = …` (object path; the
+  leaf is `.value`).
+
+The public site recomputes this status when it renders a review, so
+comparable outputs will display the non-blocking status instead of
+`validated`; prose is still shown.
+
+Re-running the
 Experiment I postmortem tool into a scratch directory reproduces all 33
 evidence-path rows with identical classifications; only the display of the
 cited value changes (`4:35` instead of `"4:35"`, decoded JSON literal) and
@@ -93,7 +127,9 @@ rewritten.
 | `CV-R7-LOCATION` | correctness / safety | **fixed** | R7 walked the first block with the label while resolution bound another (e.g. a `supporting_evidence` item), so a wrong value through a duplicated label passed unchecked |
 | `CV-PROSE-VALUE` | correctness | **fixed** | exact prose values rejected (period stripped from one side only; quoted values cut at ` (` / `;`) |
 | `CV-SINGLE-SEGMENT` | syntax limitation | **fixed** | the path grammar needed a dot, so top-level scalars and null blocks were uncitable |
-| `CV-OBJECT-LEAF` | unresolved design question | open | `claim_basis` evidence paths that name an object; see below |
+| `CV-OBJECT-LEAF` | correctness / safety (design decided: leaf only) | **fixed** | R7 skipped any value asserted on an object path, so a wrong scalar passed unchecked; now `object_path_value` |
+| `CV-CLAIM-OBJECT-PATH` | content (claim_basis migration) | open | 6 fixture claims name an object path while asserting scalars at its leaves; see below |
+| `CV-BARE-OBJECT-REF` | syntax limitation | open | path-only reference to a single-segment object path is malformed; grammar not expanded |
 | `CV-MAP-AWARENESS-OPEN` | unresolved design question | open | experiment-only fact with no N1 home |
 | `CV-RELATIVE` | syntax (prompt) | open | prompt prose names fields without their block; fixed by the prompt rewrite, not the validator |
 | `CV-CONTRADICTS-COACHINPUT` | legacy N1/label | open | label form `primary_context.death_episode.death_to_respawn = null` (view null: playback unverified; CoachInput 7.0) and `primary_context.map.map_check_before_death = null` (CoachInput `true`). The N2 citations `death.death_to_respawn = null` and `map.map_check_before_death = null` correctly name the supplied facts; `= 7.0` / `= true` on those paths are rejected |
@@ -106,16 +142,19 @@ Measured counts over the 26 fixture views (Fix 1 at `db5fa8c`, recorded in
 | form | db5fa8c | now |
 | --- | --- | --- |
 | N2 literal, every view leaf | single-segment 170, prose 437 | 0 |
-| label + remainder | single-segment 75, support label 99, prose 5 | bare label 57, support-label collision 37 |
-| `claim_basis` evidence paths | object leaf 6 | object leaf 6 |
+| label + remainder | single-segment 75, support label 99, prose 5 | bare label 57, bare object reference 18, support-label collision 37 |
+| `claim_basis` evidence paths | object leaf 6 (value unchecked) | claim object path 6 (value rejected) |
 | label form vs N1 | not-N1 893, contradicts 61 | not-N1 955, contradicts 61 |
 
 Not-N1 rises by 62 because Fix 1 measured label citations at the first
 block carrying the label (the `CV-R7-LOCATION` bug): `.label` / `.value`
 of `supporting_evidence` items cited through the shared special and map
 labels were missed then and are counted now. The label-form single-segment
-75 split into N2-valid single segments and 57 bare legacy labels
-(`durations`, `playback_clock`, `game_clock_samples[label=death]`).
+75 are now 57 bare legacy labels (`durations`, `playback_clock`,
+`game_clock_samples[label=death]`) and 18 `related[i]` labels: those name
+objects, are cited as path-only references under leaf only, and hit
+`CV-BARE-OBJECT-REF` (before, `related[0] = {…}` passed only because R7
+skipped objects).
 
 The seven N2 properties and their tests:
 
@@ -123,49 +162,44 @@ The seven N2 properties and their tests:
 | --- | --- |
 | one path, one view location | `test_resolve_view_path_ignores_labels`, `test_every_view_leaf_is_a_valid_n2_citation` |
 | value checked at that location | `test_duplicate_label_wrong_value_is_rejected`, `test_wrong_value_through_duplicated_label_is_rejected`, `test_wrong_value_on_any_scalar_leaf_is_rejected` |
-| no pass by skipped validation | the same, plus `test_contradiction_is_legacy_label_form`; the remaining skip is pinned by `test_wrong_scalar_on_object_path_is_rejected` (strict `xfail`) |
-| explicit object rule | `CV-OBJECT-LEAF` (open; leaves of objects are checked: `test_leaf_of_object_evidence_is_checked`) |
+| no pass by skipped validation | the same, plus `test_contradiction_is_legacy_label_form`, `test_value_asserted_on_object_path_fails`, `test_legacy_label_to_object_cannot_bypass` |
+| explicit object rule | leaf only: `test_scalar_leaf_of_object_is_value_checked`, `test_value_asserted_on_object_path_fails`, `test_object_path_reference_without_value_is_allowed`, `test_object_path_claim_is_cited_by_its_leaves` |
 | prose punctuation | `test_correct_prose_value_is_accepted`, `test_wrong_prose_value_is_still_rejected`, `test_scalar_with_trailing_remark_still_accepted` |
 | every permitted scalar leaf, incl. top level | `test_top_level_scalar_paths_are_citable`, `test_single_segment_must_be_a_view_key` |
 | labels never influence literal resolution | `test_literal_path_is_never_redirected_by_a_label`, `test_label_naming_another_view_path_cannot_capture_citations`, `test_legacy_label_only_when_literal_path_is_absent`, `test_no_label_shadows_a_view_path` |
 
-## Open: object-valued evidence (`CV-OBJECT-LEAF`)
+## Object-valued evidence: leaf only
 
-`claim_basis` names objects as evidence for duration claims. In the fixtures:
-`death.death_to_active_again` (5 claims) and
-`death.time_since_previous_splat` (1), each a clocked duration
-(`value`, `video_seconds`, `clock`, `method`, `uncertainty_seconds`,
-`start_gap_seconds`, `end_gap_seconds`); `timeline.time_since_previous_death`
-and `roster.before_death` are declared the same way (roster is off in
-production). The claim's own `values` already pick a leaf
-(`{"death_to_active_again": 8.5, "clock": "video"}` equals `.value` and
-`.clock`). A model writing `death.death_to_active_again = 8.5` cites a
-scalar on an object path, so under the literal contract there is no value
-at that path to match, and R7 currently skips it (wrong values pass
-unchecked; pinned by a strict `xfail`). Citing the leaf
-(`death.death_to_active_again.value = 8.5`) is already checked.
+Decided: alternative A of the four considered (leaf only). B (canonical
+child per object type), C (compare with `claim_basis.values`) and D (keep
+skipping, annotate) were rejected; the literal rule gives an object path
+no scalar meaning.
 
-Alternatives (none implemented):
+Pending content migration (`CV-CLAIM-OBJECT-PATH`, strict `xfail`):
+`claim_basis` still names object paths for duration claims while the claim
+asserts scalars at leaves of that object. `claim_basis` content is not
+changed in this step. Under leaf only, a model that copies the evidence
+path and the claim value (`death.death_to_active_again = 8.5`) is rejected;
+`.value = 8.5` passes. The 6 fixture claims
+(`OBJECT_PATH_CLAIMS` in `tests/test_citation_contract.py`):
 
-- **A. Leaf-only (recommended).** A scalar cited on an object path is not
-  a valid value citation: R7 reports it (or a distinct "object path"
-  check). `claim_basis.evidence_paths` move to the leaves they assert
-  (`death.death_to_active_again.value`, `.clock`). Strictly literal;
-  needs a claim-basis content change (a later, separate step) and prompt
-  wording in the rewrite.
-- **B. Canonical scalar per object type.** A declared rule such as "a
-  clocked duration's value is `.value`"; R7 compares a scalar cited on the
-  object with that leaf. Small and deterministic, but a second meaning for
-  a path and a per-type table to keep.
-- **C. Compare with the claim's `values`.** R7 matches the cited scalar
-  against `claim_basis[i].values[last segment]`. Couples evidence
-  validation to the claim record and does not cover objects outside
-  `claim_basis`.
-- **D. Explicit unchecked marker.** Keep skipping, but emit a
-  non-counting `value_unchecked` annotation so the skip is visible.
-  Honest, but leaves property 3 unmet.
+| fixture unit | claim | evidence path | claim values | asserted leaves |
+| --- | --- | --- | --- | --- |
+| `contract/2026-10-10_23-43-31_death_episode_205.000` | `claim_basis[1]` `death_out_of_play` | `death.death_to_active_again` | 8.5, `video` | `.value`, `.clock` |
+| `contract/2026-10-11_22-37-47_death_episode_58.000` | `claim_basis[0]` `death_out_of_play` | `death.death_to_active_again` | 8.5, `video` | `.value`, `.clock` |
+| `contract/2026-10-11_22-57-30_death_episode_308.000` | `claim_basis[0]` `death_out_of_play` | `death.death_to_active_again` | 17.5, `video` | `.value`, `.clock` |
+| `corpus/5d42_145.000` | `claim_basis[0]` `death_own_splat_before` | `death.time_since_previous_splat` | 1.0 | `.video_seconds` (`.value` is null) |
+| `corpus/ed95_156.000` | `claim_basis[0]` `death_out_of_play` | `death.death_to_active_again` | 8.5, `video` | `.value`, `.clock` |
+| `corpus/ed95_72.000` | `claim_basis[1]` `death_out_of_play` | `death.death_to_active_again` | 9.0, `video` | `.value`, `.clock` |
 
-This needs a decision before any implementation.
+`death_out_of_play` values come from `durations.death_to_active_again`
+(`span.value`, `span.clock`). `death_own_splat_before` uses
+`own_splat_gap`, the raw video gap, which the view holds in
+`.video_seconds`; its `.value` is null when the playback clock is
+unverified. So the migration target is the leaf each value actually comes
+from, not uniformly `.value`. `timeline.time_since_previous_death` and
+`roster.before_death` are declared the same way but name no object in the
+fixtures (roster is off in production).
 
 ## History: Fix 1 results (`db5fa8c`)
 
@@ -263,7 +297,8 @@ should be added before the decision.
 ## Order of work
 
 Fix 1 (done) -> authoritative namespace: N2 (done) -> validator correctness
-for N2 (done; object-valued evidence open) -> object-valued evidence
-decision -> prompt rewrite to N2 and legacy label cleanup -> map-awareness
+for N2 (done) -> object-valued evidence: leaf only (done) -> claim_basis
+evidence paths to scalar leaves, prompt rewrite to N2 and legacy label
+cleanup -> map-awareness
 ownership -> rating methodology -> only then consider an Experiment I
 successor.
