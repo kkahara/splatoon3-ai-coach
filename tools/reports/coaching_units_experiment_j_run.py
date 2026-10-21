@@ -582,12 +582,12 @@ def run(
     spent = [c.call_id for c in todo if attempts_started(out, c.call_id) >= MAX_ATTEMPTS]
     if spent:
         raise SystemExit(f"{MAX_ATTEMPTS} attempts used: {spent}; 0 calls made")
+    llm = factory(config, provider, model)
     name = "precall_gate.json" if fresh else f"resume_gate_{gate['checked_at']}.json"
     write_json_atomic(_outputs(out) / name.replace(":", ""), gate)
     with RunLock(out):
         for cell in todo:
             archive_failed(out, cell)
-        llm = factory(config, provider, model)
         failures = run_cells(out, todo, llm, _meta(gate), "run" if fresh else "resume")
     logger.warning("J {}: {} cells, {} provider errors", "run", len(todo), failures)
     return 1 if failures else 0

@@ -148,6 +148,17 @@ def test_failed_gate_makes_zero_calls(tmp_path):
     assert provider.calls == [] and not (out / "outputs").exists()
 
 
+def test_provider_setup_failure_leaves_no_outputs(tmp_path):
+    out, _ = _plan(tmp_path)
+
+    def broken(*_):
+        raise RuntimeError("missing key")
+
+    with pytest.raises(RuntimeError, match="missing key"):
+        xrun.run(None, "cursor", "gpt-5.6-luna", broken, out=out, gate_fn=_gate(True))
+    assert not (out / "outputs").exists()
+
+
 def test_interruption_then_resume_never_duplicates_or_overwrites(tmp_path):
     out, total = _plan(tmp_path)
     first = FakeProvider({4: KeyboardInterrupt()})
