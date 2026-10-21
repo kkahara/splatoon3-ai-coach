@@ -43,6 +43,10 @@ a coaching claim; it words claims that are already authorized
   `authorizes` (judgment subcategories it licenses) and `rec_template_ids`.
   The view's `claim_basis` entries also carry `rec_frames` (each template's
   wording) so the model can phrase the only recommendations R10 accepts.
+- `evidence_paths` are literal scalar CoachLlmView leaves, one for every
+  value the claim carries (e.g. `death.death_to_active_again.value` and
+  `.clock`, `death.time_since_previous_splat.video_seconds`), never an
+  object path; `unit_paths` adds unit-dependent leaves (the LOW_INK interval).
 - `coachable` separates "the fact exists" from "the fact is worth offering as
   coaching" (`timer_sample_exists` is A but not coachable).
 - Hedging never creates C: "may have contributed to the death" is an invented

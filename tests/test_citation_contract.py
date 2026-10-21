@@ -134,10 +134,9 @@ VIOLATIONS: dict[str, Violation] = {
     ),
     "CV-CLAIM-OBJECT-PATH": Violation(
         CONTENT,
-        "open",
-        "claim_basis evidence path names an object while the claim asserts "
-        "scalars at its leaves; citing the path with the claim's value is "
-        "rejected (claim_basis content to move to the leaves)",
+        "fixed",
+        "claim_basis evidence path named an object while the claim asserted "
+        "scalars at its leaves (migrated to the leaves; MIGRATED_CLAIMS)",
     ),
     "CV-BARE-OBJECT-REF": Violation(
         SYNTAX,
@@ -737,11 +736,18 @@ def test_no_label_shadows_a_view_path() -> None:
                 assert label == location
 
 
-_OUT_OF_PLAY = {"death_to_active_again": "value", "clock": "clock"}
-# CV-CLAIM-OBJECT-PATH: (fixture unit, claim_basis index) -> claim id, the object
-# path it names, and the leaf holding each value the claim asserts. The
-# own-splat gap is raw video seconds (``video_seconds``; ``value`` is null).
-OBJECT_PATH_CLAIMS: dict[tuple[str, int], tuple[str, str, dict[str, str]]] = {
+_OUT_OF_PLAY = {
+    "death_to_active_again": "death.death_to_active_again.value",
+    "clock": "death.death_to_active_again.clock",
+}
+_OWN_SPLAT = {
+    "time_since_previous_splat": "death.time_since_previous_splat.video_seconds"
+}
+# CV-CLAIM-OBJECT-PATH (fixed by the claim_basis migration): (fixture unit,
+# claim_basis index) -> claim id, the object path it used to name, and the
+# leaf now carrying each claim value. The own-splat gap is the raw video gap
+# (``video_seconds``; its ``value`` is null in this unit), not ``.value``.
+MIGRATED_CLAIMS: dict[tuple[str, int], tuple[str, str, dict[str, str]]] = {
     ("contract/2026-10-10_23-43-31_death_episode_205.000", 1): (
         "death_out_of_play",
         "death.death_to_active_again",
@@ -760,7 +766,7 @@ OBJECT_PATH_CLAIMS: dict[tuple[str, int], tuple[str, str, dict[str, str]]] = {
     ("corpus/5d42_145.000", 0): (
         "death_own_splat_before",
         "death.time_since_previous_splat",
-        {"time_since_previous_splat": "video_seconds"},
+        _OWN_SPLAT,
     ),
     ("corpus/ed95_156.000", 0): (
         "death_out_of_play",
@@ -775,7 +781,8 @@ OBJECT_PATH_CLAIMS: dict[tuple[str, int], tuple[str, str, dict[str, str]]] = {
 }
 
 
-def test_object_path_claims_are_exactly_these() -> None:
+def test_no_claim_evidence_path_names_an_object() -> None:
+    """The CV-CLAIM-OBJECT-PATH exact set is empty after the migration."""
     found = {
         (key, index)
         for key, unit in fixture_units().items()
@@ -785,26 +792,39 @@ def test_object_path_claims_are_exactly_these() -> None:
             for path in claim["evidence_paths"]
         )
     }
-    assert found == set(OBJECT_PATH_CLAIMS)
+    assert found == set()
 
 
-@pytest.mark.parametrize(("key", "index"), sorted(OBJECT_PATH_CLAIMS))
-def test_object_path_claim_is_cited_by_its_leaves(key: str, index: int) -> None:
-    """Leaf only: the object path is a valid reference, a claim value asserted
-    on it is ``object_path_value``, and the same value on its leaf passes."""
+@pytest.mark.parametrize(("key", "index"), sorted(MIGRATED_CLAIMS))
+def test_migrated_claim_is_cited_by_its_leaves(key: str, index: int) -> None:
+    """Each formerly object-valued claim names the leaf of every value; the
+    old object path still rejects an asserted value (leaf only)."""
     view = fixture_units()[key].view
     claim = view["claim_basis"][index]
-    claim_id, path, leaf_of = OBJECT_PATH_CLAIMS[(key, index)]
-    assert (claim["claim_id"], claim["evidence_paths"]) == (claim_id, [path])
+    claim_id, old_path, leaf_of = MIGRATED_CLAIMS[(key, index)]
+    assert claim["claim_id"] == claim_id
+    assert claim["evidence_paths"] == list(leaf_of.values())
     assert set(claim["values"]) == set(leaf_of)
-    assert _object_value_check(view, path) is None
     for name, value in claim["values"].items():
-        assert _object_value_check(view, f"{path} = {render(value)}") == (
-            "object_path_value"
-        )
-        leaf = f"{path}.{leaf_of[name]}"
+        leaf = leaf_of[name]
         assert walk(view, leaf) == (True, value)
         assert check(view, leaf, leaf, value) is None
+        assert _object_value_check(view, f"{old_path} = {render(value)}") == (
+            "object_path_value"
+        )
+
+
+def test_every_claim_value_traces_to_an_evidence_leaf() -> None:
+    """Every claim_basis evidence path is a literal scalar view leaf, and every
+    claim value equals the value at one of its evidence paths."""
+    for key, unit in fixture_units().items():
+        for claim in unit.view["claim_basis"]:
+            leaves_ = [walk(unit.view, path) for path in claim["evidence_paths"]]
+            assert all(
+                found and not isinstance(value, dict | list) for found, value in leaves_
+            ), (key, claim["claim_id"])
+            for name, value in claim["values"].items():
+                assert any(same_value(v, value) for _, v in leaves_), (key, name)
 
 
 @pytest.mark.parametrize(("key", "count"), sorted(HISTORY_DB5FA8C.items()))

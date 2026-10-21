@@ -8,9 +8,11 @@ import json
 from pathlib import Path
 
 import coaching_units_experiment_i as xi
+import coaching_units_experiment_i_inputs as xii
 import coaching_units_experiment_i_results as xres
 import coaching_units_experiment_i_run as xr
 import pytest
+from sealed_drift import undeclared_drift
 
 from splatoon3_ai_coach.config import default_config_path, load_config
 
@@ -208,6 +210,14 @@ def test_blind_sheet_hides_arm_and_is_seeded() -> None:
     assert [r["output_id"] for r in key_rows] == [r["output_id"] for r in rows]
 
 
+# Checks that compare the sealed inputs with *current* production; production
+# changed after the seal (sealed_drift.VIEW_DRIFT), so these fail by design.
+PRODUCTION_EQUALITY_CHECKS = {
+    "rebuild_byte_equal_current_production",
+    "frozen_invariants",
+}
+
+
 @pytest.mark.skipif(not SEALED, reason="sealed inputs or analyses not present")
 def test_sealed_inputs_pass_the_gate_and_expand_to_88_cells() -> None:
     cells = xr.expected_cells(xr.load_manifest(xi.OUT_DIR))
@@ -221,5 +231,25 @@ def test_sealed_inputs_pass_the_gate_and_expand_to_88_cells() -> None:
         xr._check("outputs", []),
     )
     failing = {c["name"] for c in gate["checks"] if not c["ok"]}
-    assert failing <= {"repository_state"}
+    assert failing <= {"repository_state", *PRODUCTION_EQUALITY_CHECKS}
+    invariants = next(c for c in gate["checks"] if c["name"] == "frozen_invariants")
+    assert all(
+        p.endswith(": A prompt differs from Experiment H arm A")
+        for p in invariants["problems"]
+    )
     assert xr.seal_problems(xi.OUT_DIR, seal="a82fcdc")
+
+
+@pytest.mark.skipif(not SEALED, reason="sealed inputs or analyses not present")
+def test_sealed_inputs_differ_from_production_only_by_declared_drift() -> None:
+    design = xii.load_design(xi.OUT_DIR)
+    _, arms = xii.arm_inputs(design, load_config(default_config_path()))
+    inputs = xi.OUT_DIR / "inputs"
+    drift = {}
+    for rel, text in xii.input_files(design, arms).items():
+        sealed = (inputs / rel).read_text(encoding="utf-8")
+        if rel.endswith(".user_prompt.txt"):
+            drift[rel] = undeclared_drift(sealed, text)
+        elif sealed != text:
+            drift[rel] = ["differs"]
+    assert {rel: problems for rel, problems in drift.items() if problems} == {}

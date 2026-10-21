@@ -12,6 +12,7 @@ import coaching_units_experiment_h_inputs as xi
 import coaching_units_experiment_h_results as xres
 import coaching_units_experiment_h_run as xr
 import pytest
+from sealed_drift import undeclared_drift
 
 from splatoon3_ai_coach.config import default_config_path, load_config
 
@@ -149,5 +150,24 @@ def test_sealed_inputs_verify_and_expand_to_132_cells() -> None:
     manifest = xi.load_manifest(MANIFEST.parent)
     cells = xr.expected_cells(manifest)
     assert len(cells) == 132 and len({c.call_id for c in cells}) == 132
-    assert xr.verify_sealed(xh.OUT_DIR, load_config(default_config_path())) == []
+    problems = xr.verify_sealed(xh.OUT_DIR, load_config(default_config_path()))
+    assert all(p.endswith(" differs from production") for p in problems)
     assert xr.seal_problems(xh.OUT_DIR, seal="ea48b5f")
+
+
+@pytest.mark.skipif(not SEALED, reason="sealed inputs or analyses not present")
+def test_sealed_inputs_differ_from_production_only_by_declared_drift() -> None:
+    """Production changed after the seal (sealed_drift.VIEW_DRIFT); nothing else."""
+    inputs = MANIFEST.parent
+    base = load_config(default_config_path())
+    views = {arm: xh.arm_views(base, arm) for arm in xh.ARMS}
+    drift = {}
+    for arm in xh.ARMS:
+        rel = f"system_prompt_{arm}.txt"
+        if (inputs / rel).read_text(encoding="utf-8") != xh.arm_system_prompt(arm):
+            drift[rel] = ["differs"]
+    for call in xi.load_manifest(inputs)["calls"]:
+        sealed = (inputs / call["file"]).read_text(encoding="utf-8")
+        current = views[call["arm"]][(call["match"], call["cid"])].prompt
+        drift[call["file"]] = undeclared_drift(sealed, current)
+    assert {rel: problems for rel, problems in drift.items() if problems} == {}

@@ -55,7 +55,8 @@ LEGACY_SCHEMA_VERSION = 1
 COACHING_INDEX_SCHEMA_VERSION = 3
 # Bump when deterministic evidence semantics change (coaching.json / llm_view).
 # v4: roster capability off, same-life special, claim_basis / undetermined.
-COACH_EVIDENCE_VERSION = 4
+# v5: claim_basis evidence_paths are literal scalar CoachLlmView leaves.
+COACH_EVIDENCE_VERSION = 5
 VISION_MANIFEST_FILENAME = "vision_manifest.json"
 PROTOTYPE_INDEX_SCHEMA_VERSION = 3
 

@@ -63,6 +63,10 @@ class ClaimDefinition:
     as coaching content". ``authorizes`` lists judgment subcategories (rule R6)
     this claim licenses; ``rec_template_ids`` lists recommendation template IDs
     (rule R10) it grounds.
+
+    ``evidence_paths`` are literal scalar CoachLlmView leaves, one for every
+    value the claim carries; ``unit_paths`` adds leaves whose index depends on
+    the unit (which LOW_INK interval).
     """
 
     claim_id: str
@@ -73,6 +77,7 @@ class ClaimDefinition:
     coachable: bool
     public_ok: bool = True
     contradicted_by: tuple[str, ...] = ()
+    unit_paths: Callable[[CoachInput], tuple[str, ...]] | None = None
     authorizes: tuple[str, ...] = ()
     rec_template_ids: tuple[str, ...] = ()
 
@@ -209,19 +214,31 @@ def _own_splat_values(coach_input: CoachInput) -> Values:
     return {"time_since_previous_splat": own_splat_gap(coach_input)}
 
 
-def _low_ink_at_death(
-    coach_input: CoachInput, _unit: CoachingUnitResult
-) -> Values | None:
-    """A LOW_INK interval that had started by the death (closed interval)."""
+def _low_ink_hit(coach_input: CoachInput) -> tuple[int, float, float] | None:
+    """(index, start, death time) of the first LOW_INK interval containing
+    the death (closed interval)."""
     ctx = coach_input.primary_context
     death = ctx.death_episode
     if ctx.low_ink is None or death is None or death.death_time is None:
         return None
     death_time = float(death.death_time)
-    for interval in ctx.low_ink.intervals:
+    for index, interval in enumerate(ctx.low_ink.intervals):
         if interval.start_time <= death_time <= interval.end_time:
-            return {"start_time": interval.start_time, "death_time": death_time}
+            return index, interval.start_time, death_time
     return None
+
+
+def _low_ink_at_death(
+    coach_input: CoachInput, _unit: CoachingUnitResult
+) -> Values | None:
+    """A LOW_INK interval that had started by the death (closed interval)."""
+    hit = _low_ink_hit(coach_input)
+    return None if hit is None else {"start_time": hit[1], "death_time": hit[2]}
+
+
+def _low_ink_paths(coach_input: CoachInput) -> tuple[str, ...]:
+    hit = _low_ink_hit(coach_input)
+    return () if hit is None else (f"low_ink.intervals[{hit[0]}].start_time",)
 
 
 def _requires(claim_id: str) -> Eligibility:
@@ -235,13 +252,24 @@ def _requires(claim_id: str) -> Eligibility:
 
 _SPECIAL_PATH = "special.state_at_anchor"
 _MAP_PATH = "map.map_check_before_death.status"
+_REDEATH_PATHS = (
+    "timeline.time_since_previous_death.value",
+    "timeline.time_since_previous_death.clock",
+)
+_CLOCK_PATHS = ("clock.seconds_remaining", "clock.display")
+_SCORE_PATHS = ("score.ally_remaining", "score.opponent_remaining")
+_ROSTER_PATHS = (
+    "roster.before_death.ally_alive_count",
+    "roster.before_death.opponent_alive_count",
+)
+_LOW_INK_PATHS = ("low_ink.at_death", "death.death_time_video")
 
 CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
     ClaimDefinition(
         claim_id=_F.DEATH_QUICK_REDEATH.value,
         level=ClaimLevel.A,
         frame="Your previous death was {time_since_previous_death}s earlier.",
-        evidence_paths=("timeline.time_since_previous_death",),
+        evidence_paths=_REDEATH_PATHS,
         eligible=_factor(_F.DEATH_QUICK_REDEATH, _redeath_values),
         coachable=True,
     ),
@@ -249,7 +277,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_OWN_SPLAT_BEFORE.value,
         level=ClaimLevel.A,
         frame="You got a splat {time_since_previous_splat}s before you were splatted.",
-        evidence_paths=("death.time_since_previous_splat",),
+        evidence_paths=("death.time_since_previous_splat.video_seconds",),
         eligible=_factor(_F.DEATH_OWN_SPLAT_BEFORE, _own_splat_values),
         coachable=True,
         contradicted_by=("calling it a trade or an exchange",),
@@ -258,7 +286,8 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="death_low_ink",
         level=ClaimLevel.A,
         frame="The low-ink warning was showing when you were splatted.",
-        evidence_paths=("low_ink.at_death",),
+        evidence_paths=_LOW_INK_PATHS,
+        unit_paths=_low_ink_paths,
         eligible=_low_ink_at_death,
         coachable=True,
     ),
@@ -266,7 +295,10 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="death_out_of_play",
         level=ClaimLevel.A,
         frame="You were out of play for {death_to_active_again}s after this death.",
-        evidence_paths=("death.death_to_active_again",),
+        evidence_paths=(
+            "death.death_to_active_again.value",
+            "death.death_to_active_again.clock",
+        ),
         eligible=_out_of_play,
         coachable=True,
     ),
@@ -274,7 +306,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_FINAL_30S.value,
         level=ClaimLevel.A,
         frame="This death happened with only {display} left in the match.",
-        evidence_paths=("clock.seconds_remaining",),
+        evidence_paths=_CLOCK_PATHS,
         eligible=_factor(_F.DEATH_FINAL_30S, _clock_values),
         coachable=True,
     ),
@@ -282,7 +314,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_FIRST_30S.value,
         level=ClaimLevel.A,
         frame="This death happened early in the match, with {display} left.",
-        evidence_paths=("clock.seconds_remaining",),
+        evidence_paths=_CLOCK_PATHS,
         eligible=_factor(_F.DEATH_FIRST_30S, _clock_values),
         coachable=True,
     ),
@@ -338,7 +370,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="timer_sample_exists",
         level=ClaimLevel.A,
         frame="The match timer showed {display} at this death.",
-        evidence_paths=("clock.seconds_remaining", "clock.display"),
+        evidence_paths=_CLOCK_PATHS,
         eligible=_clock_sample,
         coachable=False,
     ),
@@ -346,7 +378,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_WHILE_BEHIND_IN_COUNT.value,
         level=ClaimLevel.A,
         frame="Just before the death your team needed more counts than the opponents.",
-        evidence_paths=("score.ally_remaining", "score.opponent_remaining"),
+        evidence_paths=_SCORE_PATHS,
         eligible=_factor(_F.DEATH_WHILE_BEHIND_IN_COUNT, _score_values),
         coachable=False,
     ),
@@ -354,7 +386,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_WHILE_AHEAD_IN_COUNT.value,
         level=ClaimLevel.A,
         frame="Just before the death your team needed fewer counts than the opponents.",
-        evidence_paths=("score.ally_remaining", "score.opponent_remaining"),
+        evidence_paths=_SCORE_PATHS,
         eligible=_factor(_F.DEATH_WHILE_AHEAD_IN_COUNT, _score_values),
         coachable=False,
     ),
@@ -362,7 +394,10 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_OPPONENT_COUNTER_TICKED.value,
         level=ClaimLevel.A,
         frame="The opponent counter went down in the few seconds before the death.",
-        evidence_paths=("score.opponent_counter_decreased_before_death",),
+        evidence_paths=(
+            "score.opponent_counter_decreased_before_death",
+            *_SCORE_PATHS,
+        ),
         eligible=_factor(_F.DEATH_OPPONENT_COUNTER_TICKED, _score_values),
         coachable=False,
     ),
@@ -370,7 +405,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_WHILE_OUTNUMBERED.value,
         level=ClaimLevel.A,
         frame="Just before the death your team had fewer players alive.",
-        evidence_paths=("roster.before_death",),
+        evidence_paths=_ROSTER_PATHS,
         eligible=_roster_factor(_F.DEATH_WHILE_OUTNUMBERED),
         coachable=True,
         public_ok=False,
@@ -379,7 +414,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id=_F.DEATH_WHILE_AHEAD_IN_NUMBERS.value,
         level=ClaimLevel.A,
         frame="Just before the death your team had more players alive.",
-        evidence_paths=("roster.before_death",),
+        evidence_paths=_ROSTER_PATHS,
         eligible=_roster_factor(_F.DEATH_WHILE_AHEAD_IN_NUMBERS),
         coachable=False,
         public_ok=False,
@@ -388,7 +423,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="principle_redeath_out_of_play",
         level=ClaimLevel.B,
         frame="Back-to-back deaths keep you out of play for longer.",
-        evidence_paths=("timeline.time_since_previous_death",),
+        evidence_paths=_REDEATH_PATHS,
         eligible=_requires(_F.DEATH_QUICK_REDEATH.value),
         coachable=True,
         rec_template_ids=("rec_redeath_reset",),
@@ -397,7 +432,8 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="process_ink_before_engaging",
         level=ClaimLevel.B,
         frame="Refilling ink before re-engaging means starting the next fight with ink.",
-        evidence_paths=("low_ink.at_death",),
+        evidence_paths=_LOW_INK_PATHS,
+        unit_paths=_low_ink_paths,
         eligible=_requires("death_low_ink"),
         coachable=True,
         rec_template_ids=("rec_refill_ink",),
@@ -529,7 +565,10 @@ def build_claim_basis(
                 level=claim.level,
                 coachable=claim.coachable,
                 frame=claim.frame,
-                evidence_paths=list(claim.evidence_paths),
+                evidence_paths=[
+                    *claim.evidence_paths,
+                    *(claim.unit_paths(coach_input) if claim.unit_paths else ()),
+                ],
                 values=values,
                 authorizes=list(claim.authorizes),
                 rec_template_ids=list(claim.rec_template_ids),

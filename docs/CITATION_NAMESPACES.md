@@ -175,31 +175,47 @@ child per object type), C (compare with `claim_basis.values`) and D (keep
 skipping, annotate) were rejected; the literal rule gives an object path
 no scalar meaning.
 
-Pending content migration (`CV-CLAIM-OBJECT-PATH`, strict `xfail`):
-`claim_basis` still names object paths for duration claims while the claim
-asserts scalars at leaves of that object. `claim_basis` content is not
-changed in this step. Under leaf only, a model that copies the evidence
-path and the claim value (`death.death_to_active_again = 8.5`) is rejected;
-`.value = 8.5` passes. The 6 fixture claims
-(`OBJECT_PATH_CLAIMS` in `tests/test_citation_contract.py`):
+### claim_basis migration (`CV-CLAIM-OBJECT-PATH`, fixed)
 
-| fixture unit | claim | evidence path | claim values | asserted leaves |
-| --- | --- | --- | --- | --- |
-| `contract/2026-10-10_23-43-31_death_episode_205.000` | `claim_basis[1]` `death_out_of_play` | `death.death_to_active_again` | 8.5, `video` | `.value`, `.clock` |
-| `contract/2026-10-11_22-37-47_death_episode_58.000` | `claim_basis[0]` `death_out_of_play` | `death.death_to_active_again` | 8.5, `video` | `.value`, `.clock` |
-| `contract/2026-10-11_22-57-30_death_episode_308.000` | `claim_basis[0]` `death_out_of_play` | `death.death_to_active_again` | 17.5, `video` | `.value`, `.clock` |
-| `corpus/5d42_145.000` | `claim_basis[0]` `death_own_splat_before` | `death.time_since_previous_splat` | 1.0 | `.video_seconds` (`.value` is null) |
-| `corpus/ed95_156.000` | `claim_basis[0]` `death_out_of_play` | `death.death_to_active_again` | 8.5, `video` | `.value`, `.clock` |
-| `corpus/ed95_72.000` | `claim_basis[1]` `death_out_of_play` | `death.death_to_active_again` | 9.0, `video` | `.value`, `.clock` |
+Production `claim_basis.evidence_paths` now name the literal scalar leaf of
+every value a claim carries; none needs an object-to-leaf interpretation.
+Leaves follow each claim's value source, not a blanket `.value`:
 
-`death_out_of_play` values come from `durations.death_to_active_again`
-(`span.value`, `span.clock`). `death_own_splat_before` uses
-`own_splat_gap`, the raw video gap, which the view holds in
-`.video_seconds`; its `.value` is null when the playback clock is
-unverified. So the migration target is the leaf each value actually comes
-from, not uniformly `.value`. `timeline.time_since_previous_death` and
-`roster.before_death` are declared the same way but name no object in the
-fixtures (roster is off in production).
+| claim(s) | old path(s) | new leaf path(s) |
+| --- | --- | --- |
+| `death_out_of_play` | `death.death_to_active_again` | `death.death_to_active_again.value`, `death.death_to_active_again.clock` (`span.value`, `span.clock`) |
+| `death_own_splat_before` | `death.time_since_previous_splat` | `death.time_since_previous_splat.video_seconds` (`own_splat_gap` is the raw video gap; `.value` is null without a verified playback clock) |
+| `death_quick_redeath`, `principle_redeath_out_of_play` | `timeline.time_since_previous_death` | `timeline.time_since_previous_death.value`, `.clock` (`gap.value`, `gap.clock`) |
+| `death_while_outnumbered`, `death_while_ahead_in_numbers` (roster off in production) | `roster.before_death` | `roster.before_death.ally_alive_count`, `.opponent_alive_count` |
+| `death_final_30s`, `death_first_30s` | `clock.seconds_remaining` | + `clock.display` (the frame quotes `{display}`) |
+| `death_opponent_counter_ticked` | `score.opponent_counter_decreased_before_death` | + `score.ally_remaining`, `score.opponent_remaining` (its values) |
+| `death_low_ink`, `process_ink_before_engaging` | `low_ink.at_death` | + `death.death_time_video` and the unit's `low_ink.intervals[i].start_time` (`unit_paths`) |
+
+Claim ids, frames, eligibility and values are unchanged. The 6 fixture
+claims that named an object (`MIGRATED_CLAIMS` in
+`tests/test_citation_contract.py`):
+
+| fixture unit | claim | old path | new leaves |
+| --- | --- | --- | --- |
+| `contract/2026-10-10_23-43-31_death_episode_205.000` | `claim_basis[1]` `death_out_of_play` (8.5, `video`) | `death.death_to_active_again` | `.value`, `.clock` |
+| `contract/2026-10-11_22-37-47_death_episode_58.000` | `claim_basis[0]` `death_out_of_play` (8.5, `video`) | `death.death_to_active_again` | `.value`, `.clock` |
+| `contract/2026-10-11_22-57-30_death_episode_308.000` | `claim_basis[0]` `death_out_of_play` (17.5, `video`) | `death.death_to_active_again` | `.value`, `.clock` |
+| `corpus/5d42_145.000` | `claim_basis[0]` `death_own_splat_before` (1.0) | `death.time_since_previous_splat` | `.video_seconds` |
+| `corpus/ed95_156.000` | `claim_basis[0]` `death_out_of_play` (8.5, `video`) | `death.death_to_active_again` | `.value`, `.clock` |
+| `corpus/ed95_72.000` | `claim_basis[1]` `death_out_of_play` (9.0, `video`) | `death.death_to_active_again` | `.value`, `.clock` |
+
+Checked on the 26 fixture views (`test_every_claim_value_traces_to_an_evidence_leaf`)
+and, once, on all 56 death views rebuilt from the local analyses: every
+evidence path is a literal scalar leaf and every claim value equals the
+value at one of them. The two roster claims are not exercised (roster off).
+
+Versions: the view's shape is unchanged (`LLM_VIEW_SCHEMA_VERSION` stays 3);
+`COACH_EVIDENCE_VERSION` 4 -> 5 because `claim_basis` content changed, so
+existing coach-input artifacts read as stale and `coach-prototype` refuses
+them without `--allow-stale`. No golden fixture stores a serialized view
+(citation-contract and claim-corpus views are rebuilt from CoachInput).
+Sealed Experiment H / I prompts no longer equal current production; the
+tests pin that they differ only by this change (`tests/sealed_drift.py`).
 
 ## History: Fix 1 results (`db5fa8c`)
 
@@ -298,7 +314,6 @@ should be added before the decision.
 
 Fix 1 (done) -> authoritative namespace: N2 (done) -> validator correctness
 for N2 (done) -> object-valued evidence: leaf only (done) -> claim_basis
-evidence paths to scalar leaves, prompt rewrite to N2 and legacy label
-cleanup -> map-awareness
-ownership -> rating methodology -> only then consider an Experiment I
-successor.
+evidence paths to scalar leaves (done) -> prompt rewrite to N2 -> legacy
+label cleanup -> map-awareness ownership -> rating methodology -> only then
+consider an Experiment I successor.
