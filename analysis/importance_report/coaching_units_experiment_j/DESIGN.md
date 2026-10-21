@@ -1,6 +1,6 @@
 # Experiment J: incremental value of map-awareness coaching (draft)
 
-**Status: DRAFT, revision 2, not frozen.** Nothing is built, analyzed or
+**Status: DRAFT, revision 3, not frozen.** Nothing is built, analyzed or
 called. There is no `design.json` until the design is approved at stop
 point 1. Items marked **[review]** are open decisions.
 
@@ -10,74 +10,56 @@ postmortem and every frozen determination are not touched.
 
 ## Question
 
-When map-awareness evidence is actually relevant to a coaching opportunity,
-does using it produce coaching that is more useful and actionable than the
-same production coaching with one equally grounded, non-map coaching point?
+On fresh deaths independently judged map-relevant before any model output
+exists, does the map-specific portion of M add useful, actionable coaching
+to the otherwise identical output?
 
-The measured quantity is the **incremental value attributable to map
-evidence**, not the value of "one more supported recommendation".
+## Why the design changed (revision 2 → 3)
 
-## What Experiment I could not separate
+Revision 2 used an active control C (one non-map point per death). A
+read-only count over 125 locally stored deaths showed that a clean control
+is rarely available:
 
-Experiment I (frozen; `../coaching_units_experiment_i/`) compared A
-(production) with M (production + map block + map prompt section). M scored
-4.0 vs A 2.14 on eligible deaths, with 28/28 uptake. That difference mixes
-three things:
+| C menu | deaths with a C point |
+| --- | --- |
+| death-specific (`death_low_ink`, `death_own_splat_before`) | 6% |
+| full menu (adding first/last 30 s clock points) | 25%, mostly clock points |
 
-1. **One more grounded recommendation.** M always added a supported
-   recommendation; A often had none. Any extra concrete point may score
-   higher.
-2. **The map content of that point.** This is what J measures.
-3. **Mechanical eligibility as relevance.** "0 checks and at least 10 s" says
-   the coaching unit applies, not that the map mattered for this death.
-
-Its safety failure (adjusted hits 0.7273/call) was citation form
-(`primary_context.map_awareness.*` resolving to `unknown_block`), not grounding.
-J uses a literal top-level N2 block (below), so that failure should not
-recur. The stop point 3 dry run checks it before any call.
-
-J removes confound 1 with an active control arm C and handles confound 3
-with a footage-first relevance label that the rater seals before seeing any
-output.
+The full menu would have skewed the population toward the first and last
+30 s of matches, so J could have answered the wrong question. New evidence is
+not invented to rescue a three-arm design. The primary test is therefore
+**M vs A, plus a within-output map ablation**. C becomes a small diagnostic
+on deaths that naturally carry a death-specific C point.
 
 ## Arms
 
-| arm | view | system prompt | extra point |
+| arm | view | system prompt | where |
 | --- | --- | --- | --- |
-| A | production (roster off) | production | none |
-| C | production + `back_in_play` + `extra_point` | production + extra-point section (C) | one non-map point chosen by the C selection rule |
-| M | production + `back_in_play` + `map_awareness` + `extra_point` | production + extra-point section (M) | the map-awareness point |
+| A | production (roster off) | production | P1, P2 |
+| M | production + `back_in_play` + `map_awareness` + `extra_point` | production + extra-point section (M) | P1, P2, P3 |
+| C (diagnostic) | production + `back_in_play` + `extra_point` | production + extra-point section (C) | P1/P2 deaths that naturally carry a C point |
 
-- C and M differ in one thing: **which** additional point is coached. Both
-  see the same timing fact (`back_in_play`). Only M sees map counts.
-- Framing, matched:
-  - C: "Here is one additional grounded, actionable coaching point."
-  - M: "Here is one additional grounded, actionable coaching point,
-    derived specifically from map awareness."
-- A is the production reference. It answers "is either extra point better
-  than production?" and is descriptive for the map question.
 - Model: cursor `gpt-5.6-luna`, one death per call, 2 repeats per arm.
+- **M-minus-map** is not an arm and needs no call. It is derived
+  deterministically from each M output (see "Map ablation").
 
-### Block ownership (settles the open question in `docs/CITATION_NAMESPACES.md`)
+### Block ownership
 
 `back_in_play`, `map_awareness` and `extra_point` are **experiment-only,
-view-only top-level N2 blocks**. They are not CoachInput (N1) fields and not
-ScenarioContext, and they are never cited through `primary_context`. The
-validator already walks the serialized view literally
-(`claim_validation.resolve_view_path`), so `map_awareness.seconds_back_in_play`
-resolves with no validator change. Where these facts live in production is
-decided only if J passes, as a separate decision.
+view-only top-level N2 blocks**. They are not CoachInput (N1) fields, not
+ScenarioContext, and never cited through `primary_context`. The validator
+walks the serialized view literally (`claim_validation.resolve_view_path`),
+so `map_awareness.map_checks_since_back_in_play` resolves without a
+validator change. This avoids Experiment I's citation-form failure
+(`primary_context.map_awareness.*` → `unknown_block`). Where these facts
+live in production is decided only if J passes, as a separate decision.
 
 ### Blocks
 
-The derived facts are Experiment I's arithmetic, unchanged, split into a
-shared timing block and an M-only map block.
+The derived facts are Experiment I's arithmetic, unchanged.
 
 ```json
-"back_in_play": {
-  "source": "previous_respawn | match_start",
-  "seconds_back_in_play": 74.5
-}
+"back_in_play": {"source": "previous_respawn | match_start", "seconds_back_in_play": 74.5}
 ```
 
 `map_awareness` (M only):
@@ -92,209 +74,229 @@ shared timing block and an M-only map block.
 }
 ```
 
-`extra_point` (C and M; null when the arm has no point for this death):
+`extra_point` (M and C only; null when the arm has no point):
 
-```json
-"extra_point": {"claim_id": "death_low_ink", "rec_template_id": "rec_refill_ink"}
-```
+| arm | `claim_id` | `rec_template_id` |
+| --- | --- | --- |
+| M | `no_map_check_since_back_in_play` (experiment-only, from Experiment I) | `rec_map_after_respawn` (production) |
+| C | the death's C claim | its template (below) |
 
-In M, `extra_point` is always
-`{"claim_id": "no_map_check_since_back_in_play", "rec_template_id": "rec_map_after_respawn"}`
-on eligible deaths. The experiment-only claim is the one from Experiment I.
-Its frame is "No map check was observed in the {seconds_back_in_play}s since
-the player was back in play.", with evidence paths
-`back_in_play.seconds_back_in_play` and
+The M claim's frame is "No map check was observed in the
+{seconds_back_in_play}s since the player was back in play." Its evidence
+paths are `back_in_play.seconds_back_in_play` and
 `map_awareness.map_checks_since_back_in_play`.
 
 Derivation (same as Experiment I):
-- `back_in_play_time` is the end of the previous death episode, or else the
+
+- `back_in_play_time`: the end of the previous death episode, or else the
   first `in_match` snapshot.
-- Checks are MAP_OVERLAY events that start strictly after
+- Checks: MAP_OVERLAY events that start strictly after
   `back_in_play_time + 2.0 s` and before the death.
-- **Eligible** means 0 checks and `seconds_back_in_play >= 10.0`.
+- **Eligible:** 0 checks and `seconds_back_in_play >= 10.0`.
 - If map observability is not `sufficient`, or `map_check_status` is not
-  `observed` / `not_observed`, the death is not eligible and
-  `map_awareness` is null.
+  `observed` / `not_observed`, the death is not eligible and `map_awareness`
+  is null.
 
-## The C selection rule
+**Threshold.** J uses the fixed 10 s threshold as pre-registered policy.
+Threshold-band results are descriptive only. **J cannot be used to select or
+validate a different threshold.**
 
-C needs one non-map coaching point per death that is grounded in existing
-evidence, as specific and actionable as M's point, and fixed before any J
-output. The rule is a frozen priority list over `claim_basis` entries, and
-it uses only that death's production view.
+## Map ablation (primary contrast)
 
-### Constraints on the menu
+For each M output on an eligible death, **M-minus-map** removes only the map
+unit. Nothing is rewritten.
 
-| excluded | why |
-| --- | --- |
-| every map claim (`death_map_overlay_before_false`, `process_map_after_respawn`, `map_check_observed_before_death`) | C must not depend on map evidence |
-| `death_quick_redeath`, `principle_redeath_out_of_play`, `rec_redeath_reset` | same re-entry moment as M; too semantically close |
-| `death_out_of_play` | about the respawn and re-entry interval |
-| `death_special_ready` | the only natural recommendation is special usage. The production prompt says "Statement only — never 'should have used special'", and R4 `SPECIAL_USAGE` blocks it |
-| `death_while_outnumbered` and other roster claims | roster is off in production (`coach.roster_evidence=false`); numbers awareness is not available |
-| non-coachable claims (`special_not_ready_at_death`, `timer_sample_exists`, count claims, …) | not coachable in production |
+### Map unit
 
-### Menu (priority order, first eligible wins)
+The unit is located through the output's structure, not by fuzzy matching.
+The production prompt requires two things. First, `claims[].sentence` is
+"the assessment sentence you used". Second, advice appears only in
+`recommendations`.
 
-| priority | claim (existing, coachable, level A) | recommendation template | template status |
-| --- | --- | --- | --- |
-| 1 | `death_low_ink` (LOW_INK interval contains the death) | `rec_refill_ink` "Refill your ink before taking the next fight." | production |
-| 2 | `death_own_splat_before` ("You got a splat {t}s before you were splatted.") | `rec_after_splat_reposition` "After you win a fight, reposition before taking the next one." | experiment-only **[review wording]** |
-| 3 | `death_final_30s` | `rec_final_seconds_survive` "In the last 30 seconds, take only fights you can survive." | experiment-only **[review wording]** |
-| 4 | `death_first_30s` | `rec_opening_ink_first` "In the opening seconds, ink forward with your team before taking a fight." | experiment-only **[review wording]** |
+- **Map sentence S:** `claims[i].sentence` for the claim whose `claim_id` is
+  `no_map_check_since_back_in_play`.
+- **Map recommendations R:** every `recommendations` item that matches the
+  `rec_map_after_respawn` pattern or the map-mention regex. The regex is
+  Experiment I's `_MAP_MENTION` plus the bare word "map".
 
-- The order is fixed before outputs and follows how specific the fact is to
-  this death, not expected usefulness: player state at the death, then an
-  event seconds before it, then match-clock context.
-- Ties cannot happen: the list is ordered, and each claim has one template.
-- If no menu claim is eligible, there is **no C point**. The death cannot
-  enter the M-vs-C efficacy population. The criteria are not relaxed to
-  find one.
-- Each experiment-only template gets a regex that must not match any
-  production template's pattern. This is checked in the tool's tests. The
-  template is added only to arm C's claim basis entry for the selected
-  claim.
-- Both arms state the selected claim's fact with its value. This keeps the
-  specificity matched: one death-specific fact plus one habit
-  recommendation, as in M.
+### Ablatability (frozen, automatic)
 
-### Feasibility estimate (aggregate counts only; no J deaths selected)
+An output is ablatable only if all of these hold:
 
-Applied read-only to the 125 deaths with stored `coach_inputs` in the local
-public-site mirror (33 matches):
+1. Exactly one claim has the map `claim_id`, and its sentence is not empty.
+2. The `assessment`, split with the frozen splitter `(?<=[.!?])\s+`, has
+   exactly one segment equal to S (after stripping whitespace).
+3. At least one other segment remains.
+4. No remaining segment matches the map regex.
+5. No item in R matches a non-map template pattern. An item such as "refill
+   ink and check the map" is mixed, so the output is not ablatable.
 
-| menu | deaths with a C point | share |
-| --- | --- | --- |
-| production-only (`death_low_ink`) | 5 | 4% |
-| death-specific (`death_low_ink`, `death_own_splat_before`) | 8 | 6% |
-| full menu above | 31 | 25% |
+Outputs that fail are **not** edited into shape. They are excluded from the
+ablation comparison, and the count is reported with its reasons.
 
-First picks under the full menu were final 30 s 16, first 30 s 7, low ink 5
-and own splat 3.
+### Ablated presentation
 
-Per-claim eligibility was:
-- `death_final_30s` 17
-- `death_map_overlay_before_false` 22
-- `death_quick_redeath` 14
-- `death_first_30s` 7
-- `death_low_ink` 5
-- `death_special_ready` 5
-- `death_own_splat_before` 3
+- `assessment` = the remaining segments in their original order, joined by
+  one space.
+- `recommendations` = the original list minus R, in order.
+- No capitalization, connective or wording repair.
+- Raters see `assessment` and `recommendations` only, for full and ablated
+  outputs alike, as in Experiment I's sheet and on the public page.
+  `limitations`, `claims` and `evidence_used` are not displayed and are not
+  ablated.
 
-What this means:
+### Check on stored outputs (read-only, no calls)
 
-- **Production supports almost no matched non-map point today.** Apart from
-  the excluded re-entry template, `rec_refill_ink` is the only non-map
-  production recommendation, and it applies to about 4% of deaths.
-- **Requiring a C point narrows and skews the population.** Even with the
-  full menu, about three quarters of deaths have no C point. Of those that
-  do, 23 of 31 are clock points, so the efficacy population would be
-  concentrated in the first and last 30 s of matches.
-- **Clock points are probably weaker than M's point.** That would favour M
-  for reasons unrelated to map content, reintroducing a milder form of
-  confound 1.
+The rule was applied to Experiment I's 28 eligible M outputs. These were
+written under I's prompt, not J's, so this is evidence about the output
+structure, not a J result.
 
-**[review] C menu decision. This is the main open item.** Options:
+- **27 of 28 are ablatable.** The one failure (22-31-53 @208.5 r1)
+  paraphrased the map fact in the assessment ("You then spent 18.0 seconds
+  back in play without an observed map check"), so S did not appear
+  verbatim. Rule 2 excludes it.
+- 13 outputs mention the map in `limitations`. Limitations are not displayed,
+  so they don't affect ablatability.
+- **All 27 ablated outputs have no recommendation left.** On all 14
+  eligible deaths, the claim basis grounded no non-map recommendation
+  template, and A gave no recommendation in 28 of 28 outputs.
 
-1. **Full menu (written above).** About 25% availability. It needs three
-   experiment-only templates. The efficacy population is skewed toward
-   match-clock deaths, so clock share is a pre-registered descriptive
-   covariate and is reported at stop point 2.
-2. **Death-specific menu** (`death_low_ink`, `death_own_splat_before`). This
-   gives the best specificity match with M, but only about 6% availability.
-   Reaching the target size would need roughly 900 census deaths (estimate
-   below).
-3. **Production-only** (`death_low_ink`). Nothing new is added to the claim
-   catalog, but about 4% availability is not feasible at the target size.
+### What the ablation can and cannot separate
 
-None of the three gives a C point at most deaths, because existing evidence
-contains no universally available, non-map, non-re-entry coaching fact.
-Adding one would be a new evidence or catalog design, outside J.
+On these deaths, current evidence usually supports no other recommendation.
+So "full M vs M-minus-map" will mostly compare "map fact + map
+recommendation" against "the same statements with no recommendation". The
+ablation tightly controls the death, call, wording and claim selection.
+**It does not by itself separate map content from having any advice.**
 
-Rough census size for 24 efficacy deaths, assuming eligible 0.68 (Experiment
-I) and relevant 0.6 (a guess; measured at stop point 2):
+J separates them with a contrast it already plans: **relevance**. If the
+ablation gain came from "any advice beats none", it should be about the same
+on deaths the rater labelled map-relevant (P1) and not relevant (P2). If it
+comes from map content, it should be larger on P1. Ablation pairs are
+therefore built on P1 and P2, and the comparison is pre-registered (decision
+rule 5). **[review]**
 
-| menu | deaths needed |
-| --- | --- |
-| full | about 235 |
-| death-specific | about 920 |
-| production-only | about 1470 |
+Limit: the same rater labels relevance (sealed, from footage) and later
+rates outputs. Labels and notes are hidden on the rating sheets, but the
+rater may remember a death. This is stated in the report.
 
-At about 3.8 deaths per match, the full menu needs about 60 matches.
+## C diagnostic (small, not a gate)
+
+- **Menu:** `death_low_ink` → `rec_refill_ink` (production), then
+  `death_own_splat_before` → `rec_after_splat_reposition` (experiment-only).
+  The first eligible claim wins.
+- **Excluded:**
+  - clock claims, which manufactured availability;
+  - map claims;
+  - re-entry claims (`death_quick_redeath`, `death_out_of_play`,
+    `rec_redeath_reset`);
+  - `death_special_ready` (R4 and the production prompt);
+  - roster claims (off).
+- **Draft wording for `rec_after_splat_reposition` [review]:** "After you get a
+  splat, reposition before taking the next fight."
+  - It follows the production template style: a short imperative with the
+    "before taking the next fight" ending, as in `rec_refill_ink`.
+  - It deliberately omits "instead of immediately continuing forward". The
+    evidence (`time_since_previous_splat`) shows a splat and then a death t
+    seconds later, not the player's movement, so that clause would assert
+    something unobserved.
+  - It avoids "trade" / "exchange", which the claim's `contradicted_by`
+    forbids.
+  - Draft pattern:
+    `(?i)\breposition\w*\b|\bfall\s+back\b|\b(?:safer|new)\s+(?:spot|position|angle)\b`.
+    The tool's tests check that it matches no production template pattern.
+- **Where it runs:** C runs only on P1/P2 deaths that naturally carry one of
+  these claims. There is no target N, and no deaths are selected to reach
+  one.
+- **Count:**
+  - The expected count is small: about 6% of deaths in the count above, so a
+    few deaths.
+  - At stop point 2, C is built and called only if at least 5 such deaths
+    exist. **[review]** Otherwise it is dropped and recorded.
+  - The A and M outputs on those deaths are reused, so only C calls are
+    added.
+- **What is reported:** C vs M pairwise on the same question, C's
+  intended-point uptake and any-recommendation rate, all descriptive. The
+  15-point uptake-match gate from revision 2 is removed; it protected an
+  active-control comparison that no longer decides J.
 
 ## Populations
 
 All membership is decided at stop point 2 from inputs and sealed relevance
-labels only, before any call. Deaths are labelled with the relevance
-worksheet below.
+labels only, before any call.
 
 | population | definition | arms x repeats | purpose |
 | --- | --- | --- | --- |
-| P1 efficacy | M-eligible, relevance `yes`, C point available | A, C, M x 2 | primary |
-| P2 no-harm | M-eligible, relevance `no`, C point available | C, M x 2 **[review: add A]** | negative control: M must not do worse when the map did not matter |
-| P3 policy | not M-eligible (fails threshold or has a map check), sufficient observability | M x 2, automatic checks only, not rated | M must give no map advice |
-| excluded | relevance `unclear`; M-eligible with no C point; insufficient observability | none | counts reported |
+| P1 efficacy | M-eligible, relevance `yes` | A, M x 2 (+ C where natural) | primary |
+| P2 no-harm / relevance contrast | M-eligible, relevance `no` | A, M x 2 (+ C where natural) | no harm; relevance contrast for the ablation |
+| P3 policy | not M-eligible, sufficient observability | M x 2; automatic checks only, not rated | M must give no map advice |
+| excluded | relevance `unclear`; insufficient observability | none | counts reported |
 
 - **`unclear` is final.** Labels are sealed. `unclear` deaths are never
   converted later and never enter P1 or P2.
-- **Size.** P1 needs at least 20 deaths. The target is 24 if the census
-  provides them without stretching any criterion. If P1 has more than 24,
-  24 are drawn with a frozen seed. P2 is capped at 24 and P3 at 20, with
-  the same seed.
-- If P1 has fewer than 20 at stop point 2, there are two options, both
-  decided before any call: extend the census with recordings named **before**
-  their labels are seen, under the same rules; or stop. Nothing is relaxed.
+- **Size.** P1 needs at least 20 deaths, with a target of 24. If more
+  qualify, 24 are drawn with a frozen seed. P2 is capped at 24 and P3 at 20,
+  with the same seed. Nothing is relaxed to reach a size.
+- **Census.** Recordings are analyzed in a frozen order (sorted by recording
+  timestamp) until **50 M-eligible deaths** exist **[review]**. This stopping
+  rule is mechanical and does not depend on labels; at an assumed relevance
+  rate of 0.6 it gives about 30 P1 candidates. If P1 has fewer than 20 after
+  labelling, the next frozen batch is analyzed and labelled under the same
+  rules. Otherwise J stops. This is decided before any call.
 
 ### Census sources and exclusions
 
-Included:
-- Local live player-view analyses not used by any earlier coaching
-  experiment or study.
-- GAME! tape held-out recordings (`analysis/game_tape_probe/`) that resolve to
-  a player-view source with `sufficient` map observability and a known UI
-  language. Running `analyze` needs no model calls.
-
-Excluded:
-- Review-source recordings.
-- Public-site user submissions (consent).
-- Any match whose recording appears in Experiment H, Experiment I, the
-  coaching gap study, the N2 citation experiment or the citation-contract
-  fixtures. The tool derives this list from those manifests; it is not
-  typed by hand.
-
-**[review]** The feasibility counts above came from the local public-site
-mirror, used only as aggregate counts. No J death comes from it.
+- **Included:**
+  - local live player-view analyses;
+  - GAME! tape held-out recordings (`analysis/game_tape_probe/`).
+  - Each recording must pass the same frozen rules: untouched by earlier
+    coaching work, a player-view source with `sufficient` map observability,
+    and a known UI language.
+  - Being a GAME! tape recording is not an inclusion qualification by
+    itself.
+  - Running `analyze` needs no model calls.
+- **Excluded:**
+  - Review-source recordings.
+  - Public-site user submissions (consent).
+  - Any recording used in Experiment H, Experiment I, the coaching gap
+    study, the N2 citation experiment or the citation-contract fixtures. The
+    tool derives this list from those manifests, not by hand.
+- The feasibility counts above came from the local public-site mirror as
+  aggregate counts only. No J death comes from it.
 
 ## Relevance labels (footage-first, sealed before any output)
 
-For each candidate death, the rater watches the footage before the death and
-records:
+For each worksheet death, the rater watches the footage and records:
 
-- `map_relevant`: `yes` / `no` / `unclear`. **[review wording]**: "Yes if
-  knowing the map state while back in play would plausibly have changed what
-  the player knew about the situation that led to this death (for example a
-  flank or push visible on the map). No if the death came from something the
-  map would not have shown. Unclear if you cannot tell from the footage."
+- `map_relevant`:
+  - **yes** when, based only on the gameplay footage available before and
+    around this death, checking the tactical map after returning to play and
+    before the decisive engagement could reasonably have revealed
+    information that might have changed a useful decision by the player;
+  - **no** when a map check would not reasonably have changed a useful
+    decision;
+  - **unclear** when the footage does not support a confident yes or no.
+  - The question is about coaching relevance, not whether the player should
+    have checked the map.
 - `ideal_coaching_note`: free text, what you would coach at this death.
 
 Worksheet rules:
 
-- It contains every M-eligible death with a C point, plus a frozen-seed
-  random sample of not-eligible deaths of equal size. The sample exists to
-  measure how relevance relates to mechanical eligibility.
-- Rows are shuffled. Eligibility, `back_in_play`, map counts and the C point
+- It contains every M-eligible census death, plus a frozen-seed random
+  sample of not-eligible deaths of equal size. The sample is used to measure
+  how relevance relates to mechanical eligibility.
+- Rows are shuffled. Eligibility, `back_in_play`, map counts and C points
   are hidden. The sheet shows only match, death time and a footage link.
 - It is sealed in a commit before the key is joined and before any model
   call.
-- **The ideal-coaching note is hidden during output rating.** It never
-  appears on the absolute or pairwise sheets.
-- After all ratings are sealed, it is used for one diagnostic only: "Did M
+- **The ideal-coaching note never appears on any rating sheet.** After all
+  ratings are sealed, it is used for one descriptive diagnostic: "Did M
   identify approximately the map issue the footage-first label named?"
-  (`approx_match` / `partial` / `no`). This is descriptive and never gates.
+  (`approx_match` / `partial` / `no`).
 
 ## Prompt sections (draft wording) **[review]**
 
-C and M share every line except the map lines. Production rules stay in
+M and C share every line except the map lines. Production rules stay in
 force, including "never treat map_check_before_death as should have
 checked".
 
@@ -305,8 +307,8 @@ ONE ADDITIONAL COACHING POINT (extra_point block)
 - extra_point.claim_id names one claim_basis entry for this death.
   extra_point.rec_template_id names the recommendation for it.
 - When extra_point is present, coach it as one additional point: state the
-  claim's fact with its value from the view, and give one recommendation
-  reworded from that entry's rec_frames.
+  claim's fact with its value from the view in one assessment sentence,
+  and give one recommendation reworded from that entry's rec_frames.
 - Do not say the death happened because of it.
 - When extra_point is null, give no additional point.
 ```
@@ -320,159 +322,172 @@ M adds, after the first bullet:
   routes); it was not observed.
 ```
 
-The length difference (two bullets) is the map content itself, and it is
-reported.
+The phrase "in one assessment sentence" supports ablatability by stating
+the existing claim-sentence rule for this point. It does not require any
+particular wording.
 
 ## Measures
 
 Automatic, frozen in the tool before any output:
 
-- **Validator.** These are measured per arm under its own claim basis:
+- **Validator** per arm under its own claim basis:
   - `claim_validation.validate_assessment` hits per call;
   - blocked outputs;
-  - an **adjusted count** that removes only R10 `no_template` hits whose
-    recommendation matches the arm's own experiment-only template. The
-    production validator does not know these templates, so these hits occur
-    by construction. Nothing else is removed. The adjustment is pre-registered
-    here, not added later as an amendment.
-- **Any-recommendation rate** per arm: at least one recommendation.
-- **Intended experimental recommendation uptake** per arm (C and M).
-  - Uptake means the output has a recommendation matching the selected
-    template's pattern **and** states the selected claim's value.
-  - For C, that is the C template plus the claim value. For M, it is
-    `rec_map_after_respawn` plus `seconds_back_in_play`.
-  - Values are rounded to 0.5 s or whole seconds.
-- **A's spontaneous rate** of the C point and of the map point (descriptive:
-  how often production already says it).
-- **Map-rule violations** (M):
+  - an **adjusted count** for C that removes only R10 `no_template` hits
+    whose recommendation matches `rec_after_splat_reposition`. The
+    production validator does not know that template, so those hits happen
+    by construction. M uses only the production template. This adjustment
+    is pre-registered here, not added later.
+- **Any-recommendation rate** per arm.
+- **Intended uptake (M):** a recommendation matching `rec_map_after_respawn`
+  **and** a statement of `seconds_back_in_play`, with values rounded to
+  0.5 s or whole seconds.
+- **Ablatability:** rate and reasons, per population.
+- **Map-rule violations (M):**
   - map advice on a non-eligible death;
   - a causal map claim;
   - described map content.
 - **Value fidelity:** every number in a map or extra-point sentence equals
   the block value.
-- **Map mentions in C** (descriptive).
+- **After ratings are sealed:** automatic map-advice classification per
+  output, compared with the relevance note diagnostic.
 
-Absolute rating (blind):
-- One shuffled sheet holds P1 A/C/M and P2 C/M outputs, seed frozen at stop
-  point 3.
+**Absolute rating** (blind, one shuffled sheet):
+
+- Rows: P1 and P2 A/M outputs, plus C outputs where run. Ablated outputs are
+  not on this sheet.
 - Columns: `usefulness_1to5` (primary), `actionable_1to5`,
-  `supported_yes_no`, `map_use` (correct / incorrect / not_mentioned),
-  `notes`. **[review columns]**
-- No relevance label and no ideal-coaching note appear on it. The sheet is
-  sealed before the key is opened.
+  `specific_to_this_death_1to5`, `supported_by_footage_yes_no`, and optional
+  `notes`.
+- There is no `map_use` column.
+- The sheet is sealed before the key is opened.
 
-Pairwise rating (blind, after the absolute sheet is sealed):
-- P1 only, C vs M at the same repeat index, so 2 pairs per death (48 at 24
-  deaths). Left/right order is randomized by a frozen seed and arm labels
-  are hidden.
-- Question: "Which is more useful and actionable coaching for this death?"
-  The answer is left / right / tie.
-- Sealed before the key is opened.
+**Pairwise rating** (blind, after the absolute sheet is sealed):
 
-Blinding limit: M outputs mention the map, so the arm can often be guessed.
-This is unavoidable and stated in the report.
+- Pairs:
+  - each ablatable M output paired with its M-minus-map version, on P1 and
+    P2;
+  - C vs M at the same repeat index, where C runs.
+- Left/right order is randomized by a frozen seed. Arm labels are hidden.
+- One question: "Which coaching would be more useful and actionable for
+  improving play in this situation?" The answer is `Left / Tie / Right`.
+- The sheet is sealed before the key is opened.
+
+**Blinding limit.** The map content and the missing recommendation make the
+full output easy to spot within a pair. This is unavoidable and is stated.
 
 ## Decision rule
 
-Gates are evaluated in this order: safety, matched control, value, no harm,
-policy. Results are **directional, not inferential**: one rater and a small
-n.
+Gates are evaluated in this order. Results are **directional, not
+inferential**: one rater and a small n.
 
-1. **Safety (C and M).**
+1. **Safety (M; C where run).**
    - 0 value-fidelity errors.
    - M has 0 map-rule violations.
-   - Each arm's blocked outputs are no more than A's.
-   - Each arm's adjusted validator hits per call are no more than A + 0.25.
+   - Blocked outputs are no more than A's.
+   - Adjusted validator hits per call are no more than A + 0.25.
    - Failure: production is unchanged and the failures are recorded.
-2. **Matched control (P1).**
-   - Intended uptake is at least 50% in C and in M. **[review: 50% minimum]**
-   - |uptake M − uptake C| is at most 15 percentage points.
-   - Failure: the arms did not deliver comparable extra points, so value is
-     not interpretable. Production is unchanged.
-3. **Value (P1).** All three must hold:
-   - M wins / (M wins + C wins) >= 0.65, with ties excluded from this
-     denominator;
-   - M wins / all pairs >= 0.50, with ties included;
-   - mean usefulness M − C > **minimum practical effect 0.25**
-     **[review: confirm 0.25 as the smallest difference you consider
-     meaningful]**.
+2. **Uptake (M on P1).** Intended uptake is at least 50% of M outputs.
+   Failure: the intervention is not reliably reaching the user, and
+   production is unchanged.
+3. **Ablatability (M on P1).**
+   - At least 75% of M outputs are ablatable **[review]**.
+   - Failure: the ablation sample is too selected to read, and the result is
+     reported as not interpretable.
+4. **Incremental map value (P1, ablation pairs).** Both must hold:
+   - full-M wins / (full-M wins + ablated wins) >= 0.65, with ties excluded;
+   - full-M wins / all pairs >= 0.50, with ties included.
    - The tie rate is reported separately.
-4. **No harm.**
-   - On P2, mean usefulness M − C >= −0.25 (the same named effect, used as
-     a no-harm margin).
-   - M's supported rate is not lower than C's on P1 + P2.
-5. **Policy (P3).** M gives 0 map-check recommendations on non-eligible
+5. **Attributable to map relevance [review].**
+   - The ablation win share (wins / all pairs) on P1 must exceed the same
+     share on P2.
+   - If P2 has fewer than 8 ablatable pairs, this is reported as untestable
+     and the outcome says so.
+   - Fail: the gain is not attributable to map content, only to having
+     advice.
+6. **Production value (P1).** Mean usefulness M − A > **0.25, the
+   pre-registered minimum practically meaningful difference** (not a noise
+   floor).
+7. **No harm (P2).**
+   - Mean usefulness M − A >= −0.25.
+   - M's footage-supported rate is not lower than A's on P1 + P2.
+8. **Policy (P3).** M gives 0 map-check recommendations on non-eligible
    deaths.
-6. **Outcomes.**
+9. **Outcomes.**
    - Passes all: recommend a production change as a separate decision
-     (block ownership, prompt section, claim and template).
-   - Passes 1, 2, 4 and 5 but fails 3: the map point is handled safely but
-     shows no value over a matched non-map point. Production is unchanged.
-   - Fails 1, 2, 4 or 5: production is unchanged; investigate.
+     (block ownership, prompt section, claim).
+   - Passes all except 5: map advice helps where production has no advice,
+     but the gain is not shown to depend on map relevance. Production is
+     unchanged.
+   - Fails 4 or 6 with gates 1–3 and 7–8 passing: the map point is handled
+     safely but shows no incremental value. Production is unchanged.
+   - Fails 1, 2, 3, 7 or 8: production is unchanged; investigate.
 
 ### Reliability (descriptive, not a gate)
 
-- Per arm on P1: mean |usefulness r1 − r2| (repeat disagreement), with C's
-  value as the headline reliability diagnostic.
-- Pairwise agreement between repeat 1 and repeat 2 per death.
-- This replaces Experiment I's reuse of the Experiment H noise floor. The
-  minimum practical effect is a separate, named judgement, not a noise
-  estimate.
+- Per arm on P1: mean |usefulness r1 − r2| (repeat disagreement).
+- Per death: agreement between repeat 1 and repeat 2 in the ablation pairs.
+- This replaces reusing the Experiment H noise floor. The minimum practical
+  effect is a separate, named judgement.
 
 ### Covariates (descriptive)
 
 - `seconds_back_in_play` bands on P1: 10–12, 12–20, 20–40, over 40 s. Also
   the census count of near-miss deaths at 8–10 s (not called).
-- **J uses the fixed 10 s threshold as pre-registered policy. It cannot be
-  used to select or validate a different threshold.**
-- C point type (low ink / own splat / final 30 s / first 30 s), and M − C by
-  type.
-- Relevance × eligibility table from the worksheet.
-- Post-seal diagnostic: M vs the ideal-coaching note.
-- Mean usefulness M − A and C − A.
-- Per-match distribution, and a leave-one-match-out range for M − C.
+- The relevance × eligibility table.
+- The ablation win share by whether the ablated output kept a
+  recommendation.
+- Mean usefulness M − A on P2.
+- The ideal-coaching-note diagnostic.
+- Per-match distribution, and a leave-one-match-out range of the P1 win
+  share.
+- The C diagnostic results.
 
 ## Calls (at target size)
 
 | population | deaths | arms | repeats | calls |
 | --- | --- | --- | --- | --- |
-| P1 | 24 | A, C, M | 2 | 144 |
-| P2 | up to 24 | C, M | 2 | up to 96 |
+| P1 | 24 | A, M | 2 | 96 |
+| P2 | up to 24 | A, M | 2 | up to 96 |
+| C diagnostic | natural, about a few | C | 2 | about 10 |
 | P3 | up to 20 | M | 2 | up to 40 |
-| **total** | | | | **up to 280** |
-
-P2 is likely much smaller than its cap.
+| **total** | | | | **about 240 at most** |
 
 ## Stop points
 
 1. **This design.** Review, then freeze (`design.json`).
 2. **Census and relevance labels; no model calls.**
-   - Run `analyze` on the census sources and compute blocks, eligibility and
-     C points.
+   - Run `analyze` in frozen order and compute blocks, eligibility and C
+     points.
    - The rater fills the blind worksheet, which is sealed.
    - Join the key and report:
-     - population sizes, including the P1 count;
+     - P1/P2/P3 sizes;
      - the relevance × eligibility table;
-     - C-point availability and clock share;
+     - natural C availability;
      - excluded counts.
    - Go/no-go is decided without any outputs.
-3. **Tool, tests, built inputs and both prompts; no model calls.** Run a
-   dry run with synthetic compliant C and M outputs: 0 validator hits beyond
-   the pre-registered by-construction R10 hits, and literal block paths
-   resolve. Sealed; go-ahead before any call.
-4. **Outputs.** Automatic summary and the blind absolute sheet.
-5. **Ratings.** The sealed absolute ratings, then the pairwise sheet. Seal it,
-   open the key, write the report and the post-seal diagnostic.
+3. **Tool, tests, inputs, prompts and the ablation function; no model
+   calls.**
+   - Run a dry run with synthetic compliant M and C outputs: 0 validator
+     hits beyond the pre-registered C adjustment, and literal block paths
+     resolve.
+   - Re-run the ablation check on Experiment I's stored outputs (27 of 28,
+     as above).
+   - Sealed; go-ahead before any call.
+4. **Outputs.** Automatic summary, ablated versions and the blind absolute
+   sheet.
+5. **Ratings.**
+   - The sealed absolute ratings, then the pairwise sheet. Seal it.
+   - Open the key; write the report and the post-seal diagnostics.
 
 ## Review checklist
 
-- **C menu:** full, death-specific or production-only (main decision), and
-  the three template wordings if experiment-only templates stay.
-- Whether `death_first_30s` ("opening") is too close to M's "before you move
-  up" point. If so, drop it (availability falls to about 19%).
-- Relevance-label wording.
-- A in P2.
-- The 50% minimum uptake.
-- Confirm 0.25 as the minimum practical effect and no-harm margin.
-- Rating columns.
-- Census sources, and whether the GAME! tape corpus is in scope.
+- **Relevance contrast as gate 5** (main item). Without it, the ablation
+  measures "map advice vs no advice" on these deaths. Also review the
+  8-pair minimum for P2.
+- **75% ablatability floor.** Also whether to add "in one assessment
+  sentence" to the prompt section.
+- **`rec_after_splat_reposition`:** wording and pattern.
+- **C diagnostic:** the 5-death minimum.
+- **Census:** the 50-eligible-death stopping point.
+- **Prompt sections:** final wording.
