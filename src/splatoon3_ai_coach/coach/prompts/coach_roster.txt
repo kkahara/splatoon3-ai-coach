@@ -35,7 +35,7 @@ Roster rules:
 - roster.before_death is the sample the roster factors used (taken just
   before the death). roster.at_death may already count the player's own
   roster X marker; prefer before_death when stating counts at the death.
-- When citing player_count_context, prefer:
+- When describing roster.player_count_context, prefer:
   “{numbers_state} was observed by {state_present_by}s,
   {duration_since_present_by}s before the anchor.”
   Do not upgrade that into continuous disadvantaged time.

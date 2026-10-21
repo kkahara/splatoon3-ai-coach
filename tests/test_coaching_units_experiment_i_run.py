@@ -12,7 +12,7 @@ import coaching_units_experiment_i_inputs as xii
 import coaching_units_experiment_i_results as xres
 import coaching_units_experiment_i_run as xr
 import pytest
-from sealed_drift import undeclared_drift
+from sealed_drift import undeclared_drift, undeclared_system_drift
 
 from splatoon3_ai_coach.config import default_config_path, load_config
 
@@ -250,6 +250,8 @@ def test_sealed_inputs_differ_from_production_only_by_declared_drift() -> None:
         sealed = (inputs / rel).read_text(encoding="utf-8")
         if rel.endswith(".user_prompt.txt"):
             drift[rel] = undeclared_drift(sealed, text)
+        elif rel.startswith("system_prompt_"):
+            drift[rel] = undeclared_system_drift(sealed, text)
         elif sealed != text:
             drift[rel] = ["differs"]
     assert {rel: problems for rel, problems in drift.items() if problems} == {}

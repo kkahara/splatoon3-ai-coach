@@ -34,8 +34,8 @@ _USER_PREAMBLE_COACH_INPUT = (
 
 _USER_PREAMBLE_LLM_VIEW = (
     "CoachLlmView JSON follows (compact projection of CoachInput evidence). "
-    "Cite source_path audit references when listing evidence_used. Omitted "
-    "fields mean unavailable, not false. Return ONLY a JSON object with keys "
+    "In evidence_used, cite each fact as its exact CoachLlmView path = value. "
+    "Omitted fields mean unavailable, not false. Return ONLY a JSON object with keys "
     "assessment, evidence_used, limitations, recommendations, "
     "selected_claim_ids (optional list). "
     "Select at most 1–3 claims; empty recommendations and empty "

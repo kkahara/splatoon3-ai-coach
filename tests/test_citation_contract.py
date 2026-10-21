@@ -4,18 +4,23 @@ Decision (``docs/CITATION_NAMESPACES.md``): the model-facing citation
 namespace is N2, the literal CoachLlmView path. A citation names a supplied
 fact by its view path, and the cited value must equal the value at that path.
 CoachInput (N1) paths are provenance only; ``source_path`` label resolution is
-legacy, kept until the prompt rewrite and label cleanup.
+legacy, kept in the validator until the label cleanup.
 
-Fix 1 (``db5fa8c``) measured the forms the production prompt teaches today,
-including N1 / hybrid examples. Those measurements are kept as evidence for
-the decision: each violation in ``VIOLATIONS`` has a classification and a
-status. ``open`` violations are strict ``xfail`` cases (an XPASS forces the
-table to be updated); ``fixed`` ones are asserted absent; ``HISTORY_DB5FA8C``
-records the counts measured before the validator-correctness step.
+The production prompt teaches N2 only (Fix 3): ``TAUGHT`` must match its
+inventory exactly, and every path and example must resolve literally.
+
+Fix 1 (``db5fa8c``) measured the forms the prompt taught then
+(``TAUGHT_DB5FA8C``), including N1 / hybrid examples. Those measurements are
+kept as evidence for the decision: each violation in ``VIOLATIONS`` has a
+classification and a status. Violations that are not ``fixed`` are strict
+``xfail`` cases (an XPASS forces the table to be updated); ``fixed`` ones are
+asserted absent; ``HISTORY_DB5FA8C`` records the counts measured before the
+validator-correctness step.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from collections import Counter
 from collections.abc import Callable
@@ -57,48 +62,55 @@ class Violation:
     """One contract violation found by Fix 1 or the correctness step."""
 
     classification: str
-    status: str  # open | fixed
+    # open | fixed | not_taught (a defect of the db5fa8c prompt text, gone with
+    # Fix 3) | legacy_only (measures the validator's label fallback on a form
+    # the prompt no longer teaches)
+    status: str
     description: str
 
 
 VIOLATIONS: dict[str, Violation] = {
     "CV-NOT-PROJECTED": Violation(
         LEGACY,
-        "open",
+        "not_taught",
         "N1 citation example names an engagement-unit field: death views project "
         "neither primary relations nor combat, and death-unit CoachInputs leave "
         "primary combat null",
     ),
     "CV-RELATIVE": Violation(
         SYNTAX,
-        "open",
+        "not_taught",
         "prompt prose field reference omits its block; not a literal view path "
         "(prompt rewrite)",
     ),
     "CV-EXAMPLE-NAMESPACE": Violation(
         LEGACY,
-        "open",
+        "not_taught",
         "example listed under 'exact CoachInput path' is not a CoachInput path "
         "with the cited value (view path or CoachInput/view hybrid)",
     ),
     "CV-UNLABELLED": Violation(
-        LEGACY, "open", "projected field has no source_path label naming its N1 path"
+        LEGACY,
+        "legacy_only",
+        "projected field has no source_path label naming its N1 path",
     ),
     "CV-FLATTENED": Violation(
-        LEGACY, "open", "label block flattens N1 nesting (observation.*, scenario.*)"
+        LEGACY,
+        "legacy_only",
+        "label block flattens N1 nesting (observation.*, scenario.*)",
     ),
     "CV-RENAMED": Violation(
-        LEGACY, "open", "view renames the N1 field under the same label"
+        LEGACY, "legacy_only", "view renames the N1 field under the same label"
     ),
     "CV-MIXED-SOURCE": Violation(
         LEGACY,
-        "open",
+        "legacy_only",
         "label names one N1 object but the block holds fields projected from "
         "another (durations, score_facts, zone_control_facts, map status)",
     ),
     "CV-SUPPORT-LABEL": Violation(
         LEGACY,
-        "open",
+        "legacy_only",
         "supporting_evidence items reuse N1 labels for display strings: one label "
         "string names two facts; the legacy form binds the first that walks",
     ),
@@ -110,7 +122,7 @@ VIOLATIONS: dict[str, Violation] = {
     ),
     "CV-BARE-LABEL": Violation(
         LEGACY,
-        "open",
+        "legacy_only",
         "single-segment legacy labels (durations, playback_clock, "
         "game_clock_samples[label=death]) are not citable",
     ),
@@ -140,16 +152,18 @@ VIOLATIONS: dict[str, Violation] = {
     ),
     "CV-BARE-OBJECT-REF": Violation(
         SYNTAX,
-        "open",
+        "legacy_only",
         "a path-only reference to a single-segment object path (related[0]) is "
         "malformed: unanchored paths need a dot (grammar not expanded)",
     ),
     "CV-NOT-COACHINPUT": Violation(
-        LEGACY, "open", "label-form path resolves in the view but names no N1 field"
+        LEGACY,
+        "legacy_only",
+        "label-form path resolves in the view but names no N1 field",
     ),
     "CV-CONTRADICTS-COACHINPUT": Violation(
         LEGACY,
-        "open",
+        "legacy_only",
         "label-form path resolves to a view value that differs from the N1 value "
         "at the same path",
     ),
@@ -175,19 +189,23 @@ HISTORY_DB5FA8C: dict[tuple[str, str], int] = {
 }
 
 
+def _strict(violation: str) -> Any:
+    found = VIOLATIONS[violation]
+    assert found.status != "fixed"
+    reason = f"{violation} ({found.classification}, {found.status}): "
+    return pytest.mark.xfail(strict=True, reason=reason + found.description)
+
+
 def _xfail(case_id: str, violation: str | None, *args: Any) -> Any:
     if violation is None or VIOLATIONS[violation].status == "fixed":
         return pytest.param(*args, id=case_id)
-    found = VIOLATIONS[violation]
-    reason = f"{violation} ({found.classification}): {found.description}"
-    return pytest.param(
-        *args, id=case_id, marks=pytest.mark.xfail(strict=True, reason=reason)
-    )
+    return pytest.param(*args, id=case_id, marks=_strict(violation))
 
 
 # --- what the production prompt teaches --------------------------------------------
 
 SYSTEM_PROMPT = load_system_prompt(roster_evidence=False)
+ROSTER_SECTION = load_system_prompt(roster_evidence=True).removeprefix(SYSTEM_PROMPT)
 _TOKEN = re.compile(r"[A-Za-z_]\w*(?:\[[^\]\s]+\])?(?:\.[A-Za-z_]\w*(?:\[[^\]\s]+\])?)+")
 NOT_PATHS = {"e.g": "abbreviation in prose"}
 
@@ -203,7 +221,45 @@ class Taught:
     exact: str | None = None  # known violation of CoachInput exactness (examples)
 
 
+# The current production prompt (Fix 3, N2 only): every path is literal.
 TAUGHT = (
+    Taught(
+        "death.death_to_active_again.value",
+        "citation_example",
+        "death.death_to_active_again.value",
+    ),
+    Taught("clock.display", "citation_example", "clock.display"),
+    Taught("special.state_at_anchor", "citation_example", "special.state_at_anchor"),
+    Taught(
+        "map.map_check_before_death.status",
+        "citation_example",
+        "map.map_check_before_death.status",
+    ),
+    Taught(
+        "related[0].relations.leads_to_death_episode_id",
+        "citation_example",
+        "related[0].relations.leads_to_death_episode_id",
+    ),
+    Taught(
+        "timeline.time_since_previous_death.value",
+        "field_reference",
+        "timeline.time_since_previous_death.value",
+    ),
+    Taught(
+        "importance.factor_thresholds",
+        "field_reference",
+        "importance.factor_thresholds",
+    ),
+    Taught("low_ink.at_death", "field_reference", "low_ink.at_death"),
+    Taught("map.map_check_before_death", "field_reference", "map.map_check_before_death"),
+    Taught("playback.status", "field_reference", "playback.status"),
+    Taught("score.lookback_video_time", "field_reference", "score.lookback_video_time"),
+    Taught("score.video_time", "field_reference", "score.video_time"),
+)
+
+# The prompt at db5fa8c (before Fix 3). It no longer teaches these forms; they
+# stay measured against current views as the record behind the N2 decision.
+TAUGHT_DB5FA8C = (
     Taught(
         "primary_context.death_episode.death_to_respawn.value",
         "citation_example",
@@ -264,6 +320,14 @@ TAUGHT = (
     Taught("score.video_time", "field_reference", "score.video_time"),
 )
 
+# Roster section (only with coach.roster_evidence on; no fixture view has a
+# roster block, so these are checked against the projected keys only).
+ROSTER_TAUGHT = {
+    "roster.before_death",
+    "roster.at_death",
+    "roster.player_count_context",
+}
+
 
 def _applicable(intended: str | None) -> dict[str, FixtureUnit]:
     if intended is None:
@@ -284,20 +348,77 @@ def test_prompt_inventory_is_complete() -> None:
     assert found == {t.path for t in TAUGHT} | set(NOT_PATHS)
 
 
-@pytest.mark.parametrize("case", [_xfail(t.path, t.resolve, t) for t in TAUGHT])
-def test_taught_path_resolves_to_intended_fact(case: Taught) -> None:
+def test_roster_section_inventory_is_complete() -> None:
+    assert set(_TOKEN.findall(ROSTER_SECTION)) == ROSTER_TAUGHT | set(NOT_PATHS)
+    roster_keys = {"before_death", "at_death", "player_count_window"}
+    roster_keys.add("player_count_context")
+    assert {path.split(".", 1)[1] for path in ROSTER_TAUGHT} <= roster_keys
+
+
+@pytest.mark.parametrize("case", TAUGHT, ids=lambda t: t.path)
+def test_taught_path_is_a_literal_view_path(case: Taught) -> None:
+    """Fix 3: every path the prompt teaches is the literal N2 path of its fact,
+    resolved without any label (``view_native``) on every view that has it."""
+    assert case.path == case.intended and case.resolve is None
+    units = _applicable(case.intended)
+    assert units, "no fixture view supplies the fact this path names"
+    for key, unit in units.items():
+        resolution = resolve_evidence_reference(unit.view, case.path)
+        assert resolution["kind"] == "view_native", key
+        assert resolution["location"] == case.path, key
+        assert check(unit.view, case.path, case.path) is None, key
+
+
+_EXAMPLE = re.compile(r'^"(.+ = .+)"$', re.MULTILINE)
+
+
+def prompt_examples() -> list[str]:
+    """The citation strings listed under EVIDENCE CITATION RULE, unescaped."""
+    rule = SYSTEM_PROMPT.split("EVIDENCE CITATION RULE", 1)[1].split("Output format")[0]
+    return [text.replace('\\"', '"') for text in _EXAMPLE.findall(rule)]
+
+
+def test_examples_are_the_taught_citation_examples() -> None:
+    paths = [example.split(" = ", 1)[0] for example in prompt_examples()]
+    assert paths == [t.path for t in TAUGHT if t.kind == "citation_example"]
+
+
+@pytest.mark.parametrize("example", prompt_examples())
+def test_example_is_a_valid_n2_citation(example: str) -> None:
+    """The whole example is a literal ``path = value`` on a scalar leaf; the
+    value has the leaf's JSON type and passes R7 where the view holds it."""
+    path, raw = example.split(" = ", 1)
+    value = json.loads(raw)
+    units = _applicable(path)
+    assert units
+    for unit in units.values():
+        resolution = resolve_evidence_reference(unit.view, example)
+        assert (resolution["kind"], resolution["location"]) == ("view_native", path)
+        actual = walk(unit.view, path)[1]
+        assert not isinstance(actual, dict | list)
+        hits = evidence_value_hits(unit.view, [resolution])
+        assert hits == [] if same_value(actual, value) else len(hits) == 1
+    assert any(type(walk(u.view, path)[1]) is type(value) for u in units.values()), (
+        "example value type never matches the leaf"
+    )
+
+
+@pytest.mark.parametrize("case", [_xfail(t.path, t.resolve, t) for t in TAUGHT_DB5FA8C])
+def test_historical_taught_path_resolves_to_intended_fact(case: Taught) -> None:
+    """Legacy measurement of the forms the prompt taught at db5fa8c."""
     units = _applicable(case.intended)
     assert units, "no fixture view supplies the fact this path names"
     failures = {k: check(u.view, case.path, str(case.intended)) for k, u in units.items()}
     assert {k: r for k, r in failures.items() if r} == {}
 
 
-EXAMPLES = [t for t in TAUGHT if t.kind == "citation_example"]
+EXAMPLES = [t for t in TAUGHT_DB5FA8C if t.kind == "citation_example"]
 
 
 @pytest.mark.parametrize("case", [_xfail(t.path, t.exact, t) for t in EXAMPLES])
 def test_citation_example_is_exact_coachinput_path(case: Taught) -> None:
-    """The rule heading these examples says 'the exact CoachInput path and value'."""
+    """Legacy: the db5fa8c rule heading these examples said 'the exact
+    CoachInput path and value'."""
     present = [u for u in fixture_units().values() if walk(u.coach_input, case.path)[0]]
     assert present, "not a CoachInput path in any fixture"
     if case.intended is None:
@@ -644,13 +765,6 @@ def test_form_has_no_violation(form: str, violation: str) -> None:
     assert hits == {}
 
 
-def _strict(violation: str) -> Any:
-    found = VIOLATIONS[violation]
-    assert found.status == "open"
-    reason = f"{violation} ({found.classification}): {found.description}"
-    return pytest.mark.xfail(strict=True, reason=reason)
-
-
 def _rejected(view: dict[str, Any], text: str) -> bool:
     resolution = resolve_evidence_reference(view, text)
     return resolution["kind"] == "unresolved" or bool(
@@ -866,7 +980,7 @@ def test_every_top_level_block_is_labelled_or_pinned() -> None:
 
 
 def test_every_known_violation_is_exercised() -> None:
-    used = {t.resolve for t in TAUGHT} | {t.exact for t in TAUGHT}
+    used = {t.resolve for t in TAUGHT_DB5FA8C} | {t.exact for t in TAUGHT_DB5FA8C}
     used |= {v for *_, v in COACHINPUT_CASES} | {v for *_, v in MAP_AWARENESS_CASES}
     used |= {v for *_, v in POSTMORTEM_CASES}
     used |= {v for violations in FORM_VIOLATIONS.values() for v in violations}

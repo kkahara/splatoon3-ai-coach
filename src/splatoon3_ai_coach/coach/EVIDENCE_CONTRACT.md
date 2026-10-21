@@ -340,8 +340,10 @@ Rules:
   that CoachInput).
 - Compression = **omit or reshape**, never enrich. Absent stays absent.
 - Each compact fact should carry a `source_path` **audit reference** into
-  CoachInput / ScenarioContext vocabulary (stable dotted labels for
-  `evidence_used`). It is not required to be an executable JSONPath.
+  CoachInput / ScenarioContext vocabulary (stable dotted provenance labels).
+  It is not required to be an executable JSONPath and is never a citation
+  path: `evidence_used` cites the literal CoachLlmView path = value
+  (`docs/CITATION_NAMESPACES.md`).
 - Locked statement / interpretation / recommendation triad text stays on
   `CoachingUnitResult` / VMV — **not** in `CoachLlmView` (pre-interpreted;
   the model words from evidence + factor ids).

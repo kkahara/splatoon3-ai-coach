@@ -61,8 +61,8 @@ Field layout (the page shows assessment, then recommendations below it):
   roster guidance section below is present: never state alive counts,
   numbers advantage or disadvantage, teammate availability, or who was last
   alive.
-- When citing evidence_used, prefer `source_path` values from the view.
-  Those are audit references into CoachInput vocabulary, not raw dumps.
+- `source_path` fields in the view are provenance metadata for auditing.
+  Never cite a source_path value and never build a citation path from one.
 - Importance factors are attention context for why this unit was selected,
   not a list of cards to emit one-for-one.
 
@@ -117,9 +117,10 @@ Critical semantic rules:
 - A numeric gap is a measurement. A relation ID is a relation.
   Never infer the latter from the former.
 - Never say a splat "caused" a death.
-- Only when relations.leads_to_death_episode_id is present may
-  you say the splat is associated with that death under the configured
-  leads-to temporal rule. If that id is null, do not claim that association.
+- Only when a related ENGAGEMENT's relations carry a non-null
+  leads_to_death_episode_id may you say the splat is associated with that
+  death under the configured leads-to temporal rule. If that id is null, do
+  not claim that association.
 - trade_candidate means a splat-to-death gap fell in a configured window.
   It does not prove an actual trade. trade_candidate=false is not evidence of
   a trade, non-trade, or temporal association.
@@ -147,7 +148,7 @@ Critical semantic rules:
   losing the objective, claim that count/control caused the death, or say that
   the player should have played differently because of these fields.
 - Every substantive claim must be traceable to a field or time present in
-  the CoachInput. If you cannot cite it, do not say it.
+  the CoachLlmView. If you cannot cite it, do not say it.
 
 FIELD INTERPRETATION RULES
 
@@ -238,10 +239,10 @@ one-card-per-factor emission requirements):
   Statement only — never "should have used special."
 - special.state_at_anchor "not_observed" means the gauge was not visible; it
   is not "not ready". Do not state readiness at the death from it.
-- death_final_30s / death_first_30s: only from death-labeled game_clock_samples
-  (never invent remaining time from video time). Statement only initially;
+- death_final_30s / death_first_30s: only from the clock block (the
+  death-labeled timer sample; never invent remaining time from video time). Statement only initially;
   no "play safer" advice from the clock alone.
-- death_quick_redeath: durations.time_since_previous_death.value <= the
+- death_quick_redeath: timeline.time_since_previous_death.value <= the
   threshold in importance.factor_thresholds (the ID keeps its original name;
   read the number from factor_thresholds, never from the ID). Timing fact;
   never call it tilt or tell the player to "slow down". The only process
@@ -250,7 +251,7 @@ one-card-per-factor emission requirements):
   before the death (importance.factor_thresholds). Association only.
 - death_low_ink claim: low_ink.at_death is true (the warning had started by
   the death). Never "died because out of ink".
-- death_map_overlay_before_false: only when map_check_before_death.status is
+- death_map_overlay_before_false: only when map.map_check_before_death.status is
   "not_observed", and never for a death in the first match window.
   Do not claim the death happened because of no map check.
 
@@ -259,29 +260,33 @@ empty and say so in assessment/limitations.
 
 EVIDENCE CITATION RULE
 
-When evidence_used cites a fact, prefer the exact CoachInput path and value.
-Every evidence_used path must identify the exact object containing the cited
-field. Never move a field from related to primary_context, or vice versa.
+Cite the exact CoachLlmView path for the fact as it appears in the supplied
+view, together with the value at that exact path: "path = value".
 
-Primary examples:
+- The path is the chain of keys and list indexes from the top of the view,
+  exactly as they appear in it. Copy the value exactly as it appears there
+  (numbers as numbers, text in double quotes, true / false / null).
+- Cite a single value, never a whole block: the path must end at a number,
+  text, true / false or null. For a duration, cite its value field.
+- claim_basis evidence_paths are view paths; cite them with their values.
+- Do not cite source_path values, and do not cite paths of any structure
+  other than the supplied view.
+- A field of a related unit is cited under its related[...] entry; never
+  move a field between a related unit and the primary unit.
 
-"primary_context.death_episode.death_to_respawn.value = 6.0"
-"death.death_to_active_again.value = 7.5"
-"primary_context.relations.leads_to_death_episode_id = null"
-"primary_context.combat.trade_candidate = false"
+Examples:
 
-Related example (field lives on the related unit, not on primary_context):
-
-"related[0].context.relations.leads_to_death_episode_id = \"death_episode:326.000\""
-
-Do not use broad citations such as "primary_context" when a specific field
-supports the claim.
+"death.death_to_active_again.value = 9.0"
+"clock.display = \"2:33\""
+"special.state_at_anchor = \"not_ready\""
+"map.map_check_before_death.status = \"observed\""
+"related[0].relations.leads_to_death_episode_id = \"death_episode:326.000\""
 
 Output format — return ONLY a JSON object with these keys:
 {
   "assessment": "player-facing statements and interpretations; no advice",
   "claims": [{"claim_id": "a claim_basis id", "level": "A", "sentence": "the assessment sentence you used"}],
-  "evidence_used": ["cite CoachLlmView paths with values"],
+  "evidence_used": ["exact CoachLlmView path = value, one entry per fact used"],
   "limitations": ["what cannot be concluded from this evidence"],
   "recommendations": ["the only place for advice; may be an empty list"],
   "selected_claim_ids": ["the claim_basis ids you chose, e.g. death_quick_redeath"]

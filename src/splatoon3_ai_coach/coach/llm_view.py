@@ -4,9 +4,10 @@ Full ``CoachInput`` remains the internal evidence object. ``CoachLlmView`` is a
 deterministic omit/reshape of existing fields for ``complete()``. Every exposed
 value must be copyable from CoachInput / CoachingUnitResult; absent stays absent.
 
-``source_path`` is an **audit reference** into CoachInput / ScenarioContext
-vocabulary (stable dotted labels). It is not required to be a machine-evaluated
-JSONPath — it names where the projected value came from for ``evidence_used``.
+``source_path`` is **provenance metadata**: a stable dotted label naming the
+CoachInput / ScenarioContext origin of a block. It is not a citation path; the
+model cites literal CoachLlmView paths in ``evidence_used``
+(``docs/CITATION_NAMESPACES.md``).
 
 Locked statement / interpretation / recommendation triad copy stays on
 ``CoachingUnitResult`` / VMV. It is **pre-interpreted catalog material** and is
@@ -58,8 +59,8 @@ class LlmFact(BaseModel):
     value: str | int | float | bool | None
     source_path: str = Field(
         description=(
-            "Audit reference into CoachInput vocabulary (dotted label). "
-            "Not necessarily a JSONPath expression."
+            "Provenance label naming the CoachInput origin (dotted label). "
+            "Not a citation path."
         )
     )
 

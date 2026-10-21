@@ -12,7 +12,7 @@ import coaching_units_experiment_h_inputs as xi
 import coaching_units_experiment_h_results as xres
 import coaching_units_experiment_h_run as xr
 import pytest
-from sealed_drift import undeclared_drift
+from sealed_drift import undeclared_drift, undeclared_system_drift
 
 from splatoon3_ai_coach.config import default_config_path, load_config
 
@@ -157,15 +157,15 @@ def test_sealed_inputs_verify_and_expand_to_132_cells() -> None:
 
 @pytest.mark.skipif(not SEALED, reason="sealed inputs or analyses not present")
 def test_sealed_inputs_differ_from_production_only_by_declared_drift() -> None:
-    """Production changed after the seal (sealed_drift.VIEW_DRIFT); nothing else."""
+    """Production changed after the seal (claim_basis leaves, Fix 3); nothing else."""
     inputs = MANIFEST.parent
     base = load_config(default_config_path())
     views = {arm: xh.arm_views(base, arm) for arm in xh.ARMS}
     drift = {}
     for arm in xh.ARMS:
         rel = f"system_prompt_{arm}.txt"
-        if (inputs / rel).read_text(encoding="utf-8") != xh.arm_system_prompt(arm):
-            drift[rel] = ["differs"]
+        sealed = (inputs / rel).read_text(encoding="utf-8")
+        drift[rel] = undeclared_system_drift(sealed, xh.arm_system_prompt(arm))
     for call in xi.load_manifest(inputs)["calls"]:
         sealed = (inputs / call["file"]).read_text(encoding="utf-8")
         current = views[call["arm"]][(call["match"], call["cid"])].prompt
