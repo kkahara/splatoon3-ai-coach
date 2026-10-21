@@ -51,6 +51,20 @@ FROZEN_PRIOR_USE = {
 CITATION_FIXTURE_GLOB = "*citation*.py"
 TEXT_SUFFIXES = (".json", ".csv", ".md", ".yaml", ".txt", ".jsonl", ".py")
 ORDER_RULE = "timestamp from file name (YYYY-MM-DD HH-MM-SS), ties by full source path"
+CENSUS_EXCLUSIONS = OUT_DIR / "census_exclusions.json"
+COACHING_OUTPUT_REFS = frozenset(
+    {
+        "coaching_units_experiment_d",
+        "coaching_units_experiment_e",
+        "coaching_units_experiment_f",
+        "coaching_units_experiment_g",
+        "coaching_units_rating_sheet.csv",
+        "coaching_units_rating_key.csv",
+        "coaching_units_deferred",
+        "assessment_layout_fix",
+    }
+)
+NON_JUDGMENT_REFS = frozenset({"roster_evidence", "final30_score_gate"})
 DEFERRED_RULES = (
     "resolves to a player-view source after analyze (2B)",
     "per-death sufficient map observability (2B)",
@@ -289,6 +303,50 @@ def _design_hashes() -> dict[str, str]:
     }
 
 
+def prior_judgment_category(references: Iterable[str]) -> str | None:
+    """Amendment 2: ``coaching_output``, ``death_importance`` or ``None``.
+
+    Roster-detector and final-30 design references alone are not judgment
+    of coaching output or death importance.
+    """
+    refs = set(references)
+    if refs & COACHING_OUTPUT_REFS:
+        return "coaching_output"
+    if refs - NON_JUDGMENT_REFS:
+        return "death_importance"
+    return None
+
+
+def build_census_exclusions(order_doc: Mapping[str, Any]) -> dict[str, Any]:
+    """Amendment 2 exclusions and the resulting 2B sequence (order unchanged)."""
+    excluded, sequence = [], []
+    for rec in order_doc["recordings"]:
+        category = prior_judgment_category(rec["other_prior_references"])
+        brief = {k: rec[k] for k in ("order", "video", "video_identity")}
+        if category is None:
+            sequence.append(brief)
+        else:
+            refs = rec["other_prior_references"]
+            excluded.append({**brief, "category": category, "prior_references": refs})
+    return {
+        "experiment": "J",
+        "amendment": 2,
+        "census_order_sha256": hashlib.sha256(
+            json.dumps(order_doc, indent=1, ensure_ascii=False).encode("utf-8") + b"\n"
+        ).hexdigest(),
+        "excluded": excluded,
+        "counts": {
+            "excluded": len(excluded),
+            "coaching_output": sum(e["category"] == "coaching_output" for e in excluded),
+            "death_importance": sum(
+                e["category"] == "death_importance" for e in excluded
+            ),
+            "sequence_2b": len(sequence),
+        },
+        "sequence_2b": sequence,
+    }
+
+
 def write_census_order(doc: Mapping[str, Any], out: Path = CENSUS_ORDER) -> None:
     """Write once; an existing order file is frozen."""
     if out.exists():
@@ -302,7 +360,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     census = sub.add_parser("census-order", help="stop point 2A: write census_order.json")
     census.add_argument("--movies", type=Path, default=MOVIES)
+    sub.add_parser("census-exclusions", help="amendment 2: write census_exclusions.json")
     args = parser.parse_args(argv)
+    if args.command == "census-exclusions":
+        order_doc = json.loads(CENSUS_ORDER.read_text(encoding="utf-8"))
+        doc = build_census_exclusions(order_doc)
+        write_census_order(doc, CENSUS_EXCLUSIONS)
+        sys.stdout.write(f"{json.dumps(doc['counts'])} -> {CENSUS_EXCLUSIONS}\n")
     if args.command == "census-order":
         if CENSUS_ORDER.exists():
             raise SystemExit(f"{CENSUS_ORDER} exists; the census order is frozen")

@@ -122,6 +122,55 @@ def test_live_recordings_join_the_pool_and_size_is_checked(tmp_path):
     assert doc["excluded"][0]["reasons"] == ["size_differs_from_heldout_list"]
 
 
+def test_prior_judgment_categories():
+    assert xj.prior_judgment_category(["roster_evidence"]) is None
+    assert xj.prior_judgment_category(["final30_score_gate", "roster_evidence"]) is None
+    assert xj.prior_judgment_category(["rescore_v2", "roster_evidence"]) == (
+        "death_importance"
+    )
+    assert xj.prior_judgment_category(["rescore_v2", "coaching_units_experiment_d"]) == (
+        "coaching_output"
+    )
+    assert xj.prior_judgment_category([]) is None
+
+
+def test_census_exclusions_keep_sealed_order_positions():
+    order_doc = {
+        "recordings": [
+            {
+                "order": 1,
+                "video": "a",
+                "video_identity": "x1",
+                "other_prior_references": [],
+            },
+            {
+                "order": 2,
+                "video": "b",
+                "video_identity": "x2",
+                "other_prior_references": ["coaching_units_rating_sheet.csv"],
+            },
+            {
+                "order": 3,
+                "video": "c",
+                "video_identity": "x3",
+                "other_prior_references": ["roster_evidence"],
+            },
+            {
+                "order": 4,
+                "video": "d",
+                "video_identity": "x4",
+                "other_prior_references": ["1hz_experiment"],
+            },
+        ]
+    }
+    doc = xj.build_census_exclusions(order_doc)
+    assert [(e["order"], e["category"]) for e in doc["excluded"]] == [
+        (2, "coaching_output"),
+        (4, "death_importance"),
+    ]
+    assert [s["order"] for s in doc["sequence_2b"]] == [1, 3]
+
+
 def test_display_path_hides_the_home_directory():
     home = xj.Path.home()
     assert xj.display_path(home / "Movies" / "a.mov") == "~/Movies/a.mov"
