@@ -289,6 +289,25 @@ def compliant(view: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def amendment_3_cases(
+    observed: Mapping, alive_check: Mapping
+) -> list[tuple[str, Mapping, dict]]:
+    """R5 map_absence hits that Amendment 3 must keep in the adjusted count."""
+    good = compliant(observed)
+    window = "No map check was observed since you were back in play."
+    return [
+        (
+            "a3_unanchored_absence",
+            observed,
+            {
+                **good,
+                "assessment": f"No map check was observed before this death. {NEUTRAL}",
+            },
+        ),
+        ("a3_absence_with_alive_check", alive_check, {"assessment": window}),
+    ]
+
+
 def negative_cases(
     eligible: Mapping, not_eligible: Mapping
 ) -> list[tuple[str, Mapping, dict]]:
@@ -344,27 +363,51 @@ def synthetic_rows(
             view = arms[arm][xc.death_id(record)]["view"]
             death_id = xc.death_id(record)
             rows.append(_row("compliant", arm, death_id, view, compliant(view)))
-    first = arms["M"][xc.death_id(deaths["P1"][0])]["view"]
-    p3 = arms["M"][xc.death_id(deaths["P3"][0])]["view"]
+    m_views = {k: v["view"] for k, v in arms["M"].items()}
+    first = m_views[xc.death_id(deaths["P1"][0])]
+    p3 = m_views[xc.death_id(deaths["P3"][0])]
     for case, view, output in negative_cases(first, p3):
+        rows.append(_row(case, "M", "synthetic", view, output))
+    observed = next(
+        m_views[xc.death_id(r)] for r in rated if _status(m_views, r) == "observed"
+    )
+    checked = next(
+        m_views[xc.death_id(r)]
+        for r in deaths["P3"]
+        if r["map_checks_since_back_in_play"] >= 1
+    )
+    for case, view, output in amendment_3_cases(observed, checked):
         rows.append(_row(case, "M", "synthetic", view, output))
     return rows
 
 
+def _status(views: Mapping[str, Mapping], record: Mapping) -> str | None:
+    view = views[xc.death_id(record)]
+    return ((view.get("map") or {}).get("map_check_before_death") or {}).get("status")
+
+
 def synthetic_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    """Compliant outputs: hits beyond the C adjustment, by arm and map status."""
+    """Compliant outputs: production, adjustments and adjusted hits per arm."""
     out = {}
     for arm in ("M", "C"):
-        group = [r for r in rows if r["case"].startswith("compliant") and r["arm"] == arm]
+        group = [r for r in rows if r["case"] == "compliant" and r["arm"] == arm]
+        statuses = sorted({str(r["map_status"]) for r in group})
         out[arm] = {
             "outputs": len(group),
-            "with_hits_beyond_c_adjustment": sum(r["adjusted_hits"] > 0 for r in group),
-            "hits_beyond_c_adjustment": sum(r["adjusted_hits"] for r in group),
+            "production_hits": sum(r["validator_hits"] for r in group),
             "c_adjustment_removed": sum(r["c_adjustment"] for r in group),
+            "amendment_3_r5_window_exempt": sum(r["r5_window_exempt"] for r in group),
+            "adjusted_hits": sum(r["adjusted_hits"] for r in group),
+            "outputs_with_production_hits": sum(r["validator_hits"] > 0 for r in group),
+            "outputs_with_adjusted_hits": sum(r["adjusted_hits"] > 0 for r in group),
             "rules": dict(Counter(rule for r in group for rule in r["hit_rules"])),
-            "by_map_status": {
-                str(s): sum(r["adjusted_hits"] > 0 for r in group if r["map_status"] == s)
-                for s in sorted({str(r["map_status"]) for r in group})
+            "production_hits_by_map_status": {
+                s: sum(r["validator_hits"] for r in group if str(r["map_status"]) == s)
+                for s in statuses
+            },
+            "adjusted_hits_by_map_status": {
+                s: sum(r["adjusted_hits"] for r in group if str(r["map_status"]) == s)
+                for s in statuses
             },
             "value_fidelity_errors": sum(len(r["value_fidelity_errors"]) for r in group),
             "blocked": sum(r["blocked"] for r in group),
@@ -448,9 +491,16 @@ def plan_doc(config: AppConfig) -> dict[str, Any]:
         "synthetic": rows,
         "stored_ablation": stored_ablation(),
     }
+    kept = {
+        r["case"]: r["adjusted_hits"] > 0 and r["r5_window_exempt"] < r["validator_hits"]
+        for r in rows
+        if r["case"].startswith("a3_")
+    }
+    doc["amendment_3_non_qualifying_hits_kept"] = kept
     doc["dry_run_criterion_met"] = (
-        all(summary[a]["hits_beyond_c_adjustment"] == 0 for a in ("M", "C"))
+        all(summary[a]["adjusted_hits"] == 0 for a in ("M", "C"))
         and not doc["path_problems"]
+        and all(kept.values())
     )
     return doc
 
@@ -461,16 +511,18 @@ def _listed(items: Sequence[str]) -> str:
 
 def _synthetic_lines(doc: Mapping[str, Any]) -> list[str]:
     lines = [
-        "| case | arm | death | map status | hits | C adj. | adjusted | rules "
+        "| case | arm | death | map status | production hits | C adj. "
+        "| A3 R5 exempt | adjusted | rules "
         "| map-rule violations | value errors | uptake | ablation |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for r in doc["synthetic"]:
         ablation = r.get("ablation") or {}
         reasons = ", ".join(ablation.get("reasons") or ["-"])
         lines.append(
             f"| {r['case']} | {r['arm']} | `{r['death_id']}` | {r['map_status']} "
-            f"| {r['validator_hits']} | {r['c_adjustment']} | {r['adjusted_hits']} "
+            f"| {r['validator_hits']} | {r['c_adjustment']} | {r['r5_window_exempt']} "
+            f"| {r['adjusted_hits']} "
             f"| {', '.join(r['hit_rules']) or '-'} "
             f"| {', '.join(r.get('map_rule_violations') or []) or '-'} "
             f"| {len(r.get('value_fidelity_errors') or [])} | {r.get('uptake', '-')} "
@@ -486,9 +538,12 @@ def plan_markdown(doc: Mapping[str, Any]) -> str:
     lines = [
         "# Experiment J dry run (stop point 3; no model calls)",
         "",
-        "- Dry-run criterion (0 validator hits beyond the C adjustment; literal "
-        "block paths resolve): "
+        "- Dry-run criterion (compliant outputs: 0 hits after the pre-registered "
+        "C adjustment and the Amendment 3 R5 window exemption; literal block "
+        "paths resolve; non-qualifying R5 hits stay counted): "
         f"**{'met' if doc['dry_run_criterion_met'] else 'NOT met'}**",
+        "- Amendment 3 non-qualifying R5 hits kept: "
+        f"{doc['amendment_3_non_qualifying_hits_kept']}",
         f"- Seals: verified. Census fact mismatches: {_listed(doc['fact_problems'])}",
         f"- Stale inputs: {_listed(doc['stale_inputs'])}",
         f"- Invariants: {_listed(doc['invariant_problems'])}",

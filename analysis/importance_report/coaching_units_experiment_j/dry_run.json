@@ -37,28 +37,42 @@
  "synthetic_summary": {
   "M": {
    "outputs": 40,
-   "with_hits_beyond_c_adjustment": 30,
-   "hits_beyond_c_adjustment": 60,
+   "production_hits": 60,
    "c_adjustment_removed": 0,
+   "amendment_3_r5_window_exempt": 60,
+   "adjusted_hits": 0,
+   "outputs_with_production_hits": 30,
+   "outputs_with_adjusted_hits": 0,
    "rules": {
     "R5:map_absence": 30
    },
-   "by_map_status": {
+   "production_hits_by_map_status": {
     "not_observed": 0,
-    "observed": 30
+    "observed": 60
+   },
+   "adjusted_hits_by_map_status": {
+    "not_observed": 0,
+    "observed": 0
    },
    "value_fidelity_errors": 0,
    "blocked": 0
   },
   "C": {
    "outputs": 6,
-   "with_hits_beyond_c_adjustment": 0,
-   "hits_beyond_c_adjustment": 0,
+   "production_hits": 6,
    "c_adjustment_removed": 6,
+   "amendment_3_r5_window_exempt": 0,
+   "adjusted_hits": 0,
+   "outputs_with_production_hits": 6,
+   "outputs_with_adjusted_hits": 0,
    "rules": {
     "R10:no_template": 6
    },
-   "by_map_status": {
+   "production_hits_by_map_status": {
+    "not_observed": 1,
+    "observed": 5
+   },
+   "adjusted_hits_by_map_status": {
     "not_observed": 0,
     "observed": 0
    },
@@ -75,6 +89,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -98,7 +113,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -123,6 +139,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -146,7 +163,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -171,6 +189,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -194,7 +213,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -219,7 +239,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -244,7 +265,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -269,7 +291,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -294,7 +317,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -319,7 +343,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -344,7 +369,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -369,7 +395,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -394,7 +421,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -419,7 +447,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -444,7 +473,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -469,6 +499,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -492,7 +523,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -517,6 +549,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -540,7 +573,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -565,7 +599,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -590,6 +625,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -613,7 +649,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -638,7 +675,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -663,7 +701,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -688,6 +727,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -711,7 +751,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -736,7 +777,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -761,6 +803,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -784,7 +827,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -809,6 +853,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -832,7 +877,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -857,7 +903,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -882,6 +929,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -905,7 +953,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -930,7 +979,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -955,7 +1005,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -980,7 +1031,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -1005,7 +1057,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -1030,7 +1083,8 @@
    "parsed": true,
    "validator_hits": 2,
    "c_adjustment": 0,
-   "adjusted_hits": 2,
+   "r5_window_exempt": 2,
+   "adjusted_hits": 0,
    "hit_rules": [
     "R5:map_absence"
    ],
@@ -1055,6 +1109,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 1,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [
     "R10:no_template"
@@ -1071,6 +1126,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 1,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [
     "R10:no_template"
@@ -1087,6 +1143,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 1,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [
     "R10:no_template"
@@ -1103,6 +1160,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 1,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [
     "R10:no_template"
@@ -1119,6 +1177,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 1,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [
     "R10:no_template"
@@ -1135,6 +1194,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 1,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [
     "R10:no_template"
@@ -1151,6 +1211,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 1,
    "hit_rules": [
     "causal_map_claim"
@@ -1178,6 +1239,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": true,
@@ -1203,6 +1265,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 1,
    "hit_rules": [
     "R7:value_mismatch"
@@ -1232,6 +1295,7 @@
    "parsed": true,
    "validator_hits": 0,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 0,
    "hit_rules": [],
    "blocked": false,
@@ -1255,6 +1319,7 @@
    "parsed": true,
    "validator_hits": 1,
    "c_adjustment": 0,
+   "r5_window_exempt": 0,
    "adjusted_hits": 1,
    "hit_rules": [
     "R10:ungrounded_template"
@@ -1265,6 +1330,52 @@
    "map_rule_violations": [
     "advice_not_eligible"
    ],
+   "uptake": false,
+   "ablation": null
+  },
+  {
+   "case": "a3_unanchored_absence",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 2,
+   "c_adjustment": 0,
+   "r5_window_exempt": 1,
+   "adjusted_hits": 1,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": true,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
+   "uptake": false,
+   "ablation": {
+    "ablatable": false,
+    "reasons": [
+     "map_sentence_not_exactly_one_segment",
+     "map_in_remaining_segment"
+    ]
+   }
+  },
+  {
+   "case": "a3_absence_with_alive_check",
+   "arm": "M",
+   "death_id": "synthetic",
+   "map_status": "observed",
+   "parsed": true,
+   "validator_hits": 1,
+   "c_adjustment": 0,
+   "r5_window_exempt": 0,
+   "adjusted_hits": 1,
+   "hit_rules": [
+    "R5:map_absence"
+   ],
+   "blocked": false,
+   "any_recommendation": false,
+   "value_fidelity_errors": [],
+   "map_rule_violations": [],
    "uptake": false,
    "ablation": null
   }
@@ -1284,5 +1395,9 @@
   ],
   "matches_design": true
  },
- "dry_run_criterion_met": false
+ "amendment_3_non_qualifying_hits_kept": {
+  "a3_unanchored_absence": true,
+  "a3_absence_with_alive_check": true
+ },
+ "dry_run_criterion_met": true
 }

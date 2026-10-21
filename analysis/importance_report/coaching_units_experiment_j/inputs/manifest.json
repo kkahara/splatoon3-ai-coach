@@ -1,0 +1,1925 @@
+{
+ "call_counts": {
+  "C": 12,
+  "P1": 140,
+  "P2": 20,
+  "P3": 40,
+  "total": 212
+ },
+ "calls": [
+  {
+   "arm": "A",
+   "call_id": "A__001_death_episode_72_500__r1",
+   "death_id": "001|death_episode:72.500",
+   "file": "A/001_death_episode_72_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__001_death_episode_72_500__r2",
+   "death_id": "001|death_episode:72.500",
+   "file": "A/001_death_episode_72_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_72_500__r1",
+   "death_id": "001|death_episode:72.500",
+   "file": "M/001_death_episode_72_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_72_500__r2",
+   "death_id": "001|death_episode:72.500",
+   "file": "M/001_death_episode_72_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__001_death_episode_188_000__r1",
+   "death_id": "001|death_episode:188.000",
+   "file": "A/001_death_episode_188_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__001_death_episode_188_000__r2",
+   "death_id": "001|death_episode:188.000",
+   "file": "A/001_death_episode_188_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_188_000__r1",
+   "death_id": "001|death_episode:188.000",
+   "file": "M/001_death_episode_188_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_188_000__r2",
+   "death_id": "001|death_episode:188.000",
+   "file": "M/001_death_episode_188_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__002_death_episode_46_000__r1",
+   "death_id": "002|death_episode:46.000",
+   "file": "A/002_death_episode_46_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__002_death_episode_46_000__r2",
+   "death_id": "002|death_episode:46.000",
+   "file": "A/002_death_episode_46_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__002_death_episode_46_000__r1",
+   "death_id": "002|death_episode:46.000",
+   "file": "M/002_death_episode_46_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__002_death_episode_46_000__r2",
+   "death_id": "002|death_episode:46.000",
+   "file": "M/002_death_episode_46_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__003_death_episode_48_000__r1",
+   "death_id": "003|death_episode:48.000",
+   "file": "A/003_death_episode_48_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__003_death_episode_48_000__r2",
+   "death_id": "003|death_episode:48.000",
+   "file": "A/003_death_episode_48_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__003_death_episode_48_000__r1",
+   "death_id": "003|death_episode:48.000",
+   "file": "M/003_death_episode_48_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__003_death_episode_48_000__r2",
+   "death_id": "003|death_episode:48.000",
+   "file": "M/003_death_episode_48_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__003_death_episode_127_500__r1",
+   "death_id": "003|death_episode:127.500",
+   "file": "A/003_death_episode_127_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__003_death_episode_127_500__r2",
+   "death_id": "003|death_episode:127.500",
+   "file": "A/003_death_episode_127_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__003_death_episode_127_500__r1",
+   "death_id": "003|death_episode:127.500",
+   "file": "M/003_death_episode_127_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__003_death_episode_127_500__r2",
+   "death_id": "003|death_episode:127.500",
+   "file": "M/003_death_episode_127_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__004_death_episode_66_500__r1",
+   "death_id": "004|death_episode:66.500",
+   "file": "A/004_death_episode_66_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__004_death_episode_66_500__r2",
+   "death_id": "004|death_episode:66.500",
+   "file": "A/004_death_episode_66_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__004_death_episode_66_500__r1",
+   "death_id": "004|death_episode:66.500",
+   "file": "M/004_death_episode_66_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__004_death_episode_66_500__r2",
+   "death_id": "004|death_episode:66.500",
+   "file": "M/004_death_episode_66_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__006_death_episode_224_000__r1",
+   "death_id": "006|death_episode:224.000",
+   "file": "A/006_death_episode_224_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__006_death_episode_224_000__r2",
+   "death_id": "006|death_episode:224.000",
+   "file": "A/006_death_episode_224_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__006_death_episode_224_000__r1",
+   "death_id": "006|death_episode:224.000",
+   "file": "M/006_death_episode_224_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__006_death_episode_224_000__r2",
+   "death_id": "006|death_episode:224.000",
+   "file": "M/006_death_episode_224_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__006_death_episode_263_000__r1",
+   "death_id": "006|death_episode:263.000",
+   "file": "A/006_death_episode_263_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__006_death_episode_263_000__r2",
+   "death_id": "006|death_episode:263.000",
+   "file": "A/006_death_episode_263_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__006_death_episode_263_000__r1",
+   "death_id": "006|death_episode:263.000",
+   "file": "M/006_death_episode_263_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__006_death_episode_263_000__r2",
+   "death_id": "006|death_episode:263.000",
+   "file": "M/006_death_episode_263_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_60_500__r1",
+   "death_id": "007|death_episode:60.500",
+   "file": "A/007_death_episode_60_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_60_500__r2",
+   "death_id": "007|death_episode:60.500",
+   "file": "A/007_death_episode_60_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_60_500__r1",
+   "death_id": "007|death_episode:60.500",
+   "file": "M/007_death_episode_60_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_60_500__r2",
+   "death_id": "007|death_episode:60.500",
+   "file": "M/007_death_episode_60_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_92_000__r1",
+   "death_id": "007|death_episode:92.000",
+   "file": "A/007_death_episode_92_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_92_000__r2",
+   "death_id": "007|death_episode:92.000",
+   "file": "A/007_death_episode_92_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_92_000__r1",
+   "death_id": "007|death_episode:92.000",
+   "file": "M/007_death_episode_92_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_92_000__r2",
+   "death_id": "007|death_episode:92.000",
+   "file": "M/007_death_episode_92_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_143_500__r1",
+   "death_id": "007|death_episode:143.500",
+   "file": "A/007_death_episode_143_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_143_500__r2",
+   "death_id": "007|death_episode:143.500",
+   "file": "A/007_death_episode_143_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_143_500__r1",
+   "death_id": "007|death_episode:143.500",
+   "file": "M/007_death_episode_143_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_143_500__r2",
+   "death_id": "007|death_episode:143.500",
+   "file": "M/007_death_episode_143_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_169_000__r1",
+   "death_id": "007|death_episode:169.000",
+   "file": "A/007_death_episode_169_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_169_000__r2",
+   "death_id": "007|death_episode:169.000",
+   "file": "A/007_death_episode_169_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_169_000__r1",
+   "death_id": "007|death_episode:169.000",
+   "file": "M/007_death_episode_169_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_169_000__r2",
+   "death_id": "007|death_episode:169.000",
+   "file": "M/007_death_episode_169_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__008_death_episode_26_000__r1",
+   "death_id": "008|death_episode:26.000",
+   "file": "A/008_death_episode_26_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__008_death_episode_26_000__r2",
+   "death_id": "008|death_episode:26.000",
+   "file": "A/008_death_episode_26_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__008_death_episode_26_000__r1",
+   "death_id": "008|death_episode:26.000",
+   "file": "M/008_death_episode_26_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__008_death_episode_26_000__r2",
+   "death_id": "008|death_episode:26.000",
+   "file": "M/008_death_episode_26_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__008_death_episode_105_000__r1",
+   "death_id": "008|death_episode:105.000",
+   "file": "A/008_death_episode_105_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__008_death_episode_105_000__r2",
+   "death_id": "008|death_episode:105.000",
+   "file": "A/008_death_episode_105_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__008_death_episode_105_000__r1",
+   "death_id": "008|death_episode:105.000",
+   "file": "M/008_death_episode_105_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__008_death_episode_105_000__r2",
+   "death_id": "008|death_episode:105.000",
+   "file": "M/008_death_episode_105_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__009_death_episode_78_000__r1",
+   "death_id": "009|death_episode:78.000",
+   "file": "A/009_death_episode_78_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__009_death_episode_78_000__r2",
+   "death_id": "009|death_episode:78.000",
+   "file": "A/009_death_episode_78_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_78_000__r1",
+   "death_id": "009|death_episode:78.000",
+   "file": "M/009_death_episode_78_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_78_000__r2",
+   "death_id": "009|death_episode:78.000",
+   "file": "M/009_death_episode_78_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__009_death_episode_191_500__r1",
+   "death_id": "009|death_episode:191.500",
+   "file": "A/009_death_episode_191_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__009_death_episode_191_500__r2",
+   "death_id": "009|death_episode:191.500",
+   "file": "A/009_death_episode_191_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_191_500__r1",
+   "death_id": "009|death_episode:191.500",
+   "file": "M/009_death_episode_191_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_191_500__r2",
+   "death_id": "009|death_episode:191.500",
+   "file": "M/009_death_episode_191_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__009_death_episode_319_500__r1",
+   "death_id": "009|death_episode:319.500",
+   "file": "A/009_death_episode_319_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__009_death_episode_319_500__r2",
+   "death_id": "009|death_episode:319.500",
+   "file": "A/009_death_episode_319_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_319_500__r1",
+   "death_id": "009|death_episode:319.500",
+   "file": "M/009_death_episode_319_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_319_500__r2",
+   "death_id": "009|death_episode:319.500",
+   "file": "M/009_death_episode_319_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_80_500__r1",
+   "death_id": "010|death_episode:80.500",
+   "file": "A/010_death_episode_80_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_80_500__r2",
+   "death_id": "010|death_episode:80.500",
+   "file": "A/010_death_episode_80_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_80_500__r1",
+   "death_id": "010|death_episode:80.500",
+   "file": "M/010_death_episode_80_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_80_500__r2",
+   "death_id": "010|death_episode:80.500",
+   "file": "M/010_death_episode_80_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_221_500__r1",
+   "death_id": "010|death_episode:221.500",
+   "file": "A/010_death_episode_221_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_221_500__r2",
+   "death_id": "010|death_episode:221.500",
+   "file": "A/010_death_episode_221_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_221_500__r1",
+   "death_id": "010|death_episode:221.500",
+   "file": "M/010_death_episode_221_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_221_500__r2",
+   "death_id": "010|death_episode:221.500",
+   "file": "M/010_death_episode_221_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_297_500__r1",
+   "death_id": "010|death_episode:297.500",
+   "file": "A/010_death_episode_297_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_297_500__r2",
+   "death_id": "010|death_episode:297.500",
+   "file": "A/010_death_episode_297_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_297_500__r1",
+   "death_id": "010|death_episode:297.500",
+   "file": "M/010_death_episode_297_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_297_500__r2",
+   "death_id": "010|death_episode:297.500",
+   "file": "M/010_death_episode_297_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_321_500__r1",
+   "death_id": "010|death_episode:321.500",
+   "file": "A/010_death_episode_321_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__010_death_episode_321_500__r2",
+   "death_id": "010|death_episode:321.500",
+   "file": "A/010_death_episode_321_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_321_500__r1",
+   "death_id": "010|death_episode:321.500",
+   "file": "M/010_death_episode_321_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_321_500__r2",
+   "death_id": "010|death_episode:321.500",
+   "file": "M/010_death_episode_321_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__011_death_episode_94_000__r1",
+   "death_id": "011|death_episode:94.000",
+   "file": "A/011_death_episode_94_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__011_death_episode_94_000__r2",
+   "death_id": "011|death_episode:94.000",
+   "file": "A/011_death_episode_94_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_94_000__r1",
+   "death_id": "011|death_episode:94.000",
+   "file": "M/011_death_episode_94_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_94_000__r2",
+   "death_id": "011|death_episode:94.000",
+   "file": "M/011_death_episode_94_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__011_death_episode_132_500__r1",
+   "death_id": "011|death_episode:132.500",
+   "file": "A/011_death_episode_132_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__011_death_episode_132_500__r2",
+   "death_id": "011|death_episode:132.500",
+   "file": "A/011_death_episode_132_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_132_500__r1",
+   "death_id": "011|death_episode:132.500",
+   "file": "M/011_death_episode_132_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_132_500__r2",
+   "death_id": "011|death_episode:132.500",
+   "file": "M/011_death_episode_132_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__011_death_episode_162_500__r1",
+   "death_id": "011|death_episode:162.500",
+   "file": "A/011_death_episode_162_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__011_death_episode_162_500__r2",
+   "death_id": "011|death_episode:162.500",
+   "file": "A/011_death_episode_162_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_162_500__r1",
+   "death_id": "011|death_episode:162.500",
+   "file": "M/011_death_episode_162_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_162_500__r2",
+   "death_id": "011|death_episode:162.500",
+   "file": "M/011_death_episode_162_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__012_death_episode_65_500__r1",
+   "death_id": "012|death_episode:65.500",
+   "file": "A/012_death_episode_65_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__012_death_episode_65_500__r2",
+   "death_id": "012|death_episode:65.500",
+   "file": "A/012_death_episode_65_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__012_death_episode_65_500__r1",
+   "death_id": "012|death_episode:65.500",
+   "file": "M/012_death_episode_65_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__012_death_episode_65_500__r2",
+   "death_id": "012|death_episode:65.500",
+   "file": "M/012_death_episode_65_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__012_death_episode_199_000__r1",
+   "death_id": "012|death_episode:199.000",
+   "file": "A/012_death_episode_199_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__012_death_episode_199_000__r2",
+   "death_id": "012|death_episode:199.000",
+   "file": "A/012_death_episode_199_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__012_death_episode_199_000__r1",
+   "death_id": "012|death_episode:199.000",
+   "file": "M/012_death_episode_199_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__012_death_episode_199_000__r2",
+   "death_id": "012|death_episode:199.000",
+   "file": "M/012_death_episode_199_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__013_death_episode_112_500__r1",
+   "death_id": "013|death_episode:112.500",
+   "file": "A/013_death_episode_112_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__013_death_episode_112_500__r2",
+   "death_id": "013|death_episode:112.500",
+   "file": "A/013_death_episode_112_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__013_death_episode_112_500__r1",
+   "death_id": "013|death_episode:112.500",
+   "file": "M/013_death_episode_112_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__013_death_episode_112_500__r2",
+   "death_id": "013|death_episode:112.500",
+   "file": "M/013_death_episode_112_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__014_death_episode_209_500__r1",
+   "death_id": "014|death_episode:209.500",
+   "file": "A/014_death_episode_209_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__014_death_episode_209_500__r2",
+   "death_id": "014|death_episode:209.500",
+   "file": "A/014_death_episode_209_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_209_500__r1",
+   "death_id": "014|death_episode:209.500",
+   "file": "M/014_death_episode_209_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_209_500__r2",
+   "death_id": "014|death_episode:209.500",
+   "file": "M/014_death_episode_209_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__014_death_episode_235_500__r1",
+   "death_id": "014|death_episode:235.500",
+   "file": "A/014_death_episode_235_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__014_death_episode_235_500__r2",
+   "death_id": "014|death_episode:235.500",
+   "file": "A/014_death_episode_235_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_235_500__r1",
+   "death_id": "014|death_episode:235.500",
+   "file": "M/014_death_episode_235_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_235_500__r2",
+   "death_id": "014|death_episode:235.500",
+   "file": "M/014_death_episode_235_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__015_death_episode_116_000__r1",
+   "death_id": "015|death_episode:116.000",
+   "file": "A/015_death_episode_116_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__015_death_episode_116_000__r2",
+   "death_id": "015|death_episode:116.000",
+   "file": "A/015_death_episode_116_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__015_death_episode_116_000__r1",
+   "death_id": "015|death_episode:116.000",
+   "file": "M/015_death_episode_116_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__015_death_episode_116_000__r2",
+   "death_id": "015|death_episode:116.000",
+   "file": "M/015_death_episode_116_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__017_death_episode_106_000__r1",
+   "death_id": "017|death_episode:106.000",
+   "file": "A/017_death_episode_106_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__017_death_episode_106_000__r2",
+   "death_id": "017|death_episode:106.000",
+   "file": "A/017_death_episode_106_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__017_death_episode_106_000__r1",
+   "death_id": "017|death_episode:106.000",
+   "file": "M/017_death_episode_106_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__017_death_episode_106_000__r2",
+   "death_id": "017|death_episode:106.000",
+   "file": "M/017_death_episode_106_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__017_death_episode_151_000__r1",
+   "death_id": "017|death_episode:151.000",
+   "file": "A/017_death_episode_151_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__017_death_episode_151_000__r2",
+   "death_id": "017|death_episode:151.000",
+   "file": "A/017_death_episode_151_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__017_death_episode_151_000__r1",
+   "death_id": "017|death_episode:151.000",
+   "file": "M/017_death_episode_151_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__017_death_episode_151_000__r2",
+   "death_id": "017|death_episode:151.000",
+   "file": "M/017_death_episode_151_000.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__018_death_episode_219_500__r1",
+   "death_id": "018|death_episode:219.500",
+   "file": "A/018_death_episode_219_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__018_death_episode_219_500__r2",
+   "death_id": "018|death_episode:219.500",
+   "file": "A/018_death_episode_219_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__018_death_episode_219_500__r1",
+   "death_id": "018|death_episode:219.500",
+   "file": "M/018_death_episode_219_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__018_death_episode_219_500__r2",
+   "death_id": "018|death_episode:219.500",
+   "file": "M/018_death_episode_219_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__019_death_episode_83_500__r1",
+   "death_id": "019|death_episode:83.500",
+   "file": "A/019_death_episode_83_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__019_death_episode_83_500__r2",
+   "death_id": "019|death_episode:83.500",
+   "file": "A/019_death_episode_83_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__019_death_episode_83_500__r1",
+   "death_id": "019|death_episode:83.500",
+   "file": "M/019_death_episode_83_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__019_death_episode_83_500__r2",
+   "death_id": "019|death_episode:83.500",
+   "file": "M/019_death_episode_83_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__019_death_episode_107_500__r1",
+   "death_id": "019|death_episode:107.500",
+   "file": "A/019_death_episode_107_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__019_death_episode_107_500__r2",
+   "death_id": "019|death_episode:107.500",
+   "file": "A/019_death_episode_107_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__019_death_episode_107_500__r1",
+   "death_id": "019|death_episode:107.500",
+   "file": "M/019_death_episode_107_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__019_death_episode_107_500__r2",
+   "death_id": "019|death_episode:107.500",
+   "file": "M/019_death_episode_107_500.user_prompt.txt",
+   "population": "P1",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__002_death_episode_89_500__r1",
+   "death_id": "002|death_episode:89.500",
+   "file": "A/002_death_episode_89_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__002_death_episode_89_500__r2",
+   "death_id": "002|death_episode:89.500",
+   "file": "A/002_death_episode_89_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__002_death_episode_89_500__r1",
+   "death_id": "002|death_episode:89.500",
+   "file": "M/002_death_episode_89_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__002_death_episode_89_500__r2",
+   "death_id": "002|death_episode:89.500",
+   "file": "M/002_death_episode_89_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__003_death_episode_197_000__r1",
+   "death_id": "003|death_episode:197.000",
+   "file": "A/003_death_episode_197_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__003_death_episode_197_000__r2",
+   "death_id": "003|death_episode:197.000",
+   "file": "A/003_death_episode_197_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__003_death_episode_197_000__r1",
+   "death_id": "003|death_episode:197.000",
+   "file": "M/003_death_episode_197_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__003_death_episode_197_000__r2",
+   "death_id": "003|death_episode:197.000",
+   "file": "M/003_death_episode_197_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_206_500__r1",
+   "death_id": "007|death_episode:206.500",
+   "file": "A/007_death_episode_206_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_206_500__r2",
+   "death_id": "007|death_episode:206.500",
+   "file": "A/007_death_episode_206_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_206_500__r1",
+   "death_id": "007|death_episode:206.500",
+   "file": "M/007_death_episode_206_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_206_500__r2",
+   "death_id": "007|death_episode:206.500",
+   "file": "M/007_death_episode_206_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_251_500__r1",
+   "death_id": "007|death_episode:251.500",
+   "file": "A/007_death_episode_251_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__007_death_episode_251_500__r2",
+   "death_id": "007|death_episode:251.500",
+   "file": "A/007_death_episode_251_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_251_500__r1",
+   "death_id": "007|death_episode:251.500",
+   "file": "M/007_death_episode_251_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_251_500__r2",
+   "death_id": "007|death_episode:251.500",
+   "file": "M/007_death_episode_251_500.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__015_death_episode_63_000__r1",
+   "death_id": "015|death_episode:63.000",
+   "file": "A/015_death_episode_63_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "A",
+   "call_id": "A__015_death_episode_63_000__r2",
+   "death_id": "015|death_episode:63.000",
+   "file": "A/015_death_episode_63_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_A.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__015_death_episode_63_000__r1",
+   "death_id": "015|death_episode:63.000",
+   "file": "M/015_death_episode_63_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__015_death_episode_63_000__r2",
+   "death_id": "015|death_episode:63.000",
+   "file": "M/015_death_episode_63_000.user_prompt.txt",
+   "population": "P2",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_102_500__r1",
+   "death_id": "001|death_episode:102.500",
+   "file": "M/001_death_episode_102_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_102_500__r2",
+   "death_id": "001|death_episode:102.500",
+   "file": "M/001_death_episode_102_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_159_500__r1",
+   "death_id": "001|death_episode:159.500",
+   "file": "M/001_death_episode_159_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_159_500__r2",
+   "death_id": "001|death_episode:159.500",
+   "file": "M/001_death_episode_159_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_203_000__r1",
+   "death_id": "001|death_episode:203.000",
+   "file": "M/001_death_episode_203_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_203_000__r2",
+   "death_id": "001|death_episode:203.000",
+   "file": "M/001_death_episode_203_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_254_000__r1",
+   "death_id": "001|death_episode:254.000",
+   "file": "M/001_death_episode_254_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__001_death_episode_254_000__r2",
+   "death_id": "001|death_episode:254.000",
+   "file": "M/001_death_episode_254_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__006_death_episode_277_000__r1",
+   "death_id": "006|death_episode:277.000",
+   "file": "M/006_death_episode_277_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__006_death_episode_277_000__r2",
+   "death_id": "006|death_episode:277.000",
+   "file": "M/006_death_episode_277_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_280_500__r1",
+   "death_id": "007|death_episode:280.500",
+   "file": "M/007_death_episode_280_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_280_500__r2",
+   "death_id": "007|death_episode:280.500",
+   "file": "M/007_death_episode_280_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_296_500__r1",
+   "death_id": "007|death_episode:296.500",
+   "file": "M/007_death_episode_296_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__007_death_episode_296_500__r2",
+   "death_id": "007|death_episode:296.500",
+   "file": "M/007_death_episode_296_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__008_death_episode_164_000__r1",
+   "death_id": "008|death_episode:164.000",
+   "file": "M/008_death_episode_164_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__008_death_episode_164_000__r2",
+   "death_id": "008|death_episode:164.000",
+   "file": "M/008_death_episode_164_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_277_000__r1",
+   "death_id": "009|death_episode:277.000",
+   "file": "M/009_death_episode_277_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_277_000__r2",
+   "death_id": "009|death_episode:277.000",
+   "file": "M/009_death_episode_277_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_289_000__r1",
+   "death_id": "009|death_episode:289.000",
+   "file": "M/009_death_episode_289_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__009_death_episode_289_000__r2",
+   "death_id": "009|death_episode:289.000",
+   "file": "M/009_death_episode_289_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_158_000__r1",
+   "death_id": "010|death_episode:158.000",
+   "file": "M/010_death_episode_158_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_158_000__r2",
+   "death_id": "010|death_episode:158.000",
+   "file": "M/010_death_episode_158_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_276_500__r1",
+   "death_id": "010|death_episode:276.500",
+   "file": "M/010_death_episode_276_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__010_death_episode_276_500__r2",
+   "death_id": "010|death_episode:276.500",
+   "file": "M/010_death_episode_276_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_112_000__r1",
+   "death_id": "011|death_episode:112.000",
+   "file": "M/011_death_episode_112_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__011_death_episode_112_000__r2",
+   "death_id": "011|death_episode:112.000",
+   "file": "M/011_death_episode_112_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_98_500__r1",
+   "death_id": "014|death_episode:98.500",
+   "file": "M/014_death_episode_98_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_98_500__r2",
+   "death_id": "014|death_episode:98.500",
+   "file": "M/014_death_episode_98_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_178_500__r1",
+   "death_id": "014|death_episode:178.500",
+   "file": "M/014_death_episode_178_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__014_death_episode_178_500__r2",
+   "death_id": "014|death_episode:178.500",
+   "file": "M/014_death_episode_178_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__016_death_episode_33_000__r1",
+   "death_id": "016|death_episode:33.000",
+   "file": "M/016_death_episode_33_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__016_death_episode_33_000__r2",
+   "death_id": "016|death_episode:33.000",
+   "file": "M/016_death_episode_33_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__016_death_episode_80_000__r1",
+   "death_id": "016|death_episode:80.000",
+   "file": "M/016_death_episode_80_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__016_death_episode_80_000__r2",
+   "death_id": "016|death_episode:80.000",
+   "file": "M/016_death_episode_80_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__016_death_episode_239_000__r1",
+   "death_id": "016|death_episode:239.000",
+   "file": "M/016_death_episode_239_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__016_death_episode_239_000__r2",
+   "death_id": "016|death_episode:239.000",
+   "file": "M/016_death_episode_239_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__018_death_episode_318_000__r1",
+   "death_id": "018|death_episode:318.000",
+   "file": "M/018_death_episode_318_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__018_death_episode_318_000__r2",
+   "death_id": "018|death_episode:318.000",
+   "file": "M/018_death_episode_318_000.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__019_death_episode_21_500__r1",
+   "death_id": "019|death_episode:21.500",
+   "file": "M/019_death_episode_21_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 1,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "M",
+   "call_id": "M__019_death_episode_21_500__r2",
+   "death_id": "019|death_episode:21.500",
+   "file": "M/019_death_episode_21_500.user_prompt.txt",
+   "population": "P3",
+   "repeat": 2,
+   "system": "system_prompt_M.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__007_death_episode_143_500__r1",
+   "death_id": "007|death_episode:143.500",
+   "file": "C/007_death_episode_143_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 1,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__007_death_episode_143_500__r2",
+   "death_id": "007|death_episode:143.500",
+   "file": "C/007_death_episode_143_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 2,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__007_death_episode_206_500__r1",
+   "death_id": "007|death_episode:206.500",
+   "file": "C/007_death_episode_206_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 1,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__007_death_episode_206_500__r2",
+   "death_id": "007|death_episode:206.500",
+   "file": "C/007_death_episode_206_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 2,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__007_death_episode_251_500__r1",
+   "death_id": "007|death_episode:251.500",
+   "file": "C/007_death_episode_251_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 1,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__007_death_episode_251_500__r2",
+   "death_id": "007|death_episode:251.500",
+   "file": "C/007_death_episode_251_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 2,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__008_death_episode_105_000__r1",
+   "death_id": "008|death_episode:105.000",
+   "file": "C/008_death_episode_105_000.user_prompt.txt",
+   "population": "C",
+   "repeat": 1,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__008_death_episode_105_000__r2",
+   "death_id": "008|death_episode:105.000",
+   "file": "C/008_death_episode_105_000.user_prompt.txt",
+   "population": "C",
+   "repeat": 2,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__010_death_episode_80_500__r1",
+   "death_id": "010|death_episode:80.500",
+   "file": "C/010_death_episode_80_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 1,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__010_death_episode_80_500__r2",
+   "death_id": "010|death_episode:80.500",
+   "file": "C/010_death_episode_80_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 2,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__014_death_episode_235_500__r1",
+   "death_id": "014|death_episode:235.500",
+   "file": "C/014_death_episode_235_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 1,
+   "system": "system_prompt_C.txt"
+  },
+  {
+   "arm": "C",
+   "call_id": "C__014_death_episode_235_500__r2",
+   "death_id": "014|death_episode:235.500",
+   "file": "C/014_death_episode_235_500.user_prompt.txt",
+   "population": "C",
+   "repeat": 2,
+   "system": "system_prompt_C.txt"
+  }
+ ],
+ "experiment": "J",
+ "model": "gpt-5.6-luna",
+ "populations_sha256": "75e2d3bfc2f94e9cacbea0ce6bd8487eb497224e853bead1d9e8703944676f73",
+ "provider": "cursor",
+ "repeats": 2,
+ "stop_point": 3
+}

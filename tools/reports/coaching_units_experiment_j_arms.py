@@ -13,7 +13,10 @@ Research only; no model calls. Everything here is fixed by the frozen
   natural C claim, production system prompt + the extra-point section.
 
 M-minus-map is not an arm: ``ablate`` derives it from each M output. The
-output checks are frozen here before any output exists.
+output checks are frozen here before any output exists. Amendment 3
+(``AMENDMENT_3.md``) removes, from arm M's adjusted count only, the R5
+``map_absence`` hits Experiment I's Amendment 1 rule exempts; production
+counts are always kept alongside.
 """
 
 from __future__ import annotations
@@ -393,6 +396,27 @@ def c_adjustment(validation: Mapping[str, Any]) -> int:
     )
 
 
+def window_block(view: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The values Experiment I's R5 rule reads, from the call's own blocks.
+
+    ``seconds_back_in_play`` lives in ``back_in_play`` in J's frozen layout.
+    """
+    block = view.get("map_awareness")
+    if block is None:
+        return None
+    return {
+        "map_checks_since_back_in_play": block["map_checks_since_back_in_play"],
+        "seconds_back_in_play": view["back_in_play"]["seconds_back_in_play"],
+    }
+
+
+def r5_window_exemption(arm: str, validation: Mapping[str, Any], view: Mapping) -> int:
+    """Amendment 3 (arm M only): Experiment I's ``r5_window_exempt``, unchanged."""
+    if arm != "M":
+        return 0
+    return len(xi.r5_window_exempt(validation, window_block(view)))
+
+
 def hit_rules(validation: Mapping[str, Any]) -> list[str]:
     """Rule labels of every counted validator hit."""
     rules = {f"{h['rule']}:{h['check']}" for h in validation["integrity_hits"]}
@@ -419,11 +443,13 @@ def output_checks(
     )
     hits = xd._violations(dict(validation))
     adjust = c_adjustment(validation) if arm == "C" else 0
+    exempt = r5_window_exemption(arm, validation, view)
     out = {
         "parsed": True,
         "validator_hits": hits,
         "c_adjustment": adjust,
-        "adjusted_hits": hits - adjust,
+        "r5_window_exempt": exempt,
+        "adjusted_hits": hits - adjust - exempt,
         "hit_rules": hit_rules(validation),
         "blocked": bool(validation["blocked"]),
         "any_recommendation": bool(parsed["recommendations"]),
