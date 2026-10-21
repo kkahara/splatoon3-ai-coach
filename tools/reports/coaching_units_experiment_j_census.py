@@ -7,7 +7,9 @@ I's frozen arithmetic. It stops after the recording that holds the 50th
 mechanically eligible death has been processed completely. ``select`` then
 fixes the populations and applies the frozen seeds: the first 50 eligible
 deaths, the not-eligible frame, the 50-death sample, the P3 draw, and the
-shuffled worksheet with its separate key.
+shuffled worksheet with its separate key. ``join`` (stop point 2C) runs only
+after the labelled worksheet is sealed as ``relevance_labels.csv``; it writes
+the J populations and the go/no-go to ``populations.json``.
 """
 
 from __future__ import annotations
@@ -56,6 +58,13 @@ WORKSHEET_COLUMNS = (
     "map_relevant",
     "ideal_coaching_note",
 )
+BLIND_COLUMNS = WORKSHEET_COLUMNS[:5]
+RELEVANCE_LABELS = ("yes", "no", "unclear")
+LABELS = xj.OUT_DIR / "relevance_labels.csv"
+POPULATIONS = xj.OUT_DIR / "populations.json"
+MIN_P1 = 20
+MIN_P2_GATE3 = 5
+MIN_C = 5
 
 Analyzer = Callable[[Path, Path, str], tuple[bool, str | None]]
 
@@ -290,14 +299,81 @@ def _sha(obj: Any) -> str:
     return hashlib.sha256(json.dumps(obj, sort_keys=True).encode("utf-8")).hexdigest()
 
 
+def read_labels(path: Path, key_rows: Sequence[Mapping[str, Any]], movies: Path) -> dict:
+    """Sealed labels by row id; the blind columns must match the key exactly."""
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    blind = [{k: v for k, v in r.items() if k in BLIND_COLUMNS} for r in rows]
+    expected = [
+        {k: v for k, v in r.items() if k in BLIND_COLUMNS}
+        for r in worksheet_rows(key_rows, movies)
+    ]
+    if blind != expected:
+        raise SystemExit("labelled worksheet rows do not match the sealed key")
+    labels = {r["row_id"]: r["map_relevant"].strip().lower() for r in rows}
+    bad = sorted(rid for rid, v in labels.items() if v not in RELEVANCE_LABELS)
+    if bad:
+        raise SystemExit(f"rows without a yes/no/unclear label: {bad}")
+    return labels
+
+
+def _ids(rows: Sequence[Mapping[str, Any]]) -> list[str]:
+    return [death_id(r) for r in sorted(rows, key=death_key)]
+
+
+def join(
+    census: Mapping[str, Any], key: Mapping[str, Any], labels: Mapping[str, str]
+) -> dict[str, Any]:
+    """Populations after the labels are sealed: P1, P2, unclear, P3, C."""
+    rows = key["rows"]
+    first50 = [r for r in rows if r["group"] == "eligible_first50"]
+    p1 = [r for r in first50 if labels[r["row_id"]] == "yes"]
+    p2 = [r for r in first50 if labels[r["row_id"]] == "no"]
+    table = {
+        group: {
+            label: sum(r["group"] == group and labels[r["row_id"]] == label for r in rows)
+            for label in RELEVANCE_LABELS
+        }
+        for group in ("eligible_first50", "not_eligible_sample")
+    }
+    natural_c = [r for r in [*p1, *p2] if r["c_point"]]
+    skipped = [r for r in census["recordings"] if r["status"] != "analyzed"]
+    return {
+        "experiment": "J",
+        "stop_point": "2C",
+        "label_normalization": "map_relevant stripped and lower-cased",
+        "go_no_go": {"p1": len(p1), "min_p1": MIN_P1, "proceed": len(p1) >= MIN_P1},
+        "gate3_evaluable": len(p2) >= MIN_P2_GATE3,
+        "relevance_x_eligibility": table,
+        "P1": _ids(p1),
+        "P2": _ids(p2),
+        "unclear": _ids([r for r in first50 if labels[r["row_id"]] == "unclear"]),
+        "P3": sorted(key["p3"]),
+        "c_diagnostic": {
+            "natural_deaths": _ids(natural_c),
+            "by_point": {c: sum(r["c_point"] == c for r in natural_c) for c in C_MENU},
+            "runs": len(natural_c) >= MIN_C,
+        },
+        "skipped_recordings": skipped,
+    }
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="walk the sequence and write census.json")
     sub.add_parser("select", help="write the worksheet and its key from census.json")
+    sub.add_parser("join", help="join the sealed labels to the key (populations.json)")
     args = parser.parse_args(argv)
-    if args.command == "run":
+    if args.command == "join":
+        census = json.loads(CENSUS.read_text(encoding="utf-8"))
+        key = json.loads(WORKSHEET_KEY.read_text(encoding="utf-8"))
+        labels = read_labels(LABELS, key["rows"], xj.MOVIES)
+        joined = {"labels_sha256": hashlib.sha256(LABELS.read_bytes()).hexdigest()}
+        joined |= join(census, key, labels)
+        write_once(POPULATIONS, json.dumps(joined, indent=1, ensure_ascii=False) + "\n")
+    elif args.command == "run":
         if CENSUS.exists():
             raise SystemExit(f"{CENSUS} exists; it is sealed")
         sequence = json.loads(xj.CENSUS_EXCLUSIONS.read_text(encoding="utf-8"))[

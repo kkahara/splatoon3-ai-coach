@@ -111,3 +111,42 @@ def test_c_point_priority_and_language():
 
 def test_frozen_seeds_come_from_design_json():
     assert xc.seeds() == SEEDS
+
+
+def _labelled(tmp_path, chosen, label):
+    rows = xc.worksheet_rows(chosen["rows"], tmp_path)
+    for n, r in enumerate(rows):
+        r["map_relevant"] = label(n)
+    path = tmp_path / "labels.csv"
+    xc.write_worksheet(rows, path)
+    return path
+
+
+def test_join_populations_go_no_go_and_c(tmp_path):
+    census = _census(n_eligible=50, n_frame=10)
+    census["deaths"][0]["c_point"] = "death_own_splat_before"
+    census["recordings"] = [{"status": "analyzed"}, {"status": "skipped"}]
+    chosen = xc.select(census, SEEDS)
+    path = _labelled(tmp_path, chosen, lambda n: (" Yes", "No", "UNCLEAR")[n % 3])
+    labels = xc.read_labels(path, chosen["rows"], tmp_path)
+    joined = xc.join(census, chosen, labels)
+    table = joined["relevance_x_eligibility"]
+    assert sum(table["eligible_first50"].values()) == 50
+    assert sum(table["not_eligible_sample"].values()) == 10
+    assert len(joined["P1"]) + len(joined["P2"]) + len(joined["unclear"]) == 50
+    assert set(joined["P1"]) <= set(chosen["first50"])
+    assert joined["go_no_go"]["proceed"] is (len(joined["P1"]) >= 20)
+    assert joined["P3"] == sorted(chosen["p3"])
+    assert len(joined["skipped_recordings"]) == 1
+    assert joined["c_diagnostic"]["runs"] is False
+
+
+def test_read_labels_rejects_missing_label_and_altered_rows(tmp_path):
+    chosen = xc.select(_census(n_eligible=50, n_frame=10), SEEDS)
+    path = _labelled(tmp_path, chosen, lambda n: "" if n == 3 else "yes")
+    with pytest.raises(SystemExit, match="label"):
+        xc.read_labels(path, chosen["rows"], tmp_path)
+    path.unlink()
+    path = _labelled(tmp_path, chosen, lambda n: "yes")
+    with pytest.raises(SystemExit, match="do not match"):
+        xc.read_labels(path, chosen["rows"][::-1], tmp_path)

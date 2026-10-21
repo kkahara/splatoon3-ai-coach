@@ -1,0 +1,118 @@
+{
+ "labels_sha256": "8ad7464e0d24bebc92ae7309e3fcb04bb5fa1e3c3b753cfee8bbfb1bd3857e15",
+ "experiment": "J",
+ "stop_point": "2C",
+ "label_normalization": "map_relevant stripped and lower-cased",
+ "go_no_go": {
+  "p1": 35,
+  "min_p1": 20,
+  "proceed": true
+ },
+ "gate3_evaluable": true,
+ "relevance_x_eligibility": {
+  "eligible_first50": {
+   "yes": 35,
+   "no": 5,
+   "unclear": 10
+  },
+  "not_eligible_sample": {
+   "yes": 12,
+   "no": 3,
+   "unclear": 7
+  }
+ },
+ "P1": [
+  "001|death_episode:72.500",
+  "001|death_episode:188.000",
+  "002|death_episode:46.000",
+  "003|death_episode:48.000",
+  "003|death_episode:127.500",
+  "004|death_episode:66.500",
+  "006|death_episode:224.000",
+  "006|death_episode:263.000",
+  "007|death_episode:60.500",
+  "007|death_episode:92.000",
+  "007|death_episode:143.500",
+  "007|death_episode:169.000",
+  "008|death_episode:26.000",
+  "008|death_episode:105.000",
+  "009|death_episode:78.000",
+  "009|death_episode:191.500",
+  "009|death_episode:319.500",
+  "010|death_episode:80.500",
+  "010|death_episode:221.500",
+  "010|death_episode:297.500",
+  "010|death_episode:321.500",
+  "011|death_episode:94.000",
+  "011|death_episode:132.500",
+  "011|death_episode:162.500",
+  "012|death_episode:65.500",
+  "012|death_episode:199.000",
+  "013|death_episode:112.500",
+  "014|death_episode:209.500",
+  "014|death_episode:235.500",
+  "015|death_episode:116.000",
+  "017|death_episode:106.000",
+  "017|death_episode:151.000",
+  "018|death_episode:219.500",
+  "019|death_episode:83.500",
+  "019|death_episode:107.500"
+ ],
+ "P2": [
+  "002|death_episode:89.500",
+  "003|death_episode:197.000",
+  "007|death_episode:206.500",
+  "007|death_episode:251.500",
+  "015|death_episode:63.000"
+ ],
+ "unclear": [
+  "004|death_episode:25.000",
+  "004|death_episode:153.000",
+  "006|death_episode:104.500",
+  "009|death_episode:124.500",
+  "009|death_episode:164.500",
+  "010|death_episode:198.000",
+  "013|death_episode:190.500",
+  "014|death_episode:25.000",
+  "014|death_episode:162.500",
+  "014|death_episode:298.000"
+ ],
+ "P3": [
+  "001|death_episode:102.500",
+  "001|death_episode:159.500",
+  "001|death_episode:203.000",
+  "001|death_episode:254.000",
+  "006|death_episode:277.000",
+  "007|death_episode:280.500",
+  "007|death_episode:296.500",
+  "008|death_episode:164.000",
+  "009|death_episode:277.000",
+  "009|death_episode:289.000",
+  "010|death_episode:158.000",
+  "010|death_episode:276.500",
+  "011|death_episode:112.000",
+  "014|death_episode:178.500",
+  "014|death_episode:98.500",
+  "016|death_episode:239.000",
+  "016|death_episode:33.000",
+  "016|death_episode:80.000",
+  "018|death_episode:318.000",
+  "019|death_episode:21.500"
+ ],
+ "c_diagnostic": {
+  "natural_deaths": [
+   "007|death_episode:143.500",
+   "007|death_episode:206.500",
+   "007|death_episode:251.500",
+   "008|death_episode:105.000",
+   "010|death_episode:80.500",
+   "014|death_episode:235.500"
+  ],
+  "by_point": {
+   "death_low_ink": 0,
+   "death_own_splat_before": 6
+  },
+  "runs": true
+ },
+ "skipped_recordings": []
+}
