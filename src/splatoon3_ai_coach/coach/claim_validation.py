@@ -13,13 +13,16 @@ prohibited-phrase patterns in ``evidence_contract``:
   or prescriptive ``assessment`` sentences, unless an active map factor has a
   catalog recommendation;
 * evidence paths — every ``evidence_used`` entry must resolve against the
-  serialized view, either natively or through a block's ``source_path`` label;
-  a cited ``path = value`` must equal the view value (R7);
+  serialized view: a literal view path (the model-facing contract), or,
+  only when that path does not exist, a legacy ``source_path`` label +
+  remainder; a cited ``path = value`` must equal the value at the resolved
+  location (R7);
 * claim integrity — R5, R7, R8 and R9 in ``claim_integrity``.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Mapping
 from enum import StrEnum
@@ -216,46 +219,87 @@ def _walk(node: Any, segments: list[str]) -> tuple[bool, Any]:
     return True, node
 
 
-def _source_blocks(node: Any) -> list[dict[str, Any]]:
-    """Every dict in the view that carries a string ``source_path`` label."""
-    found: list[dict[str, Any]] = []
+def _labelled_blocks(node: Any, location: str = "") -> list[tuple[str, dict[str, Any]]]:
+    """``(view path, block)`` for every dict carrying a string ``source_path``."""
+    found: list[tuple[str, dict[str, Any]]] = []
     if isinstance(node, dict):
         if isinstance(node.get("source_path"), str):
-            found.append(node)
-        for value in node.values():
-            found.extend(_source_blocks(value))
+            found.append((location, node))
+        for key, value in node.items():
+            found.extend(
+                _labelled_blocks(value, f"{location}.{key}" if location else key)
+            )
     elif isinstance(node, list):
-        for value in node:
-            found.extend(_source_blocks(value))
+        for index, value in enumerate(node):
+            found.extend(_labelled_blocks(value, f"{location}[{index}]"))
     return found
+
+
+def _source_blocks(node: Any) -> list[dict[str, Any]]:
+    """Every dict in the view that carries a string ``source_path`` label."""
+    return [block for _, block in _labelled_blocks(node)]
+
+
+def _citation_path(view: Mapping[str, Any], text: str) -> str | None:
+    """The cited path: a literal view path written first (any depth, top-level
+    keys included), else the first dotted path anywhere in the entry."""
+    anchored = _ANCHORED_PATH.match(text)
+    if anchored is not None and _walk(view, anchored.group(1).split("."))[0]:
+        return anchored.group(1)
+    match = _PATH.search(text)
+    return None if match is None else match.group(0)
+
+
+def resolve_view_path(view: Mapping[str, Any], path: str) -> tuple[bool, Any]:
+    """Literal CoachLlmView path: the one location it names, never via labels."""
+    return _walk(view, path.split("."))
+
+
+def _legacy_label_reference(
+    view: Mapping[str, Any], path: str
+) -> tuple[tuple[str, str] | None, bool]:
+    """Legacy ``source_path`` label + remainder: ``((label, location), _)`` for
+    the first labelled block it walks, and whether any label prefixed ``path``.
+
+    Only consulted when the literal view path does not exist. A label that is
+    itself a literal view path of some other location is ignored, so labels
+    never redirect view-path citations.
+    """
+    block_hit = False
+    for location, block in _labelled_blocks(view):
+        label = block["source_path"]
+        if label != location and resolve_view_path(view, label)[0]:
+            continue
+        if path == label:
+            return (label, location), True
+        if not path.startswith(label + "."):
+            continue
+        block_hit = True
+        rest = path[len(label) + 1 :]
+        if _walk(block, rest.split("."))[0]:
+            return (label, f"{location}.{rest}" if location else rest), True
+    return None, block_hit
 
 
 def resolve_evidence_reference(view: Mapping[str, Any], text: str) -> dict[str, Any]:
     """Resolve one ``evidence_used`` entry against the serialized view.
 
-    ``source_path_ref`` means "represented in the view under that audit
-    label"; it is never a CoachInput JSON path.
+    ``view_native``: the literal view path exists (model-facing contract).
+    ``source_path_ref``: legacy; the path starts with a block's audit label
+    and the remainder walks that block. It is never a CoachInput JSON path.
+    ``location`` is the view path of the resolved fact; R7 checks it.
     """
-    match = _PATH.search(text)
-    if match is None:
+    path = _citation_path(view, text)
+    if path is None:
         kind = ReferenceKind.UNRESOLVED.value
         return {"text": text, "kind": kind, "reason": "malformed"}
-    path = match.group(0)
-    segments = path.split(".")
-    found, _ = _walk(view, segments)
-    if found:
-        return {"text": text, "kind": ReferenceKind.VIEW_NATIVE.value, "path": path}
-    block_hit = False
-    for block in _source_blocks(view):
-        label = block["source_path"]
-        if path == label:
-            return _ref(text, path, label)
-        if not path.startswith(label + "."):
-            continue
-        block_hit = True
-        if _walk(block, path[len(label) + 1 :].split("."))[0]:
-            return _ref(text, path, label)
-    top = _SEGMENT.match(segments[0])
+    if resolve_view_path(view, path)[0]:
+        kind = ReferenceKind.VIEW_NATIVE.value
+        return {"text": text, "kind": kind, "path": path, "location": path}
+    legacy, block_hit = _legacy_label_reference(view, path)
+    if legacy is not None:
+        return _ref(text, path, *legacy)
+    top = _SEGMENT.match(path.split(".")[0])
     if block_hit or (top is not None and top.group(1) in view):
         reason = "unknown_key"
     else:
@@ -268,16 +312,41 @@ def resolve_evidence_reference(view: Mapping[str, Any], text: str) -> dict[str, 
     }
 
 
+_ANCHORED_PATH = re.compile(
+    r"^\s*([A-Za-z_]\w*(?:\[[^\]]+\])?(?:\.[A-Za-z_]\w*(?:\[[^\]]+\])?)*)\s*[=:]"
+)
 _CITED_VALUE = re.compile(r"^\s*[=:]\s*(.+?)\s*$")
 _VALUE_TAIL = re.compile(r"\s*(?:;|\s\().*$")
 _UNIT = re.compile(r"(?i)\s*(?:s|secs?|seconds?)$")
 _TOLERANCE = 0.05 + 1e-9
 
 
-def _cited_value(text: str, path: str) -> str | None:
-    """The value written right after ``path``, without trailing remarks."""
+def _cited_values(text: str, path: str) -> list[str]:
+    """Readings of the value written right after ``path``.
+
+    A JSON string literal is read exactly. Otherwise the value without a
+    trailing remark (``; ...`` or `` (...)``) and, when that differs, the
+    whole remainder.
+    """
     match = _CITED_VALUE.match(text[text.find(path) + len(path) :])
-    return None if match is None else _VALUE_TAIL.sub("", match.group(1))
+    if match is None:
+        return []
+    raw = match.group(1)
+    if raw.startswith('"'):
+        try:
+            literal, _ = json.JSONDecoder().raw_decode(raw)
+        except ValueError:
+            literal = None
+        if isinstance(literal, str):
+            return [literal]
+    cut = _VALUE_TAIL.sub("", raw)
+    return [cut] if cut == raw else [cut, raw]
+
+
+def _cited_value(text: str, path: str) -> str | None:
+    """The first reading of the value written after ``path`` (or ``None``)."""
+    values = _cited_values(text, path)
+    return values[0] if values else None
 
 
 def _number(text: str) -> float | None:
@@ -288,19 +357,13 @@ def _number(text: str) -> float | None:
 
 
 def _resolved_value(view: Mapping[str, Any], resolution: Mapping[str, Any]) -> Any:
-    path = str(resolution.get("path") or "")
-    if resolution["kind"] == ReferenceKind.VIEW_NATIVE.value:
-        return _walk(view, path.split("."))
-    label = str(resolution.get("source_path") or "")
-    for block in _source_blocks(view):
-        if block["source_path"] == label:
-            rest = path[len(label) + 1 :]
-            return _walk(block, rest.split(".")) if rest else (False, None)
-    return False, None
+    """The value at the location the resolution bound, and nowhere else."""
+    return _walk(view, str(resolution["location"]).split("."))
 
 
 def _same(cited: str, actual: Any) -> bool:
-    text = cited.strip().strip("\"'`").rstrip(".")
+    quoted = cited.strip().strip("\"'`")
+    text = quoted.rstrip(".")
     if actual is None:
         return text.lower() in ("null", "none")
     if isinstance(actual, bool):
@@ -308,7 +371,7 @@ def _same(cited: str, actual: Any) -> bool:
     cited_number = _number(text)
     if isinstance(actual, int | float):
         return cited_number is not None and abs(cited_number - actual) <= _TOLERANCE
-    if text == str(actual):
+    if quoted == str(actual) or text == str(actual).rstrip("."):
         return True
     actual_number = _number(str(actual))
     if cited_number is None or actual_number is None:
@@ -319,17 +382,21 @@ def _same(cited: str, actual: Any) -> bool:
 def evidence_value_hits(
     view: Mapping[str, Any], resolutions: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
-    """R7: ``path = value`` citations whose value differs from the view."""
+    """R7: ``path = value`` citations whose value differs from the view.
+
+    Object and list values are not compared (see
+    ``docs/CITATION_NAMESPACES.md``, object-valued evidence).
+    """
     hits: list[dict[str, Any]] = []
     for resolution in resolutions:
         if resolution["kind"] == ReferenceKind.UNRESOLVED.value:
             continue
         text = str(resolution["text"])
-        cited = _cited_value(text, str(resolution["path"]))
+        cited = _cited_values(text, str(resolution["path"]))
         found, actual = _resolved_value(view, resolution)
-        if cited is None or not found or isinstance(actual, dict | list):
+        if not cited or not found or isinstance(actual, dict | list):
             continue
-        if not _same(cited, actual):
+        if not any(_same(value, actual) for value in cited):
             hits.append(
                 {
                     "rule": "R7",
@@ -343,12 +410,13 @@ def evidence_value_hits(
     return hits
 
 
-def _ref(text: str, path: str, label: str) -> dict[str, Any]:
+def _ref(text: str, path: str, label: str, location: str) -> dict[str, Any]:
     return {
         "text": text,
         "kind": ReferenceKind.SOURCE_PATH_REF.value,
         "path": path,
         "source_path": label,
+        "location": location,
     }
 
 

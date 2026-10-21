@@ -2,9 +2,8 @@
 
 A citation *satisfies the contract* for an intended view leaf when the
 production validator resolves it (``resolve_evidence_reference`` is not
-``unresolved``), the fact it binds to is that leaf (same location, under the
-validator's own block selection) and R7 accepts the leaf's value cited after
-it. Nothing here changes validator behavior.
+``unresolved``), the location it binds (``resolution["location"]``, the one R7
+checks) is that leaf, and R7 accepts the leaf's value cited after it.
 """
 
 from __future__ import annotations
@@ -141,21 +140,9 @@ def render(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def resolved_location(view: Mapping[str, Any], resolution: Mapping[str, Any]) -> str:
-    """View path of the fact the validator binds a resolved citation to.
-
-    Label references bind to the first block carrying the label, as the R7
-    check (``_resolved_value``) does.
-    """
-    path = str(resolution["path"])
-    if resolution["kind"] == ReferenceKind.VIEW_NATIVE.value:
-        return path
-    label = str(resolution["source_path"])
-    where = next(
-        loc for loc, block in labelled_blocks(view) if block["source_path"] == label
-    )
-    rest = path[len(label) + 1 :]
-    return f"{where}.{rest}" if rest else where
+def resolved_location(resolution: Mapping[str, Any]) -> str:
+    """View path of the fact the validator bound the citation to (R7 checks it)."""
+    return str(resolution["location"])
 
 
 def check(
@@ -172,7 +159,7 @@ def check(
         return f"unresolved:{resolution['reason']}"
     if resolution["path"] != cited_path:
         return "path_parsed_differently"
-    if resolved_location(view, resolution) != intended:
+    if resolved_location(resolution) != intended:
         return "binds_other_fact"
     if evidence_value_hits(view, [resolution]):
         return "value_rejected"

@@ -1,10 +1,31 @@
 # Citation namespaces (design note)
 
-Status: proposal. Production prompt, projection and validator are unchanged.
-Current violations are pinned in `tests/test_citation_contract.py` (strict
-`xfail`, ids `CV-*`).
+Status: **N2 decided** (literal CoachLlmView paths are the model-facing
+citation namespace). The validator follows it. The production prompt,
+projection, view contents and coaching behavior are unchanged; the prompt
+rewrite (Fix 3's prompt part) is not done yet. Violations are pinned in
+`tests/test_citation_contract.py` (`VIOLATIONS`, ids `CV-*`, each with a
+classification and status; open ones are strict `xfail`). Literal-path
+regressions live in `tests/test_claim_validation_n2.py`.
 
-## The two namespaces
+## Decision
+
+> A model citation names the exact fact supplied in its CoachLlmView using
+> that fact's literal view path, and the cited value must match the value at
+> that path.
+
+Three things, kept apart:
+
+| | What it is | Status |
+| --- | --- | --- |
+| **N2 model-facing citations** | literal paths over `CoachLlmView.model_dump(mode="json")`, e.g. `death.death_time_video = 205.0`, `clock.display = "0:23"`, `related[0].scenario_type`, `claim_basis[1].evidence_paths`, top-level scalars such as `roster_evidence` | authoritative; validated by `resolve_view_path` + R7 at that location |
+| **N1 provenance / audit metadata** | CoachInput paths (`primary_context.*`, `durations.*`, `game_clock_samples[label=death].observation.*`, …) naming where a view fact came from | not a model contract; may later become generated provenance beside the view (never cited by the model, never a second accepted namespace) |
+| **Legacy hybrid / label behavior** | `source_path` labels on view blocks, and the validator's `source_path_ref` form (label prefix + view-shaped remainder) | kept only for stored outputs and the current prompt; scheduled for cleanup with the prompt rewrite; never consulted when the literal path exists |
+
+Fix 4's "either namespace" model contract is not adopted. Legacy labels are
+not repaired to conform to CoachInput: under N2 they are not a contract.
+
+## The two namespaces (reference)
 
 **N1, CoachInput / source paths.** Dotted paths over
 `CoachInput.model_dump(mode="json")`: `primary_context.*` (ScenarioContext),
@@ -18,31 +39,147 @@ coaching unit was built from.
 `CoachLlmView.model_dump(mode="json")`: `death.*`, `clock.*`, `timeline.*`,
 `special.*`, `map.*`, `score.*`, `zone_control.*`, `low_ink.*`,
 `playback.*`, `related[i].*`, `claim_basis[i].*`, `supporting_evidence[i].*`
-(experiments add, e.g., `map_awareness.*`). This is what the model sees.
-The projection (`coach/llm_view.py`) renames (`death_time` to
-`death_time_video`), flattens (`observation.display` to `clock.display`),
-merges sources into one block (death block = `death_episode` + `durations`;
-score block = `score_facts`), derives (`low_ink.at_death`) and formats
-(`supporting_evidence` display strings).
+and top-level scalars (`schema_version`, `roster_evidence`, …); experiments
+add, e.g., `map_awareness.*`. This is what the model sees. The projection
+(`coach/llm_view.py`) renames (`death_time` to `death_time_video`), flattens
+(`observation.display` to `clock.display`), merges sources into one block
+(death block = `death_episode` + `durations`; score block = `score_facts`),
+derives (`low_ink.at_death`) and formats (`supporting_evidence` display
+strings).
 
 **`source_path` labels** are strings on view blocks meant to name the N1
-origin. The validator (`resolve_evidence_reference`) accepts a citation if it
-is a literal N2 path (`view_native`), or if it starts with a label and the
-remainder walks the *view* block (`source_path_ref`). The second form is a
-hybrid: N1 prefix, N2 remainder.
+origin. The legacy form accepts a citation that starts with a label and
+whose remainder walks the *view* block: N1 prefix, N2 remainder.
 
-The production prompt teaches all three: "prefer the exact CoachInput path"
-(N1), "prefer `source_path` values" (labels), "cite CoachLlmView paths" and
-the `claim_basis` evidence paths (N2). Its examples mix them: example 1
-(`primary_context.death_episode.death_to_respawn.value`) is a hybrid that
-is not an N1 path (N1 `death_to_respawn` is a float), example 2 is N2,
-example 3 is an N1 path no death view carries, and example 4 names an N1
-field that is null in every death-unit CoachInput.
+## Validator semantics (`coach/claim_validation.py`)
 
-## Fix 1 results (`tests/test_citation_contract.py`)
+1. **Path.** If the entry starts with `path =` or `path :` and that path
+   exists in the view, it is the citation path, including single-segment
+   top-level keys (`roster_evidence = false`, `low_ink = null`). Otherwise
+   the first dotted path in the entry is used. A single segment that is not
+   a view key (`Note: …`, `durations = 12.0`) stays `malformed`.
+2. **Resolution.** `resolve_view_path` walks the view literally and never
+   reads labels. If it resolves, the reference is `view_native` with
+   `location = path`. Only when the literal path does not exist is the
+   legacy label form tried (`source_path_ref`, with the concrete view
+   `location` it bound). A label that is itself a different view path is
+   never used as a legacy prefix, so a label cannot capture, redirect or
+   weaken a literal citation.
+3. **R7.** The cited value is compared with the value at the resolved
+   `location`, the same place resolution bound, not the first block that
+   carries a label.
+4. **Values.** A JSON string literal is decoded and compared exactly. An
+   unquoted value is read up to a trailing remark (` (`, `;`, `,`); the
+   full text is also tried, so prose leaves that contain those characters
+   match. A sentence-final period is ignored on both sides. Numbers,
+   booleans and `null` compare by value. Wrong values are still rejected.
+5. **Objects and lists.** R7 does not compare them (open design question,
+   below). This is the only place value validation is skipped for a
+   resolved citation that carries a value.
 
-Fixtures: the 23 claim-corpus units plus 3 real units
-(`tests/fixtures/citation_contract/`), views rebuilt with current code.
+Effect on stored outputs: over the claim corpus (95 citations, 24 R7 hits)
+the resolution kind and reason of every citation, the R7 hits and the
+validation status are identical before and after this change. Re-running the
+Experiment I postmortem tool into a scratch directory reproduces all 33
+evidence-path rows with identical classifications; only the display of the
+cited value changes (`4:35` instead of `"4:35"`, decoded JSON literal) and
+the recorded head commit. Experiment I and postmortem artifacts are not
+rewritten.
+
+## Findings, classified
+
+| id | classification | status | note |
+| --- | --- | --- | --- |
+| `CV-R7-LOCATION` | correctness / safety | **fixed** | R7 walked the first block with the label while resolution bound another (e.g. a `supporting_evidence` item), so a wrong value through a duplicated label passed unchecked |
+| `CV-PROSE-VALUE` | correctness | **fixed** | exact prose values rejected (period stripped from one side only; quoted values cut at ` (` / `;`) |
+| `CV-SINGLE-SEGMENT` | syntax limitation | **fixed** | the path grammar needed a dot, so top-level scalars and null blocks were uncitable |
+| `CV-OBJECT-LEAF` | unresolved design question | open | `claim_basis` evidence paths that name an object; see below |
+| `CV-MAP-AWARENESS-OPEN` | unresolved design question | open | experiment-only fact with no N1 home |
+| `CV-RELATIVE` | syntax (prompt) | open | prompt prose names fields without their block; fixed by the prompt rewrite, not the validator |
+| `CV-CONTRADICTS-COACHINPUT` | legacy N1/label | open | label form `primary_context.death_episode.death_to_respawn = null` (view null: playback unverified; CoachInput 7.0) and `primary_context.map.map_check_before_death = null` (CoachInput `true`). The N2 citations `death.death_to_respawn = null` and `map.map_check_before_death = null` correctly name the supplied facts; `= 7.0` / `= true` on those paths are rejected |
+| `CV-SUPPORT-LABEL` | legacy N1/label | open | `supporting_evidence` items reuse N1 labels; one label string names two facts. No longer a safety issue (R7 checks the bound location) |
+| `CV-NOT-COACHINPUT`, `CV-EXAMPLE-NAMESPACE`, `CV-NOT-PROJECTED`, `CV-UNLABELLED`, `CV-FLATTENED`, `CV-RENAMED`, `CV-MIXED-SOURCE`, `CV-BARE-LABEL` | legacy N1/label | open | label/N1 exactness; irrelevant to N2 validation; removed by the prompt rewrite and label cleanup, not by aliases |
+
+Measured counts over the 26 fixture views (Fix 1 at `db5fa8c`, recorded in
+`HISTORY_DB5FA8C`, versus now):
+
+| form | db5fa8c | now |
+| --- | --- | --- |
+| N2 literal, every view leaf | single-segment 170, prose 437 | 0 |
+| label + remainder | single-segment 75, support label 99, prose 5 | bare label 57, support-label collision 37 |
+| `claim_basis` evidence paths | object leaf 6 | object leaf 6 |
+| label form vs N1 | not-N1 893, contradicts 61 | not-N1 955, contradicts 61 |
+
+Not-N1 rises by 62 because Fix 1 measured label citations at the first
+block carrying the label (the `CV-R7-LOCATION` bug): `.label` / `.value`
+of `supporting_evidence` items cited through the shared special and map
+labels were missed then and are counted now. The label-form single-segment
+75 split into N2-valid single segments and 57 bare legacy labels
+(`durations`, `playback_clock`, `game_clock_samples[label=death]`).
+
+The seven N2 properties and their tests:
+
+| property | tests |
+| --- | --- |
+| one path, one view location | `test_resolve_view_path_ignores_labels`, `test_every_view_leaf_is_a_valid_n2_citation` |
+| value checked at that location | `test_duplicate_label_wrong_value_is_rejected`, `test_wrong_value_through_duplicated_label_is_rejected`, `test_wrong_value_on_any_scalar_leaf_is_rejected` |
+| no pass by skipped validation | the same, plus `test_contradiction_is_legacy_label_form`; the remaining skip is pinned by `test_wrong_scalar_on_object_path_is_rejected` (strict `xfail`) |
+| explicit object rule | `CV-OBJECT-LEAF` (open; leaves of objects are checked: `test_leaf_of_object_evidence_is_checked`) |
+| prose punctuation | `test_correct_prose_value_is_accepted`, `test_wrong_prose_value_is_still_rejected`, `test_scalar_with_trailing_remark_still_accepted` |
+| every permitted scalar leaf, incl. top level | `test_top_level_scalar_paths_are_citable`, `test_single_segment_must_be_a_view_key` |
+| labels never influence literal resolution | `test_literal_path_is_never_redirected_by_a_label`, `test_label_naming_another_view_path_cannot_capture_citations`, `test_legacy_label_only_when_literal_path_is_absent`, `test_no_label_shadows_a_view_path` |
+
+## Open: object-valued evidence (`CV-OBJECT-LEAF`)
+
+`claim_basis` names objects as evidence for duration claims. In the fixtures:
+`death.death_to_active_again` (5 claims) and
+`death.time_since_previous_splat` (1), each a clocked duration
+(`value`, `video_seconds`, `clock`, `method`, `uncertainty_seconds`,
+`start_gap_seconds`, `end_gap_seconds`); `timeline.time_since_previous_death`
+and `roster.before_death` are declared the same way (roster is off in
+production). The claim's own `values` already pick a leaf
+(`{"death_to_active_again": 8.5, "clock": "video"}` equals `.value` and
+`.clock`). A model writing `death.death_to_active_again = 8.5` cites a
+scalar on an object path, so under the literal contract there is no value
+at that path to match, and R7 currently skips it (wrong values pass
+unchecked; pinned by a strict `xfail`). Citing the leaf
+(`death.death_to_active_again.value = 8.5`) is already checked.
+
+Alternatives (none implemented):
+
+- **A. Leaf-only (recommended).** A scalar cited on an object path is not
+  a valid value citation: R7 reports it (or a distinct "object path"
+  check). `claim_basis.evidence_paths` move to the leaves they assert
+  (`death.death_to_active_again.value`, `.clock`). Strictly literal;
+  needs a claim-basis content change (a later, separate step) and prompt
+  wording in the rewrite.
+- **B. Canonical scalar per object type.** A declared rule such as "a
+  clocked duration's value is `.value`"; R7 compares a scalar cited on the
+  object with that leaf. Small and deterministic, but a second meaning for
+  a path and a per-type table to keep.
+- **C. Compare with the claim's `values`.** R7 matches the cited scalar
+  against `claim_basis[i].values[last segment]`. Couples evidence
+  validation to the claim record and does not cover objects outside
+  `claim_basis`.
+- **D. Explicit unchecked marker.** Keep skipping, but emit a
+  non-counting `value_unchecked` annotation so the skip is visible.
+  Honest, but leaves property 3 unmet.
+
+This needs a decision before any implementation.
+
+## History: Fix 1 results (`db5fa8c`)
+
+Kept as the evidence for the decision. Fixtures: the 23 claim-corpus units
+plus 3 real units (`tests/fixtures/citation_contract/`), views rebuilt with
+current code.
+
+The production prompt teaches all three forms: "prefer the exact CoachInput
+path" (N1), "prefer `source_path` values" (labels), "cite CoachLlmView
+paths" and the `claim_basis` evidence paths (N2). Its examples mix them:
+example 1 (`primary_context.death_episode.death_to_respawn.value`) is a
+hybrid that is not an N1 path (N1 `death_to_respawn` is a float), example 2
+is N2, example 3 is an N1 path no death view carries, and example 4 names an
+N1 field that is null in every death-unit CoachInput.
 
 Taught paths in the production prompt (15 plus `e.g`):
 
@@ -63,7 +200,7 @@ Experiment I rows: top-level `map_awareness.*` passes;
 `primary_context.timeline.time_since_previous_death(.value)`
 (`CV-UNLABELLED`) fail.
 
-General forms over all leaves of all 26 views:
+General forms over all leaves of all 26 views at `db5fa8c`:
 
 | form | failures (classes) |
 | --- | --- |
@@ -73,21 +210,22 @@ General forms over all leaves of all 26 views:
 | label form vs N1 | 893 resolving citations name no N1 field; 61 contradict the N1 value at that path |
 | N1 sample table (21 pairs) | 10 pass, 11 fail: renamed, flattened, unlabelled, mixed-source, support label |
 
-## Proposed invariant
+### Invariant proposed at Fix 1
 
 For every fact supplied in the view and every citation form the prompt
-teaches for it:
+teaches for it: (1) the validator binds the citation to exactly that fact
+and accepts exactly its value; (2) one citation string names one fact;
+(3) a path presented as N1 names that N1 field with an equal value; (4)
+every taught path is in the inventory and resolves on fixture views. Under
+N2, (1), (2) and (4) apply to literal view paths; (3) no longer applies to
+model citations and moves to N1 provenance, if it is ever generated.
 
-1. the validator binds the citation to exactly that fact and accepts exactly
-   its value; a citation of a different, absent or contradicted value is
-   rejected;
-2. one citation string names one fact (no label collisions);
-3. a path presented as N1 names that N1 field, and its view value equals the
-   N1 value (or a declared transform of it);
-4. every path the prompt and `claim_basis` teach is in the inventory and
-   resolves on fixture views.
+### Fixes 2, 3, 4 as compared at Fix 1
 
-## Fixes 2, 3, 4 compared
+The decision takes Fix 3's namespace (N2 only, labels as audit metadata).
+Its prompt rewrite is deferred. Fix 2 (exact labels) is not pursued. Fix 4's
+generated map survives only as possible N1 provenance, not as a second
+accepted model namespace.
 
 | | Fix 2: exact labels | Fix 3: N2 only | Fix 4: generated N1 to N2 map |
 | --- | --- | --- | --- |
@@ -98,41 +236,15 @@ teaches for it:
 | prompt change / fresh calls | label wording only; fresh calls for any behavior claim | yes: rewrite citation rule and examples | none needed for resolution; the prompt's N1 examples must still be real N1 paths |
 | view schema bump | yes | no (labels may stay) | yes if provenance is emitted into the view |
 
-Fix 4 cannot be generated from metadata today: view blocks are
+N1 provenance cannot be generated from metadata today: view blocks are
 `dict[str, Any]` built imperatively in the `_project_*` functions, with no
 field-level provenance. Two ways to generate it, both making the map a
-by-product of projection rather than a maintained table:
-
-- projection helpers that copy a field and record `(N2 path, N1 path,
-  transform)` as they build the block, returned beside the view;
-- a declarative projection spec (rows of N2 path, N1 path, transform) that
-  drives `_project_*` and is the map.
-
+by-product of projection rather than a maintained table: projection helpers
+that record `(N2 path, N1 path, transform)` as they copy a field, or a
+declarative projection spec that drives `_project_*` and is the map.
 Derived leaves (`low_ink.at_death`), display strings (`supporting_evidence`)
-and experiment blocks are declared view-only, so an N1 citation of them is
-rejected rather than guessed. A manual alias table (fix 5) and value-matching
+and experiment blocks are view-only. A manual alias table and value-matching
 inference are rejected: both drift or guess.
-
-## Independent of the namespace choice
-
-These are validator correctness issues and need fixing under any of 2, 3, 4:
-
-- **Duplicate labels / R7** (`CV-SUPPORT-LABEL`): `supporting_evidence`
-  reuses `primary_context.special.nearest_before_anchor`,
-  `primary_context.map.map_check_status`,
-  `durations.time_since_previous_death`, `primary_scenario.start_time` and
-  `game_clock_samples[label=death].observation.seconds_remaining`.
-  Resolution may bind the display item while R7 walks the first block with
-  the label, so a wrong value is accepted unchecked.
-- **Contradictions** (`CV-CONTRADICTS-COACHINPUT`): the validator accepts
-  `primary_context.death_episode.death_to_respawn = null` where CoachInput
-  has 7.0 (view null when playback is unverified) and
-  `primary_context.map.map_check_before_death = null` where CoachInput has
-  `true`.
-- **Object leaves** (`CV-OBJECT-LEAF`): `claim_basis` evidence paths that
-  name a clocked-duration object; R7 skips objects.
-- **Prose values** (`CV-PROSE-VALUE`) and **single-segment paths**
-  (`CV-SINGLE-SEGMENT`): lower priority; prose leaves are rarely evidence.
 
 ## Open design question: map awareness
 
@@ -150,6 +262,8 @@ should be added before the decision.
 
 ## Order of work
 
-Fix 1 (this) -> choose the authoritative namespace -> fix 2 vs 3 vs 4 ->
-duplicate-label / R7 correctness separately -> map-awareness ownership ->
-rating methodology -> only then consider an Experiment I successor.
+Fix 1 (done) -> authoritative namespace: N2 (done) -> validator correctness
+for N2 (done; object-valued evidence open) -> object-valued evidence
+decision -> prompt rewrite to N2 and legacy label cleanup -> map-awareness
+ownership -> rating methodology -> only then consider an Experiment I
+successor.
