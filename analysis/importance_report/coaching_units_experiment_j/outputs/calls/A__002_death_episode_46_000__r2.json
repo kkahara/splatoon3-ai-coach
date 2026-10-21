@@ -1,0 +1,67 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__002_death_episode_46_000__r2",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 2,
+ "death_id": "002|death_episode:46.000",
+ "file": "A/002_death_episode_46_000.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "9a9c3804046edfabf3044e6b8c3270820f4e2950d20b7e7f42bb53574f4fc579",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "9eb93679f0b843bda36aa361f1bf40b20cd623230fd35ac9574ebe0ed45c8587"
+ },
+ "executed_at": "2026-10-21T19:41:16+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"No map check was observed before this death. This death left you out of play for 9.0 seconds.\",\"claims\":[{\"claim_id\":\"death_map_overlay_before_false\",\"level\":\"A\",\"sentence\":\"No map check was observed before this death.\"},{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"This death left you out of play for 9.0 seconds.\"}],\"evidence_used\":[\"map.map_check_before_death.status = \\\"not_observed\\\"\",\"death.death_to_active_again.value = 9.0\",\"death.death_to_active_again.clock = \\\"video\\\"\"],\"limitations\":[\"The evidence does not establish why the death happened, your positioning, or the quality of the engagement.\",\"The map evidence covers any map overlay before the death and does not establish whether a recent check occurred.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_map_overlay_before_false\",\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "No map check was observed before this death. This death left you out of play for 9.0 seconds.",
+  "evidence_used": [
+   "map.map_check_before_death.status = \"not_observed\"",
+   "death.death_to_active_again.value = 9.0",
+   "death.death_to_active_again.clock = \"video\""
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened, your positioning, or the quality of the engagement.",
+   "The map evidence covers any map overlay before the death and does not establish whether a recent check occurred."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_map_overlay_before_false",
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_map_overlay_before_false",
+    "level": "A",
+    "sentence": "No map check was observed before this death."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "This death left you out of play for 9.0 seconds."
+   }
+  ]
+ },
+ "elapsed_seconds": 7.7
+}

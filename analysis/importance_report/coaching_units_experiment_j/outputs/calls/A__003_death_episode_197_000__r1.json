@@ -1,0 +1,66 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__003_death_episode_197_000__r1",
+ "population": "P2",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "003|death_episode:197.000",
+ "file": "A/003_death_episode_197_000.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "2f3c54261278b1e1fa136b5cd504d32fa14291b1797a6bd361a0cfdc3bb0c94a",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "f117e02d4ccc142f591da72dad63df95800b511b9b2dbcc355d55cd069640523"
+ },
+ "executed_at": "2026-10-21T19:32:10+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 10.5 seconds after this death. Your special was still charged when you were splatted.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 10.5 seconds after this death.\"},{\"claim_id\":\"death_special_ready\",\"level\":\"A\",\"sentence\":\"Your special was still charged when you were splatted.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 10.5\",\"death.death_to_active_again.clock = \\\"video\\\"\",\"special.state_at_anchor = \\\"ready\\\"\"],\"limitations\":[\"The evidence does not establish why the death happened, how you were positioned, or whether the special was used.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\",\"death_special_ready\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 10.5 seconds after this death. Your special was still charged when you were splatted.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 10.5",
+   "death.death_to_active_again.clock = \"video\"",
+   "special.state_at_anchor = \"ready\""
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened, how you were positioned, or whether the special was used."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "death_special_ready"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 10.5 seconds after this death."
+   },
+   {
+    "claim_id": "death_special_ready",
+    "level": "A",
+    "sentence": "Your special was still charged when you were splatted."
+   }
+  ]
+ },
+ "elapsed_seconds": 6.1
+}

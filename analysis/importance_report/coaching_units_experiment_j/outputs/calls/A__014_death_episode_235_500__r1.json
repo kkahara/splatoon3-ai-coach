@@ -1,0 +1,65 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__014_death_episode_235_500__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "014|death_episode:235.500",
+ "file": "A/014_death_episode_235_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "496f2660e41d87f0084002be775bcbcd02a044523f4d972de0ec70a241a0d0ff",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "63deaca23ba53f3428f070ba64b211d25208cb7d0dd3666dfdbc1e835e8abba3"
+ },
+ "executed_at": "2026-10-21T19:38:46+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You got a splat 3.5 seconds before you were splatted. You were out of play for 8.5 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_own_splat_before\",\"level\":\"A\",\"sentence\":\"You got a splat 3.5 seconds before you were splatted.\"},{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 8.5 seconds after this death.\"}],\"evidence_used\":[\"death.time_since_previous_splat.video_seconds = 3.5\",\"death.death_to_active_again.value = 8.5\"],\"limitations\":[\"The evidence supports timing facts only; no behavioral recommendation is attached.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_own_splat_before\",\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 3.5 seconds before you were splatted. You were out of play for 8.5 seconds after this death.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 3.5",
+   "death.death_to_active_again.value = 8.5"
+  ],
+  "limitations": [
+   "The evidence supports timing facts only; no behavioral recommendation is attached."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 3.5 seconds before you were splatted."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   }
+  ]
+ },
+ "elapsed_seconds": 6.2
+}

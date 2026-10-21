@@ -1,0 +1,58 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__010_death_episode_321_500__r2",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 2,
+ "death_id": "010|death_episode:321.500",
+ "file": "A/010_death_episode_321_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "30769970e5175ce88f69c7b10a81ea59ca098d838ba406cccf11c8132fae6412",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "1836cce728fd74921b49cd6faef68eb55f8ad62e8d7e4537fb4c0497f437498f"
+ },
+ "executed_at": "2026-10-21T19:46:43+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"This death happened with only 0:09 left in the match.\",\"claims\":[{\"claim_id\":\"death_final_30s\",\"level\":\"A\",\"sentence\":\"This death happened with only 0:09 left in the match.\"}],\"evidence_used\":[\"clock.display = \\\"0:09\\\"\"],\"limitations\":[\"The cause of death, positioning, teammate state, and opponent location are not available from this evidence.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_final_30s\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "This death happened with only 0:09 left in the match.",
+  "evidence_used": [
+   "clock.display = \"0:09\""
+  ],
+  "limitations": [
+   "The cause of death, positioning, teammate state, and opponent location are not available from this evidence."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_final_30s"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_final_30s",
+    "level": "A",
+    "sentence": "This death happened with only 0:09 left in the match."
+   }
+  ]
+ },
+ "elapsed_seconds": 5.1
+}

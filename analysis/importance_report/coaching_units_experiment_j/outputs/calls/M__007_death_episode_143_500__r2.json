@@ -1,0 +1,68 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__007_death_episode_143_500__r2",
+ "population": "P1",
+ "arm": "M",
+ "repeat": 2,
+ "death_id": "007|death_episode:143.500",
+ "file": "M/007_death_episode_143_500.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "670e81505ba45ec169eb473d701c01ba1ae1dbac5ba613661221b0ef57c26287",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "5531a9ed8614c00ac58504845addd98a57068a53cd7552b732b4c3539552304f"
+ },
+ "executed_at": "2026-10-21T19:43:14+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You got a splat 2.0 seconds before you were splatted. No map check was observed in the 26.5 seconds since you were back in play.\",\"claims\":[{\"claim_id\":\"death_own_splat_before\",\"level\":\"A\",\"sentence\":\"You got a splat 2.0 seconds before you were splatted.\"},{\"claim_id\":\"no_map_check_since_back_in_play\",\"level\":\"A\",\"sentence\":\"No map check was observed in the 26.5 seconds since you were back in play.\"}],\"evidence_used\":[\"death.time_since_previous_splat.video_seconds = 2.0\",\"back_in_play.seconds_back_in_play = 26.5\",\"map_awareness.map_checks_since_back_in_play = 0\"],\"limitations\":[\"The evidence does not establish why the death happened, player positioning, opponent location, teammate state, or fight outcome.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_own_splat_before\",\"no_map_check_since_back_in_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 2.0 seconds before you were splatted. No map check was observed in the 26.5 seconds since you were back in play.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 2.0",
+   "back_in_play.seconds_back_in_play = 26.5",
+   "map_awareness.map_checks_since_back_in_play = 0"
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened, player positioning, opponent location, teammate state, or fight outcome."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "no_map_check_since_back_in_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 2.0 seconds before you were splatted."
+   },
+   {
+    "claim_id": "no_map_check_since_back_in_play",
+    "level": "A",
+    "sentence": "No map check was observed in the 26.5 seconds since you were back in play."
+   }
+  ]
+ },
+ "elapsed_seconds": 6.7
+}

@@ -1,0 +1,60 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__019_death_episode_107_500__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "019|death_episode:107.500",
+ "file": "A/019_death_episode_107_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "3cdd5314d20f5ea2fb90cd16f4a1a32d8b58763301cd323acb5cad25faf361d1",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "30b9e4466c9293564e428c39f39c231106eb6878d74391cf7d4a0715056175ea"
+ },
+ "executed_at": "2026-10-21T19:40:28+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"This death took you out of play for 8.5 seconds before you were active again.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"This death took you out of play for 8.5 seconds before you were active again.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 8.5\",\"death.death_to_active_again.clock = \\\"video\\\"\",\"playback.status = \\\"normal\\\"\"],\"limitations\":[\"No behavioral recommendation is supported by the available evidence.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "This death took you out of play for 8.5 seconds before you were active again.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 8.5",
+   "death.death_to_active_again.clock = \"video\"",
+   "playback.status = \"normal\""
+  ],
+  "limitations": [
+   "No behavioral recommendation is supported by the available evidence."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "This death took you out of play for 8.5 seconds before you were active again."
+   }
+  ]
+ },
+ "elapsed_seconds": 4.4
+}

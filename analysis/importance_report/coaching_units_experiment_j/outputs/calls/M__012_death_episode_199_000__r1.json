@@ -1,0 +1,68 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__012_death_episode_199_000__r1",
+ "population": "P1",
+ "arm": "M",
+ "repeat": 1,
+ "death_id": "012|death_episode:199.000",
+ "file": "M/012_death_episode_199_000.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "6a3c9d3d682f1d636256836680f9882566db72d5695d49474935f2d2550b2ff1",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "9ae9737c880ed9136a29a96284241e649196fe45863d94d9adb341bc83e917d9"
+ },
+ "executed_at": "2026-10-21T19:38:08+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 9.0 seconds after this death. No map check was observed during the 124.5 seconds since you were back in play.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.0 seconds after this death.\"},{\"claim_id\":\"no_map_check_since_back_in_play\",\"level\":\"A\",\"sentence\":\"No map check was observed during the 124.5 seconds since you were back in play.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 9.0\",\"back_in_play.seconds_back_in_play = 124.5\",\"map_awareness.map_checks_since_back_in_play = 0\"],\"limitations\":[\"The evidence does not identify why the death happened or assess positioning, opponent location, teammate state, or fight outcome.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_out_of_play\",\"no_map_check_since_back_in_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.0 seconds after this death. No map check was observed during the 124.5 seconds since you were back in play.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 9.0",
+   "back_in_play.seconds_back_in_play = 124.5",
+   "map_awareness.map_checks_since_back_in_play = 0"
+  ],
+  "limitations": [
+   "The evidence does not identify why the death happened or assess positioning, opponent location, teammate state, or fight outcome."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "no_map_check_since_back_in_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.0 seconds after this death."
+   },
+   {
+    "claim_id": "no_map_check_since_back_in_play",
+    "level": "A",
+    "sentence": "No map check was observed during the 124.5 seconds since you were back in play."
+   }
+  ]
+ },
+ "elapsed_seconds": 4.3
+}

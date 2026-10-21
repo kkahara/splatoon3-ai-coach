@@ -1,0 +1,68 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "C__008_death_episode_105_000__r2",
+ "population": "C",
+ "arm": "C",
+ "repeat": 2,
+ "death_id": "008|death_episode:105.000",
+ "file": "C/008_death_episode_105_000.user_prompt.txt",
+ "system": "system_prompt_C.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "f7f5615c760fc9d53e75c4f4fca1bdf7ce40a40ca54f1731cf07a2c228895228",
+ "user_prompt_sha256": "a2dfbd2818fe5ffe93158fbf05ca572f2e850800b8f70f2292da839e0124c168",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "37976acbf529fd7046bbb864b8752a6470c0cf37b0ad92c833600a257f5cc15f"
+ },
+ "executed_at": "2026-10-21T19:44:44+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You got a splat 0.5 seconds before you were splatted. You were out of play for 9.0 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_own_splat_before\",\"level\":\"A\",\"sentence\":\"You got a splat 0.5 seconds before you were splatted.\"},{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.0 seconds after this death.\"}],\"evidence_used\":[\"death.time_since_previous_splat.video_seconds = 0.5\",\"death.death_to_active_again.value = 9.0\",\"playback.status = \\\"normal\\\"\"],\"limitations\":[\"The available evidence does not support additional behavioral conclusions for this moment.\"],\"recommendations\":[\"After getting a splat, consider repositioning before taking the next fight.\"],\"selected_claim_ids\":[\"death_own_splat_before\",\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 0.5 seconds before you were splatted. You were out of play for 9.0 seconds after this death.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 0.5",
+   "death.death_to_active_again.value = 9.0",
+   "playback.status = \"normal\""
+  ],
+  "limitations": [
+   "The available evidence does not support additional behavioral conclusions for this moment."
+  ],
+  "recommendations": [
+   "After getting a splat, consider repositioning before taking the next fight."
+  ],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 0.5 seconds before you were splatted."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.0 seconds after this death."
+   }
+  ]
+ },
+ "elapsed_seconds": 7.0
+}

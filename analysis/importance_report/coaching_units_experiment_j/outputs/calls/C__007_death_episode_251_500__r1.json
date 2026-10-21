@@ -1,0 +1,58 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "C__007_death_episode_251_500__r1",
+ "population": "C",
+ "arm": "C",
+ "repeat": 1,
+ "death_id": "007|death_episode:251.500",
+ "file": "C/007_death_episode_251_500.user_prompt.txt",
+ "system": "system_prompt_C.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "f7f5615c760fc9d53e75c4f4fca1bdf7ce40a40ca54f1731cf07a2c228895228",
+ "user_prompt_sha256": "f00cb1fd9b78116f0e151a5892990264be8d66a69549149001c94a89aae79d11",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "8d1a267b44991fdedc8a79dae8f7ed200038438c474874264a6e6df5d9c2389f"
+ },
+ "executed_at": "2026-10-21T19:34:16+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You got a splat 2.5 seconds before you were splatted.\",\"claims\":[{\"claim_id\":\"death_own_splat_before\",\"level\":\"A\",\"sentence\":\"You got a splat 2.5 seconds before you were splatted.\"}],\"evidence_used\":[\"death.time_since_previous_splat.video_seconds = 2.5\"],\"limitations\":[],\"recommendations\":[\"After getting a splat, consider repositioning before taking the next fight.\"],\"selected_claim_ids\":[\"death_own_splat_before\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 2.5 seconds before you were splatted.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 2.5"
+  ],
+  "limitations": [],
+  "recommendations": [
+   "After getting a splat, consider repositioning before taking the next fight."
+  ],
+  "selected_claim_ids": [
+   "death_own_splat_before"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 2.5 seconds before you were splatted."
+   }
+  ]
+ },
+ "elapsed_seconds": 6.0
+}

@@ -1,0 +1,76 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__010_death_episode_80_500__r2",
+ "population": "P1",
+ "arm": "M",
+ "repeat": 2,
+ "death_id": "010|death_episode:80.500",
+ "file": "M/010_death_episode_80_500.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "1c3bdcaccc67a97ba01a88baeff3697e57c38ff838c87eb1b8fc06565176d642",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "18b94382199fe6e0cbc5766086d8de1a5bee40baedf51f0e86fa24a96c015948"
+ },
+ "executed_at": "2026-10-21T19:45:58+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"You got a splat 0.5 seconds before you were splatted. You were out of play for 8.5 seconds after this death. No map check was observed in the 49.5 seconds since you were back in play.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_own_splat_before\",\n      \"level\": \"A\",\n      \"sentence\": \"You got a splat 0.5 seconds before you were splatted.\"\n    },\n    {\n      \"claim_id\": \"death_out_of_play\",\n      \"level\": \"A\",\n      \"sentence\": \"You were out of play for 8.5 seconds after this death.\"\n    },\n    {\n      \"claim_id\": \"no_map_check_since_back_in_play\",\n      \"level\": \"A\",\n      \"sentence\": \"No map check was observed in the 49.5 seconds since you were back in play.\"\n    }\n  ],\n  \"evidence_used\": [\n    \"death.time_since_previous_splat.video_seconds = 0.5\",\n    \"death.death_to_active_again.value = 8.5\",\n    \"death.death_to_active_again.clock = \\\"video\\\"\",\n    \"back_in_play.seconds_back_in_play = 49.5\",\n    \"map_awareness.map_checks_since_back_in_play = 0\"\n  ],\n  \"limitations\": [\n    \"This evidence does not establish why the death happened, your positioning, teammate support, opponent location, or fight outcome.\"\n  ],\n  \"recommendations\": [\n    \"After you respawn, take a quick look at the map before rejoining.\"\n  ],\n  \"selected_claim_ids\": [\n    \"death_own_splat_before\",\n    \"death_out_of_play\",\n    \"no_map_check_since_back_in_play\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 0.5 seconds before you were splatted. You were out of play for 8.5 seconds after this death. No map check was observed in the 49.5 seconds since you were back in play.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 0.5",
+   "death.death_to_active_again.value = 8.5",
+   "death.death_to_active_again.clock = \"video\"",
+   "back_in_play.seconds_back_in_play = 49.5",
+   "map_awareness.map_checks_since_back_in_play = 0"
+  ],
+  "limitations": [
+   "This evidence does not establish why the death happened, your positioning, teammate support, opponent location, or fight outcome."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "death_out_of_play",
+   "no_map_check_since_back_in_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 0.5 seconds before you were splatted."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   },
+   {
+    "claim_id": "no_map_check_since_back_in_play",
+    "level": "A",
+    "sentence": "No map check was observed in the 49.5 seconds since you were back in play."
+   }
+  ]
+ },
+ "elapsed_seconds": 7.1
+}

@@ -1,0 +1,424 @@
+{"phase": "resume", "call_id": "A__001_death_episode_72_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:30:33+00:00"}
+{"phase": "resume", "call_id": "A__001_death_episode_72_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.9, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_72_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:30:41+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_72_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 8.0, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_102_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:30:49+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_102_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.3, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_159_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:30:52+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_159_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "resume", "call_id": "A__001_death_episode_188_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:30:57+00:00"}
+{"phase": "resume", "call_id": "A__001_death_episode_188_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_188_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:01+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_188_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_203_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:07+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_203_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_254_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:12+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_254_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.0, "call_error": null}
+{"phase": "resume", "call_id": "A__002_death_episode_46_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:16+00:00"}
+{"phase": "resume", "call_id": "A__002_death_episode_46_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "M__002_death_episode_46_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:23+00:00"}
+{"phase": "resume", "call_id": "M__002_death_episode_46_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.0, "call_error": null}
+{"phase": "resume", "call_id": "A__002_death_episode_89_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:30+00:00"}
+{"phase": "resume", "call_id": "A__002_death_episode_89_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "M__002_death_episode_89_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:36+00:00"}
+{"phase": "resume", "call_id": "M__002_death_episode_89_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.9, "call_error": null}
+{"phase": "resume", "call_id": "A__003_death_episode_48_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:44+00:00"}
+{"phase": "resume", "call_id": "A__003_death_episode_48_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.6, "call_error": null}
+{"phase": "resume", "call_id": "M__003_death_episode_48_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:51+00:00"}
+{"phase": "resume", "call_id": "M__003_death_episode_48_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "A__003_death_episode_127_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:31:58+00:00"}
+{"phase": "resume", "call_id": "A__003_death_episode_127_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__003_death_episode_127_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:04+00:00"}
+{"phase": "resume", "call_id": "M__003_death_episode_127_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "A__003_death_episode_197_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:10+00:00"}
+{"phase": "resume", "call_id": "A__003_death_episode_197_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.1, "call_error": null}
+{"phase": "resume", "call_id": "M__003_death_episode_197_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:16+00:00"}
+{"phase": "resume", "call_id": "M__003_death_episode_197_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "resume", "call_id": "A__004_death_episode_66_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:22+00:00"}
+{"phase": "resume", "call_id": "A__004_death_episode_66_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "M__004_death_episode_66_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:26+00:00"}
+{"phase": "resume", "call_id": "M__004_death_episode_66_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.3, "call_error": null}
+{"phase": "resume", "call_id": "A__006_death_episode_224_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:33+00:00"}
+{"phase": "resume", "call_id": "A__006_death_episode_224_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.7, "call_error": null}
+{"phase": "resume", "call_id": "M__006_death_episode_224_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:36+00:00"}
+{"phase": "resume", "call_id": "M__006_death_episode_224_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "A__006_death_episode_263_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:40+00:00"}
+{"phase": "resume", "call_id": "A__006_death_episode_263_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "M__006_death_episode_263_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:45+00:00"}
+{"phase": "resume", "call_id": "M__006_death_episode_263_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__006_death_episode_277_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:51+00:00"}
+{"phase": "resume", "call_id": "M__006_death_episode_277_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_60_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:32:57+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_60_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_60_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:01+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_60_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.0, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_92_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:06+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_92_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_92_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:10+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_92_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_143_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:16+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_143_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_143_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:21+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_143_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.5, "call_error": null}
+{"phase": "resume", "call_id": "C__007_death_episode_143_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:28+00:00"}
+{"phase": "resume", "call_id": "C__007_death_episode_143_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.5, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_169_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:35+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_169_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_169_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:39+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_169_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.1, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_206_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:45+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_206_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_206_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:51+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_206_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.9, "call_error": null}
+{"phase": "resume", "call_id": "C__007_death_episode_206_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:33:58+00:00"}
+{"phase": "resume", "call_id": "C__007_death_episode_206_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_251_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:02+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_251_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_251_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:08+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_251_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.9, "call_error": null}
+{"phase": "resume", "call_id": "C__007_death_episode_251_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:16+00:00"}
+{"phase": "resume", "call_id": "C__007_death_episode_251_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.0, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_280_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:22+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_280_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_296_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:26+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_296_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.1, "call_error": null}
+{"phase": "resume", "call_id": "A__008_death_episode_26_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:33+00:00"}
+{"phase": "resume", "call_id": "A__008_death_episode_26_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "M__008_death_episode_26_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:40+00:00"}
+{"phase": "resume", "call_id": "M__008_death_episode_26_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "resume", "call_id": "A__008_death_episode_105_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:45+00:00"}
+{"phase": "resume", "call_id": "A__008_death_episode_105_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.2, "call_error": null}
+{"phase": "resume", "call_id": "M__008_death_episode_105_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:34:53+00:00"}
+{"phase": "resume", "call_id": "M__008_death_episode_105_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 8.1, "call_error": null}
+{"phase": "resume", "call_id": "C__008_death_episode_105_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:01+00:00"}
+{"phase": "resume", "call_id": "C__008_death_episode_105_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "M__008_death_episode_164_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:06+00:00"}
+{"phase": "resume", "call_id": "M__008_death_episode_164_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "A__009_death_episode_78_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:11+00:00"}
+{"phase": "resume", "call_id": "A__009_death_episode_78_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 9.3, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_78_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:21+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_78_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.5, "call_error": null}
+{"phase": "resume", "call_id": "A__009_death_episode_191_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:27+00:00"}
+{"phase": "resume", "call_id": "A__009_death_episode_191_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_191_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:31+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_191_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_277_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:38+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_277_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_289_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:43+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_289_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "A__009_death_episode_319_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:50+00:00"}
+{"phase": "resume", "call_id": "A__009_death_episode_319_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.6, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_319_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:55+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_319_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.5, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_80_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:35:59+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_80_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 10.4, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_80_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:09+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_80_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 8.0, "call_error": null}
+{"phase": "resume", "call_id": "C__010_death_episode_80_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:18+00:00"}
+{"phase": "resume", "call_id": "C__010_death_episode_80_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.8, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_158_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:24+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_158_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_221_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:29+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_221_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_221_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:36+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_221_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_276_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:41+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_276_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.1, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_297_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:46+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_297_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.4, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_297_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:52+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_297_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_321_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:36:57+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_321_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.9, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_321_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:02+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_321_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "A__011_death_episode_94_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:09+00:00"}
+{"phase": "resume", "call_id": "A__011_death_episode_94_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_94_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:15+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_94_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.6, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_112_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:22+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_112_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.1, "call_error": null}
+{"phase": "resume", "call_id": "A__011_death_episode_132_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:28+00:00"}
+{"phase": "resume", "call_id": "A__011_death_episode_132_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_132_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:34+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_132_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.8, "call_error": null}
+{"phase": "resume", "call_id": "A__011_death_episode_162_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:40+00:00"}
+{"phase": "resume", "call_id": "A__011_death_episode_162_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.6, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_162_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:44+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_162_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.2, "call_error": null}
+{"phase": "resume", "call_id": "A__012_death_episode_65_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:50+00:00"}
+{"phase": "resume", "call_id": "A__012_death_episode_65_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.4, "call_error": null}
+{"phase": "resume", "call_id": "M__012_death_episode_65_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:37:57+00:00"}
+{"phase": "resume", "call_id": "M__012_death_episode_65_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.0, "call_error": null}
+{"phase": "resume", "call_id": "A__012_death_episode_199_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:04+00:00"}
+{"phase": "resume", "call_id": "A__012_death_episode_199_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "M__012_death_episode_199_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:08+00:00"}
+{"phase": "resume", "call_id": "M__012_death_episode_199_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "A__013_death_episode_112_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:12+00:00"}
+{"phase": "resume", "call_id": "A__013_death_episode_112_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 9.4, "call_error": null}
+{"phase": "resume", "call_id": "M__013_death_episode_112_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:22+00:00"}
+{"phase": "resume", "call_id": "M__013_death_episode_112_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.0, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_98_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:27+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_98_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_178_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:31+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_178_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "A__014_death_episode_209_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:35+00:00"}
+{"phase": "resume", "call_id": "A__014_death_episode_209_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.2, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_209_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:40+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_209_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "resume", "call_id": "A__014_death_episode_235_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:46+00:00"}
+{"phase": "resume", "call_id": "A__014_death_episode_235_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 6.2, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_235_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:38:52+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_235_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.8, "call_error": null}
+{"phase": "resume", "call_id": "C__014_death_episode_235_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:00+00:00"}
+{"phase": "resume", "call_id": "C__014_death_episode_235_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "resume", "call_id": "A__015_death_episode_63_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:05+00:00"}
+{"phase": "resume", "call_id": "A__015_death_episode_63_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.9, "call_error": null}
+{"phase": "resume", "call_id": "M__015_death_episode_63_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:10+00:00"}
+{"phase": "resume", "call_id": "M__015_death_episode_63_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "A__015_death_episode_116_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:18+00:00"}
+{"phase": "resume", "call_id": "A__015_death_episode_116_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "M__015_death_episode_116_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:21+00:00"}
+{"phase": "resume", "call_id": "M__015_death_episode_116_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.6, "call_error": null}
+{"phase": "resume", "call_id": "M__016_death_episode_33_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:26+00:00"}
+{"phase": "resume", "call_id": "M__016_death_episode_33_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "M__016_death_episode_80_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:30+00:00"}
+{"phase": "resume", "call_id": "M__016_death_episode_80_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.0, "call_error": null}
+{"phase": "resume", "call_id": "M__016_death_episode_239_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:35+00:00"}
+{"phase": "resume", "call_id": "M__016_death_episode_239_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "A__017_death_episode_106_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:40+00:00"}
+{"phase": "resume", "call_id": "A__017_death_episode_106_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.9, "call_error": null}
+{"phase": "resume", "call_id": "M__017_death_episode_106_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:45+00:00"}
+{"phase": "resume", "call_id": "M__017_death_episode_106_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.5, "call_error": null}
+{"phase": "resume", "call_id": "A__017_death_episode_151_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:49+00:00"}
+{"phase": "resume", "call_id": "A__017_death_episode_151_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.9, "call_error": null}
+{"phase": "resume", "call_id": "M__017_death_episode_151_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:39:55+00:00"}
+{"phase": "resume", "call_id": "M__017_death_episode_151_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "resume", "call_id": "A__018_death_episode_219_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:01+00:00"}
+{"phase": "resume", "call_id": "A__018_death_episode_219_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.7, "call_error": null}
+{"phase": "resume", "call_id": "M__018_death_episode_219_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:04+00:00"}
+{"phase": "resume", "call_id": "M__018_death_episode_219_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "M__018_death_episode_318_000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:09+00:00"}
+{"phase": "resume", "call_id": "M__018_death_episode_318_000__r1", "attempt": 1, "event": "end", "elapsed_seconds": 5.9, "call_error": null}
+{"phase": "resume", "call_id": "M__019_death_episode_21_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:15+00:00"}
+{"phase": "resume", "call_id": "M__019_death_episode_21_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 3.4, "call_error": null}
+{"phase": "resume", "call_id": "A__019_death_episode_83_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:19+00:00"}
+{"phase": "resume", "call_id": "A__019_death_episode_83_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "M__019_death_episode_83_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:23+00:00"}
+{"phase": "resume", "call_id": "M__019_death_episode_83_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "A__019_death_episode_107_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:28+00:00"}
+{"phase": "resume", "call_id": "A__019_death_episode_107_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "M__019_death_episode_107_500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:32+00:00"}
+{"phase": "resume", "call_id": "M__019_death_episode_107_500__r1", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "A__001_death_episode_72_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:37+00:00"}
+{"phase": "resume", "call_id": "A__001_death_episode_72_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_72_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:42+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_72_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_102_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:47+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_102_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_159_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:52+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_159_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "A__001_death_episode_188_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:40:57+00:00"}
+{"phase": "resume", "call_id": "A__001_death_episode_188_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_188_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:03+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_188_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_203_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:07+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_203_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.0, "call_error": null}
+{"phase": "resume", "call_id": "M__001_death_episode_254_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:12+00:00"}
+{"phase": "resume", "call_id": "M__001_death_episode_254_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.8, "call_error": null}
+{"phase": "resume", "call_id": "A__002_death_episode_46_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:16+00:00"}
+{"phase": "resume", "call_id": "A__002_death_episode_46_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.7, "call_error": null}
+{"phase": "resume", "call_id": "M__002_death_episode_46_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:24+00:00"}
+{"phase": "resume", "call_id": "M__002_death_episode_46_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.3, "call_error": null}
+{"phase": "resume", "call_id": "A__002_death_episode_89_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:30+00:00"}
+{"phase": "resume", "call_id": "A__002_death_episode_89_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__002_death_episode_89_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:35+00:00"}
+{"phase": "resume", "call_id": "M__002_death_episode_89_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "A__003_death_episode_48_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:39+00:00"}
+{"phase": "resume", "call_id": "A__003_death_episode_48_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.2, "call_error": null}
+{"phase": "resume", "call_id": "M__003_death_episode_48_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:45+00:00"}
+{"phase": "resume", "call_id": "M__003_death_episode_48_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "A__003_death_episode_127_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:51+00:00"}
+{"phase": "resume", "call_id": "A__003_death_episode_127_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__003_death_episode_127_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:41:56+00:00"}
+{"phase": "resume", "call_id": "M__003_death_episode_127_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 8.0, "call_error": null}
+{"phase": "resume", "call_id": "A__003_death_episode_197_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:04+00:00"}
+{"phase": "resume", "call_id": "A__003_death_episode_197_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__003_death_episode_197_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:09+00:00"}
+{"phase": "resume", "call_id": "M__003_death_episode_197_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "A__004_death_episode_66_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:16+00:00"}
+{"phase": "resume", "call_id": "A__004_death_episode_66_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "M__004_death_episode_66_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:20+00:00"}
+{"phase": "resume", "call_id": "M__004_death_episode_66_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.0, "call_error": null}
+{"phase": "resume", "call_id": "A__006_death_episode_224_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:25+00:00"}
+{"phase": "resume", "call_id": "A__006_death_episode_224_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__006_death_episode_224_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:29+00:00"}
+{"phase": "resume", "call_id": "M__006_death_episode_224_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "A__006_death_episode_263_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:35+00:00"}
+{"phase": "resume", "call_id": "A__006_death_episode_263_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.7, "call_error": null}
+{"phase": "resume", "call_id": "M__006_death_episode_263_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:38+00:00"}
+{"phase": "resume", "call_id": "M__006_death_episode_263_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "M__006_death_episode_277_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:44+00:00"}
+{"phase": "resume", "call_id": "M__006_death_episode_277_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.0, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_60_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:50+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_60_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_60_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:54+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_60_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_92_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:42:59+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_92_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.6, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_92_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:03+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_92_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.1, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_143_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:09+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_143_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.9, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_143_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:14+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_143_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "C__007_death_episode_143_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:21+00:00"}
+{"phase": "resume", "call_id": "C__007_death_episode_143_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_169_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:25+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_169_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.8, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_169_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:29+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_169_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.2, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_206_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:35+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_206_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.1, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_206_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:41+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_206_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "C__007_death_episode_206_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:46+00:00"}
+{"phase": "resume", "call_id": "C__007_death_episode_206_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.3, "call_error": null}
+{"phase": "resume", "call_id": "A__007_death_episode_251_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:53+00:00"}
+{"phase": "resume", "call_id": "A__007_death_episode_251_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_251_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:43:57+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_251_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "C__007_death_episode_251_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:01+00:00"}
+{"phase": "resume", "call_id": "C__007_death_episode_251_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.0, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_280_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:07+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_280_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__007_death_episode_296_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:13+00:00"}
+{"phase": "resume", "call_id": "M__007_death_episode_296_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.2, "call_error": null}
+{"phase": "resume", "call_id": "A__008_death_episode_26_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:20+00:00"}
+{"phase": "resume", "call_id": "A__008_death_episode_26_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.4, "call_error": null}
+{"phase": "resume", "call_id": "M__008_death_episode_26_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:27+00:00"}
+{"phase": "resume", "call_id": "M__008_death_episode_26_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "A__008_death_episode_105_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:32+00:00"}
+{"phase": "resume", "call_id": "A__008_death_episode_105_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.5, "call_error": null}
+{"phase": "resume", "call_id": "M__008_death_episode_105_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:37+00:00"}
+{"phase": "resume", "call_id": "M__008_death_episode_105_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.1, "call_error": null}
+{"phase": "resume", "call_id": "C__008_death_episode_105_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:44+00:00"}
+{"phase": "resume", "call_id": "C__008_death_episode_105_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.0, "call_error": null}
+{"phase": "resume", "call_id": "M__008_death_episode_164_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:51+00:00"}
+{"phase": "resume", "call_id": "M__008_death_episode_164_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.5, "call_error": null}
+{"phase": "resume", "call_id": "A__009_death_episode_78_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:44:55+00:00"}
+{"phase": "resume", "call_id": "A__009_death_episode_78_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_78_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:03+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_78_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.1, "call_error": null}
+{"phase": "resume", "call_id": "A__009_death_episode_191_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:10+00:00"}
+{"phase": "resume", "call_id": "A__009_death_episode_191_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_191_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:15+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_191_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_277_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:20+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_277_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.1, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_289_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:24+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_289_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.3, "call_error": null}
+{"phase": "resume", "call_id": "A__009_death_episode_319_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:30+00:00"}
+{"phase": "resume", "call_id": "A__009_death_episode_319_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "M__009_death_episode_319_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:35+00:00"}
+{"phase": "resume", "call_id": "M__009_death_episode_319_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_80_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:40+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_80_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 17.5, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_80_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:45:58+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_80_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.1, "call_error": null}
+{"phase": "resume", "call_id": "C__010_death_episode_80_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:05+00:00"}
+{"phase": "resume", "call_id": "C__010_death_episode_80_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_158_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:10+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_158_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_221_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:15+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_221_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_221_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:19+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_221_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.7, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_276_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:25+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_276_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 8.0, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_297_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:33+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_297_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_297_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:38+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_297_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "A__010_death_episode_321_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:43+00:00"}
+{"phase": "resume", "call_id": "A__010_death_episode_321_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "M__010_death_episode_321_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:48+00:00"}
+{"phase": "resume", "call_id": "M__010_death_episode_321_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "A__011_death_episode_94_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:53+00:00"}
+{"phase": "resume", "call_id": "A__011_death_episode_94_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_94_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:46:59+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_94_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.9, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_112_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:05+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_112_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.8, "call_error": null}
+{"phase": "resume", "call_id": "A__011_death_episode_132_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:13+00:00"}
+{"phase": "resume", "call_id": "A__011_death_episode_132_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_132_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:18+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_132_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.3, "call_error": null}
+{"phase": "resume", "call_id": "A__011_death_episode_162_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:25+00:00"}
+{"phase": "resume", "call_id": "A__011_death_episode_162_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.5, "call_error": null}
+{"phase": "resume", "call_id": "M__011_death_episode_162_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:29+00:00"}
+{"phase": "resume", "call_id": "M__011_death_episode_162_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.6, "call_error": null}
+{"phase": "resume", "call_id": "A__012_death_episode_65_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:34+00:00"}
+{"phase": "resume", "call_id": "A__012_death_episode_65_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.8, "call_error": null}
+{"phase": "resume", "call_id": "M__012_death_episode_65_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:39+00:00"}
+{"phase": "resume", "call_id": "M__012_death_episode_65_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.7, "call_error": null}
+{"phase": "resume", "call_id": "A__012_death_episode_199_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:47+00:00"}
+{"phase": "resume", "call_id": "A__012_death_episode_199_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "resume", "call_id": "M__012_death_episode_199_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:52+00:00"}
+{"phase": "resume", "call_id": "M__012_death_episode_199_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.9, "call_error": null}
+{"phase": "resume", "call_id": "A__013_death_episode_112_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:47:59+00:00"}
+{"phase": "resume", "call_id": "A__013_death_episode_112_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.8, "call_error": null}
+{"phase": "resume", "call_id": "M__013_death_episode_112_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:06+00:00"}
+{"phase": "resume", "call_id": "M__013_death_episode_112_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 8.5, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_98_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:14+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_98_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.2, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_178_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:18+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_178_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "A__014_death_episode_209_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:23+00:00"}
+{"phase": "resume", "call_id": "A__014_death_episode_209_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_209_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:28+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_209_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "resume", "call_id": "A__014_death_episode_235_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:33+00:00"}
+{"phase": "resume", "call_id": "A__014_death_episode_235_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.6, "call_error": null}
+{"phase": "resume", "call_id": "M__014_death_episode_235_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:38+00:00"}
+{"phase": "resume", "call_id": "M__014_death_episode_235_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "C__014_death_episode_235_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:43+00:00"}
+{"phase": "resume", "call_id": "C__014_death_episode_235_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.1, "call_error": null}
+{"phase": "resume", "call_id": "A__015_death_episode_63_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:50+00:00"}
+{"phase": "resume", "call_id": "A__015_death_episode_63_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "M__015_death_episode_63_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:48:55+00:00"}
+{"phase": "resume", "call_id": "M__015_death_episode_63_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 8.2, "call_error": null}
+{"phase": "resume", "call_id": "A__015_death_episode_116_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:03+00:00"}
+{"phase": "resume", "call_id": "A__015_death_episode_116_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.7, "call_error": null}
+{"phase": "resume", "call_id": "M__015_death_episode_116_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:07+00:00"}
+{"phase": "resume", "call_id": "M__015_death_episode_116_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.3, "call_error": null}
+{"phase": "resume", "call_id": "M__016_death_episode_33_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:13+00:00"}
+{"phase": "resume", "call_id": "M__016_death_episode_33_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "resume", "call_id": "M__016_death_episode_80_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:18+00:00"}
+{"phase": "resume", "call_id": "M__016_death_episode_80_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "M__016_death_episode_239_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:23+00:00"}
+{"phase": "resume", "call_id": "M__016_death_episode_239_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.6, "call_error": null}
+{"phase": "resume", "call_id": "A__017_death_episode_106_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:26+00:00"}
+{"phase": "resume", "call_id": "A__017_death_episode_106_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.0, "call_error": null}
+{"phase": "resume", "call_id": "M__017_death_episode_106_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:30+00:00"}
+{"phase": "resume", "call_id": "M__017_death_episode_106_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 7.9, "call_error": null}
+{"phase": "resume", "call_id": "A__017_death_episode_151_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:38+00:00"}
+{"phase": "resume", "call_id": "A__017_death_episode_151_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "M__017_death_episode_151_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:42+00:00"}
+{"phase": "resume", "call_id": "M__017_death_episode_151_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.3, "call_error": null}
+{"phase": "resume", "call_id": "A__018_death_episode_219_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:47+00:00"}
+{"phase": "resume", "call_id": "A__018_death_episode_219_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "resume", "call_id": "M__018_death_episode_219_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:51+00:00"}
+{"phase": "resume", "call_id": "M__018_death_episode_219_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.5, "call_error": null}
+{"phase": "resume", "call_id": "M__018_death_episode_318_000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:49:58+00:00"}
+{"phase": "resume", "call_id": "M__018_death_episode_318_000__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.8, "call_error": null}
+{"phase": "resume", "call_id": "M__019_death_episode_21_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:50:04+00:00"}
+{"phase": "resume", "call_id": "M__019_death_episode_21_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "A__019_death_episode_83_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:50:08+00:00"}
+{"phase": "resume", "call_id": "A__019_death_episode_83_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 3.9, "call_error": null}
+{"phase": "resume", "call_id": "M__019_death_episode_83_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:50:11+00:00"}
+{"phase": "resume", "call_id": "M__019_death_episode_83_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "resume", "call_id": "A__019_death_episode_107_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:50:16+00:00"}
+{"phase": "resume", "call_id": "A__019_death_episode_107_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 6.7, "call_error": null}
+{"phase": "resume", "call_id": "M__019_death_episode_107_500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T19:50:23+00:00"}
+{"phase": "resume", "call_id": "M__019_death_episode_107_500__r2", "attempt": 1, "event": "end", "elapsed_seconds": 5.5, "call_error": null}

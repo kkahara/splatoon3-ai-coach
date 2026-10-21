@@ -1,0 +1,74 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__001_death_episode_72_500__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "001|death_episode:72.500",
+ "file": "A/001_death_episode_72_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "f1dba2a12fb4363d6731e451f81dd77b66f49f63d9523cb448eb58a0d8714959",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "adb620aed464cb78a48da93bb6401e1967142d88004a744bf7eae07d757cf706"
+ },
+ "executed_at": "2026-10-21T19:30:33+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 9.5 seconds after this death. No map check was observed before the death. A quick map check after respawning shows where the action is before you rejoin.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.5 seconds after this death.\"},{\"claim_id\":\"death_map_overlay_before_false\",\"level\":\"A\",\"sentence\":\"No map check was observed before the death.\"},{\"claim_id\":\"process_map_after_respawn\",\"level\":\"B\",\"sentence\":\"A quick map check after respawning shows where the action is before you rejoin.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 9.5\",\"map.map_check_before_death.status = \\\"not_observed\\\"\"],\"limitations\":[\"This evidence does not identify why the death happened or assess positioning, opponent location, teammate state, or fight outcome.\",\"The map evidence covers any map overlay before the death and does not establish map-usage quality.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_out_of_play\",\"death_map_overlay_before_false\",\"process_map_after_respawn\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.5 seconds after this death. No map check was observed before the death. A quick map check after respawning shows where the action is before you rejoin.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 9.5",
+   "map.map_check_before_death.status = \"not_observed\""
+  ],
+  "limitations": [
+   "This evidence does not identify why the death happened or assess positioning, opponent location, teammate state, or fight outcome.",
+   "The map evidence covers any map overlay before the death and does not establish map-usage quality."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "death_map_overlay_before_false",
+   "process_map_after_respawn"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.5 seconds after this death."
+   },
+   {
+    "claim_id": "death_map_overlay_before_false",
+    "level": "A",
+    "sentence": "No map check was observed before the death."
+   },
+   {
+    "claim_id": "process_map_after_respawn",
+    "level": "B",
+    "sentence": "A quick map check after respawning shows where the action is before you rejoin."
+   }
+  ]
+ },
+ "elapsed_seconds": 7.9
+}

@@ -1,0 +1,67 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__011_death_episode_112_000__r1",
+ "population": "P3",
+ "arm": "M",
+ "repeat": 1,
+ "death_id": "011|death_episode:112.000",
+ "file": "M/011_death_episode_112_000.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "1c7f1db6264742996619191c324d49ba4a14cdaf8e269693a019c85697fe1631",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "108c1a5a9cba391fb5e79b62abb10f15ddbd524cefe537b9247e307588e459b1"
+ },
+ "executed_at": "2026-10-21T19:37:22+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"Your previous death was 18.0 seconds earlier. Back-to-back deaths keep you out of play for longer.\",\"claims\":[{\"claim_id\":\"death_quick_redeath\",\"level\":\"A\",\"sentence\":\"Your previous death was 18.0 seconds earlier.\"},{\"claim_id\":\"principle_redeath_out_of_play\",\"level\":\"B\",\"sentence\":\"Back-to-back deaths keep you out of play for longer.\"}],\"evidence_used\":[\"timeline.time_since_previous_death.value = 18.0\",\"timeline.time_since_previous_death.clock = \\\"video\\\"\"],\"limitations\":[\"The cause of the death, player positioning, teammate state, opponent location, and fight outcome cannot be concluded from this evidence.\"],\"recommendations\":[\"After being splatted, take a moment to reset before re-engaging.\"],\"selected_claim_ids\":[\"death_quick_redeath\",\"principle_redeath_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 18.0 seconds earlier. Back-to-back deaths keep you out of play for longer.",
+  "evidence_used": [
+   "timeline.time_since_previous_death.value = 18.0",
+   "timeline.time_since_previous_death.clock = \"video\""
+  ],
+  "limitations": [
+   "The cause of the death, player positioning, teammate state, opponent location, and fight outcome cannot be concluded from this evidence."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "principle_redeath_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 18.0 seconds earlier."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   }
+  ]
+ },
+ "elapsed_seconds": 6.1
+}

@@ -1,0 +1,75 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__010_death_episode_80_500__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "010|death_episode:80.500",
+ "file": "A/010_death_episode_80_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "52d14c85184943e72c06fec3d903a4a689550590adea993621cac127392103f3",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "3cb7fae176da79813307896e5dcfa2172300d865062dba0d3b5e3d48e7603e19"
+ },
+ "executed_at": "2026-10-21T19:35:59+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"You got a splat 0.5 seconds before you were splatted. You were out of play for 8.5 seconds after this death. Map information can help inform where to rejoin.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_own_splat_before\",\n      \"level\": \"A\",\n      \"sentence\": \"You got a splat 0.5 seconds before you were splatted.\"\n    },\n    {\n      \"claim_id\": \"death_out_of_play\",\n      \"level\": \"A\",\n      \"sentence\": \"You were out of play for 8.5 seconds after this death.\"\n    },\n    {\n      \"claim_id\": \"process_map_after_respawn\",\n      \"level\": \"B\",\n      \"sentence\": \"Map information can help inform where to rejoin.\"\n    }\n  ],\n  \"evidence_used\": [\n    \"death.time_since_previous_splat.video_seconds = 0.5\",\n    \"death.death_to_active_again.value = 8.5\",\n    \"map.map_check_before_death.status = \\\"not_observed\\\"\"\n  ],\n  \"limitations\": [\n    \"The map evidence covers any earlier overlay and does not establish recent map usage or its quality.\",\n    \"Player position, opponent location, teammate state, and fight outcome are unavailable.\"\n  ],\n  \"recommendations\": [\n    \"After you respawn, take a quick look at the map before rejoining.\"\n  ],\n  \"selected_claim_ids\": [\n    \"death_own_splat_before\",\n    \"death_out_of_play\",\n    \"process_map_after_respawn\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 0.5 seconds before you were splatted. You were out of play for 8.5 seconds after this death. Map information can help inform where to rejoin.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 0.5",
+   "death.death_to_active_again.value = 8.5",
+   "map.map_check_before_death.status = \"not_observed\""
+  ],
+  "limitations": [
+   "The map evidence covers any earlier overlay and does not establish recent map usage or its quality.",
+   "Player position, opponent location, teammate state, and fight outcome are unavailable."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "death_out_of_play",
+   "process_map_after_respawn"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 0.5 seconds before you were splatted."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   },
+   {
+    "claim_id": "process_map_after_respawn",
+    "level": "B",
+    "sentence": "Map information can help inform where to rejoin."
+   }
+  ]
+ },
+ "elapsed_seconds": 10.4
+}

@@ -1,0 +1,60 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__007_death_episode_169_000__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "007|death_episode:169.000",
+ "file": "A/007_death_episode_169_000.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "2518027a347df333787eeb376d5348a83c8b2463a58ae30aa5db495d10b4ba54",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "8b65dcf4eba5b201f3cf4a3fa3c07463332f9ad35ec8a5de1c82331037db82e3"
+ },
+ "executed_at": "2026-10-21T19:33:35+00:00",
+ "call_error": null,
+ "raw_output": "{\n  \"assessment\": \"You were out of play for 9.0 seconds after this death.\",\n  \"claims\": [\n    {\n      \"claim_id\": \"death_out_of_play\",\n      \"level\": \"A\",\n      \"sentence\": \"You were out of play for 9.0 seconds after this death.\"\n    }\n  ],\n  \"evidence_used\": [\n    \"death.death_to_active_again.value = 9.0\",\n    \"death.death_to_active_again.clock = \\\"video\\\"\",\n    \"playback.status = \\\"normal\\\"\"\n  ],\n  \"limitations\": [\n    \"The evidence does not identify why the death happened or support a behavioral recommendation.\"\n  ],\n  \"recommendations\": [],\n  \"selected_claim_ids\": [\n    \"death_out_of_play\"\n  ]\n}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.0 seconds after this death.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 9.0",
+   "death.death_to_active_again.clock = \"video\"",
+   "playback.status = \"normal\""
+  ],
+  "limitations": [
+   "The evidence does not identify why the death happened or support a behavioral recommendation."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.0 seconds after this death."
+   }
+  ]
+ },
+ "elapsed_seconds": 4.2
+}

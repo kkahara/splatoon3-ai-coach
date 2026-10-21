@@ -1,0 +1,75 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__003_death_episode_197_000__r1",
+ "population": "P2",
+ "arm": "M",
+ "repeat": 1,
+ "death_id": "003|death_episode:197.000",
+ "file": "M/003_death_episode_197_000.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "df2da7ab56b1a1d3dc48bbd91d9b7d159e7d5765b96a551b44112343156dfef4",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "0e0abb2ec72dacf8200857604ce9fa14643245b2972468a4b9749adfdcc26be6"
+ },
+ "executed_at": "2026-10-21T19:32:16+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 10.5 seconds after this death. Your special was still charged when you were splatted. No map check was observed in the 60.5 seconds since you were back in play.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 10.5 seconds after this death.\"},{\"claim_id\":\"death_special_ready\",\"level\":\"A\",\"sentence\":\"Your special was still charged when you were splatted.\"},{\"claim_id\":\"no_map_check_since_back_in_play\",\"level\":\"A\",\"sentence\":\"No map check was observed in the 60.5 seconds since you were back in play.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 10.5\",\"special.state_at_anchor = \\\"ready\\\"\",\"back_in_play.seconds_back_in_play = 60.5\",\"map_awareness.map_checks_since_back_in_play = 0\"],\"limitations\":[\"The evidence does not identify why the death happened, whether the special was used, or the player's positioning and opponent locations.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_out_of_play\",\"death_special_ready\",\"no_map_check_since_back_in_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 10.5 seconds after this death. Your special was still charged when you were splatted. No map check was observed in the 60.5 seconds since you were back in play.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 10.5",
+   "special.state_at_anchor = \"ready\"",
+   "back_in_play.seconds_back_in_play = 60.5",
+   "map_awareness.map_checks_since_back_in_play = 0"
+  ],
+  "limitations": [
+   "The evidence does not identify why the death happened, whether the special was used, or the player's positioning and opponent locations."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "death_special_ready",
+   "no_map_check_since_back_in_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 10.5 seconds after this death."
+   },
+   {
+    "claim_id": "death_special_ready",
+    "level": "A",
+    "sentence": "Your special was still charged when you were splatted."
+   },
+   {
+    "claim_id": "no_map_check_since_back_in_play",
+    "level": "A",
+    "sentence": "No map check was observed in the 60.5 seconds since you were back in play."
+   }
+  ]
+ },
+ "elapsed_seconds": 5.4
+}

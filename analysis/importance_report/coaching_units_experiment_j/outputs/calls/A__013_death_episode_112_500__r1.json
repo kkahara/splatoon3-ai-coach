@@ -1,0 +1,66 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__013_death_episode_112_500__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "013|death_episode:112.500",
+ "file": "A/013_death_episode_112_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "2bdd7439f6c357a3a4c03504227eeadbdff58e07cc7c231c09822af992b9b011",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "b7972ecd5eb560c27bac4ee8d0b62d66aa2625f7e819f30927abb48f6ff3ddc3"
+ },
+ "executed_at": "2026-10-21T19:38:12+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"No map check was observed before this death. A map check after respawning provides information about where the action is before you rejoin.\",\"claims\":[{\"claim_id\":\"death_map_overlay_before_false\",\"level\":\"A\",\"sentence\":\"No map check was observed before this death.\"},{\"claim_id\":\"process_map_after_respawn\",\"level\":\"B\",\"sentence\":\"A map check after respawning provides information about where the action is before you rejoin.\"}],\"evidence_used\":[\"map.map_check_before_death.status = \\\"not_observed\\\"\"],\"limitations\":[\"The map evidence does not establish how recently a map check would have occurred before the death.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_map_overlay_before_false\",\"process_map_after_respawn\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "No map check was observed before this death. A map check after respawning provides information about where the action is before you rejoin.",
+  "evidence_used": [
+   "map.map_check_before_death.status = \"not_observed\""
+  ],
+  "limitations": [
+   "The map evidence does not establish how recently a map check would have occurred before the death."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_map_overlay_before_false",
+   "process_map_after_respawn"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_map_overlay_before_false",
+    "level": "A",
+    "sentence": "No map check was observed before this death."
+   },
+   {
+    "claim_id": "process_map_after_respawn",
+    "level": "B",
+    "sentence": "A map check after respawning provides information about where the action is before you rejoin."
+   }
+  ]
+ },
+ "elapsed_seconds": 9.4
+}

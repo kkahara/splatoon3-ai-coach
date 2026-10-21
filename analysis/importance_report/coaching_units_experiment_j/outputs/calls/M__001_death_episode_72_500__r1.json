@@ -1,0 +1,68 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__001_death_episode_72_500__r1",
+ "population": "P1",
+ "arm": "M",
+ "repeat": 1,
+ "death_id": "001|death_episode:72.500",
+ "file": "M/001_death_episode_72_500.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "08e61a3199a1ed36299140162a7afc0e133a1da6072b4dbc0b7f04db99ff5632",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "aa13a1faa1702cc15327a7e9aadab9fa9502ba08212c49341ff93f4c6e14ea0f"
+ },
+ "executed_at": "2026-10-21T19:30:41+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 9.5 seconds after this death. No map check was observed in the 49.5 seconds since you were back in play.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.5 seconds after this death.\"},{\"claim_id\":\"no_map_check_since_back_in_play\",\"level\":\"A\",\"sentence\":\"No map check was observed in the 49.5 seconds since you were back in play.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 9.5\",\"back_in_play.seconds_back_in_play = 49.5\",\"map_awareness.map_checks_since_back_in_play = 0\"],\"limitations\":[\"The evidence does not show what information the map would have displayed.\"],\"recommendations\":[\"After you respawn, take a quick look at the map before rejoining.\"],\"selected_claim_ids\":[\"death_out_of_play\",\"no_map_check_since_back_in_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.5 seconds after this death. No map check was observed in the 49.5 seconds since you were back in play.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 9.5",
+   "back_in_play.seconds_back_in_play = 49.5",
+   "map_awareness.map_checks_since_back_in_play = 0"
+  ],
+  "limitations": [
+   "The evidence does not show what information the map would have displayed."
+  ],
+  "recommendations": [
+   "After you respawn, take a quick look at the map before rejoining."
+  ],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "no_map_check_since_back_in_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.5 seconds after this death."
+   },
+   {
+    "claim_id": "no_map_check_since_back_in_play",
+    "level": "A",
+    "sentence": "No map check was observed in the 49.5 seconds since you were back in play."
+   }
+  ]
+ },
+ "elapsed_seconds": 8.0
+}

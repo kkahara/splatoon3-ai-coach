@@ -1,0 +1,60 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "A__011_death_episode_132_500__r1",
+ "population": "P1",
+ "arm": "A",
+ "repeat": 1,
+ "death_id": "011|death_episode:132.500",
+ "file": "A/011_death_episode_132_500.user_prompt.txt",
+ "system": "system_prompt_A.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "b11ea362ff22d435333100db44a6c5675e90554369202fb9b3b2bcf91149e908",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "3b8756eda0b0748da4838be49613afd75b925a0b847abf27bbda23f1ab561cae"
+ },
+ "executed_at": "2026-10-21T19:37:28+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 9.5 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.5 seconds after this death.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 9.5\",\"death.death_to_active_again.clock = \\\"video\\\"\",\"playback.status = \\\"normal\\\"\"],\"limitations\":[\"The cause of death, positioning, special usage, teammate state, opponent location, and fight outcome were not observed.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.5 seconds after this death.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 9.5",
+   "death.death_to_active_again.clock = \"video\"",
+   "playback.status = \"normal\""
+  ],
+  "limitations": [
+   "The cause of death, positioning, special usage, teammate state, opponent location, and fight outcome were not observed."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.5 seconds after this death."
+   }
+  ]
+ },
+ "elapsed_seconds": 5.1
+}

@@ -1,0 +1,60 @@
+{
+ "experiment": true,
+ "experiment_name": "coaching_units_experiment_j",
+ "call_id": "M__016_death_episode_33_000__r2",
+ "population": "P3",
+ "arm": "M",
+ "repeat": 2,
+ "death_id": "016|death_episode:33.000",
+ "file": "M/016_death_episode_33_000.user_prompt.txt",
+ "system": "system_prompt_M.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "2423ea8",
+ "run_commit": "416f63ca79a87bb783421142bdceb2c6e7525597",
+ "attempt": 1,
+ "system_sha256": "cb549b84944d6ba2f0f1a6bc6ab10043b98e4b2e052b643ce73b97fca2e671cc",
+ "user_prompt_sha256": "2c33b1479b7b18ce6446ebd7f67a512c8c4f0b86a7121f7c94cc1e51b0941d5e",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "4f18c524a5ac718bffd804d73442cda8cecfc676d6f0539d4a69b49e6b7233be"
+ },
+ "executed_at": "2026-10-21T19:49:13+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 9.0 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.0 seconds after this death.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 9.0\",\"death.death_to_active_again.clock = \\\"video\\\"\",\"playback.status = \\\"normal\\\"\"],\"limitations\":[\"The cause of the death and player positioning are not observed.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 9.0 seconds after this death.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 9.0",
+   "death.death_to_active_again.clock = \"video\"",
+   "playback.status = \"normal\""
+  ],
+  "limitations": [
+   "The cause of the death and player positioning are not observed."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.0 seconds after this death."
+   }
+  ]
+ },
+ "elapsed_seconds": 5.1
+}
