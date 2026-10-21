@@ -1,0 +1,1861 @@
+{
+ "chosen_for": [
+  "map_status",
+  "death_to_respawn_value"
+ ],
+ "coach_input": {
+  "durations": {
+   "death_to_active_again": {
+    "clock": "video",
+    "end_gap_seconds": null,
+    "method": "video_elapsed",
+    "start_gap_seconds": null,
+    "uncertainty_seconds": null,
+    "value": 17.5,
+    "video_seconds": 17.5
+   },
+   "death_to_respawn": {
+    "clock": "video",
+    "end_gap_seconds": null,
+    "method": "video_elapsed",
+    "start_gap_seconds": null,
+    "uncertainty_seconds": null,
+    "value": 7.0,
+    "video_seconds": 7.0
+   },
+   "scenario_duration": {
+    "clock": "video",
+    "end_gap_seconds": null,
+    "method": "video_elapsed",
+    "start_gap_seconds": null,
+    "uncertainty_seconds": null,
+    "value": 17.5,
+    "video_seconds": 17.5
+   },
+   "time_since_previous_death": {
+    "clock": "video",
+    "end_gap_seconds": null,
+    "method": "video_elapsed",
+    "start_gap_seconds": null,
+    "uncertainty_seconds": null,
+    "value": 29.5,
+    "video_seconds": 29.5
+   }
+  },
+  "evidence_limits": [
+   {
+    "code": "score_not_zone_holder",
+    "statement": "Remaining counts and counter changes do not identify who held the zone or why a counter changed. They are not evidence of zone control, of pushing or losing the objective, or of the count causing the death."
+   },
+   {
+    "code": "zone_control_player_causality_unavailable",
+    "statement": "Team-level control transitions do not identify which player caused a capture or loss, and do not prove causation."
+   },
+   {
+    "code": "map_check_before_death_unbounded",
+    "statement": "map_check_before_death means any map overlay occurred before the death (unbounded lookback); it is not evidence of a recent check or map-usage quality."
+   },
+   {
+    "code": "game_clock_missing",
+    "statement": "Match remaining time unknown at video time 325.5s (label=primary_end)."
+   },
+   {
+    "code": "game_clock_missing",
+    "statement": "Match remaining time unknown at video time 325.5s (label=active_again)."
+   },
+   {
+    "code": "roster_evidence_disabled",
+    "statement": "Roster (ally/opponent alive count) evidence is not used for coaching: it has not passed the reliability bar. Do not state alive counts, numbers advantage or disadvantage, teammate availability, or who was last alive."
+   }
+  ],
+  "game_clock_samples": [
+   {
+    "gap_seconds": 0.0,
+    "label": "primary_start",
+    "observation": {
+     "confidence": 0.9200110882520676,
+     "display": "0:09",
+     "seconds_remaining": 9,
+     "source": "timer_detection",
+     "video_time": 308.0
+    },
+    "video_time": 308.0
+   },
+   {
+    "gap_seconds": null,
+    "label": "primary_end",
+    "observation": null,
+    "video_time": 325.5
+   },
+   {
+    "gap_seconds": 0.0,
+    "label": "death",
+    "observation": {
+     "confidence": 0.9200110882520676,
+     "display": "0:09",
+     "seconds_remaining": 9,
+     "source": "timer_detection",
+     "video_time": 308.0
+    },
+    "video_time": 308.0
+   },
+   {
+    "gap_seconds": 0.5,
+    "label": "respawn",
+    "observation": {
+     "confidence": 0.938745528459549,
+     "display": "0:02",
+     "seconds_remaining": 2,
+     "source": "timer_detection",
+     "video_time": 314.5
+    },
+    "video_time": 315.0
+   },
+   {
+    "gap_seconds": null,
+    "label": "active_again",
+    "observation": null,
+    "video_time": 325.5
+   }
+  ],
+  "playback_clock": {
+   "excluded_frozen": 8,
+   "excluded_non_monotonic": 1,
+   "game_seconds_per_video_second": 1.0,
+   "observation_count": 521,
+   "pair_count": 128563,
+   "rate_spread": 0.0,
+   "reason": "Median of 128563 timer pair slopes: 1.000 game s per video s (tolerance 0.1).",
+   "rule": "playback_rate_median_pair_slope",
+   "span_video_seconds": 298.5,
+   "status": "normal",
+   "tolerance": 0.1,
+   "video_seconds_per_game_second": 1.0
+  },
+  "player_count_context": null,
+  "player_count_samples": [],
+  "player_count_window": [],
+  "primary_context": {
+   "combat": null,
+   "death_episode": {
+    "active_again_time": 325.5,
+    "awaiting_duration": 7.0,
+    "awaiting_end": 315.0,
+    "awaiting_start": 308.0,
+    "complete": true,
+    "death_time": 308.0,
+    "death_to_active_again": 17.5,
+    "death_to_match_end": null,
+    "death_to_respawn": 7.0,
+    "end_reason": "active_again",
+    "has_active_again": true,
+    "has_respawn": true,
+    "is_first_death": false,
+    "match_end_time": null,
+    "match_phase_at_death": "in_match",
+    "numbers_state_at_death": null,
+    "preceded_by_trade_candidate": false,
+    "respawn_reason": "countdown_plate_ended",
+    "respawn_time": 315.0,
+    "respawn_to_active_again": 10.5,
+    "roster_changed_before_death": null,
+    "seconds_since_roster_change": null,
+    "time_since_previous_splat": 15.5
+   },
+   "low_ink": null,
+   "map": {
+    "episode_map_observability": {
+     "max_pre_death_gap_seconds": 0.5,
+     "own_respawn_overlay": true,
+     "pre_death_frame_fraction": 1.0,
+     "reason": null,
+     "segment_start": 286.5,
+     "status": "sufficient"
+    },
+    "in_death_episode": null,
+    "ink": {
+     "nearest_before_anchor": null,
+     "observations": [
+      {
+       "ally_classified_fraction": 0.4820150672459584,
+       "classified_fraction": 0.41106592901563144,
+       "confidence": 0.41106592901563144,
+       "opponent_classified_fraction": 0.5179849327540416,
+       "video_time": 310.0
+      },
+      {
+       "ally_classified_fraction": 0.4051942781779446,
+       "classified_fraction": 0.47785398620491726,
+       "confidence": 0.47785398620491726,
+       "opponent_classified_fraction": 0.5948057218220554,
+       "video_time": 311.0
+      },
+      {
+       "ally_classified_fraction": 0.635824739827467,
+       "classified_fraction": 0.40955921278439994,
+       "confidence": 0.40955921278439994,
+       "opponent_classified_fraction": 0.364175260172533,
+       "video_time": 312.0
+      },
+      {
+       "ally_classified_fraction": 0.535924216221614,
+       "classified_fraction": 0.42721513464458366,
+       "confidence": 0.42721513464458366,
+       "opponent_classified_fraction": 0.464075783778386,
+       "video_time": 313.0
+      },
+      {
+       "ally_classified_fraction": 0.5832375919117647,
+       "classified_fraction": 0.3713231373050916,
+       "confidence": 0.3713231373050916,
+       "opponent_classified_fraction": 0.4167624080882353,
+       "video_time": 315.0
+      }
+     ]
+    },
+    "last_map_before_death_event_id": "map_overlay:286.500:map_overlay_present:-",
+    "map_check_before_death": true,
+    "map_check_count": 3,
+    "map_check_status": "observed",
+    "map_check_unknown_reason": null,
+    "map_checked_while_dead": true,
+    "map_checks_before_start": 22,
+    "map_checks_during_death_episode": 3,
+    "map_checks_during_scenario": 3,
+    "map_coverage": {
+     "completed_respawns": 9,
+     "reason": "Map overlay seen in 9/9 respawns.",
+     "respawns_with_overlay": 9,
+     "rule": "respawn_map_coverage",
+     "source_observability": "observable",
+     "status": "sufficient"
+    },
+    "map_event_ids_during_episode": [
+     "map_overlay:310.000:map_overlay_present:-",
+     "map_overlay:312.500:map_overlay_present:-",
+     "map_overlay:315.000:map_overlay_present:-"
+    ],
+    "seconds_since_map_check_before_death": 21.5
+   },
+   "players": null,
+   "relations": {
+    "follows_death_episode_id": null,
+    "leads_to_death_episode_id": null,
+    "next_engagement_id": null,
+    "preceded_by_engagement_id": null
+   },
+   "scenario_id": "death_episode:308.000",
+   "score": {
+    "at_anchor": {
+     "ally_penalty": 45,
+     "ally_penalty_quality": "observed",
+     "ally_remaining": 17,
+     "ally_score_quality": "observed",
+     "evidence_ids": [
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:score:score@0.2.0:4e792d95baf1"
+     ],
+     "opponent_penalty": 34,
+     "opponent_penalty_quality": "observed",
+     "opponent_remaining": 2,
+     "opponent_score_quality": "observed",
+     "video_time": 307.5
+    },
+    "lookback": {
+     "ally_penalty": 45,
+     "ally_penalty_quality": "observed",
+     "ally_remaining": 17,
+     "ally_score_quality": "observed",
+     "evidence_ids": [
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18150:score:score@0.2.0:9d35c98e5620",
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18120:score:score@0.2.0:33e471473139"
+     ],
+     "opponent_penalty": null,
+     "opponent_penalty_quality": "held",
+     "opponent_remaining": null,
+     "opponent_score_quality": "held",
+     "video_time": 302.5
+    },
+    "pre_death": {
+     "ally_penalty": 45,
+     "ally_penalty_quality": "observed",
+     "ally_remaining": 17,
+     "ally_score_quality": "observed",
+     "evidence_ids": [
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:score:score@0.2.0:4e792d95baf1"
+     ],
+     "opponent_penalty": 34,
+     "opponent_penalty_quality": "observed",
+     "opponent_remaining": 2,
+     "opponent_score_quality": "observed",
+     "video_time": 307.5
+    }
+   },
+   "special": {
+    "last_ready_before_anchor": {
+     "charged_score": 0.0,
+     "coaching_invalid_reason": null,
+     "coaching_valid": true,
+     "confidence": 0.8787415667688877,
+     "dial_score": 0.7795301213979775,
+     "fill_fraction": 0.9047619047619048,
+     "lifecycle": "alive",
+     "lit_sector_fraction": 0.9047619047619048,
+     "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:special_gauge:special_gauge@0.2.0:7e79cd7d5b59",
+     "press_score": 0.0,
+     "ready": true,
+     "ready_prompt_score": 0.8393652453429379,
+     "state": "ready",
+     "video_time": 307.5,
+     "visible": true
+    },
+    "last_visible_before_anchor": {
+     "charged_score": 0.0,
+     "coaching_invalid_reason": null,
+     "coaching_valid": true,
+     "confidence": 0.8775751405675004,
+     "dial_score": 0.7774093464863644,
+     "fill_fraction": 0.8571428571428571,
+     "lifecycle": "dead",
+     "lit_sector_fraction": 0.8571428571428571,
+     "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18480:special_gauge:special_gauge@0.2.0:dad00115cee8",
+     "press_score": 0.0,
+     "ready": false,
+     "ready_prompt_score": 0.33770187057046597,
+     "state": "not_ready",
+     "video_time": 308.0,
+     "visible": true
+    },
+    "nearest_before_anchor": {
+     "charged_score": 0.0,
+     "coaching_invalid_reason": null,
+     "coaching_valid": true,
+     "confidence": 0.8775751405675004,
+     "dial_score": 0.7774093464863644,
+     "fill_fraction": 0.8571428571428571,
+     "lifecycle": "dead",
+     "lit_sector_fraction": 0.8571428571428571,
+     "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18480:special_gauge:special_gauge@0.2.0:dad00115cee8",
+     "press_score": 0.0,
+     "ready": false,
+     "ready_prompt_score": 0.33770187057046597,
+     "state": "not_ready",
+     "video_time": 308.0,
+     "visible": true
+    },
+    "observations": [
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8772142857142858,
+      "dial_score": 0.7767532467532468,
+      "fill_fraction": 0.6666666666666666,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.6666666666666666,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18000:special_gauge:special_gauge@0.2.0:7eeba156b0ec",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.33672979357886995,
+      "state": "not_ready",
+      "video_time": 300.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8792378791541909,
+      "dial_score": 0.7804325075530744,
+      "fill_fraction": 0.7142857142857143,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7142857142857143,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18030:special_gauge:special_gauge@0.2.0:54136f068d18",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.3526548158475659,
+      "state": "not_ready",
+      "video_time": 300.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8789558545535417,
+      "dial_score": 0.779919735551894,
+      "fill_fraction": 0.7142857142857143,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7142857142857143,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18060:special_gauge:special_gauge@0.2.0:9af4d7859299",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.48820533674141203,
+      "state": "not_ready",
+      "video_time": 301.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "uncorroborated_prompt_ready",
+      "coaching_valid": false,
+      "confidence": 0.8786383854108751,
+      "dial_score": 0.7793425189288639,
+      "fill_fraction": 0.7142857142857143,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7142857142857143,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18090:special_gauge:special_gauge@0.2.0:bf18f91daf3b",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.5401146353743077,
+      "state": "ready",
+      "video_time": 301.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8791329899016199,
+      "dial_score": 0.780241799821127,
+      "fill_fraction": 0.7619047619047619,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7619047619047619,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18120:special_gauge:special_gauge@0.2.0:f151cb917d22",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.49060067387010575,
+      "state": "not_ready",
+      "video_time": 302.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "uncorroborated_prompt_ready",
+      "coaching_valid": false,
+      "confidence": 0.87980885632367,
+      "dial_score": 0.7814706478612181,
+      "fill_fraction": 0.7619047619047619,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7619047619047619,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18150:special_gauge:special_gauge@0.2.0:070617cb0152",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.7256535378180551,
+      "state": "ready",
+      "video_time": 302.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8777814329523278,
+      "dial_score": 0.7777844235496869,
+      "fill_fraction": 0.7142857142857143,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7142857142857143,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18180:special_gauge:special_gauge@0.2.0:1ec9fac4de23",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.33441772200921727,
+      "state": "not_ready",
+      "video_time": 303.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8803836074714247,
+      "dial_score": 0.7825156499480448,
+      "fill_fraction": 0.7619047619047619,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.7619047619047619,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18210:special_gauge:special_gauge@0.2.0:68296a59293c",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.3512586654273653,
+      "state": "not_ready",
+      "video_time": 303.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8805896859360268,
+      "dial_score": 0.7828903380655031,
+      "fill_fraction": 0.8095238095238095,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8095238095238095,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18240:special_gauge:special_gauge@0.2.0:a5461437ae1e",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.3361043336818868,
+      "state": "not_ready",
+      "video_time": 304.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.88048006690828,
+      "dial_score": 0.7826910307423272,
+      "fill_fraction": 0.8095238095238095,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8095238095238095,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18270:special_gauge:special_gauge@0.2.0:fa1f3cfd44f9",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.31530730800511214,
+      "state": "not_ready",
+      "video_time": 304.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8780301087259549,
+      "dial_score": 0.7782365613199179,
+      "fill_fraction": 0.8095238095238095,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8095238095238095,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18300:special_gauge:special_gauge@0.2.0:8ea12c16e4d6",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.32699740521281123,
+      "state": "not_ready",
+      "video_time": 305.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "uncorroborated_prompt_ready",
+      "coaching_valid": false,
+      "confidence": 0.8790342377861673,
+      "dial_score": 0.7800622505203041,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18330:special_gauge:special_gauge@0.2.0:b6148f71310f",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.6674973858487279,
+      "state": "ready",
+      "video_time": 305.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "uncorroborated_prompt_ready",
+      "coaching_valid": false,
+      "confidence": 0.879136384823343,
+      "dial_score": 0.7802479724060781,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18360:special_gauge:special_gauge@0.2.0:fb59918eed9b",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.5660392703613338,
+      "state": "ready",
+      "video_time": 306.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8794367841654621,
+      "dial_score": 0.7807941530281127,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18390:special_gauge:special_gauge@0.2.0:65f73fa313e4",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.31235428527167813,
+      "state": "not_ready",
+      "video_time": 306.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "uncorroborated_prompt_ready",
+      "coaching_valid": false,
+      "confidence": 0.8789691429397312,
+      "dial_score": 0.7799438962540567,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18420:special_gauge:special_gauge@0.2.0:e685be589fed",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.7677936563262461,
+      "state": "ready",
+      "video_time": 307.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8787415667688877,
+      "dial_score": 0.7795301213979775,
+      "fill_fraction": 0.9047619047619048,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.9047619047619048,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:special_gauge:special_gauge@0.2.0:7e79cd7d5b59",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.8393652453429379,
+      "state": "ready",
+      "video_time": 307.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.8775751405675004,
+      "dial_score": 0.7774093464863644,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "dead",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18480:special_gauge:special_gauge@0.2.0:dad00115cee8",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.33770187057046597,
+      "state": "not_ready",
+      "video_time": 308.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8781536310245176,
+      "dial_score": 0.7784611473173048,
+      "fill_fraction": 0.9047619047619048,
+      "lifecycle": "dead",
+      "lit_sector_fraction": 0.9047619047619048,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18510:special_gauge:special_gauge@0.2.0:2f2ea62fe585",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.659215367336664,
+      "state": "ready",
+      "video_time": 308.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8581479459533233,
+      "dial_score": 0.7420871744605879,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "dead",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18540:special_gauge:special_gauge@0.2.0:557fe58339df",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.3189961659114674,
+      "state": "not_ready",
+      "video_time": 309.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8787889601338167,
+      "dial_score": 0.7796162911523938,
+      "fill_fraction": 0.8571428571428571,
+      "lifecycle": "dead",
+      "lit_sector_fraction": 0.8571428571428571,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18570:special_gauge:special_gauge@0.2.0:8294d7a00305",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.5147922233840673,
+      "state": "ready",
+      "video_time": 309.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.7598580510249854,
+      "dial_score": 0.7598499223736416,
+      "fill_fraction": 0.047619047619047616,
+      "lifecycle": "dead",
+      "lit_sector_fraction": 0.047619047619047616,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18600:special_gauge:special_gauge@0.2.0:44dba19624c2",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 1.0,
+      "state": "ready",
+      "video_time": 310.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.7714714724425538,
+      "dial_score": 0.7379902959960993,
+      "fill_fraction": 0.14285714285714285,
+      "lifecycle": "dead",
+      "lit_sector_fraction": 0.14285714285714285,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18630:special_gauge:special_gauge@0.2.0:36fa72dedc17",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.7743232252817475,
+      "state": "ready",
+      "video_time": 310.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.7779834031872351,
+      "dial_score": 0.7490266452797253,
+      "fill_fraction": 0.19047619047619047,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.19047619047619047,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18660:special_gauge:special_gauge@0.2.0:5a5e8c0f4c3d",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.04345300336935053,
+      "state": "not_ready",
+      "video_time": 311.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8425576917425923,
+      "dial_score": 0.7776053045908848,
+      "fill_fraction": 0.14285714285714285,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.14285714285714285,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18690:special_gauge:special_gauge@0.2.0:6152298c410f",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.04534100151039852,
+      "state": "not_ready",
+      "video_time": 311.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.7843723935971084,
+      "dial_score": 0.7453314468877644,
+      "fill_fraction": 0.14285714285714285,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.14285714285714285,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18720:special_gauge:special_gauge@0.2.0:9f02637e4016",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.04713605205065644,
+      "state": "not_ready",
+      "video_time": 312.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8298128081806697,
+      "dial_score": 0.7702609108159393,
+      "fill_fraction": 0.2857142857142857,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.2857142857142857,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18750:special_gauge:special_gauge@0.2.0:9a9bb6902b88",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.04345300336935053,
+      "state": "not_ready",
+      "video_time": 312.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.7913934628581861,
+      "dial_score": 0.7496465734308163,
+      "fill_fraction": 0.19047619047619047,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.19047619047619047,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18780:special_gauge:special_gauge@0.2.0:48bc405c2fa7",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.04485883583130011,
+      "state": "not_ready",
+      "video_time": 313.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.7823003642063054,
+      "dial_score": 0.7455232888100206,
+      "fill_fraction": 0.14285714285714285,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.14285714285714285,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18810:special_gauge:special_gauge@0.2.0:82557a3fbba7",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.04370860927152318,
+      "state": "not_ready",
+      "video_time": 313.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18840:special_gauge:special_gauge@0.2.0:e01c75c6763d",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.2115758491150614,
+      "state": "not_observed",
+      "video_time": 314.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8626874772556731,
+      "dial_score": 0.7503408677375872,
+      "fill_fraction": 0.47619047619047616,
+      "lifecycle": "countdown",
+      "lit_sector_fraction": 0.47619047619047616,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18870:special_gauge:special_gauge@0.2.0:6d9c640b7a2d",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 1.0,
+      "state": "ready",
+      "video_time": 314.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8106463251253256,
+      "dial_score": 0.756445700063902,
+      "fill_fraction": 0.23809523809523808,
+      "lifecycle": "respawned",
+      "lit_sector_fraction": 0.23809523809523808,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18900:special_gauge:special_gauge@0.2.0:0729e8e06ca9",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 1.0,
+      "state": "ready",
+      "video_time": 315.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8714287904427119,
+      "dial_score": 0.7662341644412942,
+      "fill_fraction": 0.47619047619047616,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.47619047619047616,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18930:special_gauge:special_gauge@0.2.0:dc7692609aa9",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 1.0,
+      "state": "ready",
+      "video_time": 315.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8773837822217864,
+      "dial_score": 0.7770614222214297,
+      "fill_fraction": 0.5238095238095238,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.5238095238095238,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18960:special_gauge:special_gauge@0.2.0:e23fa9c17bfe",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 1.0,
+      "state": "ready",
+      "video_time": 316.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18990:special_gauge:special_gauge@0.2.0:40d6205113a5",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 1.0,
+      "state": "not_observed",
+      "video_time": 316.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19020:special_gauge:special_gauge@0.2.0:15d72790f6b0",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.09219240153363542,
+      "state": "not_observed",
+      "video_time": 317.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19050:special_gauge:special_gauge@0.2.0:ee1fd2c19493",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.4699546880446149,
+      "state": "not_observed",
+      "video_time": 317.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19080:special_gauge:special_gauge@0.2.0:a86f88116e27",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5510921343092833,
+      "state": "not_observed",
+      "video_time": 318.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19110:special_gauge:special_gauge@0.2.0:b30923e22262",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5517563223732622,
+      "state": "not_observed",
+      "video_time": 318.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19140:special_gauge:special_gauge@0.2.0:dba05e60e485",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5481565392509974,
+      "state": "not_observed",
+      "video_time": 319.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19170:special_gauge:special_gauge@0.2.0:60ed94e1a0f7",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5501355485844855,
+      "state": "not_observed",
+      "video_time": 319.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19200:special_gauge:special_gauge@0.2.0:65f4dade4fc3",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5536888579063554,
+      "state": "not_observed",
+      "video_time": 320.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8473288404891547,
+      "dial_score": 0.722416073616645,
+      "fill_fraction": 0.7142857142857143,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.7142857142857143,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19230:special_gauge:special_gauge@0.2.0:9b1abcb6fe4e",
+      "press_score": 0.0,
+      "ready": true,
+      "ready_prompt_score": 0.5528387746407963,
+      "state": "ready",
+      "video_time": 320.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19260:special_gauge:special_gauge@0.2.0:5185f5704515",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5485360752875567,
+      "state": "not_observed",
+      "video_time": 321.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19290:special_gauge:special_gauge@0.2.0:239bbe9bddd6",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5526838619728128,
+      "state": "not_observed",
+      "video_time": 321.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19320:special_gauge:special_gauge@0.2.0:03ebc89ec2f0",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5528116649238992,
+      "state": "not_observed",
+      "video_time": 322.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19350:special_gauge:special_gauge@0.2.0:e12183804339",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5528116649238992,
+      "state": "not_observed",
+      "video_time": 322.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19380:special_gauge:special_gauge@0.2.0:d8b39d679271",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.5502672243522715,
+      "state": "not_observed",
+      "video_time": 323.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.8410585090220724,
+      "dial_score": 0.7110154709492224,
+      "fill_fraction": 0.5238095238095238,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.5238095238095238,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19410:special_gauge:special_gauge@0.2.0:036d256cc97d",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.004507958638317648,
+      "state": "not_ready",
+      "video_time": 323.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.25,
+      "dial_score": 0.25,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19440:special_gauge:special_gauge@0.2.0:bdb4aba260a4",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.0,
+      "state": "not_observed",
+      "video_time": 324.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.25,
+      "dial_score": 0.25,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19470:special_gauge:special_gauge@0.2.0:eec570408c13",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.0,
+      "state": "not_observed",
+      "video_time": 324.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": "lifecycle",
+      "coaching_valid": false,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "awaiting_control",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19500:special_gauge:special_gauge@0.2.0:66cf21b69041",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 1.0,
+      "state": "not_observed",
+      "video_time": 325.0,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.3,
+      "dial_score": 0.3,
+      "fill_fraction": null,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19530:special_gauge:special_gauge@0.2.0:ababe6565371",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 1.0,
+      "state": "not_observed",
+      "video_time": 325.5,
+      "visible": false
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.46751063524936043,
+      "dial_score": 0.4883903844655355,
+      "fill_fraction": 0.0,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19560:special_gauge:special_gauge@0.2.0:742aa2eab7f6",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.006390147554316254,
+      "state": "not_ready",
+      "video_time": 326.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.4675074360004985,
+      "dial_score": 0.48838456764942284,
+      "fill_fraction": 0.0,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19590:special_gauge:special_gauge@0.2.0:1b85fbd8a2bd",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.006390147554316254,
+      "state": "not_ready",
+      "video_time": 326.5,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.411899271211309,
+      "dial_score": 0.4761804931114709,
+      "fill_fraction": 0.0,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19620:special_gauge:special_gauge@0.2.0:74c33649eaa4",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.010747066341350064,
+      "state": "not_ready",
+      "video_time": 327.0,
+      "visible": true
+     },
+     {
+      "charged_score": 0.0,
+      "coaching_invalid_reason": null,
+      "coaching_valid": true,
+      "confidence": 0.41188881609308936,
+      "dial_score": 0.4761614838056169,
+      "fill_fraction": 0.0,
+      "lifecycle": "alive",
+      "lit_sector_fraction": 0.0,
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:19650:special_gauge:special_gauge@0.2.0:1b4a86f6f668",
+      "press_score": 0.0,
+      "ready": false,
+      "ready_prompt_score": 0.010747066341350064,
+      "state": "not_ready",
+      "video_time": 327.5,
+      "visible": true
+     }
+    ],
+    "ready_onsets": [
+     {
+      "observation_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:special_gauge:special_gauge@0.2.0:7e79cd7d5b59",
+      "video_time": 307.5
+     }
+    ],
+    "state_at_anchor": "not_ready"
+   },
+   "timeline": {
+    "duration": 17.5,
+    "time_since_previous_death": 29.5,
+    "time_to_next_death": null
+   },
+   "zone_control": {
+    "at_anchor": {
+     "evidence_ids": [
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18480:zone_control:zone_control@0.2.0:289343c03cca"
+     ],
+     "quality": "observed",
+     "state": "opponent_control",
+     "video_time": 308.0
+    },
+    "lookback": {
+     "evidence_ids": [
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18150:zone_control:zone_control@0.2.0:0ca8fc1fea7b"
+     ],
+     "quality": "observed",
+     "state": "opponent_control",
+     "video_time": 302.5
+    },
+    "pre_death": {
+     "evidence_ids": [
+      "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:zone_control:zone_control@0.2.0:150acffa7617"
+     ],
+     "quality": "observed",
+     "state": "opponent_control",
+     "video_time": 307.5
+    },
+    "trajectory": [
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18000:zone_control:zone_control@0.2.0:f3712abfe4f0"
+      ],
+      "quality": "observed",
+      "state": "neutral",
+      "video_time": 300.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18030:zone_control:zone_control@0.2.0:664dba6e6efc"
+      ],
+      "quality": "observed",
+      "state": "neutral",
+      "video_time": 300.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18060:zone_control:zone_control@0.2.0:3672ba8bb2c0"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 301.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18090:zone_control:zone_control@0.2.0:26ed409079aa"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 301.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18120:zone_control:zone_control@0.2.0:0754b75f5e27"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 302.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18150:zone_control:zone_control@0.2.0:0ca8fc1fea7b"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 302.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18180:zone_control:zone_control@0.2.0:4cfc015161de"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 303.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18210:zone_control:zone_control@0.2.0:44f88cef8995"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 303.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18240:zone_control:zone_control@0.2.0:b26776b0c7d4"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 304.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18270:zone_control:zone_control@0.2.0:95041155297a"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 304.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18300:zone_control:zone_control@0.2.0:79445a68dbb2"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 305.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18330:zone_control:zone_control@0.2.0:3ef13c0dc3d4"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 305.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18360:zone_control:zone_control@0.2.0:9f4ba1a83cd8"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 306.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18390:zone_control:zone_control@0.2.0:bb5a37107a41"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 306.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18420:zone_control:zone_control@0.2.0:5bcb04628933"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 307.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18450:zone_control:zone_control@0.2.0:150acffa7617"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 307.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18480:zone_control:zone_control@0.2.0:289343c03cca"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 308.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18510:zone_control:zone_control@0.2.0:90f96ea8dab4"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 308.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18540:zone_control:zone_control@0.2.0:b0622d5cac59"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 309.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18570:zone_control:zone_control@0.2.0:392f1da72e87"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 309.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18570:zone_control:zone_control@0.2.0:392f1da72e87"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 310.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18570:zone_control:zone_control@0.2.0:392f1da72e87"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 310.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18570:zone_control:zone_control@0.2.0:392f1da72e87"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 311.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18570:zone_control:zone_control@0.2.0:392f1da72e87"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 311.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18840:zone_control:zone_control@0.2.0:d0e6a55132e2"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 314.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18870:zone_control:zone_control@0.2.0:046cb69d4e12"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 314.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18870:zone_control:zone_control@0.2.0:046cb69d4e12"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 315.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18930:zone_control:zone_control@0.2.0:8eaf398d678e"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 315.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18960:zone_control:zone_control@0.2.0:6ce43c50ffce"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 316.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18990:zone_control:zone_control@0.2.0:028ade330e6b"
+      ],
+      "quality": "observed",
+      "state": "opponent_control",
+      "video_time": 316.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18990:zone_control:zone_control@0.2.0:028ade330e6b"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 317.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18990:zone_control:zone_control@0.2.0:028ade330e6b"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 317.5
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18990:zone_control:zone_control@0.2.0:028ade330e6b"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 318.0
+     },
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18990:zone_control:zone_control@0.2.0:028ade330e6b"
+      ],
+      "quality": "held",
+      "state": "opponent_control",
+      "video_time": 318.5
+     }
+    ],
+    "transitions": [
+     {
+      "evidence_ids": [
+       "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:result:18060:zone_control:zone_control@0.2.0:3672ba8bb2c0"
+      ],
+      "from_state": "neutral",
+      "to_state": "opponent_control",
+      "video_time": 301.0
+     }
+    ]
+   }
+  },
+  "primary_scenario": {
+   "confidence": 0.7,
+   "context": {
+    "active_again_time": 325.5,
+    "awaiting_end": 315.0,
+    "awaiting_start": 308.0,
+    "complete": true,
+    "death_time": 308.0,
+    "death_to_active_again": 17.5,
+    "death_to_respawn": 7.0,
+    "end_reason": "active_again",
+    "has_active_again": true,
+    "has_respawn": true,
+    "map_check_count": 3,
+    "match_end_time": null,
+    "respawn_reason": "countdown_plate_ended",
+    "respawn_time": 315.0,
+    "respawn_to_active_again": 10.5
+   },
+   "end_time": 325.5,
+   "event_ids": [
+    "death:308.000:alive_to_dead:-",
+    "map_overlay:310.000:map_overlay_present:-",
+    "map_overlay:312.500:map_overlay_present:-",
+    "map_overlay:315.000:map_overlay_present:-",
+    "respawn:315.000:countdown_plate_ended:-",
+    "active_again:325.500:awaiting_control_to_alive:-"
+   ],
+   "outcome": "recovered",
+   "scenario_id": "death_episode:308.000",
+   "scenario_type": "death_episode",
+   "start_time": 308.0
+  },
+  "related": [],
+  "roster_evidence": false,
+  "score_facts": {
+   "ally_count_before_progress": 45,
+   "ally_counter_decreased_before_death": false,
+   "ally_penalty": 45,
+   "ally_penalty_quality": "observed",
+   "ally_remaining": 17,
+   "ally_work_remaining": 62,
+   "battle_mode_id": "splat_zones",
+   "lookback_video_time": 302.5,
+   "opponent_count_before_progress": 34,
+   "opponent_counter_decreased_before_death": null,
+   "opponent_penalty": 34,
+   "opponent_penalty_quality": "observed",
+   "opponent_remaining": 2,
+   "opponent_work_remaining": 36,
+   "penalty_not_shown_treated_as_zero": false,
+   "remaining_diff": -15,
+   "sample_label": "pre_death",
+   "source_path": "primary_context.score.pre_death",
+   "video_time": 307.5
+  },
+  "zone_control_facts": {
+   "ally_regained_after_neutral": false,
+   "battle_mode_id": "splat_zones",
+   "control_at_death": "opponent_control",
+   "control_became_neutral": false,
+   "control_before_death": "opponent_control",
+   "opponent_regained_after_neutral": false,
+   "source_path": "primary_context.zone_control",
+   "transition_times": [
+    301.0
+   ]
+  }
+ },
+ "equals_experiment_i_sealed_view_a": true,
+ "experiment_i_map_awareness": {
+  "facts": {
+   "back_in_play_source": "previous_respawn",
+   "back_in_play_time": 287.5,
+   "eligible": true,
+   "map_checks_since_back_in_play": 0,
+   "match": "2026-10-11 22-57-30",
+   "scenario_id": "death_episode:308.000",
+   "seconds_back_in_play": 20.5,
+   "seconds_since_alive_map_check": null
+  },
+  "source": "analysis/importance_report/coaching_units_experiment_i/design.json",
+  "source_sha256": "87d12127616e5f369c0dca96236469b7a36a28c04cc4566ef95c5b7fd22b067d"
+ },
+ "id": "2026-10-11_22-57-30_death_episode_308.000",
+ "source": {
+  "candidate_id": "death_episode:308.000",
+  "match": "2026-10-11 22-57-30"
+ },
+ "unit": {
+  "candidate_id": "death_episode:308.000",
+  "candidate_type": "death_episode",
+  "factors": [
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_while_outnumbered",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 2.5
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_while_ahead_in_numbers",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 1.5
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_quick_redeath",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 3.0
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_special_ready",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 2.0
+   },
+   {
+    "active": true,
+    "contribution": 1.0,
+    "factor_id": "death_final_30s",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": "Death-labeled game clock seconds_remaining <= 30.",
+    "statement_player": "Death occurred during the final 30 seconds of the match.",
+    "weight": 1.0
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_first_30s",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 0.5
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_map_overlay_before_false",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 1.5
+   },
+   {
+    "active": true,
+    "contribution": 0.0,
+    "factor_id": "death_while_behind_in_count",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": "Splat Zones pre-death sample at 307.5s: remaining 17 vs 2 (|diff| >= 10; primary_context.score.pre_death).",
+    "statement_player": "Just before you were splatted, your team needed 17 more counts and the opponents needed 2.",
+    "weight": 0.0
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_while_ahead_in_count",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 0.0
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_opponent_counter_ticked",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 0.0
+   },
+   {
+    "active": false,
+    "contribution": 0.0,
+    "factor_id": "death_own_splat_before",
+    "interpretation": null,
+    "recommendation": null,
+    "statement_internal": null,
+    "statement_player": null,
+    "weight": 2.0
+   }
+  ],
+  "importance_score": 1.0,
+  "match_duration_seconds": 300,
+  "rank": 5,
+  "roster_before_death": null,
+  "selected_for_llm": false,
+  "supporting_evidence": [
+   {
+    "label": "Death anchor",
+    "path": "primary_scenario.start_time",
+    "value": "5:08"
+   },
+   {
+    "label": "Special",
+    "path": "primary_context.special.nearest_before_anchor",
+    "value": "not ready, fill=0.86 (last ready 0.5s before)"
+   },
+   {
+    "label": "Game clock",
+    "path": "game_clock_samples[label=death].observation.seconds_remaining",
+    "value": "0:09"
+   },
+   {
+    "label": "Since previous death",
+    "path": "durations.time_since_previous_death",
+    "value": "29.5s"
+   },
+   {
+    "label": "Map overlay before death",
+    "path": "primary_context.map.map_check_status",
+    "value": "observed (21.5s earlier)"
+   }
+  ],
+  "video_time": 308.0
+ }
+}
