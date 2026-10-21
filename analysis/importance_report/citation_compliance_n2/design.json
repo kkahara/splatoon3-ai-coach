@@ -1,0 +1,388 @@
+{
+ "schema_version": 1,
+ "experiment": "citation_compliance_n2",
+ "question": "Under the rewritten production prompt, does the model reliably cite supplied evidence using literal scalar CoachLlmView (N2) paths with correct values, without falling back to legacy source_path / CoachInput / hybrid forms?",
+ "git_head": "3a3121b8f78052c9a876e823d5cc350878b3645c",
+ "prompt_commit": "3a3121b8f78052c9a876e823d5cc350878b3645c",
+ "system_prompt_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_preamble_sha256": "bf5751e3cdcbf283635945a33439166a03508535db2c49beb8aff626761be3e2",
+ "config_sha256": "e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a",
+ "roster_evidence": false,
+ "llm_view_schema_version": 3,
+ "coach_evidence_version": 5,
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "temperature_support": "unsupported",
+ "temperature_note": "never sent: the Cursor SDK has no sampling field (AgentOptions has none; model params are context / reasoning / fast only), and the SDK takes one joined message, no separate system prompt",
+ "repeats": 2,
+ "calls": 24,
+ "system_prompt_chars": 16628,
+ "selection_rule": "(a) the 7 deaths whose Experiment I old-prompt outputs carried the historical legacy / object-path citations (named here, rebuilt under current production; Experiment I prompts and outputs are not used); (b) every local death view with low_ink evidence; (c) every local death view with two related units. (b) and (c) are checked against a census of all local death views.",
+ "census": {
+  "death_views": 56,
+  "matches": 14
+ },
+ "cli_equivalence": {
+  "matched": 12,
+  "total": 12,
+  "problems": []
+ },
+ "units": [
+  {
+   "match": "2026-10-11 18-25-16",
+   "cid": "death_episode:175.500",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited game_clock_samples[label=death].observation.seconds_remaining; final 30s claim",
+   "analysis": "en-live-playerview-2026-10-11 18-25-16",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 0,
+    "claim_basis": 5,
+    "source_path": 13,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "db45ff55ee0fc4b406c039f286dbd5b19fe0d340ee22e315700bdaa7bf02bfaf",
+   "user_prompt_sha256": "d26ed27ddcea5b08de3b8408a4273c66f2f07b03d92b73346257edb0234d30bc",
+   "user_prompt_chars": 8579,
+   "importance_score": 1.0,
+   "rank": 2,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-11 20-33-31",
+   "cid": "death_episode:199.500",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited durations.time_since_previous_death and timeline.time_since_previous_death (no .value); quick re-death",
+   "analysis": "en-live-playerview-2026-10-11 20-33-31",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 0,
+    "claim_basis": 6,
+    "source_path": 12,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "478d372c2c88dd76cb710171b9a7f8179447e5662bc447be5a1cd38c8c1b7c79",
+   "user_prompt_sha256": "de2ee4ab2bfd6f05961294f993238cea7ba246d0f36d1fbe2bc1e16ea02a33df",
+   "user_prompt_chars": 8879,
+   "importance_score": 3.0,
+   "rank": 1,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-11 22-20-42",
+   "cid": "death_episode:152.000",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited durations.time_since_previous_death; quick re-death, related engagement",
+   "analysis": "en-live-playerview-2026-10-11 22-20-42",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 1,
+    "claim_basis": 6,
+    "source_path": 16,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "95dbc6b405e34ca4dbdb12ff8f86b718ca1fcabe3d2216be3c038161f66d7e23",
+   "user_prompt_sha256": "88d4abc6e2278a6d234f4fa6179d7b0724218b7fdbc40d9768c0483394ba60ff",
+   "user_prompt_chars": 9525,
+   "importance_score": 3.0,
+   "rank": 2,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-11 22-31-53",
+   "cid": "death_episode:208.500",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited game_clock_samples[label=death].observation.seconds_remaining; own splat before, related leads_to",
+   "analysis": "en-live-playerview-2026-10-11 22-31-53",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 1,
+    "claim_basis": 6,
+    "source_path": 15,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "c1d045a29617515be858022d67632ec9b020e326383382f379433ffa6f338dca",
+   "user_prompt_sha256": "77d77dd4b0fd4794c72e1d3e03ad4482a6358bc536c846bc56680438ab1a4df7",
+   "user_prompt_chars": 9471,
+   "importance_score": 3.0,
+   "rank": 1,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-11 22-37-47",
+   "cid": "death_episode:58.000",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited game_clock_samples[label=death].observation.seconds_remaining; score / zone_control, special ready",
+   "analysis": "en-live-playerview-2026-10-11 22-37-47",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 1,
+    "claim_basis": 6,
+    "source_path": 16,
+    "score": true,
+    "zone_control": true
+   },
+   "view_sha256": "423756a4795bb4f3bac48ad1b350e23d7c41928888d34a91c98866516c3c73f8",
+   "user_prompt_sha256": "a01f64af28ce12964214434235c15b31c146384f6d4c2c1f27b9ac16aaa5303d",
+   "user_prompt_chars": 10022,
+   "importance_score": 0.0,
+   "rank": 1,
+   "selected_for_llm": false
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited game_clock_samples[label=death].observation.seconds_remaining; score / zone_control, behind in count",
+   "analysis": "en-live-playerview-2026-10-11 22-57-30",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 0,
+    "claim_basis": 6,
+    "source_path": 15,
+    "score": true,
+    "zone_control": true
+   },
+   "view_sha256": "c0b1a9c368e23719a6f51d5f9490d5a4113f7d446db54f94d7205db72f311848",
+   "user_prompt_sha256": "1ac0477d667bcdc3a28ea292673a9a028e696bf1481907112f7f9d5403403980",
+   "user_prompt_chars": 10139,
+   "importance_score": 1.0,
+   "rank": 5,
+   "selected_for_llm": false
+  },
+  {
+   "match": "2026-10-12 20-17-32",
+   "cid": "death_episode:65.500",
+   "group": "experiment_i_history",
+   "reason": "Experiment I old-prompt outputs on this death cited durations.time_since_previous_death and timeline.time_since_previous_death (no .value); score / zone_control",
+   "analysis": "en-live-playerview-2026-10-12 20-17-32",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 1,
+    "claim_basis": 6,
+    "source_path": 17,
+    "score": true,
+    "zone_control": true
+   },
+   "view_sha256": "5a6cbf01c32b68be42124b0861eabd8b34eabfc125920a1cf4594724cc158ac1",
+   "user_prompt_sha256": "a393d4887cc0e31b9a837aced74814287cc8cb4e34dcb420e24a1245afd26f9e",
+   "user_prompt_chars": 10302,
+   "importance_score": 3.0,
+   "rank": 1,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-10 23-43-31",
+   "cid": "death_episode:205.000",
+   "group": "low_ink",
+   "reason": "low_ink at death; related leads_to; citation-contract fixture",
+   "analysis": "en-live-playerview-2026-10-10 23-43-31",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": true,
+    "related": 1,
+    "claim_basis": 6,
+    "source_path": 16,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "15abf5596bbeecc63c341de69e7a840562f3d740893eeb6561f7d6fb63ce39ec",
+   "user_prompt_sha256": "9ad56e3f845c09f0ec49267921d8cf6757003fe76c7b47f10f34ebd6ee44e166",
+   "user_prompt_chars": 9451,
+   "importance_score": 0.0,
+   "rank": 5,
+   "selected_for_llm": false
+  },
+  {
+   "match": "2026-10-10 23-56-41",
+   "cid": "death_episode:46.000",
+   "group": "low_ink",
+   "reason": "low_ink at death; first 30s claim",
+   "analysis": "en-live-playerview-2026-10-10 23-56-41",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": true,
+    "related": 1,
+    "claim_basis": 6,
+    "source_path": 15,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "b50e8c26df75721a381b24bd416a1877c1f58bc9c08206d3fa0fd3d89ed01ed5",
+   "user_prompt_sha256": "d1810262509dac42a33edea0e363d950ee2366431152a4bac95d9af5d278343d",
+   "user_prompt_chars": 8935,
+   "importance_score": 0.0,
+   "rank": 3,
+   "selected_for_llm": false
+  },
+  {
+   "match": "2026-10-12 19-47-46",
+   "cid": "death_episode:80.000",
+   "group": "low_ink",
+   "reason": "low_ink at death; score / zone_control; 7 claims incl. map overlay false",
+   "analysis": "en-live-playerview-2026-10-12 19-47-46",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": true,
+    "related": 1,
+    "claim_basis": 7,
+    "source_path": 17,
+    "score": true,
+    "zone_control": true
+   },
+   "view_sha256": "52f56546e866cf533981375cd5d3757bba725e2900d503fdfdeb577837297c48",
+   "user_prompt_sha256": "e879ead07b772477a8e540254d7aa918d79fe73d66058e2c06f878c9b6724448",
+   "user_prompt_chars": 10625,
+   "importance_score": 1.5,
+   "rank": 2,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-10 23-43-31",
+   "cid": "death_episode:226.000",
+   "group": "related_two",
+   "reason": "two related units (one leads_to); own splat before",
+   "analysis": "en-live-playerview-2026-10-10 23-43-31",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 2,
+    "claim_basis": 5,
+    "source_path": 18,
+    "score": false,
+    "zone_control": false
+   },
+   "view_sha256": "81431d70ebb8eeb480dfb9271f025439ae8c51dcb031a13093e094ad746ed85f",
+   "user_prompt_sha256": "39d102a3a87cfe3783673f6ab187b427da6d45208df813d8c4d761a2a62f6b8c",
+   "user_prompt_chars": 9554,
+   "importance_score": 2.0,
+   "rank": 1,
+   "selected_for_llm": true
+  },
+  {
+   "match": "2026-10-11 22-57-30",
+   "cid": "death_episode:142.500",
+   "group": "related_two",
+   "reason": "two related units (one leads_to); score / zone_control; most source_path labels",
+   "analysis": "en-live-playerview-2026-10-11 22-57-30",
+   "features": {
+    "clock": true,
+    "timeline": true,
+    "special": true,
+    "map": true,
+    "low_ink": false,
+    "related": 2,
+    "claim_basis": 6,
+    "source_path": 20,
+    "score": true,
+    "zone_control": true
+   },
+   "view_sha256": "46a6d5c2ed459d2e14aac9fae766ac97f66f1fe8ea343d69c6389c1f0506e57b",
+   "user_prompt_sha256": "79c2c35ba7224062583122c4c0c4ab8af7d64564c025458a7da2bcc19b349bc5",
+   "user_prompt_chars": 10877,
+   "importance_score": 2.0,
+   "rank": 3,
+   "selected_for_llm": true
+  }
+ ],
+ "scoring": {
+  "classes": [
+   "n2_scalar_correct",
+   "n2_scalar_wrong_value",
+   "n2_object_asserted",
+   "source_path_field",
+   "legacy_label",
+   "n1_coachinput",
+   "relative_path",
+   "unresolved_path",
+   "unsupported_invented",
+   "malformed"
+  ],
+  "compliant_class": "n2_scalar_correct",
+  "gate_groups": {
+   "unsupported_or_invented": [
+    "unsupported_invented"
+   ],
+   "wrong_value": [
+    "n2_scalar_wrong_value"
+   ],
+   "object_path_asserted": [
+    "n2_object_asserted"
+   ],
+   "legacy_form": [
+    "source_path_field",
+    "legacy_label",
+    "n1_coachinput"
+   ],
+   "malformed_or_unresolved": [
+    "relative_path",
+    "unresolved_path",
+    "malformed"
+   ]
+  },
+  "gate_rules": {
+   "all_calls_parsed": "every sealed call has a parseable model reply",
+   "zero_unsupported_or_invented": "no citation of class unsupported_invented",
+   "zero_wrong_value": "no citation of class n2_scalar_wrong_value",
+   "zero_object_path_asserted": "no citation of class n2_object_asserted",
+   "zero_legacy_form": "no citation of class source_path_field, legacy_label, n1_coachinput",
+   "zero_malformed_or_unresolved": "no citation of class relative_path, unresolved_path, malformed",
+   "support_cited": "every output with a recommendation or a selected claim has at least one n2_scalar_correct citation"
+  },
+  "value_rule": "value compared by meaning at the exact location: numbers exactly (no tolerance), booleans and null by JSON value, text exactly; written form (exact / remark / lenient) is a secondary metric",
+  "secondary_metrics": [
+   "value written form",
+   "prose before the path",
+   "several facts in one entry",
+   "selected claim cited by one of its evidence_paths",
+   "outputs with no citation",
+   "units compliant on every repeat",
+   "production validator verdict and every disagreement with the strict verdict",
+   "other validator hits (recorded only; not part of the gate)"
+  ]
+ }
+}

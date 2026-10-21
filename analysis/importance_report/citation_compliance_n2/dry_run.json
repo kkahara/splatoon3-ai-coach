@@ -1,0 +1,390 @@
+{
+ "dry_run": true,
+ "llm_calls_made": 0,
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "repeats": 2,
+ "planned_calls": 24,
+ "rebuild_deterministic": true,
+ "stale_inputs": [],
+ "hash_problems": [],
+ "prompt_commit_problems": [],
+ "smoke_unit": [
+  "en-live-playerview-2026-10-10 23-43-31",
+  "death_episode:205.000"
+ ],
+ "smoke_failures": [],
+ "smoke_test": [
+  {
+   "text": "clock.display = \"1:55\"",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "clock.seconds_remaining = 115",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "death.death_to_active_again.value = 8.5 seconds",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "remark"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "clock.display = 1:55",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "lenient"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "related[0].relations.leads_to_death_episode_id = \"death_episode:226.000\"",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "claim_basis[0].claim_id = \"death_low_ink\"",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "death.death_to_active_again.end_gap_seconds = null",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "Clock: clock.display = \"1:55\"",
+   "expected": [
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "clock.display = \"1:55\", clock.seconds_remaining = 115",
+   "expected": [
+    "n2_scalar_correct",
+    "n2_scalar_correct"
+   ],
+   "got": [
+    "n2_scalar_correct",
+    "n2_scalar_correct"
+   ],
+   "ok": true,
+   "value_forms": [
+    "exact",
+    "exact"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": true
+  },
+  {
+   "text": "clock.seconds_remaining = 116",
+   "expected": [
+    "n2_scalar_wrong_value"
+   ],
+   "got": [
+    "n2_scalar_wrong_value"
+   ],
+   "ok": true,
+   "value_forms": [
+    "wrong"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "death.death_to_active_again.value = 8.54",
+   "expected": [
+    "n2_scalar_wrong_value"
+   ],
+   "got": [
+    "n2_scalar_wrong_value"
+   ],
+   "ok": true,
+   "value_forms": [
+    "wrong"
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": false
+  },
+  {
+   "text": "death.death_to_active_again = 8.5",
+   "expected": [
+    "n2_object_asserted"
+   ],
+   "got": [
+    "n2_object_asserted"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "clock.source_path = \"game_clock_samples[label=death]\"",
+   "expected": [
+    "source_path_field"
+   ],
+   "got": [
+    "source_path_field"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": false
+  },
+  {
+   "text": "game_clock_samples[label=death].observation.seconds_remaining = 115",
+   "expected": [
+    "legacy_label"
+   ],
+   "got": [
+    "legacy_label"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "source_path_ref",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "game_clock_samples[label=death].display = \"1:55\"",
+   "expected": [
+    "legacy_label"
+   ],
+   "got": [
+    "legacy_label"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "source_path_ref",
+   "validator_accepts": true,
+   "strict_compliant": false
+  },
+  {
+   "text": "primary_context.timeline.time_since_previous_death.value = 1.0",
+   "expected": [
+    "n1_coachinput"
+   ],
+   "got": [
+    "n1_coachinput"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "unresolved",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "related[0].scenario.start_time = 1.0",
+   "expected": [
+    "n1_coachinput"
+   ],
+   "got": [
+    "n1_coachinput"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "unresolved",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "map_check_before_death.status = \"observed\"",
+   "expected": [
+    "relative_path"
+   ],
+   "got": [
+    "relative_path"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "unresolved",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "clock.seconds_left = 1",
+   "expected": [
+    "unresolved_path"
+   ],
+   "got": [
+    "unresolved_path"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "unresolved",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "enemy.weapon = \"splattershot\"",
+   "expected": [
+    "unsupported_invented"
+   ],
+   "got": [
+    "unsupported_invented"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "unresolved",
+   "validator_accepts": false,
+   "strict_compliant": false
+  },
+  {
+   "text": "death.death_to_active_again.value",
+   "expected": [
+    "malformed"
+   ],
+   "got": [
+    "malformed"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": false
+  },
+  {
+   "text": "clock.display: \"1:55\"",
+   "expected": [
+    "malformed"
+   ],
+   "got": [
+    "malformed"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "view_native",
+   "validator_accepts": true,
+   "strict_compliant": false
+  },
+  {
+   "text": "The clock showed the final seconds of the match",
+   "expected": [
+    "malformed"
+   ],
+   "got": [
+    "malformed"
+   ],
+   "ok": true,
+   "value_forms": [
+    null
+   ],
+   "validator_kind": "unresolved",
+   "validator_accepts": false,
+   "strict_compliant": false
+  }
+ ]
+}

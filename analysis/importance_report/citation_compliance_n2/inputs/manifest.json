@@ -1,0 +1,70 @@
+{
+ "calls": [
+  {
+   "cid": "death_episode:175.500",
+   "file": "2026-10-11_18-25-16_death_episode_175.500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 18-25-16"
+  },
+  {
+   "cid": "death_episode:199.500",
+   "file": "2026-10-11_20-33-31_death_episode_199.500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 20-33-31"
+  },
+  {
+   "cid": "death_episode:152.000",
+   "file": "2026-10-11_22-20-42_death_episode_152.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-20-42"
+  },
+  {
+   "cid": "death_episode:208.500",
+   "file": "2026-10-11_22-31-53_death_episode_208.500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-31-53"
+  },
+  {
+   "cid": "death_episode:58.000",
+   "file": "2026-10-11_22-37-47_death_episode_58.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-37-47"
+  },
+  {
+   "cid": "death_episode:308.000",
+   "file": "2026-10-11_22-57-30_death_episode_308.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30"
+  },
+  {
+   "cid": "death_episode:65.500",
+   "file": "2026-10-12_20-17-32_death_episode_65.500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 20-17-32"
+  },
+  {
+   "cid": "death_episode:205.000",
+   "file": "2026-10-10_23-43-31_death_episode_205.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-10 23-43-31"
+  },
+  {
+   "cid": "death_episode:46.000",
+   "file": "2026-10-10_23-56-41_death_episode_46.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-10 23-56-41"
+  },
+  {
+   "cid": "death_episode:80.000",
+   "file": "2026-10-12_19-47-46_death_episode_80.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-12 19-47-46"
+  },
+  {
+   "cid": "death_episode:226.000",
+   "file": "2026-10-10_23-43-31_death_episode_226.000.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-10 23-43-31"
+  },
+  {
+   "cid": "death_episode:142.500",
+   "file": "2026-10-11_22-57-30_death_episode_142.500.user_prompt.txt",
+   "match": "en-live-playerview-2026-10-11 22-57-30"
+  }
+ ],
+ "design_sha256": "ac54f772028188a5f7770b14b37f1d8328e458b7a87532e678dcf0d2d2482610",
+ "experiment": "citation_compliance_n2",
+ "model": "gpt-5.6-luna",
+ "provider": "cursor",
+ "repeats": 2,
+ "system": "system_prompt.txt"
+}
