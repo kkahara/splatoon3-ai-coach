@@ -1,0 +1,67 @@
+{
+ "experiment": "citation_compliance_n2",
+ "checked_at": "2026-10-21T04:17:12+00:00",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "passed": true,
+ "checks": [
+  {
+   "name": "provider_model",
+   "ok": true,
+   "problems": [],
+   "detail": "cursor/gpt-5.6-luna"
+  },
+  {
+   "name": "seal",
+   "ok": true,
+   "problems": [],
+   "detail": {
+    "seal_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+    "head_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+    "problems": []
+   }
+  },
+  {
+   "name": "production_unchanged_since_prompt_commit",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "design_hash",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "rebuild_byte_equal_current_production",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "prompt_and_view_hashes",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "production_roster_evidence_off",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "counts_12_units_24_calls",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  },
+  {
+   "name": "output_destination_empty",
+   "ok": true,
+   "problems": [],
+   "detail": null
+  }
+ ]
+}

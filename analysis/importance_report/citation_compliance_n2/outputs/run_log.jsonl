@@ -1,0 +1,48 @@
+{"phase": "run", "call_id": "2026-10-11_18-25-16_death_episode_175.500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:12+00:00"}
+{"phase": "run", "call_id": "2026-10-11_18-25-16_death_episode_175.500__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:12+00:00", "elapsed_seconds": 5.5, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_20-33-31_death_episode_199.500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:17+00:00"}
+{"phase": "run", "call_id": "2026-10-11_20-33-31_death_episode_199.500__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:17+00:00", "elapsed_seconds": 4.9, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-20-42_death_episode_152.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:22+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-20-42_death_episode_152.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:22+00:00", "elapsed_seconds": 6.6, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-31-53_death_episode_208.500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:29+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-31-53_death_episode_208.500__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:29+00:00", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-37-47_death_episode_58.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:33+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-37-47_death_episode_58.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:33+00:00", "elapsed_seconds": 6.0, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_308.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:39+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_308.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:39+00:00", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "run", "call_id": "2026-10-12_20-17-32_death_episode_65.500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:45+00:00"}
+{"phase": "run", "call_id": "2026-10-12_20-17-32_death_episode_65.500__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:45+00:00", "elapsed_seconds": 7.2, "call_error": null}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_205.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:52+00:00"}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_205.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:52+00:00", "elapsed_seconds": 6.4, "call_error": null}
+{"phase": "run", "call_id": "2026-10-10_23-56-41_death_episode_46.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:17:58+00:00"}
+{"phase": "run", "call_id": "2026-10-10_23-56-41_death_episode_46.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:17:58+00:00", "elapsed_seconds": 7.0, "call_error": null}
+{"phase": "run", "call_id": "2026-10-12_19-47-46_death_episode_80.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:05+00:00"}
+{"phase": "run", "call_id": "2026-10-12_19-47-46_death_episode_80.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:05+00:00", "elapsed_seconds": 5.3, "call_error": null}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_226.000__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:11+00:00"}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_226.000__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:11+00:00", "elapsed_seconds": 8.3, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_142.500__r1", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:19+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_142.500__r1", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:19+00:00", "elapsed_seconds": 4.7, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_18-25-16_death_episode_175.500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:24+00:00"}
+{"phase": "run", "call_id": "2026-10-11_18-25-16_death_episode_175.500__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:24+00:00", "elapsed_seconds": 4.4, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_20-33-31_death_episode_199.500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:28+00:00"}
+{"phase": "run", "call_id": "2026-10-11_20-33-31_death_episode_199.500__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:28+00:00", "elapsed_seconds": 6.8, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-20-42_death_episode_152.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:35+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-20-42_death_episode_152.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:35+00:00", "elapsed_seconds": 6.1, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-31-53_death_episode_208.500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:41+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-31-53_death_episode_208.500__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:41+00:00", "elapsed_seconds": 6.3, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-37-47_death_episode_58.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:47+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-37-47_death_episode_58.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:47+00:00", "elapsed_seconds": 5.4, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_308.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:53+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_308.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:53+00:00", "elapsed_seconds": 6.0, "call_error": null}
+{"phase": "run", "call_id": "2026-10-12_20-17-32_death_episode_65.500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:18:59+00:00"}
+{"phase": "run", "call_id": "2026-10-12_20-17-32_death_episode_65.500__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:18:59+00:00", "elapsed_seconds": 6.0, "call_error": null}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_205.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:19:05+00:00"}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_205.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:19:05+00:00", "elapsed_seconds": 5.1, "call_error": null}
+{"phase": "run", "call_id": "2026-10-10_23-56-41_death_episode_46.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:19:10+00:00"}
+{"phase": "run", "call_id": "2026-10-10_23-56-41_death_episode_46.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:19:10+00:00", "elapsed_seconds": 12.0, "call_error": null}
+{"phase": "run", "call_id": "2026-10-12_19-47-46_death_episode_80.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:19:22+00:00"}
+{"phase": "run", "call_id": "2026-10-12_19-47-46_death_episode_80.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:19:22+00:00", "elapsed_seconds": 7.4, "call_error": null}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_226.000__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:19:29+00:00"}
+{"phase": "run", "call_id": "2026-10-10_23-43-31_death_episode_226.000__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:19:29+00:00", "elapsed_seconds": 4.1, "call_error": null}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_142.500__r2", "attempt": 1, "event": "start", "at": "2026-10-21T04:19:33+00:00"}
+{"phase": "run", "call_id": "2026-10-11_22-57-30_death_episode_142.500__r2", "attempt": 1, "event": "end", "executed_at": "2026-10-21T04:19:33+00:00", "elapsed_seconds": 8.8, "call_error": null}

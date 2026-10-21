@@ -1,0 +1,120 @@
+{
+ "experiment": true,
+ "experiment_name": "citation_compliance_n2",
+ "call_id": "2026-10-11_18-25-16_death_episode_175.500__r2",
+ "match": "en-live-playerview-2026-10-11 18-25-16",
+ "cid": "death_episode:175.500",
+ "repeat": 2,
+ "file": "2026-10-11_18-25-16_death_episode_175.500.user_prompt.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+ "run_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "d26ed27ddcea5b08de3b8408a4273c66f2f07b03d92b73346257edb0234d30bc",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "0c9e9af85ebc4e65e95f3e79aaa2e54862a00f2d61d1c40905df72da10154b69"
+ },
+ "executed_at": "2026-10-21T04:18:24+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You were out of play for 8.5 seconds after this death. This death happened with only 0:23 left in the match.\",\"claims\":[{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 8.5 seconds after this death.\"},{\"claim_id\":\"death_final_30s\",\"level\":\"A\",\"sentence\":\"This death happened with only 0:23 left in the match.\"}],\"evidence_used\":[\"death.death_to_active_again.value = 8.5\",\"clock.display = \\\"0:23\\\"\"],\"limitations\":[\"The evidence does not establish why the death happened or assess positioning, teammate state, opponent location, or fight outcome.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_out_of_play\",\"death_final_30s\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You were out of play for 8.5 seconds after this death. This death happened with only 0:23 left in the match.",
+  "evidence_used": [
+   "death.death_to_active_again.value = 8.5",
+   "clock.display = \"0:23\""
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened or assess positioning, teammate state, opponent location, or fight outcome."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_out_of_play",
+   "death_final_30s"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 8.5 seconds after this death."
+   },
+   {
+    "claim_id": "death_final_30s",
+    "level": "A",
+    "sentence": "This death happened with only 0:23 left in the match."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "death.death_to_active_again.value = 8.5",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.value",
+    "location": "death.death_to_active_again.value"
+   },
+   {
+    "text": "clock.display = \"0:23\"",
+    "kind": "view_native",
+    "path": "clock.display",
+    "location": "clock.display"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 4.4
+}

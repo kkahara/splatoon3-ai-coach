@@ -1,0 +1,2724 @@
+{
+ "experiment": "citation_compliance_n2",
+ "scored_at": "2026-10-21T04:19:45+00:00",
+ "summary": {
+  "gate": {
+   "passed": true,
+   "checks": {
+    "all_calls_parsed": true,
+    "zero_unsupported_or_invented": true,
+    "zero_wrong_value": true,
+    "zero_object_path_asserted": true,
+    "zero_legacy_form": true,
+    "zero_malformed_or_unresolved": true,
+    "support_cited": true
+   },
+   "group_counts": {
+    "unsupported_or_invented": 0,
+    "wrong_value": 0,
+    "object_path_asserted": 0,
+    "legacy_form": 0,
+    "malformed_or_unresolved": 0
+   },
+   "class_counts": {
+    "n2_scalar_correct": 77,
+    "n2_scalar_wrong_value": 0,
+    "n2_object_asserted": 0,
+    "source_path_field": 0,
+    "legacy_label": 0,
+    "n1_coachinput": 0,
+    "relative_path": 0,
+    "unresolved_path": 0,
+    "unsupported_invented": 0,
+    "malformed": 0
+   }
+  },
+  "outputs": {
+   "total": 24,
+   "parsed": 24,
+   "compliant": 24
+  },
+  "entries": {
+   "total": 77,
+   "compliant": 77,
+   "prose_prefix": 0,
+   "multi_fact": 0
+  },
+  "citations": {
+   "total": 77,
+   "compliant": 77
+  },
+  "value_forms": {
+   "exact": 77
+  },
+  "malformed_reasons": {},
+  "families": {
+   "clock": 11,
+   "death": 36,
+   "timeline": 12,
+   "special": 2,
+   "playback": 5,
+   "low_ink": 11
+  },
+  "outputs_without_citations": 0,
+  "units_compliant_every_repeat": 12,
+  "units": 12,
+  "selected_claims": {
+   "total": 53,
+   "evidence_path_cited": 53
+  },
+  "validator_status": {
+   "validated": 24
+  },
+  "validator_disagreements": []
+ },
+ "noncompliant": [],
+ "outputs": [
+  {
+   "call_id": "2026-10-11_18-25-16_death_episode_175.500__r1",
+   "match": "en-live-playerview-2026-10-11 18-25-16",
+   "cid": "death_episode:175.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "clock.display = \"0:23\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"0:23\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "0:23",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 8.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "8.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 8.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_final_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "clock.display = \"0:23\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 8.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_20-33-31_death_episode_199.500__r1",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "cid": "death_episode:199.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "timeline.time_since_previous_death.value = 19.0",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.value",
+       "asserted": "19.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 19.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "timeline.time_since_previous_death.clock = \"video\"",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_quick_redeath",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "principle_redeath_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "timeline.time_since_previous_death.value = 19.0",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "timeline.time_since_previous_death.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-20-42_death_episode_152.000__r1",
+   "match": "en-live-playerview-2026-10-11 22-20-42",
+   "cid": "death_episode:152.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "timeline.time_since_previous_death.value = 11.5",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.value",
+       "asserted": "11.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 11.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "timeline.time_since_previous_death.clock = \"video\"",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_quick_redeath",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "principle_redeath_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "timeline.time_since_previous_death.value = 11.5",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "timeline.time_since_previous_death.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-31-53_death_episode_208.500__r1",
+   "match": "en-live-playerview-2026-10-11 22-31-53",
+   "cid": "death_episode:208.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.time_since_previous_splat.video_seconds = 0.5",
+     "citations": [
+      {
+       "path": "death.time_since_previous_splat.video_seconds",
+       "asserted": "0.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 0.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.display = \"0:12\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"0:12\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "0:12",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_own_splat_before",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_final_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.time_since_previous_splat.video_seconds = 0.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.time_since_previous_splat.video_seconds",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.display = \"0:12\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-37-47_death_episode_58.000__r1",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "cid": "death_episode:58.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.death_to_active_again.value = 8.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "8.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 8.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.seconds_remaining = 283",
+     "citations": [
+      {
+       "path": "clock.seconds_remaining",
+       "asserted": "283",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 283,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.display = \"4:43\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"4:43\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "4:43",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "special.state_at_anchor = \"ready\"",
+     "citations": [
+      {
+       "path": "special.state_at_anchor",
+       "asserted": "\"ready\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "ready",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_first_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_special_ready",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.death_to_active_again.value = 8.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.seconds_remaining = 283",
+      "validator_kind": "view_native",
+      "validator_location": "clock.seconds_remaining",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.display = \"4:43\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "special.state_at_anchor = \"ready\"",
+      "validator_kind": "view_native",
+      "validator_location": "special.state_at_anchor",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-57-30_death_episode_308.000__r1",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "clock.display = \"0:09\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"0:09\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "0:09",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 17.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "17.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 17.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_final_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "clock.display = \"0:09\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 17.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-12_20-17-32_death_episode_65.500__r1",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "cid": "death_episode:65.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "timeline.time_since_previous_death.value = 16.5",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.value",
+       "asserted": "16.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 16.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "timeline.time_since_previous_death.clock = \"video\"",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "playback.status = \"normal\"",
+     "citations": [
+      {
+       "path": "playback.status",
+       "asserted": "\"normal\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "normal",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_quick_redeath",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "principle_redeath_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "timeline.time_since_previous_death.value = 16.5",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "timeline.time_since_previous_death.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "playback.status = \"normal\"",
+      "validator_kind": "view_native",
+      "validator_location": "playback.status",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-10_23-43-31_death_episode_205.000__r1",
+   "match": "en-live-playerview-2026-10-10 23-43-31",
+   "cid": "death_episode:205.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "low_ink.at_death = true",
+     "citations": [
+      {
+       "path": "low_ink.at_death",
+       "asserted": "true",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": true,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 8.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "8.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 8.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_low_ink",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "low_ink.at_death = true",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.at_death",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 8.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-10_23-56-41_death_episode_46.000__r1",
+   "match": "en-live-playerview-2026-10-10 23-56-41",
+   "cid": "death_episode:46.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "low_ink.at_death = true",
+     "citations": [
+      {
+       "path": "low_ink.at_death",
+       "asserted": "true",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": true,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.0",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_time_video = 46.0",
+     "citations": [
+      {
+       "path": "death.death_time_video",
+       "asserted": "46.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 46.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "low_ink.intervals[0].start_time = 45.5",
+     "citations": [
+      {
+       "path": "low_ink.intervals[0].start_time",
+       "asserted": "45.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 45.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_low_ink",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "process_ink_before_engaging",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "low_ink.at_death = true",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.at_death",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_time_video = 46.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_time_video",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "low_ink.intervals[0].start_time = 45.5",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.intervals[0].start_time",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-12_19-47-46_death_episode_80.000__r1",
+   "match": "en-live-playerview-2026-10-12 19-47-46",
+   "cid": "death_episode:80.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "low_ink.at_death = true",
+     "citations": [
+      {
+       "path": "low_ink.at_death",
+       "asserted": "true",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": true,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_time_video = 80.0",
+     "citations": [
+      {
+       "path": "death.death_time_video",
+       "asserted": "80.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 80.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "low_ink.intervals[0].start_time = 79.5",
+     "citations": [
+      {
+       "path": "low_ink.intervals[0].start_time",
+       "asserted": "79.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 79.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_low_ink",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "process_ink_before_engaging",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "low_ink.at_death = true",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.at_death",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_time_video = 80.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_time_video",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "low_ink.intervals[0].start_time = 79.5",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.intervals[0].start_time",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-10_23-43-31_death_episode_226.000__r1",
+   "match": "en-live-playerview-2026-10-10 23-43-31",
+   "cid": "death_episode:226.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.time_since_previous_splat.video_seconds = 1.0",
+     "citations": [
+      {
+       "path": "death.time_since_previous_splat.video_seconds",
+       "asserted": "1.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 1.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_own_splat_before",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.time_since_previous_splat.video_seconds = 1.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.time_since_previous_splat.video_seconds",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-57-30_death_episode_142.500__r1",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "cid": "death_episode:142.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.time_since_previous_splat.video_seconds = 0.5",
+     "citations": [
+      {
+       "path": "death.time_since_previous_splat.video_seconds",
+       "asserted": "0.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 0.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.0",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_own_splat_before",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.time_since_previous_splat.video_seconds = 0.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.time_since_previous_splat.video_seconds",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_18-25-16_death_episode_175.500__r2",
+   "match": "en-live-playerview-2026-10-11 18-25-16",
+   "cid": "death_episode:175.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.death_to_active_again.value = 8.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "8.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 8.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.display = \"0:23\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"0:23\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "0:23",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_final_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.death_to_active_again.value = 8.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.display = \"0:23\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_20-33-31_death_episode_199.500__r2",
+   "match": "en-live-playerview-2026-10-11 20-33-31",
+   "cid": "death_episode:199.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "timeline.time_since_previous_death.value = 19.0",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.value",
+       "asserted": "19.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 19.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "timeline.time_since_previous_death.clock = \"video\"",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_quick_redeath",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "principle_redeath_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "timeline.time_since_previous_death.value = 19.0",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "timeline.time_since_previous_death.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-20-42_death_episode_152.000__r2",
+   "match": "en-live-playerview-2026-10-11 22-20-42",
+   "cid": "death_episode:152.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "timeline.time_since_previous_death.value = 11.5",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.value",
+       "asserted": "11.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 11.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "timeline.time_since_previous_death.clock = \"video\"",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_quick_redeath",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "principle_redeath_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "timeline.time_since_previous_death.value = 11.5",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "timeline.time_since_previous_death.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-31-53_death_episode_208.500__r2",
+   "match": "en-live-playerview-2026-10-11 22-31-53",
+   "cid": "death_episode:208.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.time_since_previous_splat.video_seconds = 0.5",
+     "citations": [
+      {
+       "path": "death.time_since_previous_splat.video_seconds",
+       "asserted": "0.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 0.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "playback.status = \"normal\"",
+     "citations": [
+      {
+       "path": "playback.status",
+       "asserted": "\"normal\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "normal",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.display = \"0:12\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"0:12\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "0:12",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.seconds_remaining = 12",
+     "citations": [
+      {
+       "path": "clock.seconds_remaining",
+       "asserted": "12",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 12,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_own_splat_before",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_final_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.time_since_previous_splat.video_seconds = 0.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.time_since_previous_splat.video_seconds",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "playback.status = \"normal\"",
+      "validator_kind": "view_native",
+      "validator_location": "playback.status",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.display = \"0:12\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.seconds_remaining = 12",
+      "validator_kind": "view_native",
+      "validator_location": "clock.seconds_remaining",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-37-47_death_episode_58.000__r2",
+   "match": "en-live-playerview-2026-10-11 22-37-47",
+   "cid": "death_episode:58.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.death_to_active_again.value = 8.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "8.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 8.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.display = \"4:43\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"4:43\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "4:43",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "clock.seconds_remaining = 283",
+     "citations": [
+      {
+       "path": "clock.seconds_remaining",
+       "asserted": "283",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 283,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "special.state_at_anchor = \"ready\"",
+     "citations": [
+      {
+       "path": "special.state_at_anchor",
+       "asserted": "\"ready\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "ready",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_first_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_special_ready",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.death_to_active_again.value = 8.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.display = \"4:43\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "clock.seconds_remaining = 283",
+      "validator_kind": "view_native",
+      "validator_location": "clock.seconds_remaining",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "special.state_at_anchor = \"ready\"",
+      "validator_kind": "view_native",
+      "validator_location": "special.state_at_anchor",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-57-30_death_episode_308.000__r2",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "cid": "death_episode:308.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "clock.display = \"0:09\"",
+     "citations": [
+      {
+       "path": "clock.display",
+       "asserted": "\"0:09\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "0:09",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 17.5",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "17.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 17.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "playback.status = \"normal\"",
+     "citations": [
+      {
+       "path": "playback.status",
+       "asserted": "\"normal\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "normal",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_final_30s",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "clock.display = \"0:09\"",
+      "validator_kind": "view_native",
+      "validator_location": "clock.display",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 17.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "playback.status = \"normal\"",
+      "validator_kind": "view_native",
+      "validator_location": "playback.status",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-12_20-17-32_death_episode_65.500__r2",
+   "match": "en-live-playerview-2026-10-12 20-17-32",
+   "cid": "death_episode:65.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "timeline.time_since_previous_death.value = 16.5",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.value",
+       "asserted": "16.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 16.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "timeline.time_since_previous_death.clock = \"video\"",
+     "citations": [
+      {
+       "path": "timeline.time_since_previous_death.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_quick_redeath",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "principle_redeath_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "timeline.time_since_previous_death.value = 16.5",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "timeline.time_since_previous_death.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "timeline.time_since_previous_death.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-10_23-43-31_death_episode_205.000__r2",
+   "match": "en-live-playerview-2026-10-10 23-43-31",
+   "cid": "death_episode:205.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "low_ink.at_death = true",
+     "citations": [
+      {
+       "path": "low_ink.at_death",
+       "asserted": "true",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": true,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_time_video = 205.0",
+     "citations": [
+      {
+       "path": "death.death_time_video",
+       "asserted": "205.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 205.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "low_ink.intervals[0].start_time = 204.5",
+     "citations": [
+      {
+       "path": "low_ink.intervals[0].start_time",
+       "asserted": "204.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 204.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_low_ink",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "process_ink_before_engaging",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "low_ink.at_death = true",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.at_death",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_time_video = 205.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_time_video",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "low_ink.intervals[0].start_time = 204.5",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.intervals[0].start_time",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-10_23-56-41_death_episode_46.000__r2",
+   "match": "en-live-playerview-2026-10-10 23-56-41",
+   "cid": "death_episode:46.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "low_ink.at_death = true",
+     "citations": [
+      {
+       "path": "low_ink.at_death",
+       "asserted": "true",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": true,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "low_ink.intervals[0].start_time = 45.5",
+     "citations": [
+      {
+       "path": "low_ink.intervals[0].start_time",
+       "asserted": "45.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 45.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_time_video = 46.0",
+     "citations": [
+      {
+       "path": "death.death_time_video",
+       "asserted": "46.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 46.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.0",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "playback.status = \"normal\"",
+     "citations": [
+      {
+       "path": "playback.status",
+       "asserted": "\"normal\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "normal",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_low_ink",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "low_ink.at_death = true",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.at_death",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "low_ink.intervals[0].start_time = 45.5",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.intervals[0].start_time",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_time_video = 46.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_time_video",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "playback.status = \"normal\"",
+      "validator_kind": "view_native",
+      "validator_location": "playback.status",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-12_19-47-46_death_episode_80.000__r2",
+   "match": "en-live-playerview-2026-10-12 19-47-46",
+   "cid": "death_episode:80.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "low_ink.at_death = true",
+     "citations": [
+      {
+       "path": "low_ink.at_death",
+       "asserted": "true",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": true,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_time_video = 80.0",
+     "citations": [
+      {
+       "path": "death.death_time_video",
+       "asserted": "80.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 80.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "low_ink.intervals[0].start_time = 79.5",
+     "citations": [
+      {
+       "path": "low_ink.intervals[0].start_time",
+       "asserted": "79.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 79.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.0",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_low_ink",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "process_ink_before_engaging",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "low_ink.at_death = true",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.at_death",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_time_video = 80.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_time_video",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "low_ink.intervals[0].start_time = 79.5",
+      "validator_kind": "view_native",
+      "validator_location": "low_ink.intervals[0].start_time",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-10_23-43-31_death_episode_226.000__r2",
+   "match": "en-live-playerview-2026-10-10 23-43-31",
+   "cid": "death_episode:226.000",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.time_since_previous_splat.video_seconds = 1.0",
+     "citations": [
+      {
+       "path": "death.time_since_previous_splat.video_seconds",
+       "asserted": "1.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 1.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 10.0",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "10.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 10.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_own_splat_before",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.time_since_previous_splat.video_seconds = 1.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.time_since_previous_splat.video_seconds",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 10.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  },
+  {
+   "call_id": "2026-10-11_22-57-30_death_episode_142.500__r2",
+   "match": "en-live-playerview-2026-10-11 22-57-30",
+   "cid": "death_episode:142.500",
+   "parsed": true,
+   "entries": [
+    {
+     "text": "death.time_since_previous_splat.video_seconds = 0.5",
+     "citations": [
+      {
+       "path": "death.time_since_previous_splat.video_seconds",
+       "asserted": "0.5",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 0.5,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.value = 9.0",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.value",
+       "asserted": "9.0",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": 9.0,
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "death.death_to_active_again.clock = \"video\"",
+     "citations": [
+      {
+       "path": "death.death_to_active_again.clock",
+       "asserted": "\"video\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "video",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    },
+    {
+     "text": "playback.status = \"normal\"",
+     "citations": [
+      {
+       "path": "playback.status",
+       "asserted": "\"normal\"",
+       "exists_literally": true,
+       "terminates_at_scalar": true,
+       "value_form": "exact",
+       "value_matches": true,
+       "view_value": "normal",
+       "class": "n2_scalar_correct"
+      }
+     ],
+     "compliant": true,
+     "prose_prefix": false,
+     "multi_fact": false
+    }
+   ],
+   "requires_support": true,
+   "support_ok": true,
+   "output_compliant": true,
+   "claim_coverage": [
+    {
+     "claim_id": "death_own_splat_before",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    },
+    {
+     "claim_id": "death_out_of_play",
+     "in_claim_basis": true,
+     "evidence_path_cited": true
+    }
+   ],
+   "validator": {
+    "validation_status": "validated",
+    "entries": [
+     {
+      "text": "death.time_since_previous_splat.video_seconds = 0.5",
+      "validator_kind": "view_native",
+      "validator_location": "death.time_since_previous_splat.video_seconds",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.value = 9.0",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.value",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "death.death_to_active_again.clock = \"video\"",
+      "validator_kind": "view_native",
+      "validator_location": "death.death_to_active_again.clock",
+      "validator_accepts": true,
+      "strict_compliant": true
+     },
+     {
+      "text": "playback.status = \"normal\"",
+      "validator_kind": "view_native",
+      "validator_location": "playback.status",
+      "validator_accepts": true,
+      "strict_compliant": true
+     }
+    ],
+    "disagreements": []
+   }
+  }
+ ]
+}

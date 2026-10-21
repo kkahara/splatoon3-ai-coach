@@ -1,0 +1,129 @@
+{
+ "experiment": true,
+ "experiment_name": "citation_compliance_n2",
+ "call_id": "2026-10-12_20-17-32_death_episode_65.500__r1",
+ "match": "en-live-playerview-2026-10-12 20-17-32",
+ "cid": "death_episode:65.500",
+ "repeat": 1,
+ "file": "2026-10-12_20-17-32_death_episode_65.500.user_prompt.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+ "run_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "a393d4887cc0e31b9a837aced74814287cc8cb4e34dcb420e24a1245afd26f9e",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "926697c6c78ee5f34df7059418fcd52c96629bc0ced715e2133cb32b626ca0d8"
+ },
+ "executed_at": "2026-10-21T04:17:45+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"Your previous death was 16.5 seconds earlier. Back-to-back deaths keep you out of play for longer.\",\"claims\":[{\"claim_id\":\"death_quick_redeath\",\"level\":\"A\",\"sentence\":\"Your previous death was 16.5 seconds earlier.\"},{\"claim_id\":\"principle_redeath_out_of_play\",\"level\":\"B\",\"sentence\":\"Back-to-back deaths keep you out of play for longer.\"}],\"evidence_used\":[\"timeline.time_since_previous_death.value = 16.5\",\"timeline.time_since_previous_death.clock = \\\"video\\\"\",\"playback.status = \\\"normal\\\"\"],\"limitations\":[\"The evidence does not identify why the death happened or assess your positioning.\"],\"recommendations\":[\"After being splatted, take a moment to reset before re-engaging.\"],\"selected_claim_ids\":[\"death_quick_redeath\",\"principle_redeath_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "Your previous death was 16.5 seconds earlier. Back-to-back deaths keep you out of play for longer.",
+  "evidence_used": [
+   "timeline.time_since_previous_death.value = 16.5",
+   "timeline.time_since_previous_death.clock = \"video\"",
+   "playback.status = \"normal\""
+  ],
+  "limitations": [
+   "The evidence does not identify why the death happened or assess your positioning."
+  ],
+  "recommendations": [
+   "After being splatted, take a moment to reset before re-engaging."
+  ],
+  "selected_claim_ids": [
+   "death_quick_redeath",
+   "principle_redeath_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_quick_redeath",
+    "level": "A",
+    "sentence": "Your previous death was 16.5 seconds earlier."
+   },
+   {
+    "claim_id": "principle_redeath_out_of_play",
+    "level": "B",
+    "sentence": "Back-to-back deaths keep you out of play for longer."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "timeline.time_since_previous_death.value = 16.5",
+    "kind": "view_native",
+    "path": "timeline.time_since_previous_death.value",
+    "location": "timeline.time_since_previous_death.value"
+   },
+   {
+    "text": "timeline.time_since_previous_death.clock = \"video\"",
+    "kind": "view_native",
+    "path": "timeline.time_since_previous_death.clock",
+    "location": "timeline.time_since_previous_death.clock"
+   },
+   {
+    "text": "playback.status = \"normal\"",
+    "kind": "view_native",
+    "path": "playback.status",
+    "location": "playback.status"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 7.2
+}

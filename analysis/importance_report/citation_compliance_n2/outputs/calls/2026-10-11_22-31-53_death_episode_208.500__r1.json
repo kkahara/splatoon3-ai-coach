@@ -1,0 +1,141 @@
+{
+ "experiment": true,
+ "experiment_name": "citation_compliance_n2",
+ "call_id": "2026-10-11_22-31-53_death_episode_208.500__r1",
+ "match": "en-live-playerview-2026-10-11 22-31-53",
+ "cid": "death_episode:208.500",
+ "repeat": 1,
+ "file": "2026-10-11_22-31-53_death_episode_208.500.user_prompt.txt",
+ "provider": "cursor",
+ "model": "gpt-5.6-luna",
+ "seal_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+ "run_commit": "4043df13e4e91a8f15c8624820ea3c7471bd0a63",
+ "attempt": 1,
+ "system_sha256": "e6af339a94732cb16aa54310906b9925b764626a3d38710844c10fd3d30cf8db",
+ "user_prompt_sha256": "77d77dd4b0fd4794c72e1d3e03ad4482a6358bc536c846bc56680438ab1a4df7",
+ "generation_settings": {
+  "temperature": {
+   "requested": 0.0,
+   "sent": null,
+   "support": "unsupported"
+  },
+  "seed": {
+   "requested": 0,
+   "sent": null,
+   "support": "unsupported"
+  }
+ },
+ "input_hashes": {
+  "message_sha256": "555e36da84c83f4aaf75f4ffcc0969b35603c83f926d8dc4440c76585b2893f2"
+ },
+ "executed_at": "2026-10-21T04:17:29+00:00",
+ "call_error": null,
+ "raw_output": "{\"assessment\":\"You got a splat 0.5 seconds before you were splatted. This death happened with only 0:12 left in the match. You were out of play for 9.5 seconds after this death.\",\"claims\":[{\"claim_id\":\"death_own_splat_before\",\"level\":\"A\",\"sentence\":\"You got a splat 0.5 seconds before you were splatted.\"},{\"claim_id\":\"death_final_30s\",\"level\":\"A\",\"sentence\":\"This death happened with only 0:12 left in the match.\"},{\"claim_id\":\"death_out_of_play\",\"level\":\"A\",\"sentence\":\"You were out of play for 9.5 seconds after this death.\"}],\"evidence_used\":[\"death.time_since_previous_splat.video_seconds = 0.5\",\"clock.display = \\\"0:12\\\"\",\"death.death_to_active_again.value = 9.5\",\"death.death_to_active_again.clock = \\\"video\\\"\"],\"limitations\":[\"The evidence does not establish why the death happened, player positioning, opponent location, teammate availability, or fight outcome.\",\"No behavioral recommendation is supported by the selected evidence.\"],\"recommendations\":[],\"selected_claim_ids\":[\"death_own_splat_before\",\"death_final_30s\",\"death_out_of_play\"]}",
+ "parse_error": null,
+ "assessment": {
+  "assessment": "You got a splat 0.5 seconds before you were splatted. This death happened with only 0:12 left in the match. You were out of play for 9.5 seconds after this death.",
+  "evidence_used": [
+   "death.time_since_previous_splat.video_seconds = 0.5",
+   "clock.display = \"0:12\"",
+   "death.death_to_active_again.value = 9.5",
+   "death.death_to_active_again.clock = \"video\""
+  ],
+  "limitations": [
+   "The evidence does not establish why the death happened, player positioning, opponent location, teammate availability, or fight outcome.",
+   "No behavioral recommendation is supported by the selected evidence."
+  ],
+  "recommendations": [],
+  "selected_claim_ids": [
+   "death_own_splat_before",
+   "death_final_30s",
+   "death_out_of_play"
+  ],
+  "claims": [
+   {
+    "claim_id": "death_own_splat_before",
+    "level": "A",
+    "sentence": "You got a splat 0.5 seconds before you were splatted."
+   },
+   {
+    "claim_id": "death_final_30s",
+    "level": "A",
+    "sentence": "This death happened with only 0:12 left in the match."
+   },
+   {
+    "claim_id": "death_out_of_play",
+    "level": "A",
+    "sentence": "You were out of play for 9.5 seconds after this death."
+   }
+  ]
+ },
+ "validation": {
+  "prohibited_pattern_hits": [],
+  "hit_count": 0,
+  "patterns_checked": [
+   "\\byou won (the |a )?fight\\b",
+   "\\byou lost (the |a )?fight\\b",
+   "\\bbad engagement\\b",
+   "\\bgood engagement\\b",
+   "\\boverextend(?:ed|ing)?\\b",
+   "\\byou were outnumbered\\b",
+   "\\b(?:fought|fighting|took|take|taking)\\s+(?:an?\\s+)?outnumbered\\b",
+   "\\boutnumbered\\s+(?:fight|engagement|duel)\\b",
+   "\\boutnumbered\\s+(?:in|during)\\s+(?:the\\s+|a\\s+|that\\s+|this\\s+)?(?:fight|engagement|duel)\\b",
+   "\\bshould have pushed\\b",
+   "\\bshould have played (?:more )?(?:passive(?:ly)?|safe(?:r|ly)?)\\b",
+   "\\bshould have retreated\\b",
+   "\\bshould have checked (the )?map\\b",
+   "\\bmap usage was (good|bad)\\b",
+   "\\b(your )?gear made (your )?respawn\\b",
+   "\\bquick respawn\\b",
+   "\\byou rushed\\b",
+   "\\byou hesitated\\b",
+   "\\bspawn[- ]?camp(?:ed|ing)?\\b",
+   "\\bsplat caused (your |the )?death\\b",
+   "\\bcaused your death\\b",
+   "\\bcaused the death\\b",
+   "\\bsame fight\\b",
+   "\\bclean duel\\b",
+   "\\btraded poorly\\b",
+   "\\byou traded\\b",
+   "\\b(?:you|your death|the player)\\s+(?:caused|made|failed to)\\b.*\\b(?:capture|control|zone|objective|loss)\\b",
+   "\\b(?:pushing|losing|winning|lost|won)\\s+(?:the\\s+)?objective\\b",
+   "\\b(?:count|score|penalty)\\s+(?:caused|led\\s+to)\\b",
+   "\\bdied\\s+because\\s+(?:\\w+\\s+){0,3}(?:behind|ahead)\\b"
+  ],
+  "causal_claim_hits": [],
+  "unsupported_recommendation_hits": [],
+  "evidence_path_resolution": [
+   {
+    "text": "death.time_since_previous_splat.video_seconds = 0.5",
+    "kind": "view_native",
+    "path": "death.time_since_previous_splat.video_seconds",
+    "location": "death.time_since_previous_splat.video_seconds"
+   },
+   {
+    "text": "clock.display = \"0:12\"",
+    "kind": "view_native",
+    "path": "clock.display",
+    "location": "clock.display"
+   },
+   {
+    "text": "death.death_to_active_again.value = 9.5",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.value",
+    "location": "death.death_to_active_again.value"
+   },
+   {
+    "text": "death.death_to_active_again.clock = \"video\"",
+    "kind": "view_native",
+    "path": "death.death_to_active_again.clock",
+    "location": "death.death_to_active_again.clock"
+   }
+  ],
+  "unresolved_evidence_paths": [],
+  "claim_rule_hits": [],
+  "integrity_hits": [],
+  "blocked": false,
+  "validation_status": "validated"
+ },
+ "elapsed_seconds": 4.7
+}
