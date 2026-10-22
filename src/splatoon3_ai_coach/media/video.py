@@ -32,6 +32,74 @@ class VideoMetadata(BaseModel):
     metadata_stream_indices: list[int] = Field(default_factory=list)
 
 
+class VideoStreamProperties(BaseModel):
+    """Container and stream properties as the file declares them (no decode)."""
+
+    suffix: str
+    container: str
+    major_brand: str | None = None
+    encoder: str | None = None
+    codec: str
+    pix_fmt: str | None = None
+    width: int = Field(gt=0)
+    height: int = Field(gt=0)
+    avg_frame_rate: str | None = None
+    avg_fps: float | None = None
+    r_frame_rate: str | None = None
+    r_fps: float | None = None
+    time_base: str | None = None
+    declared_frame_count: int | None = None
+    duration_seconds: float | None = None
+    audio_codecs: list[str] = Field(default_factory=list)
+
+
+def probe_video_stream(path: Path) -> VideoStreamProperties:
+    """Read declared properties of the first video stream without decoding frames."""
+    if not path.exists():
+        raise VideoLoadError(f"Video not found: {path}")
+    try:
+        container = av.open(str(path))
+    except av.FFmpegError as exc:
+        raise VideoLoadError(f"Could not open {path}: {exc}") from exc
+    with container:
+        if not container.streams.video:
+            raise VideoLoadError(f"No video stream found in {path}")
+        stream = container.streams.video[0]
+        metadata = dict(container.metadata)
+        return VideoStreamProperties(
+            suffix=path.suffix.lower(),
+            container=container.format.name or "unknown",
+            major_brand=(metadata.get("major_brand") or "").strip() or None,
+            encoder=metadata.get("encoder"),
+            codec=stream.codec_context.name,
+            pix_fmt=stream.codec_context.pix_fmt,
+            width=stream.width,
+            height=stream.height,
+            avg_frame_rate=_rate_text(stream.average_rate),
+            avg_fps=_rate_value(stream.average_rate),
+            r_frame_rate=_rate_text(stream.base_rate),
+            r_fps=_rate_value(stream.base_rate),
+            time_base=_rate_text(stream.time_base),
+            declared_frame_count=stream.frames or None,
+            duration_seconds=_container_seconds(container.duration),
+            audio_codecs=[audio.codec_context.name for audio in container.streams.audio],
+        )
+
+
+def _rate_text(rate: object) -> str | None:
+    if not rate:
+        return None
+    return f"{rate.numerator}/{rate.denominator}"  # type: ignore[attr-defined]
+
+
+def _rate_value(rate: object) -> float | None:
+    return float(rate) if rate else None  # type: ignore[arg-type]
+
+
+def _container_seconds(duration: int | None) -> float | None:
+    return None if duration is None else max(float(duration / av.time_base), 0.0)
+
+
 @dataclass(frozen=True)
 class VideoFrame:
     """A decoded BGR frame and its presentation timestamp in seconds."""

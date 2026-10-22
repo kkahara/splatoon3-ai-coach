@@ -5,6 +5,7 @@ import typer
 from splatoon3_ai_coach.cli.align import align_app
 from splatoon3_ai_coach.cli.analyze import analyze
 from splatoon3_ai_coach.cli.calibrate import calibrate_timer_command
+from splatoon3_ai_coach.cli.capture import capture_app
 from splatoon3_ai_coach.cli.coach_inputs import coach_inputs
 from splatoon3_ai_coach.cli.coach_prototype import coach_prototype
 from splatoon3_ai_coach.cli.coach_reannotate_flags import coach_reannotate_flags
@@ -44,3 +45,4 @@ app.command("coach-prototype")(coach_prototype)
 app.command("coach-reannotate-flags")(coach_reannotate_flags)
 app.add_typer(review_app, name="review")
 app.add_typer(align_app, name="align")
+app.add_typer(capture_app, name="capture")

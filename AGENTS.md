@@ -19,6 +19,7 @@ Dependency direction is one-way:
 | Coach | `coach/` | Evidence-constrained LLM coaching |
 | Review | `review/` | Local Review timeline screenshots → elapsed-clock evidence |
 | Alignment | `alignment/` | Declared Review import + gameplay analysis pair → Review remaining clock to gameplay video interval |
+| Capture | `capture/` | Acquisition boundary: capture packages (byte-identical artifacts + provenance) and versioned capture-contract gates |
 
 ### Future vision layers
 
@@ -241,6 +242,27 @@ input is rewritten.
  slot; no GameEvents. `review/`, `coach/`, `analysis/` and `vision/` do not
  import `alignment/`; ScenarioContext / CoachInput do not consume it until a
  separate bridge assignment.
+
+### Capture packages
+
+Contract: `src/splatoon3_ai_coach/capture/CAPTURE_CONTRACT.md`; operator
+procedure: `docs/capture/OPERATOR_CHECKLIST.md`. CLI:
+`s3-coach capture new|add|check|confirm`.
+
+- `capture/` may reuse `media/`, `vision/` and `review/`; no other stage
+  imports `capture/`. `analyze` and the Review timeline importer are
+  unchanged and consume stored artifacts only.
+- Source types are `review_code` and `uploaded_video` (public-site
+  `nintendo_review_code` is the same thing; not renamed). Manual and SCLC
+  acquisition satisfy the same contract.
+- Artifacts are byte-identical, hash-verified, read-only. Never trim,
+  re-encode or remux in capture code.
+- `timeline-capture-v1` is **DRAFT**: thresholds are provisional; do not
+  freeze or tune them from stored recordings. Detector evidence is
+  positive-only (not observed → `unknown`). Continuity and overtime are
+  observations, never gates.
+- `top_down` is experimental collection only (declared playback rate, no CV,
+  no contract).
 
 ## Coaching evidence contract
 
