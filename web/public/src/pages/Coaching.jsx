@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
 import { loadAccount, loadHistory, saveNoticePreference } from "../api.js";
 import { useLocale, useT } from "../i18n/LocaleContext.jsx";
+import { historyCard } from "./historyCard.js";
 
 export function CoachingPage() {
   const t = useT();
@@ -73,41 +74,31 @@ export function CoachingPage() {
       {items === null ? <p>{t("coaching.loading")}</p> : null}
       {items?.length === 0 && !message ? <p>{t("coaching.empty")}</p> : null}
       <ul className="history">
-        {(items || []).map((item) => (
-          <li key={item.id}>
-            <Link to={`/coaching/${item.id}`}>
-              <strong>{item.display_name || t("coaching.match")}</strong>
-              <span className="muted">
-                {formatWhen(item.created_at, locale)} · {t(statusKey(item.status, item.outcome))}
-              </span>
-            </Link>
-          </li>
-        ))}
+        {(items || []).map((item) => {
+          const card = historyCard(item, t, locale);
+          return (
+            <li key={item.id}>
+              <Link to={card.href}>
+                <span className="history-row">
+                  <strong>{card.title}</strong>
+                  <span className={item.status === "complete" ? "muted history-done" : "muted"}>
+                    {card.status}
+                  </span>
+                </span>
+                <span className="history-row">
+                  <span className="muted">{card.meta}</span>
+                  <span className="history-chevron" aria-hidden="true">
+                    ›
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
       <p className="again">
         <Link to="/">{t("coaching.submit_video")}</Link>
       </p>
     </main>
   );
-}
-
-function formatWhen(stamp, locale) {
-  const date = new Date(stamp);
-  if (Number.isNaN(date.getTime())) {
-    return stamp;
-  }
-  return locale === "ja" ? date.toLocaleString("ja-JP") : date.toLocaleString();
-}
-
-function statusKey(status, outcome) {
-  if (status === "complete") {
-    return outcome === "no_deaths" ? "coaching.status.no_moments" : "coaching.status.ready";
-  }
-  if (status === "failed") {
-    return "coaching.status.failed";
-  }
-  if (status === "expired") {
-    return "coaching.status.expired";
-  }
-  return "coaching.status.in_progress";
 }

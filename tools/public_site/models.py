@@ -197,6 +197,10 @@ class HistoryItem(BaseModel):
     step: PublicStep
     display_name: str | None = None
     outcome: CoachingOutcome | None = None
+    battle_mode_id: str | None = None
+    stage_id: str | None = None
+    # Moments the completed review lists; None until complete.
+    moment_count: int | None = None
 
 
 class PublicConfig(BaseModel):

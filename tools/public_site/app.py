@@ -21,6 +21,7 @@ from public_site.errors import (
     WORKER_CAPACITY_UNAVAILABLE,
     RequestRejected,
 )
+from public_site.history import match_identity, moment_count
 from public_site.localize import Translator, build_translator
 from public_site.models import DisplayLocale, HistoryItem, PublicConfig, Submission
 from public_site.notices import NoticeSender
@@ -761,6 +762,7 @@ def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> 
         submission = store.get(row.submission_id)
         if submission is None or submission.user_id != user_id:
             continue
+        mode_id, stage_id = match_identity(submission.analysis_dir)
         items.append(
             HistoryItem(
                 id=submission.id,
@@ -770,6 +772,9 @@ def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> 
                 step=submission.step,
                 display_name=submission.display_name,
                 outcome=submission.outcome,
+                battle_mode_id=mode_id,
+                stage_id=stage_id,
+                moment_count=moment_count(submission),
             ).model_dump()
         )
     return items

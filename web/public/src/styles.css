@@ -116,6 +116,40 @@ button.linkish {
   border: 1px solid #3a3f48;
   border-radius: 6px;
   padding: 0.7rem 0.8rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.history a:hover,
+.history a:focus-visible {
+  border-color: var(--s3-cyan);
+  background: rgb(32 231 255 / 5%);
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.history-row > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.history-row > :last-child {
+  flex-shrink: 0;
+}
+
+.history-done {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+.history-chevron {
+  color: var(--s3-cyan);
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 .muted {
