@@ -22,11 +22,16 @@ export function AboutPage() {
       <h1>{t("about.title")}</h1>
       <p>{t("about.p1")}</p>
       <p>{t("about.p2")}</p>
+      <p>{t("about.p3")}</p>
+      <p>{t("about.p4")}</p>
+      <p>{t("about.p5")}</p>
       <p>
         {t("about.source_before")}
         <a href={SOURCE_URL} rel="noreferrer">GitHub</a>
         {t("about.source_after")}
       </p>
+      <p>{t("about.p6")}</p>
+      <p>{t("about.p7")}</p>
       <p>
         <Link to="/contact">{t("about.contact")}</Link>
       </p>

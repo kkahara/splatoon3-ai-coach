@@ -91,9 +91,9 @@ test("payment terms do not promise an administrator refund", () => {
 });
 
 test("the about page keeps the supplied Japanese story", () => {
-  const japanese = translate(resources, "ja", "about.p1");
+  const japanese = translate(resources, "ja", "about.p3");
   const english = translate(resources, "en", "about.p1");
-  assert.match(japanese, /Xパワーは1800ぐらいが最高/);
+  assert.match(japanese, /Xパワーは1700くらいが最高/);
   assert.notEqual(english, japanese);
 });
 
