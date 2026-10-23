@@ -135,9 +135,13 @@ roster visibility, or calibration evidence remains a non-error unknown state.
 
 - Add tests for early scenery, delayed roster HUD, valid roster-gated latch,
   no-latch, immutable latch, provenance, and map-ink disabling.
-- On the historical v2 tuning corpus, compare predicted side with
-  operator/development labels without opening the fresh set. No known swapped
-  side may remain; unknowns are reported and counted, not relabelled.
+- On the recoverable historical v2 tuning corpus, compare predicted side with
+  persisted historical v2 side output as a consistency diagnostic without
+  opening the fresh set. Historical operator-declared ground-truth labels do
+  not exist, so formal known-side accuracy is not measurable from this
+  corpus. Unknowns are reported and counted, not relabelled. Unavailable
+  source recordings are not measurable (see Amendment 1); they are not
+  calibration failures and must not be replaced.
 - In `src/splatoon3_ai_coach/vision/map_ink.py`, verify that map observations
   occur only after roster-gated calibration, no-calibration matches produce
   none, and ally/opponent fractions agree with the independent roster-color
@@ -193,3 +197,133 @@ read-only.
   side.
 - Only if both gates PASS may a separate decision consider an alignment-v3
   tag and later Stage 3 work.
+
+## Amendment 1 — historical development-data limitation
+
+This amendment is prepared after the preregistration was committed and after
+the production root-fix implementation and development tests were written,
+but before any fresh v3 held-out validation pair was accessed or processed.
+It addresses only an unavoidable limitation in the historical development
+corpus. It does not change the production fix or any fresh held-out
+validation rule, threshold, collection rule, operator-label procedure,
+opening lock, provenance requirement, map-ink requirement, or stop condition.
+
+The development regression gates originally expected evaluation on the nine
+historical v2 tuning pairs. Seven of the nine original gameplay source
+recordings were recovered and replayed:
+
+- `18-18-00`
+- `18-25-16`
+- `20-33-31`
+- `22-20-42`
+- `22-31-53`
+- `22-37-47`
+- `22-57-30`
+
+The original gameplay source recordings for `23-43-31` and `23-56-41` remain
+unavailable. Only derived historical artifacts remain for those cases.
+Because the roster-gated production fix requires source pixels, those two
+cases cannot be replayed under the v3 development method. They are therefore
+recorded as **not measurable** for the pixel-level development replay. They
+are not calibration failures, are not counted as successful cases, and must
+not be replaced with fresh or unrelated recordings.
+
+All seven recoverable recordings were replayed through the roster-gated
+calibration. All seven positively established roster visibility using
+`roster_visibility_basis="player_count.roster_visible"`, accepted a
+calibration, and produced a known ally row. Each production side output
+agreed with the corresponding persisted historical v2 side output:
+
+- `18-18-00`: top / historical top; 3 accepted frames
+- `18-25-16`: bottom / historical bottom; 3 accepted frames
+- `20-33-31`: bottom / historical bottom; 3 accepted frames
+- `22-20-42`: bottom / historical bottom; 3 accepted frames
+- `22-31-53`: top / historical top; 3 accepted frames
+- `22-37-47`: bottom / historical bottom; 3 accepted frames
+- `22-57-30`: bottom / historical bottom; 3 accepted frames
+
+Thus measurable known-side coverage on the seven recoverable recordings was
+`7/7 = 1.00`, and historical-side consistency was `7/7`.
+
+The historical v2 corpus does not contain immutable operator-declared ally-row
+labels equivalent to the prospective v3 ground truth. Therefore the `7/7`
+historical-side consistency result is **not formal known-side accuracy** and
+must not be represented as such. It is a development consistency diagnostic
+only. The originally expected nine-case historical evaluation cannot be
+completed because two source recordings are unavailable.
+
+Formal known-side accuracy remains prospective and is evaluated only on the
+fresh v3 held-out set using the immutable operator-declared ally row recorded
+at acquisition and pair-declaration time before v3 processing or output
+inspection, exactly as preregistered.
+
+For map-ink regression, all seven recoverable recordings had comparable
+original outputs. Before/after outputs were exactly identical for every case.
+`18-25-16` contained zero map-ink samples in both outputs. No map-ink
+regression was observed on the measurable historical corpus.
+
+Development tests after the replay produced:
+
+- targeted suite: `120 passed`;
+- full suite: `2197 passed`, `2 failed`, `26 errors`, `49 skipped`,
+  `6 xfailed`;
+- the two failures and 26 errors are the previously identified
+  environment-dependent public-site/PostgreSQL cases;
+- no Stage 2 regression failure was observed;
+- linter diagnostics: none.
+
+Replay provenance:
+
+- base preregistration / checked-out git HEAD:
+  `7ad1a158e3f508001dcdade1ab59d07acaaebc7e` (abbreviated in analyze
+  manifests as `7ad1a15`). This SHA identifies the committed preregistration
+  tree only and does not identify the uncommitted roster-gated implementation
+  used during the historical replay.
+- the roster-gated production implementation used for the historical
+  development replay was present in the working tree but was not yet committed;
+  git HEAD alone therefore does not identify the exact replay implementation.
+- pipeline version: `3.0.0`;
+- vision-config SHA-256:
+  `44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be`;
+- player-count detector: `player_count@0.2.0`.
+
+After the root fix is committed, the validation input manifest must record
+that implementation commit hash explicitly.
+
+### Replay implementation working-tree digests
+
+The following SHA-256 digests were collected after the historical replay from
+the working tree believed to contain the replay implementation. No replay-time
+snapshot was sealed, so they must not be represented as independently proven
+replay-time byte identities.
+
+- `src/splatoon3_ai_coach/vision/team_color_calibration.py` —
+  `cc9ba1e2798d9f4d3a2ab196a98e02dc46ffd48fce6f945dc6503e4ad8287bde`
+- `src/splatoon3_ai_coach/vision/match_side_effects.py` —
+  `e6cccceaaa3c45383eeddf5e353300526c890f31bcb6051a76a545b4715072c8`
+- `src/splatoon3_ai_coach/review/team_identity.py` —
+  `4d93674ff11212c900ea7693804a9f258b7d292ec733883f1544d750350a9030`
+- `src/splatoon3_ai_coach/review/models.py` —
+  `84545fcfb8781ac7dd1d231b87e2a060b82c33ec84ecee7c7c42557871104f63`
+- `src/splatoon3_ai_coach/review/evidence_pack.py` —
+  `f9a2117192dabb455206f62184e7f244369e50c3c344e26b123d97a2a856094f`
+- `src/splatoon3_ai_coach/review/evidence_pack_models.py` —
+  `1937db8e4ac78095a79ebcd669e4decabccb9d2c42d161d3ccf05c910e7762dc`
+
+For purposes of the development regression gates, the two unavailable
+historical recordings are therefore treated as **not measurable**, rather
+than as calibration failures or replacement candidates. The measurable
+development diagnostics were satisfied on all seven recoverable recordings;
+this does not create a retrospective `7/7` acceptance threshold and does not
+convert historical-side consistency into formal accuracy.
+
+All fresh held-out requirements remain unchanged. In particular, the
+team-side acceptance gate still requires exactly `1.00` accuracy over known
+predictions, at least `7/8 = 0.875` known-side coverage, at least three top
+and three bottom declared ally rows, and the immutable pre-processing
+operator declaration. The unchanged alignment gate, fresh-set collection
+rules, opening lock, provenance requirements, map-ink requirements, and stop
+conditions remain in force.
+
+No fresh v3 held-out pair had been accessed or processed when this amendment
+was prepared.
