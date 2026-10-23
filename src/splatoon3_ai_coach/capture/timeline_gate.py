@@ -1,8 +1,10 @@
-"""DRAFT ``timeline-capture-v1`` quality gate (pure evaluation).
+"""FROZEN ``timeline-capture-v1`` quality gate (pure evaluation).
 
-Every threshold here is provisional until the controlled captures described
-in ``CAPTURE_CONTRACT.md`` have been reviewed. Detector evidence is used
-positively only: a missing observation is ``unknown``, never ``fail``.
+Frozen after the C1–C4 controlled captures (``CAPTURE_CONTRACT.md``). Checks
+and values never change meaning; a change is ``timeline-capture-v2``. Names
+containing ``provisional`` are kept verbatim from the characterized code.
+Detector evidence is used positively only: a missing observation is
+``unknown``, never ``fail``.
 """
 
 from __future__ import annotations
@@ -37,7 +39,7 @@ from splatoon3_ai_coach.capture.timeline_sweep import (
 from splatoon3_ai_coach.config.models import ReviewTimelineConfig
 from splatoon3_ai_coach.review.clock import ClockPhase
 
-CONTRACT_STATUS = ContractStatus.DRAFT
+CONTRACT_STATUS = ContractStatus.FROZEN
 REQUIRED_WIDTH, REQUIRED_HEIGHT = 1920, 1080
 INTENDED_FPS = 60.0
 # Provisional near-60 window; rates outside the invalid bounds clearly fail.
@@ -89,7 +91,7 @@ def evaluate_timeline_capture(
     package_version: str,
     git_sha: str | None,
 ) -> QualityGateResult:
-    """Score one decoded timeline capture against the DRAFT contract."""
+    """Score one decoded timeline capture against the frozen contract."""
     clocks = plausible_samples(observation.samples, timeline_config)
     regulation, basis = regulation_length(observation.intro.battle_mode_id, clocks)
     sweep = find_sweep(clocks, regulation)

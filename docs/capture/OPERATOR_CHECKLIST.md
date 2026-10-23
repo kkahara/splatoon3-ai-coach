@@ -1,8 +1,8 @@
-# Operator checklist: `timeline-capture-v1` (DRAFT) and top-down 1x
+# Operator checklist: `timeline-capture-v1` (FROZEN) and top-down 1x
 
-Contract: `src/splatoon3_ai_coach/capture/CAPTURE_CONTRACT.md`. The contract
-is a draft; this checklist is the procedure for the controlled captures that
-will decide its thresholds. Do not tune anything between captures.
+Contract: `src/splatoon3_ai_coach/capture/CAPTURE_CONTRACT.md`. This is the
+v1 operator procedure; timeline-before-GO was adopted at the freeze after
+C4 (`CHARACTERIZATION_LOG.md`).
 
 ## Once per session: capture path
 
@@ -25,17 +25,24 @@ Known-good path: Switch → Elgato Cam Link 4K → OBS Studio, recorded to disk.
 2. **Start recording before the replay starts**, so the replay intro (mode
    and stage plates) and at least a second before the timeline are in the
    file.
-3. Open the match timeline.
-4. Move the cursor to the **left edge** (pre-GO / 5:00, or 3:00 in Turf War)
-   and pause about 1 s.
+3. Open the match timeline **before GO**, while "Ready?" is on screen. The
+   cursor opens at the regulation start (5:00 in ranked modes) and stays
+   there until the stick moves.
+4. Leave the cursor untouched for about 1–2 s.
 5. Sweep **right** to the end with the stick held, in one continuous
    motion. The game fixes the traversal speed (about 30 clock seconds per
    video second; stick tilt does not change it, and the D-pad does not move
-   the timeline cursor). In overtime, continue to the end of the overtime
-   section.
+   the timeline cursor). The first push moves one label and holds about
+   0.5 s before continuous movement. In overtime, continue to the end of
+   the overtime section.
 6. Pause about 1 s at the right edge.
-7. Sweep **back to the left edge** the same way and pause about 1 s.
+7. Sweep **back to the left edge** the same way (past 5:00 to the pre-GO
+   label, -0:03) and pause about 1 s.
 8. Stop recording. Do not trim.
+
+A timeline opened after GO starts at 4:59 (2:59 in Turf War), so the
+regulation start is then seen only on the return pass; the gate evaluates
+such a capture the same way (C1–C3).
 
 ## Per match: package and gate
 

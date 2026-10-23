@@ -257,10 +257,13 @@ procedure: `docs/capture/OPERATOR_CHECKLIST.md`. CLI:
   acquisition satisfy the same contract.
 - Artifacts are byte-identical, hash-verified, read-only. Never trim,
   re-encode or remux in capture code.
-- `timeline-capture-v1` is **DRAFT**: thresholds are provisional; do not
-  freeze or tune them from stored recordings. Detector evidence is
-  positive-only (not observed → `unknown`). Continuity and overtime are
-  observations, never gates.
+- `timeline-capture-v1` is **FROZEN** (tag `timeline-capture-v1-frozen`):
+  its checks, values and pinned reader settings never change; any change in
+  meaning is `timeline-capture-v2`. Evidence is C1–C4 plus the sanity set
+  (`docs/capture/CHARACTERIZATION_LOG.md`); the Switch 2 observation R1 is
+  research only. Detector evidence is positive-only (not observed →
+  `unknown`). Continuity and overtime are observations, never gates.
+  Procedure: timeline opened before GO.
 - `top_down` is experimental collection only (declared playback rate, no CV,
   no contract).
 

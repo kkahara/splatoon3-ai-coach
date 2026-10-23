@@ -52,7 +52,7 @@ def run_timeline_gate(
     artifact_id: str = "timeline",
     replace: bool = False,
 ) -> tuple[QualityGateResult, GateSummary]:
-    """Decode the timeline artifact once, evaluate the DRAFT contract, write outputs."""
+    """Decode the timeline artifact once, evaluate the contract, write outputs."""
     package = load_package(package_dir)
     artifact = package.artifact(artifact_id)
     if artifact is None or artifact.contract != TIMELINE_CAPTURE_V1:

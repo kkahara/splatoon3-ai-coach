@@ -1,10 +1,11 @@
-"""DRAFT timeline-capture-v1 gate on synthetic observations."""
+"""Frozen timeline-capture-v1 gate on synthetic observations."""
 
 from collections.abc import Iterable
 from pathlib import Path
 
 import pytest
 
+from splatoon3_ai_coach.capture import timeline_gate
 from splatoon3_ai_coach.capture.gate_runner import (
     RESULT_FILENAME,
     confirm_check,
@@ -28,7 +29,9 @@ from splatoon3_ai_coach.capture.timeline_observe import (
     IntroObservation,
     TimelineObservation,
 )
+from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.models import ReviewTimelineConfig
+from splatoon3_ai_coach.config.paths import default_config_path
 from splatoon3_ai_coach.media.video import VideoStreamProperties
 from splatoon3_ai_coach.review.clock import ClockSource, ReviewClock, parse_elapsed_clock
 from splatoon3_ai_coach.review.video_adapter import VideoSample
@@ -132,7 +135,7 @@ def test_full_sweep_passes_every_automatic_check() -> None:
     assert all(c.status is CheckStatus.PASS for c in automatic), [
         (c.check_id, c.status) for c in automatic
     ]
-    assert result.contract_status.value == "draft"
+    assert result.contract_status.value == "frozen"
     assert result.automatic_verdict is Verdict.INCOMPLETE
     manual = {c.check_id: c.status for c in result.checks if c.method.value == "manual"}
     assert manual == dict.fromkeys(MANUAL_CHECKS, CheckStatus.NOT_RUN)
@@ -210,6 +213,48 @@ def test_continuity_is_reported_per_pass_and_as_union() -> None:
 def test_frame_rate_window_is_provisional(fps: float, expected: CheckStatus) -> None:
     result = _evaluate(_observation(_samples(_labels(300)), avg_fps=fps))
     assert _status(result, "frame_rate_60") is expected
+
+
+def test_frozen_v1_values_and_reader_settings_are_pinned() -> None:
+    """Changing any of these is a change in meaning: timeline-capture-v2."""
+    assert timeline_gate.CHECK_IDS == (
+        "video_decodable",
+        "artifact_hash_verified",
+        "resolution_1920x1080",
+        "frame_rate_60",
+        "container_codec",
+        "duration_envelope",
+        "intro_identity_observed",
+        "timeline_entry_observed",
+        "timeline_ui_observed",
+        "left_endpoint_observed",
+        "right_endpoint_observed",
+        "return_left_endpoint_observed",
+        "capture_path_unmodified",
+        "acquisition_profile_1080p60",
+        "replay_matches_declared_code",
+    )
+    assert timeline_gate.FPS_PROVISIONAL_WINDOW == (59.0, 61.0)
+    assert timeline_gate.FPS_INVALID_BELOW == 50.0
+    assert timeline_gate.FPS_INVALID_ABOVE == 70.0
+    assert timeline_gate.PROVISIONAL_MAX_DURATION_SECONDS == 180.0
+    assert timeline_gate.MIN_PRE_TIMELINE_SECONDS == 1.0
+    assert timeline_gate.ACCEPTED_SUFFIXES == {".mov", ".mp4"}
+    assert timeline_gate.ACCEPTED_CODECS == {"h264", "hevc"}
+    config = load_config(default_config_path())
+    review = config.review
+    assert (review.regulation_seconds, review.max_overtime_seconds) == (300, 300)
+    assert review.max_countdown_seconds == 10
+    assert review.cursor_confidence_floor == 0.55
+    video = review.video
+    assert video.sample_interval_seconds == 0.0
+    assert video.frames_per_second_bucket == 1
+    assert (
+        video.layout_confidence_floor,
+        video.structure_confidence_floor,
+        video.clock_confidence_floor,
+    ) == (0.55, 0.6, 0.55)
+    assert config.vision.match_intro.match_threshold == 0.7
 
 
 def test_resolution_and_decode_failures_fail() -> None:

@@ -1,8 +1,10 @@
 # Capture packages and capture contracts
 
-Status: **DRAFT**. `timeline-capture-v1` is not frozen. Its thresholds are
-provisional until about five controlled manual captures have been recorded
-and reviewed (see `docs/capture/OPERATOR_CHECKLIST.md`).
+Status: `timeline-capture-v1` is **FROZEN** (tag
+`timeline-capture-v1-frozen`). It was frozen after the controlled captures
+C1–C4 and the read-only sanity/negative-control set were reviewed
+(`docs/capture/CHARACTERIZATION_LOG.md`). Procedure:
+`docs/capture/OPERATOR_CHECKLIST.md`.
 
 ## Purpose
 
@@ -74,7 +76,7 @@ passes the same gate a manual one does.
 
 | Kind | Allowed in | Status | Contract |
 |---|---|---|---|
-| `timeline` | `review_code` | required | `timeline-capture-v1` (draft) |
+| `timeline` | `review_code` | required | `timeline-capture-v1` (frozen) |
 | `top_down` | `review_code` | experimental | none (collection only) |
 | `gameplay` | `uploaded_video` | required | none yet |
 
@@ -93,9 +95,10 @@ contract.
   freeze, any change in meaning is a new contract (`timeline-capture-v2`);
   a frozen contract's checks never change.
 - A stored `result.json` is never edited. Re-running needs `--replace` and
-  rewrites the whole gate directory.
+  rewrites the whole gate directory. Results written before the freeze keep
+  `contract_status: draft`; they were produced by the same evaluation code.
 
-## `timeline-capture-v1` (DRAFT)
+## `timeline-capture-v1` (FROZEN)
 
 The gate decodes the timeline artifact once. Frames pass unchanged into the
 existing `review.video_adapter.adapt_frames` (same classification as
@@ -131,12 +134,49 @@ The right endpoint never fails automatically. In overtime the end of
 overtime is not identifiable from labels; a knockout ends with time left.
 Both are confirmed by the operator.
 
-Provisional values (all in `capture/timeline_gate.py`): fps window [59, 61],
+Frozen values (all in `capture/timeline_gate.py`): fps window [59, 61],
 clearly-invalid bounds 50 / 70, duration envelope 180 s, pre-timeline lead
-1 s, left-edge tolerance 1 s, right-edge tolerance 1 s. The procedure itself
+1 s, left-edge tolerance 1 s, right-edge tolerance 1 s. Field, constant and
+detail names that say `provisional` are kept verbatim from the characterized
+code; in v1 they denote these frozen values. The procedure itself
 requires 1920x1080 at 60 fps through the known-good Cam Link 4K / OBS path;
 the gate records the actual `avg_frame_rate`, `r_frame_rate`, time base and
 measured timestamp rate so intended and measured values stay distinct.
+
+Reader settings v1 was characterized with (code defaults; `configs/default.yaml`
+does not override them): `review.regulation_seconds` 300,
+`max_overtime_seconds` 300, `max_countdown_seconds` 10,
+`cursor_confidence_floor` 0.55; `review.video` every frame
+(`sample_interval_seconds` 0), one retained frame per clock second and
+direction, layout / structure / clock floors 0.55 / 0.6 / 0.55;
+`vision.match_intro.match_threshold` 0.7. Changing any of these, a frozen
+value above, the plausibility filter, sweep finding or regulation-length
+rules is a change in meaning. `tests/test_capture_timeline_gate.py` pins
+them. Recognition improvements inside the clock reader that leave these
+settings unchanged are outside this contract; every result records the git
+SHA that produced it.
+
+### Known limitations (preserved at freeze)
+
+1. **Knockout right endpoint is untested.** A knockout ends with regulation
+   time left, so `right_endpoint_observed` is `unknown` by rule and the
+   operator confirms it. No knockout capture was characterized; this is
+   non-blocking.
+2. **Overtime endpoint is not determined automatically.** The end of
+   overtime is not identifiable from labels; `right_endpoint_observed` stays
+   `unknown` and the operator confirms it. C3 exercised this path.
+3. **Clock-label recognition has recurring unreadable labels** (mostly
+   `:33`, `:53`, `:54`, `:56`, `:57`). Frames for those labels are captured
+   and no wrong values were read; this is a reader issue outside the capture
+   contract and only affects continuity observations, which never gate.
+4. **A remux passes every automatic technical check.** In the sanity set a
+   VLC remux was distinguishable only by its encoder tag; it is caught by the
+   manual `capture_path_unmodified` check.
+
+Outside v1: review-code OCR / battle identity, top-down analysis and
+`effective_playback_rate`, clock-reader improvement, and console
+comparison (one research-only Switch 2 observation, R1, is recorded
+separately in the characterization log and is not v1 evidence).
 
 ### Manual checks (`not_run` until confirmed)
 
@@ -158,7 +198,7 @@ attestation never overrides an automatic pass or fail; the latest
 attestation for a check wins. The package stores both the automatic verdict
 and the verdict with confirmations.
 
-### Observations (never gate a draft contract)
+### Observations (never gate)
 
 - **Continuity:** missing regulation seconds (count, ranges, longest run) on
   the outbound pass `[left_at, turn_at]`, on the return pass, in the union of

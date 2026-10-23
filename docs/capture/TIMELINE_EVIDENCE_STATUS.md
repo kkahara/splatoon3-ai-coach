@@ -1,6 +1,7 @@
 # Review timeline evidence: status inventory
 
-Snapshot taken when `timeline-capture-v1` (DRAFT) was introduced. This is an
+Snapshot taken when `timeline-capture-v1` was introduced as a draft (it is
+now frozen; `CHARACTERIZATION_LOG.md`). This is an
 inventory, not a work plan: none of the items below is fixed by the capture
 work, and each fix is to be selected and pre-registered separately.
 
@@ -87,6 +88,8 @@ What the observations showed:
    whether continuity needs a slower sweep or a reader change, before
    freezing anything. (*Update after C1–C3:* sweep speed is fixed by the
    game and the slow-sweep characterization is retired; continuity is a
-   reader question.)
+   reader question.) (*Update at freeze:* steps 1–2 done with C1–C4;
+   `timeline-capture-v1` is frozen with timeline-before-GO as the procedure,
+   and this sanity set was re-gated with the frozen code, unchanged.)
 3. Then pre-register the colour-robust bottom-row death-glyph fix, the step
    the existing diagnostics name.

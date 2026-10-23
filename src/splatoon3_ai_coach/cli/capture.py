@@ -1,4 +1,4 @@
-"""Commands for capture packages and the DRAFT timeline-capture-v1 gate."""
+"""Commands for capture packages and the frozen timeline-capture-v1 gate."""
 
 from pathlib import Path
 
@@ -90,7 +90,7 @@ def check(
     config_path: Path | None = typer.Option(None, "--config"),
     replace: bool = typer.Option(False, "--replace"),
 ) -> None:
-    """Run the DRAFT timeline-capture-v1 gate on a stored timeline artifact."""
+    """Run the frozen timeline-capture-v1 gate on a stored timeline artifact."""
     try:
         config = load_config(resolve_config_path(config_path))
         result, summary = run_timeline_gate(

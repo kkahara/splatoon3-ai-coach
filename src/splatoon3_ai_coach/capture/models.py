@@ -212,7 +212,7 @@ class QualityGateResult(BaseModel):
     package_version: str
     git_sha: str | None = None
     checks: list[GateCheck]
-    # Measurements that never gate a draft contract (continuity, overtime, timing).
+    # Measurements that never gate (continuity, overtime, timing).
     observations: dict[str, Any] = Field(default_factory=dict)
     automatic_verdict: Verdict
 
