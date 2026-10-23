@@ -84,7 +84,9 @@ per pass from `quality/timeline-capture-v1/result.json`, and anything odd.
 No contract, no computer vision. The point is a clean reference.
 
 1. Same package as the timeline capture of the match (same review code).
-2. Playback setting **1x** (normal speed).
+2. Playback setting **1x** (normal speed). Enter top-down mode **before
+   GO** when practical; entering after GO loses about the first 2 seconds
+   of gameplay.
 3. Start recording before GO with the countdown visible; record continuous
    playback through FINISH / 0:00 (or the end of overtime); stop on the
    results screen. No pausing, seeking or speed changes.
