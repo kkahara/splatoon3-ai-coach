@@ -44,15 +44,29 @@ class TeamColorCalibrationResult:
     opponent_h: float
     separation_degrees: float
     calibrated_at: float
+    accepted_frame_ids: tuple[str, ...] = ()
+    accepted_frame_times: tuple[float, ...] = ()
+    accepted_ally_hues: tuple[float, ...] = ()
+    accepted_opponent_hues: tuple[float, ...] = ()
+    roster_visibility_basis: str | None = None
     source: str = _SOURCE
 
-    def to_dict(self) -> dict[str, float | str]:
+    def to_dict(self) -> dict[str, object]:
         """JSON-friendly payload for ``match_identity.json``."""
         return {
             "ally_h": round(self.ally_h, 1),
             "opponent_h": round(self.opponent_h, 1),
             "separation_degrees": round(self.separation_degrees, 1),
             "calibrated_at": round(self.calibrated_at, 3),
+            "accepted_frame_ids": list(self.accepted_frame_ids),
+            "accepted_frame_times": [
+                round(value, 3) for value in self.accepted_frame_times
+            ],
+            "accepted_ally_hues": [round(value, 1) for value in self.accepted_ally_hues],
+            "accepted_opponent_hues": [
+                round(value, 1) for value in self.accepted_opponent_hues
+            ],
+            "roster_visibility_basis": self.roster_visibility_basis,
             "source": self.source,
         }
 
@@ -64,6 +78,23 @@ class TeamColorCalibrationResult:
             opponent_h=float(payload["opponent_h"]),  # type: ignore[arg-type]
             separation_degrees=float(payload["separation_degrees"]),  # type: ignore[arg-type]
             calibrated_at=float(payload["calibrated_at"]),  # type: ignore[arg-type]
+            accepted_frame_ids=tuple(
+                str(value) for value in payload.get("accepted_frame_ids", [])
+            ),
+            accepted_frame_times=tuple(
+                float(value) for value in payload.get("accepted_frame_times", [])
+            ),
+            accepted_ally_hues=tuple(
+                float(value) for value in payload.get("accepted_ally_hues", [])
+            ),
+            accepted_opponent_hues=tuple(
+                float(value) for value in payload.get("accepted_opponent_hues", [])
+            ),
+            roster_visibility_basis=(
+                None
+                if payload.get("roster_visibility_basis") is None
+                else str(payload["roster_visibility_basis"])
+            ),
             source=str(payload.get("source") or _SOURCE),
         )
 
@@ -121,6 +152,9 @@ class TeamColorCalibrator:
     _ally_frame_h: list[float] = field(default_factory=list)
     _opp_frame_h: list[float] = field(default_factory=list)
     _accepted_times: list[float] = field(default_factory=list)
+    _accepted_frame_ids: list[str] = field(default_factory=list)
+    _accepted_ally_hues: list[float] = field(default_factory=list)
+    _accepted_opponent_hues: list[float] = field(default_factory=list)
     _result: TeamColorCalibrationResult | None = None
 
     @classmethod
@@ -155,13 +189,22 @@ class TeamColorCalibrator:
         return self._result is not None
 
     def observe(
-        self, image: np.ndarray, video_time: float
+        self,
+        image: np.ndarray,
+        video_time: float,
+        *,
+        roster_visible: bool = False,
+        evidence_id: str | None = None,
     ) -> TeamColorCalibrationResult | None:
-        """Sample one frame; return the result when first latched, else ``None``.
+        """Sample a roster-visible frame; return the result when first latched.
 
+        ``roster_visible`` is positive detector evidence, not a timing
+        assumption. Without it the frame cannot contribute to calibration.
         After latch, later calls are no-ops and return ``None``.
         """
         if self._result is not None:
+            return None
+        if not roster_visible:
             return None
         if video_time < 0.0 or video_time > self.window_seconds:
             return None
@@ -181,6 +224,9 @@ class TeamColorCalibrator:
         self._ally_frame_h.append(ally.h_median)
         self._opp_frame_h.append(opp.h_median)
         self._accepted_times.append(float(video_time))
+        self._accepted_frame_ids.append(evidence_id or f"frame@{video_time:.3f}")
+        self._accepted_ally_hues.append(ally.h_median)
+        self._accepted_opponent_hues.append(opp.h_median)
         if len(self._accepted_times) < self.min_accepted_frames:
             return None
 
@@ -192,6 +238,11 @@ class TeamColorCalibrator:
             opponent_h=opp_h,
             separation_degrees=circular_hue_distance(ally_h, opp_h),
             calibrated_at=calibrated_at,
+            accepted_frame_ids=tuple(self._accepted_frame_ids),
+            accepted_frame_times=tuple(self._accepted_times),
+            accepted_ally_hues=tuple(self._accepted_ally_hues),
+            accepted_opponent_hues=tuple(self._accepted_opponent_hues),
+            roster_visibility_basis="player_count.roster_visible",
             source=_SOURCE,
         )
         logger.info(

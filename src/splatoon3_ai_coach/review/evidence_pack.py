@@ -186,6 +186,8 @@ def _side_limitations(ds: ReviewTimelineDataset) -> list[Limitation]:
                 "on scenery before the roster HUD (alignment v2 failure)",
             )
         ]
+    if source == "gameplay_color_roster_gated":
+        return []
     return [
         Limitation(
             code="side_operator_declared",
@@ -565,4 +567,8 @@ def team_identity_block(ds: ReviewTimelineDataset) -> TeamIdentityBlock:
         bottom_hue=identity.bottom_color,
         ally_row=identity.ally_row,
         side_source=identity.source,
+        side_provenance=identity.side_provenance,
+        side_evidence_ids=list(identity.side_evidence_ids),
+        side_evidence_times=list(identity.side_evidence_times),
+        side_provenance_reason=identity.side_provenance_reason,
     )

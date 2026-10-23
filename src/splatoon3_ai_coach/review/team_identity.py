@@ -52,9 +52,14 @@ def resolve_team_identity(
     gameplay_analysis_dir: Path | None = None,
     ally_row: Literal["top", "bottom"] | None = None,
 ) -> TeamIdentity:
-    """Resolve ally row from existing gameplay calibration, then CLI fallback."""
+    """Resolve ally row from roster-gated gameplay calibration, then CLI fallback."""
     calibration = _load_gameplay_calibration(gameplay_analysis_dir)
-    if calibration is not None and top_h is not None and bottom_h is not None:
+    if (
+        calibration is not None
+        and calibration.roster_visibility_basis == "player_count.roster_visible"
+        and top_h is not None
+        and bottom_h is not None
+    ):
         top_distance = circular_hue_distance(calibration.ally_h, top_h)
         bottom_distance = circular_hue_distance(calibration.ally_h, bottom_h)
         margin = abs(top_distance - bottom_distance)
@@ -64,7 +69,13 @@ def resolve_team_identity(
                 top_color=top_h,
                 bottom_color=bottom_h,
                 ally_row=resolved,
-                source="gameplay_color",
+                source="gameplay_color_roster_gated",
+                side_provenance="roster_gated_calibration",
+                side_evidence_ids=list(calibration.accepted_frame_ids),
+                side_evidence_times=list(calibration.accepted_frame_times),
+                side_provenance_reason=(
+                    "ally row resolved from roster-visible gameplay calibration"
+                ),
             )
     if ally_row is not None:
         return TeamIdentity(
@@ -72,8 +83,16 @@ def resolve_team_identity(
             bottom_color=bottom_h,
             ally_row=ally_row,
             source="cli",
+            side_provenance="operator_declared",
+            side_provenance_reason="ally row supplied by the operator",
         )
-    return TeamIdentity(top_color=top_h, bottom_color=bottom_h)
+    return TeamIdentity(
+        top_color=top_h,
+        bottom_color=bottom_h,
+        side_provenance_reason=(
+            "ally row unknown because roster-gated gameplay calibration is absent"
+        ),
+    )
 
 
 def _load_gameplay_calibration(

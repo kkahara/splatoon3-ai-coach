@@ -243,7 +243,20 @@ class TeamIdentityBlock(EvidenceBlock):
     top_hue: float | None = None
     bottom_hue: float | None = None
     ally_row: Literal["top", "bottom"] | None = None
-    side_source: Literal["gameplay_color", "cli", "unknown"] = "unknown"
+    side_source: Literal[
+        "gameplay_color",
+        "gameplay_color_roster_gated",
+        "cli",
+        "unknown",
+    ] = "unknown"
+    side_provenance: Literal[
+        "roster_gated_calibration",
+        "operator_declared",
+        "unknown",
+    ] = "unknown"
+    side_evidence_ids: list[str] = Field(default_factory=list)
+    side_evidence_times: list[float] = Field(default_factory=list)
+    side_provenance_reason: str | None = None
 
 
 class ReviewEvidencePack(BaseModel):

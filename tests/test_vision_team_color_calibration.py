@@ -16,6 +16,7 @@ from splatoon3_ai_coach.config.models import (
 from splatoon3_ai_coach.media.video import VideoFrame
 from splatoon3_ai_coach.vision.map_ink import MapInkClassifier
 from splatoon3_ai_coach.vision.match_intro import MatchIdentityTracker
+from splatoon3_ai_coach.vision.models import DetectorResult, PlayerCountReading
 from splatoon3_ai_coach.vision.pipeline import (
     MapInkScanContext,
     _maybe_calibrate_team_colors,
@@ -88,13 +89,24 @@ def _calibrator(**overrides: object) -> TeamColorCalibrator:
     return TeamColorCalibrator(**kwargs)  # type: ignore[arg-type]
 
 
+def _roster_detection(identifier: str = "pc") -> DetectorResult:
+    """Positive roster-icon visibility evidence for one calibration frame."""
+    return DetectorResult(
+        id=identifier,
+        detector_name="player_count",
+        detector_version="test",
+        confidence=0.9,
+        reading=PlayerCountReading(roster_visible=True),
+    )
+
+
 def test_a_synthetic_hud_latches_h11_h119_separation_108() -> None:
     """Case A: ally≈11 / opp≈119 latch; shortest circular separation ≈72°."""
     cal = _calibrator()
     frame = _synthetic_hud(11, 119)
-    assert cal.observe(frame, 2.0) is None
-    assert cal.observe(frame, 2.5) is None
-    result = cal.observe(frame, 3.0)
+    assert cal.observe(frame, 2.0, roster_visible=True, evidence_id="pc-1") is None
+    assert cal.observe(frame, 2.5, roster_visible=True, evidence_id="pc-2") is None
+    result = cal.observe(frame, 3.0, roster_visible=True, evidence_id="pc-3")
     assert result is not None
     assert abs(result.ally_h - 11.0) <= 2.0
     assert abs(result.opponent_h - 119.0) <= 2.0
@@ -102,6 +114,8 @@ def test_a_synthetic_hud_latches_h11_h119_separation_108() -> None:
     assert abs(result.separation_degrees - 72.0) <= 2.0
     assert result.source == "ready_hud_timer_adjacent_slots"
     assert result.calibrated_at == pytest.approx(3.0)
+    assert result.accepted_frame_ids == ("pc-1", "pc-2", "pc-3")
+    assert result.roster_visibility_basis == "player_count.roster_visible"
 
 
 def test_b_sticky_ignores_post_latch_hues() -> None:
@@ -109,12 +123,12 @@ def test_b_sticky_ignores_post_latch_hues() -> None:
     cal = _calibrator()
     good = _synthetic_hud(11, 119)
     for t in (1.0, 1.5, 2.0):
-        cal.observe(good, t)
+        cal.observe(good, t, roster_visible=True, evidence_id=f"pc-{t}")
     assert cal.is_latched
     latched = cal.result
     assert latched is not None
     weird = _synthetic_hud(60, 100)
-    assert cal.observe(weird, 2.5) is None
+    assert cal.observe(weird, 2.5, roster_visible=True, evidence_id="pc-4") is None
     assert cal.result is latched
     assert abs(cal.result.ally_h - 11.0) <= 2.0
 
@@ -240,7 +254,7 @@ def test_from_configs_uses_ally4_and_opponent1_only() -> None:
     frame = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
     for t in (1.0, 1.5, 2.0):
-        cal.observe(frame, t)
+        cal.observe(frame, t, roster_visible=True, evidence_id=f"pc-{t}")
     assert cal.is_latched
     assert cal.result is not None
     assert abs(cal.result.ally_h - 11.0) <= 2.0
@@ -281,7 +295,7 @@ def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
             frame_index=int(t * 60),
             image=frame_img,
         )
-        _maybe_calibrate_team_colors(map_ctx, vf, [])
+        _maybe_calibrate_team_colors(map_ctx, vf, [_roster_detection(f"pc-{t}")])
 
     assert map_ctx.calibration is not None
     assert clf.calibration is map_ctx.calibration
@@ -317,17 +331,39 @@ def test_pipeline_skips_color_until_ready_seen() -> None:
     )
     frame = _synthetic_hud(11, 119)
     vf = VideoFrame(timestamp=2.0, frame_index=120, image=frame)
-    _maybe_calibrate_team_colors(map_ctx, vf, [])
+    _maybe_calibrate_team_colors(map_ctx, vf, [_roster_detection("pc-ready")])
     assert map_ctx.calibration is None
 
     map_ctx.ready_seen = True
-    _maybe_calibrate_team_colors(map_ctx, vf, [])
+    _maybe_calibrate_team_colors(map_ctx, vf, [_roster_detection("pc-late")])
     assert map_ctx.calibration is not None
 
     map_ctx.calibration = None
     cal2 = _calibrator(min_accepted_frames=1)
     map_ctx.calibrator = cal2
     map_ctx.opening_clock_ticked = True
+    _maybe_calibrate_team_colors(map_ctx, vf, [])
+    assert map_ctx.calibration is None
+
+
+def test_pipeline_requires_roster_visibility_evidence() -> None:
+    """Ready? timing alone cannot authorize team-color calibration."""
+    cfg = MapInkAnalyzerConfig(
+        enabled=True,
+        team_color_calibration_enabled=True,
+        min_accepted_frames=1,
+    )
+    app = load_config(default_config_path())
+    app.vision.map_ink = cfg
+    map_ctx = MapInkScanContext(
+        identity=MatchIdentityTracker(),
+        classifier=MapInkClassifier(cfg),
+        config=app,
+        calibrator=_calibrator(min_accepted_frames=1),
+        ready_seen=True,
+    )
+    frame = _synthetic_hud(11, 119)
+    vf = VideoFrame(timestamp=2.0, frame_index=120, image=frame)
     _maybe_calibrate_team_colors(map_ctx, vf, [])
     assert map_ctx.calibration is None
 
@@ -397,6 +433,27 @@ def test_no_ready_drops_colors_and_map_ink(tmp_path: Path) -> None:
     assert '"team_color_calibration": null' in raw
 
 
+def test_map_ink_stays_disabled_without_roster_gated_calibration(
+    tmp_path: Path,
+) -> None:
+    """Ready? plus stage identity cannot enable map ink without colors."""
+    cfg = MapInkAnalyzerConfig(enabled=True, team_color_calibration_enabled=True)
+    app = load_config(default_config_path())
+    app.vision.map_ink = cfg
+    identity = MatchIdentityTracker()
+    identity.identity.stage_id = "mahi_mahi_resort"
+    map_ctx = MapInkScanContext(
+        identity=identity,
+        classifier=MapInkClassifier(cfg),
+        config=app,
+        ready_seen=True,
+    )
+    _persist_map_artifacts(map_ctx, tmp_path)
+    raw = (tmp_path / "match_identity.json").read_text(encoding="utf-8")
+    assert '"map_ink_enabled": false' in raw
+    assert '"team_color_calibration": null' in raw
+
+
 def test_color_profile_contains_hsv() -> None:
     """ColorProfile soft gates reject low S/V and out-of-band H."""
     profile = ColorProfile(h_center=11.0, h_tolerance=15.0, s_min=70, v_min=40)
@@ -410,6 +467,6 @@ def test_window_rejects_outside_bounds() -> None:
     """Calibration window is strict: only 0 <= t <= window_seconds."""
     cal = _calibrator(window_seconds=60.0, min_accepted_frames=1)
     frame = _synthetic_hud()
-    assert cal.observe(frame, -0.1) is None
-    assert cal.observe(frame, 60.1) is None
-    assert cal.observe(frame, 0.0) is not None
+    assert cal.observe(frame, -0.1, roster_visible=True) is None
+    assert cal.observe(frame, 60.1, roster_visible=True) is None
+    assert cal.observe(frame, 0.0, roster_visible=True, evidence_id="pc-0") is not None

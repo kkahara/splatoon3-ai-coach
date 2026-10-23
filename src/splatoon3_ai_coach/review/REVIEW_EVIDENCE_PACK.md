@@ -85,6 +85,8 @@ row separately. They are diagnostics only and never establish or modify
 
 `side` on special uses comes from `TeamIdentity.ally_row`. Without it, side
 is `unknown` (`side_unknown`). A gameplay-colour ally row is
-`side_from_unvalidated_calibration` (the calibration can latch on scenery
-before the roster HUD, the alignment v2 failure). A declared row is
+`side_from_unvalidated_calibration` (legacy provenance; the calibration can
+latch on scenery before the roster HUD, the alignment v2 failure). A
+roster-gated gameplay calibration carries `side_provenance =
+roster_gated_calibration` and its accepted frame IDs/times. A declared row is
 `side_operator_declared`.

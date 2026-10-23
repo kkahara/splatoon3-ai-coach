@@ -25,6 +25,7 @@ from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     MapOverlayReading,
     MatchIntroReading,
+    PlayerCountReading,
     ReadyReading,
     TimerReading,
 )
@@ -182,8 +183,7 @@ def maybe_calibrate_team_colors(
     video_frame: VideoFrame,
     detections: list[DetectorResult],
 ) -> None:
-    """Sample timer-adjacent HUD hues after Ready? until the clock ticks."""
-    _ = detections
+    """Sample timer-adjacent HUD hues only with positive roster evidence."""
     cfg = map_ctx.config
     if cfg is None or not cfg.vision.map_ink.enabled:
         return
@@ -196,12 +196,34 @@ def maybe_calibrate_team_colors(
         return
     if not map_ctx.ready_seen or map_ctx.opening_clock_ticked:
         return
-    result = calibrator.observe(video_frame.image, float(video_frame.timestamp))
+    roster_evidence = _roster_visibility_evidence(detections)
+    if roster_evidence is None:
+        return
+    evidence_id = roster_evidence[0]
+    result = calibrator.observe(
+        video_frame.image,
+        float(video_frame.timestamp),
+        roster_visible=True,
+        evidence_id=evidence_id,
+    )
     if result is None:
         return
     map_ctx.calibration = result
     if map_ctx.classifier is not None:
         map_ctx.classifier.apply_calibration(result)
+
+
+def _roster_visibility_evidence(
+    detections: list[DetectorResult],
+) -> tuple[str, PlayerCountReading] | None:
+    """Return positive roster-icon evidence from this frame, if present."""
+    for detection in detections:
+        if detection.detector_name != "player_count":
+            continue
+        reading = detection.reading
+        if isinstance(reading, PlayerCountReading) and reading.roster_visible:
+            return detection.id, reading
+    return None
 
 
 def maybe_sample_map_ink(
@@ -249,9 +271,7 @@ def maybe_sample_map_ink(
         cfg.vision.map_ink.geometry_dir,
         stage_id=stage_id,
     )
-    evidence_ids = [
-        d.id for d in detections if d.detector_name == "map_overlay"
-    ]
+    evidence_ids = [d.id for d in detections if d.detector_name == "map_overlay"]
     observation = analyze_map_ink(
         video_frame.image,
         geometry,
@@ -326,7 +346,10 @@ def persist_map_artifacts(map_ctx: MapInkScanContext, output_dir: Path) -> None:
         map_ctx.calibration.to_dict() if map_ctx.calibration is not None else None
     )
     map_ink_enabled = bool(
-        identity.map_ink_enabled and map_ctx.ready_seen and not map_ctx.map_ink_dropped
+        identity.map_ink_enabled
+        and map_ctx.ready_seen
+        and map_ctx.calibration is not None
+        and not map_ctx.map_ink_dropped
     )
     payload = {
         "stage_id": identity.stage_id,

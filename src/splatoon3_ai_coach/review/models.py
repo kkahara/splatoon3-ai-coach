@@ -179,7 +179,20 @@ class TeamIdentity(BaseModel):
     top_color: float | None = Field(default=None, ge=0, lt=180)
     bottom_color: float | None = Field(default=None, ge=0, lt=180)
     ally_row: Literal["top", "bottom"] | None = None
-    source: Literal["gameplay_color", "cli", "unknown"] = "unknown"
+    source: Literal[
+        "gameplay_color",
+        "gameplay_color_roster_gated",
+        "cli",
+        "unknown",
+    ] = "unknown"
+    side_provenance: Literal[
+        "roster_gated_calibration",
+        "operator_declared",
+        "unknown",
+    ] = "unknown"
+    side_evidence_ids: list[str] = Field(default_factory=list)
+    side_evidence_times: list[float] = Field(default_factory=list)
+    side_provenance_reason: str | None = None
 
 
 class ControlSegment(BaseModel):
@@ -319,4 +332,3 @@ class ReviewTimelineDataset(BaseModel):
             if marker.event_elapsed_max is not None
             and marker.event_elapsed_max <= elapsed_seconds
         ]
-
