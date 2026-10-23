@@ -32,8 +32,10 @@ work, and each fix is to be selected and pre-registered separately.
 - The `non_monotonic` check appears inverted.
 - Elapsed/remaining naming is mixed (`elapsed_*` fields hold a remaining
   clock).
-- `review_timeline.json` carries no acquisition provenance (now available
-  from a capture package, but not linked).
+- `review_timeline.json` carries no acquisition provenance. *Update:*
+  `s3-coach capture review-import` now links it through
+  `review_evidence.json` (`review/REVIEW_EVIDENCE_PACK.md`), which also
+  records each limitation above per evidence block.
 - Nothing in `analysis/` or `coach/` consumes timeline evidence.
 
 ## Read-only sanity run of the DRAFT gate (no tuning)

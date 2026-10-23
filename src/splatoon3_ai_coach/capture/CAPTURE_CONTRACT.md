@@ -59,6 +59,11 @@ passes the same gate a manual one does.
       result.json                 # QualityGateResult (never edited)
       samples.json                # every adapter sample of the gate decode
       retained_samples/           # JPEGs the adapter retained
+  derived/
+    review_timeline_import/       # `capture review-import` (Review-owned outputs)
+      review_timeline.json
+      special_use_facts.json
+      review_evidence.json        # review/REVIEW_EVIDENCE_PACK.md
 ```
 
 ## Artifact rules
@@ -85,6 +90,26 @@ passes the same gate a manual one does.
 `null` until it is measured from the recording; it is never assumed from the
 declared setting. There is no top-down computer vision and no top-down
 contract.
+
+## Review import (orchestration only)
+
+`s3-coach capture review-import <package>` runs the existing Review timeline
+import on the `timeline` artifact. Review owns the import and all evidence
+construction (`review/REVIEW_EVIDENCE_PACK.md`); this command only:
+
+- refuses unless the stored `timeline-capture-v1` verdict and the verdict
+  re-derived from `result.json` plus attestations are both `pass`, the result
+  names the artifact's identity, and the stored file still has that identity;
+- calls Review's own entry points into `derived/review_timeline_import/`
+  (an existing import needs `--replace`), passing the battle mode observed
+  by the gate's `intro_identity_observed` check;
+- checks that the imported video identity equals the artifact identity;
+- hands an acquisition record (package, artifact, gate contract and
+  verdict, `result.json` sha256) to the Review evidence pack. A gate result
+  written before the freeze is recorded as `gate_run_before_freeze`.
+
+It never edits `capture_package.json`, artifacts or gate outputs, and adds no
+check to any contract.
 
 ## Contract versioning
 

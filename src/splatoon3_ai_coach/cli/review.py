@@ -9,6 +9,7 @@ from rich.console import Console
 from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.paths import resolve_config_path
 from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
+from splatoon3_ai_coach.review.evidence_pack import write_review_evidence_pack
 from splatoon3_ai_coach.review.special_fusion import write_special_use_facts
 from splatoon3_ai_coach.review.timeline_pipeline import import_timeline
 from splatoon3_ai_coach.review.video_adapter import (
@@ -116,4 +117,23 @@ def special_facts(
     valid = sum(f.integration_valid for f in facts.facts)
     console.print(
         f"{len(facts.facts)} SPECIAL_USE facts ({valid} integration_valid); output: {out}"
+    )
+
+
+@review_app.command("evidence-pack")
+def evidence_pack(
+    import_dir: Path = typer.Argument(..., exists=True, file_okay=False),
+    replace: bool = typer.Option(False, "--replace"),
+) -> None:
+    """Write review_evidence.json beside review_timeline.json (Review clock only)."""
+    try:
+        out, pack = write_review_evidence_pack(import_dir, replace=replace)
+    except (OSError, ValueError) as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    console.print(
+        f"{len(pack.special_uses.entries)} special uses, "
+        f"{len(pack.slot_states.runs)} slot runs, "
+        f"{len(pack.death_markers.markers)} death markers, "
+        f"{len(pack.score_control.seconds)} score seconds; output: {out}"
     )

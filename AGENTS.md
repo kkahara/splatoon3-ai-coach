@@ -247,7 +247,7 @@ input is rewritten.
 
 Contract: `src/splatoon3_ai_coach/capture/CAPTURE_CONTRACT.md`; operator
 procedure: `docs/capture/OPERATOR_CHECKLIST.md`. CLI:
-`s3-coach capture new|add|check|confirm`.
+`s3-coach capture new|add|check|confirm|review-import`.
 
 - `capture/` may reuse `media/`, `vision/` and `review/`; no other stage
   imports `capture/`. `analyze` and the Review timeline importer are
@@ -266,6 +266,23 @@ procedure: `docs/capture/OPERATOR_CHECKLIST.md`. CLI:
   Procedure: timeline opened before GO.
 - `top_down` is experimental collection only (declared playback rate, no CV,
   no contract).
+- `capture review-import` is orchestration and provenance verification only
+  (gate verdict `pass`, artifact identity); Review owns the import and the
+  evidence pack, written under `derived/review_timeline_import/`.
+
+### Review evidence pack
+
+Contract: `src/splatoon3_ai_coach/review/REVIEW_EVIDENCE_PACK.md`.
+`review_evidence.json` collects one import's evidence on the Review remaining
+clock with per-block `validation_status`, machine-readable `limitations`, and
+fact → sample → artifact → capture-package provenance.
+
+- Inclusion never authorizes consumption: ScenarioContext / CoachInput need an
+  explicit consumer allowlist (none exists yet).
+- Slot-state `alive` means no X marker observed; a disconnected slot reads
+  alive. Only X-marker detection is validated.
+- Missing death glyphs are never evidence of no death.
+- No GameEvents, no "user" slot, no interpolation.
 
 ## Coaching evidence contract
 

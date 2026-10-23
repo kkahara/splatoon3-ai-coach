@@ -16,6 +16,7 @@ from splatoon3_ai_coach.capture.models import (
     SourceType,
 )
 from splatoon3_ai_coach.capture.package_io import add_artifact, create_package
+from splatoon3_ai_coach.capture.review_import import run_review_import
 from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.models import VisionLanguage
 from splatoon3_ai_coach.config.paths import resolve_config_path
@@ -122,6 +123,30 @@ def confirm(
     except _ERRORS as exc:
         raise _fail(exc) from exc
     console.print(f"{check_id}: {status.value}; verdict {summary.verdict.value}")
+
+
+@capture_app.command("review-import")
+def review_import(
+    package_dir: Path = typer.Argument(..., exists=True, file_okay=False),
+    artifact_id: str = typer.Option("timeline", "--artifact"),
+    config_path: Path | None = typer.Option(None, "--config"),
+    replace: bool = typer.Option(False, "--replace"),
+) -> None:
+    """Review-import a gate-passing timeline artifact and write its evidence pack."""
+    try:
+        config = load_config(resolve_config_path(config_path))
+        run = run_review_import(
+            package_dir, config, artifact_id=artifact_id, replace=replace
+        )
+    except _ERRORS as exc:
+        raise _fail(exc) from exc
+    pack = run.pack
+    console.print(
+        f"{len(pack.special_uses.entries)} special uses, "
+        f"{len(pack.slot_states.runs)} slot runs, "
+        f"{len(pack.death_markers.markers)} death markers, "
+        f"{len(pack.score_control.seconds)} score seconds; output: {run.pack_path}"
+    )
 
 
 def _print_result(result: QualityGateResult, summary: GateSummary) -> None:
