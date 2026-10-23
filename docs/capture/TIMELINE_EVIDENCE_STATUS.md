@@ -58,6 +58,11 @@ What the observations showed:
   those labels read with lower confidence (about 0.75 against 0.8 or more),
   and a transition frame drops below the 0.55 clock floor (`unclocked`).
   A second pass therefore recovers little (union 13 vs 15/17 per pass).
+  *Update after C1–C3:* the 16–27 figures are pass-window averages that
+  include endpoint dwell. Native traversal is fixed at about 30 clock s per
+  video s, about two frames per clock second at 60 fps, so the recurring
+  misses are a reader-characterization issue, not sweep coverage
+  (`CHARACTERIZATION_LOG.md`).
 - **No duplicated frames during sweeps** in OBS recordings (pixel-identical
   repeat fraction 0.0 while the cursor moves); one dropped frame in one file.
 - **Overtime** was covered in both passes up to `+0:29` with no missing
@@ -80,6 +85,8 @@ What the observations showed:
    existing importer on the same artifact.
 2. From those, decide endpoint rules, the frame-rate window, sweep speed and
    whether continuity needs a slower sweep or a reader change, before
-   freezing anything.
+   freezing anything. (*Update after C1–C3:* sweep speed is fixed by the
+   game and the slow-sweep characterization is retired; continuity is a
+   reader question.)
 3. Then pre-register the colour-robust bottom-row death-glyph fix, the step
    the existing diagnostics name.

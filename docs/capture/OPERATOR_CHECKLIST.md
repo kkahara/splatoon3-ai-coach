@@ -28,9 +28,10 @@ Known-good path: Switch → Elgato Cam Link 4K → OBS Studio, recorded to disk.
 3. Open the match timeline.
 4. Move the cursor to the **left edge** (pre-GO / 5:00, or 3:00 in Turf War)
    and pause about 1 s.
-5. Sweep **right** to the end in one smooth, steady motion. Keep the speed
-   the same on every capture and note how you moved the cursor (stick or
-   d-pad, held or tapped). In overtime, continue to the end of the overtime
+5. Sweep **right** to the end with the stick held, in one continuous
+   motion. The game fixes the traversal speed (about 30 clock seconds per
+   video second; stick tilt does not change it, and the D-pad does not move
+   the timeline cursor). In overtime, continue to the end of the overtime
    section.
 6. Pause about 1 s at the right edge.
 7. Sweep **back to the left edge** the same way and pause about 1 s.
@@ -43,7 +44,7 @@ unset PYTHONPATH
 PKG=<captures-root>/<yyyy-mm-dd>-<nn>
 
 s3-coach capture new "$PKG" --source review_code --code XXXX-XXXX-XXXX-XXXX \
-  --language en --note "cursor: <stick|d-pad>, <held|tapped>; cam link fps: <value>"
+  --language en --note "cursor: stick held; cam link fps: <value>"
 s3-coach capture add "$PKG" "<path to the OBS recording>" --kind timeline
 s3-coach capture check "$PKG"
 ```
@@ -76,8 +77,9 @@ s3-coach review timeline-video-import "$PKG/artifacts/timeline.mov" \
   --out "$PKG/derived/review_timeline_import"
 ```
 
-Record per capture: package path, verdict, sweep speed and missing seconds
-per pass from `quality/timeline-capture-v1/result.json`, and anything odd.
+Record per capture: package path, verdict, the pass-window average
+`clock_seconds_per_video_second` (includes endpoint dwell) and missing
+seconds per pass from `quality/timeline-capture-v1/result.json`, and anything odd.
 
 ## Top-down reference capture (experimental, collection only)
 

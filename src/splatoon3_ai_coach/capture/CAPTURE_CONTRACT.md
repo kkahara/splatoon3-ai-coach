@@ -162,8 +162,11 @@ and the verdict with confirmations.
 
 - **Continuity:** missing regulation seconds (count, ranges, longest run) on
   the outbound pass `[left_at, turn_at]`, on the return pass, in the union of
-  both, and over the whole recording; sweep speed in clock seconds per video
-  second; overtime seconds seen and missing per pass.
+  both, and over the whole recording; `clock_seconds_per_video_second`, a
+  pass-window average that includes endpoint dwell (not native cursor
+  velocity, which C1–C3 measured at a fixed ~30 clock s per video s; see
+  `docs/capture/CHARACTERIZATION_LOG.md`); overtime seconds seen and missing
+  per pass.
 - **Overtime:** whether labels appear, count, maximum, first time, per-pass
   maxima, lowest regulation reading.
 - **Frames:** decoded count, measured fps, maximum frame interval, intervals
