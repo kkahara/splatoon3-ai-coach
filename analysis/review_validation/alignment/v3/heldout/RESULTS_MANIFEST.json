@@ -1,0 +1,321 @@
+{
+  "schema": "alignment-v3-heldout-results-provenance",
+  "schema_version": 1,
+  "created_at_utc": "2026-10-24T06:02:02Z",
+  "note": "Post-opening derived-artifact provenance. The sealed INPUT_MANIFEST.json is not modified; its derived-hash fields stay null by design.",
+  "sealed_input_manifest": {
+    "path": "analysis/review_validation/alignment/v3/INPUT_MANIFEST.json",
+    "commit": "82f4c7ead9c7d1ac3f7e09f59ad1f50d4ac26159",
+    "sha256": "4ed58210fad0c98f3ca7b1125b67cee17561c3d4834c61cbc0483a69384bcdf3"
+  },
+  "frozen_identities": {
+    "implementation_commit": "5e781569e3aa37f917a8edbae4d45d4f37332c27",
+    "amendment_1_commit": "92d5a411b47b164f331077210d30c658e47ab5f1"
+  },
+  "processing_identity": {
+    "git_head": "82f4c7ead9c7d1ac3f7e09f59ad1f50d4ac26159",
+    "working_tree_note": "Uncommitted unrelated changes present during processing: AGENTS.md (docs) and untracked tests/test_architecture_execution_boundary.py; no src/, configs/ or tools/ changes.",
+    "pipeline_version": "3.0.0",
+    "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+    "default_config_file_sha256": "e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a",
+    "alignment_block_sha256": "463787c0d38f1698afda752bd83235b96c5de228182132c481de2e3343efad3f",
+    "review_block_sha256": "98c2bf537caee518ce609812eea509e53fea1e7f4239a72120631e4230325e24",
+    "gate_tool": "tools/diagnostics/review_gameplay_alignment.py",
+    "gate_tool_sha256": "0e23d751013a3892fcdc8373b10f8cc41053fdfe67e7489ef0b7a2646cc324c4",
+    "player_count_detector": "player_count@0.2.0",
+    "commands": [
+      "s3-coach analyze <gameplay> --out analysis/alignment-v3-heldout/<pair> --language en",
+      "s3-coach review timeline-video-import <review> --out analysis/review_validation/alignment/v3/heldout/<pair> --recording-id <pair> --gameplay-analysis-dir analysis/alignment-v3-heldout/<pair>",
+      "python tools/diagnostics/review_gameplay_alignment.py --gate --pair <review_i> <gameplay_i> (x10) --negative-control <review_i> <gameplay_i+1> (cyclic x10) --out analysis/review_validation/alignment/v3/heldout/gate"
+    ],
+    "processing_exit_codes": "all 20 processing steps exited 0; gate run once"
+  },
+  "pairs": [
+    {
+      "pair_id": "pair-001",
+      "input_gameplay_sha256": "5245891d50db01edf378a97ec695f5487aa5da6588c83329802c265b5504787b",
+      "input_review_timeline_sha256": "ea52787206c72a2e28d59fdd445698fdc82e6d43bf008855914476cf2b1ea0b2",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-001",
+      "gameplay_analysis_sha256": "140d2075add0b0a10117d2f2b06c4042ec5d15d05d54ff8476dce299bed865d8",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "93af4d5a712efea47763fc8eade7efedd13838551f8eaab9e93e66e551c60052",
+        "match_identity.json": "680c75e41c65af1af1824aec9961e88353d6d0adf7e726d65be8999287b58244",
+        "scenario_contexts.json": "e8612675cd88791d2afa7a9d4eeb2c96cfee8646344e3cb7795ad90bc38bf9d4",
+        "scenarios.json": "e9a2b0881158403574175e274c16ee56d3bada3044004337eb97830ba07e717b",
+        "scenarios.txt": "dba8c78ce4e3fb28825ffb992f4537612c462dbff7f2e4d5aed5bf923539183a",
+        "vision_manifest.json": "74ba2743199d7a85c1359f7cbf2b683024d46115d2fa3a65dc35066b1574a70f"
+      },
+      "vision_manifest_sha256": "74ba2743199d7a85c1359f7cbf2b683024d46115d2fa3a65dc35066b1574a70f",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "9a9ca7bd48e562c300420ed4b6b2775041fe91769f9412345dee9b8e36fd8813",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "a587425a242643291420770035a933f81ee4b3f9080ecba63734417c61e9f48b"
+      },
+      "match_identity_sha256": "680c75e41c65af1af1824aec9961e88353d6d0adf7e726d65be8999287b58244",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-001",
+      "review_timeline_sha256": "adcaec67df1afd3aad10002cf1dc1828872c8e4d8bc00e0ead92317cb4b32119",
+      "review_import_sha256": "4e3f35d630bead5a33ebc7778be92104ee5ef697a85f025799c6f6ee50c3a019",
+      "review_import_file_count": 537
+    },
+    {
+      "pair_id": "pair-002",
+      "input_gameplay_sha256": "f753d8afe33320d32e31bd89a10505303d05b943694e4fd6161fe13109c47769",
+      "input_review_timeline_sha256": "e78662b486d00309b9b87fb08dfc181a6fe6efefc1b3ae4ace7677b97ab864ff",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-002",
+      "gameplay_analysis_sha256": "32750a68d1050c19a98e8e773e109deae073280912c68b04bf19cb2500dfd59b",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "5a1f9b32e2417469608b8f109ac91341a1e4e2f7a072e536cd6f69a54911a6b8",
+        "match_identity.json": "35696e61be3f21aa79e17fbbf5c64a4dd45393575647851e907077ec0f0c997f",
+        "scenario_contexts.json": "f39bf61abd601422e6ec91c03ef77b4f9c6bbfc7ffb191334610e857690d74cc",
+        "scenarios.json": "7cd9647912f3d185bb8f16d1adfe1114c4eb2502244c28f79cdff88368e389d4",
+        "scenarios.txt": "1f2f47d5fd516274f3f3b0e62dd9c7ea3cf7831062abf482e33cbe757e2d2fd7",
+        "vision_manifest.json": "d914800ec379c4fbb32d525856fe32f0a0d2d335b9b0b3340fa73356a343a90a"
+      },
+      "vision_manifest_sha256": "d914800ec379c4fbb32d525856fe32f0a0d2d335b9b0b3340fa73356a343a90a",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "0880088dc2f7a8a87c649cc9954489a096c4766e1fead1bff00f98c87278128b",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "962e18440d925bb5cce74785b45b1831b04f54eb729f6910fcfb90b64d3b678d"
+      },
+      "match_identity_sha256": "35696e61be3f21aa79e17fbbf5c64a4dd45393575647851e907077ec0f0c997f",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-002",
+      "review_timeline_sha256": "84956a474f81e34751f6bdcfbf3d03f95db2f709c16666f3e0465c31c6fd1c39",
+      "review_import_sha256": "fded293d249f13a4b431a4a59dc8c7905f5b8dbe015d01920bc35b64082b9e89",
+      "review_import_file_count": 865
+    },
+    {
+      "pair_id": "pair-003",
+      "input_gameplay_sha256": "d5c918d7ad4484071c8911e9b274a6b84d9fbfcf07d291f40d24f557ad87d971",
+      "input_review_timeline_sha256": "0001016c6a48ff2bef80d430b02ea9775ae98a4ebe28804b3d38aea541a2a374",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-003",
+      "gameplay_analysis_sha256": "9048885f6aabbee3cd22d277a41129eae6705c1cb2065ed106e1b19eadb5b16a",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "match_identity.json": "06cc6e2465d366b7b15d9849e6d0cb3dce5ab8c28107f1f41d2cf25662bc0e59",
+        "scenario_contexts.json": "0ae443b44e6562f489eb82256a46ad8b84b2135549eadd0d4de7ff2fc4d21498",
+        "scenarios.json": "d7b9a00e688549fcd7bdb6c4413f322ea28a6b51a04afe9084f668c03460fc0c",
+        "scenarios.txt": "c28acd2d1bbb03f4c1c4011370bebeaa82e15e8130e2281fd9d1bf6726d58d5e",
+        "vision_manifest.json": "80c0b7bd1c802137e1c41a3f92db986a8530a7b8fe1a8421e517085302dd51ee"
+      },
+      "vision_manifest_sha256": "80c0b7bd1c802137e1c41a3f92db986a8530a7b8fe1a8421e517085302dd51ee",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "a3f3d5548af3729db4d7618bcbe34a7201d0b8021e3e5500387ee212c093531c",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "dc4484e194494540d1cb8eb91ec97585e605a58634f11ca6e977b625bbc57466"
+      },
+      "match_identity_sha256": "06cc6e2465d366b7b15d9849e6d0cb3dce5ab8c28107f1f41d2cf25662bc0e59",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-003",
+      "review_timeline_sha256": "f11cefc35bb797f1c2cd17298bd66584e74c699067d46251bc83533aa40968ff",
+      "review_import_sha256": "99b40fdb18eb91252d5ff7683d63b48ce2c29dae608eff4fcf8651001726f1d9",
+      "review_import_file_count": 881
+    },
+    {
+      "pair_id": "pair-004",
+      "input_gameplay_sha256": "eef74c2a2e37653fc9185aaaafdcccaeb854432d9251598300173a27578822ee",
+      "input_review_timeline_sha256": "ae027d17bbebab276f8f4b653638a2c964a5515f06ac4cbb9ad9222307486d65",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-004",
+      "gameplay_analysis_sha256": "7111a96ce687dc9169b9e4649c4e70504341f49ab387f81cff57b12d138eaec3",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "match_identity.json": "8bb0d225af0d8cfeeffa0872912cdfc1e927e4eb11af59ae34c8928ff9da46be",
+        "scenario_contexts.json": "57eedbb498767fdd26f24a9c71e2c754d50a2c7b0528a646f35e50d296a256d2",
+        "scenarios.json": "9028d371f4e0354835022d421df831219e3aac1fdfeb479ca9dd370f62d83c92",
+        "scenarios.txt": "8af0683150a999fd5b320f7d333d30d792a26c1adf58ef86ba9a7103c71671c9",
+        "vision_manifest.json": "6ed600917e8df365b2283ae0301fd059fc536a42bd738554f1bdbf893cf8eb28"
+      },
+      "vision_manifest_sha256": "6ed600917e8df365b2283ae0301fd059fc536a42bd738554f1bdbf893cf8eb28",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "97f683cb6177398ba16e86127530477d06616ab99306c45224d36667b705bbf2",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "0cee6a28f01b08dbff7caed8144fc16e282f686b209b0cbafe60e23b839a5b01"
+      },
+      "match_identity_sha256": "8bb0d225af0d8cfeeffa0872912cdfc1e927e4eb11af59ae34c8928ff9da46be",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-004",
+      "review_timeline_sha256": "a839a693a7f2878c3ca4e2c2e6151564ad55015a4bcb3b6a474df4414c6e3316",
+      "review_import_sha256": "d2aef8d736bab76bf9d43722836aa091b9028dc59a40899e00b4f9f6140519a3",
+      "review_import_file_count": 879
+    },
+    {
+      "pair_id": "pair-005",
+      "input_gameplay_sha256": "5aa2979c68ae28518435c4d281a02d85f5e7dba3401b9f57711087a6bf34c2a3",
+      "input_review_timeline_sha256": "dedf14f428f51cea9014b8c8017bee40441c724af18b1ab8fa52b7210ad30eba",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-005",
+      "gameplay_analysis_sha256": "386d0c91a3ee26d3a350aa5efdb1ce2554f5f8c7810056bcdf7575bc72cabe93",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "e71b0c638e62a5947d69cc74c0d0ef961b4d14e01f4da06c8101574cae61afcf",
+        "match_identity.json": "550a497a663bfa8acc3d1caee2d0238d41fb25344d3a3fe97fcb5f4f31b876f3",
+        "scenario_contexts.json": "d9cc97eb3f07a418f7e8c090ab18e3967d0e921276b8b765f290911fb5d51f20",
+        "scenarios.json": "69b62d7a78ad755b2fa5bb2b94e49bdacbe95e9cb77b6ecd16d1d47500234815",
+        "scenarios.txt": "31cff272af18c59c9a717a6acdc860dd628c965f1f0173d368103b64c42ef278",
+        "vision_manifest.json": "a1b31ae2b46b7af3859f654a0f4172ca3bbbbac19923b5a29456ac1f71630c55"
+      },
+      "vision_manifest_sha256": "a1b31ae2b46b7af3859f654a0f4172ca3bbbbac19923b5a29456ac1f71630c55",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "5fadf692bd017c9ebf3f20b9944e2ab1d76abc5d33e2b0706c5ce0e621fe202a",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "15035a60487c0155f15f3d3b779454af19ef8aea0b6f0a944731bc00d3bc8758"
+      },
+      "match_identity_sha256": "550a497a663bfa8acc3d1caee2d0238d41fb25344d3a3fe97fcb5f4f31b876f3",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-005",
+      "review_timeline_sha256": "923da9a501b65aba0c831563898df51d4d1fb566d94ac4f43f370e33499fe422",
+      "review_import_sha256": "e6653fbdb8e4767c99609c5a8ccc90cf471db65bc9cd00ca98c8608728fbe53d",
+      "review_import_file_count": 882
+    },
+    {
+      "pair_id": "pair-006",
+      "input_gameplay_sha256": "b4facbbb7b00e668e1aaeba233aa3c70c77024bc574ca029d66756aebbc6ba75",
+      "input_review_timeline_sha256": "612d5386fd687b074c8e4ce379224ac848d219c942cd1cc0b8d4bafe1ccb36d1",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-006",
+      "gameplay_analysis_sha256": "3ec4f26f710705886506d3d09e6edf793e7423817ef92b4d792c18d4e08ca554",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "97564d1365ac4b5383dd07e0c88218e94d69bc351000c0953cfd134abc7e0092",
+        "match_identity.json": "32de2f94ac1247e9b13132f527e920cbbbe0af2ac9cb31113ee5cec0bfb2f748",
+        "scenario_contexts.json": "bfc921d8841bca665599107888c49922c42907534f2030d4928da7a006693f87",
+        "scenarios.json": "886f4525f09883c62d4641004259f0b9ec3b610850a316b48e067543351ad292",
+        "scenarios.txt": "b5939e572a21af109250e8e9bcbb56da5469ce5b6da3634860e2f97d54da8b01",
+        "vision_manifest.json": "ecc739ed289aaff615ddbdbe0c99f198590fd53c8da73007310aeb992e07737f"
+      },
+      "vision_manifest_sha256": "ecc739ed289aaff615ddbdbe0c99f198590fd53c8da73007310aeb992e07737f",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "8579b6ecfe522cf8809d8b4f61a151f0d1dae5599d22ecbea6dde946f9981b79",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "8069503351a90d28563eca26fe6515d9ff66ee421cdb2ca8ae5a4bd265c41d43"
+      },
+      "match_identity_sha256": "32de2f94ac1247e9b13132f527e920cbbbe0af2ac9cb31113ee5cec0bfb2f748",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-006",
+      "review_timeline_sha256": "bebe8bdcd1ac47d56dfcd1b48e18d29db637eeeadb5ca443961f635c43ca7bfd",
+      "review_import_sha256": "bb39d4b99f90e18f8641d0cb8afb2b5aeed18c0822e20d241e50a5b41ff7f43f",
+      "review_import_file_count": 875
+    },
+    {
+      "pair_id": "pair-007",
+      "input_gameplay_sha256": "5d1ef79ed5f68dfdfa46af31cb6da14d6272a6706dc5ea417f6f085459828248",
+      "input_review_timeline_sha256": "0c3689cf592a9a3db2e270cb7817f1fcad2e5368a9f2fc90906b07c4c289e66d",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-007",
+      "gameplay_analysis_sha256": "4412d0ad7249debcf837781793720841d5e2c90c29857104a88efdca5eb3dcfc",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "60974572171e954496438c6eaf93acd21e96ab25fe202efdb8a2503886541209",
+        "match_identity.json": "462c0ef96bed7d9ce5bf045e4bed79500471eb04a8bf3ac36aa3e74041758786",
+        "scenario_contexts.json": "bd10b24b2c7619ef3612531f0ee78e848f90fc29a386a8a0aeaf341a3750f581",
+        "scenarios.json": "da9e532d32195ed9c3645a7a9265b7b8d362893d2a9a6f92d6ffe20f873e8927",
+        "scenarios.txt": "f8ccd17b06df7b5f229998716f60cfa5f828f338e689f3f2f3450cf6d756c748",
+        "vision_manifest.json": "7291e28ee969143253f36ae59198bc4d6539f4cb40916eaa5856cc4ad0f0332c"
+      },
+      "vision_manifest_sha256": "7291e28ee969143253f36ae59198bc4d6539f4cb40916eaa5856cc4ad0f0332c",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "ec1a10af76035ac640dba44119f9007a759875a2eadd453289be3d5e4ba660d3",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "11d6ac9a2346102d03da296554d9433b9bcd5cd8df1089f1505842de02c551ae"
+      },
+      "match_identity_sha256": "462c0ef96bed7d9ce5bf045e4bed79500471eb04a8bf3ac36aa3e74041758786",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-007",
+      "review_timeline_sha256": "5198356f35ffef0790826eefff04a1ed63bf5b4f99259f4f97a344b9ae1828c7",
+      "review_import_sha256": "fc7a1c145c9cdfdc01bd981913e365f3e7945176c20b32189b44d59071db2e36",
+      "review_import_file_count": 665
+    },
+    {
+      "pair_id": "pair-008",
+      "input_gameplay_sha256": "df70e578a551f9696111b9f22e71bfd083255f34a878f897a6f38e88438659fb",
+      "input_review_timeline_sha256": "b3b5cf5aab0c8c56acc468115e294c0f600873192307aae6deb5291cd0c4ce67",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-008",
+      "gameplay_analysis_sha256": "d84a86596a0d93330ba4661a360b90063ffcf5b3980ca85d0165a5f14ce974ce",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "ead73203108e54f97a43983f7967bede7946a5acc73a442b836df2643b27fb2d",
+        "match_identity.json": "7af17626ce2d7fa1d6cf7d227e0e379e13c0c64fdec792e39f8427ebeaa56303",
+        "scenario_contexts.json": "0a8d6ca21afca70502fadd07e875a1893562a92ad31fdc12139617aea15d08ca",
+        "scenarios.json": "b62a21c93c67821a4d6549d153b85d5cb5b3f43e0e34c96b770d010eb8b5487b",
+        "scenarios.txt": "b29026e6cad2d4d0455523cad4cf11d8ac2aa5b7a5da7811a9b74d1e6d2b8d25",
+        "vision_manifest.json": "967f6a8a1dcdcc5c8d3664b01aedb1466b565cacfc5d0a7ca2e78172362cc675"
+      },
+      "vision_manifest_sha256": "967f6a8a1dcdcc5c8d3664b01aedb1466b565cacfc5d0a7ca2e78172362cc675",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "4675a7b2e33ed01fc53509fd54d6d143d313b38a774753d38eb0a5bb83e440fd",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "9a552d3ac7cead8ab04cad4125daebb1a91fe7b1ada28417abad2c5165b7446e"
+      },
+      "match_identity_sha256": "7af17626ce2d7fa1d6cf7d227e0e379e13c0c64fdec792e39f8427ebeaa56303",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-008",
+      "review_timeline_sha256": "bc7c3a251555ce8df5b05b5ad2d47a0f6f26fa86cac3e799201ac89effada326",
+      "review_import_sha256": "4e6ba81b6bb5c0e062a676d09f77e28fda2ff82196ad281038bd0cb9edd58fba",
+      "review_import_file_count": 884
+    },
+    {
+      "pair_id": "pair-009",
+      "input_gameplay_sha256": "9ab50c48ab0e602db6e72babb67ada695e07165bf8f8141c3d6435462845f788",
+      "input_review_timeline_sha256": "bd70a51c5ba3a8cc9c023bff36a06dbf4a09e3979cb1c010969d0f25109a50ac",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-009",
+      "gameplay_analysis_sha256": "8a1034b5a885dcf05bf0c02fe4f9c59faf0dd3e53afd7256200bfa9802dc1809",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "f77ac87a9fe9db2a635994b4163085d9e70edc2555832dc32c20ab5691c48ee3",
+        "match_identity.json": "1ed109d55c0b4d8984671586525152c6b18ce0bbf464054c860b1701643b8f97",
+        "scenario_contexts.json": "5dd44d5bfd3d10a32b2633ce62663611d84b1eab7a11abdf65dc5318f60f97d9",
+        "scenarios.json": "7749a0218a67104926a349dfee16633b4d6a319103461b16f4ebd1ca4acd5228",
+        "scenarios.txt": "009bbc9ed43182806423467630b1231a47487a0c220daf30e7fd56b296bd2e75",
+        "vision_manifest.json": "7261d2c97b862772ca7a66337926f733d314dc9bd2c547077639c27904c0d82e"
+      },
+      "vision_manifest_sha256": "7261d2c97b862772ca7a66337926f733d314dc9bd2c547077639c27904c0d82e",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "187639f6506bbf1db0958ea09d3f0bb12d19c137f3dae44188a07b6547fc9425",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "1785678b72deb40ad449446f8e902aa268756dd1d86133e78edfbaa1e1855c75"
+      },
+      "match_identity_sha256": "1ed109d55c0b4d8984671586525152c6b18ce0bbf464054c860b1701643b8f97",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-009",
+      "review_timeline_sha256": "379b503f98b85316ea837ec0711d435e3be8e571505ff6b62dce8b98ae859cd7",
+      "review_import_sha256": "2d5b1bfe81154ac09dd4615a630203d8d76d73107a18e2238a15418d9c535f10",
+      "review_import_file_count": 569
+    },
+    {
+      "pair_id": "pair-010",
+      "input_gameplay_sha256": "91b9cc7592315d2007f23558b920a63560bb798c49f2797aabc0ae0a09ceb6fc",
+      "input_review_timeline_sha256": "45b1f4a8f5cabad5fc8a26477377ccda5fd63021392b5924f3735c2be6212d1a",
+      "gameplay_analysis_dir": "analysis/alignment-v3-heldout/pair-010",
+      "gameplay_analysis_sha256": "36d1c134cfd97a97e0c59f0bda59242c76a1ef789728e94f21972663a446b1b0",
+      "gameplay_analysis_files_sha256": {
+        "map_observations.json": "a68f3c6f43f3294c64dd941e208360a4dbc4e41341274d03a5d2e87e45463d5a",
+        "match_identity.json": "b44303d3dee0d08c6840e304334e053fb1c1ff1e36a3240da8a113cebccb73c4",
+        "scenario_contexts.json": "a089c9386c362620d9de87536c5c1288f081111c389a4b81f464851b376a2f4c",
+        "scenarios.json": "da8562f4bd56edb36704ab01956d18a84df853563c24d29d153b4322e176a1cd",
+        "scenarios.txt": "fab89d7593d857520fbe9f8229901be3627997aa8bbc32c84a117140a9c3063f",
+        "vision_manifest.json": "3a4390020a41e1c67eb1754f56dabd9e2e56d89c894a864180cec6a46c935d41"
+      },
+      "vision_manifest_sha256": "3a4390020a41e1c67eb1754f56dabd9e2e56d89c894a864180cec6a46c935d41",
+      "vision_manifest_analysis_identity": {
+        "analysis_id": "2b21c44782615459656614e40c479455ce8e2a890d2cd45933d4d09aede24bae",
+        "git_sha": "82f4c7e",
+        "pipeline_version": "3.0.0",
+        "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+        "video_identity": "a31edf5dcc38cfabd29b6337576ccfc66b14fe4958360c4c2def200cef0a3d51"
+      },
+      "match_identity_sha256": "b44303d3dee0d08c6840e304334e053fb1c1ff1e36a3240da8a113cebccb73c4",
+      "review_import_dir": "analysis/review_validation/alignment/v3/heldout/pair-010",
+      "review_timeline_sha256": "8f4c4dfb1147a5c7a75141f252bbba7bd6d82a96198f087ddaa67296e47424b1",
+      "review_import_sha256": "c21eb14acae593dae716db3e97d53b9d3de9e01d87ea57b5bb2ae50cfb7ee26a",
+      "review_import_file_count": 875
+    }
+  ],
+  "gate_outputs_sha256": {
+    "alignment_tuning.json": "dec03f24582e1ea13c617267d7851d6c20563f056238971c34fc76c9b3453f0a",
+    "alignment_tuning.md": "2c5339d35216ef586c90eaf54623cd67185ff959cddfbab4367f85202f0a9fdc",
+    "gate.json": "3f11fd0fe99d44620249f4c8a3b4107b16442c392d156ad143225046d16a1402",
+    "gate.md": "22569ddf8cce8b1131e3a3ff60b7e6b36cfd6632a57a493eb871ab923f8b20af"
+  }
+}
