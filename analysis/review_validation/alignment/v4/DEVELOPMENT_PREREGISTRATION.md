@@ -710,3 +710,194 @@ Any single violation eliminates the candidate (step 1).
   amendment. Their edges and fits were not read.
 - Any further implementation-time ambiguity stops work for another
   amendment. No value here may be adjusted after a fixture result is seen.
+
+## Amendment 2 — Track A1 bounded post-`in_match` calibration window (2026-10-24)
+
+### What was frozen, what changes, why
+
+**Frozen at `ad9edfa` (Track A, "Precise semantics"):**
+
+- A frame is phase-eligible only when fused `match_phase` is `"in_match"`.
+- `in_match` is entered on the first non-opening timer observation.
+- The Ready? search window keeps "sampling stops after `opening_clock_ticked`
+  as today".
+- Calibration is allowed only in the intersection of (Ready? window open) and
+  (phase-eligible).
+
+**Proven contradiction (read-only reachability check; no media, fixture or
+outcome used):**
+
+- In the production update `update_ready_gate_from_detections`, the same
+  non-opening timer observation does two things on the same pass:
+  - it steps `MatchPhaseFuser`, which calls `_enter_in_match` and sets
+    `match_phase = "in_match"`;
+  - it sets `opening_clock_ticked = True`.
+- Both read the same opening set, `vision.lifecycle.opening_clock_seconds`.
+- The fuser is never stepped again once the tick is set.
+- `cadence_scan` runs that update before `maybe_calibrate_team_colors` on
+  every frame.
+- So `match_phase == "in_match"` implies `opening_clock_ticked`, and the
+  conjunction `match_phase == "in_match" && !opening_clock_ticked` is
+  unreachable.
+- A1 eligibility was therefore empty for every input. The preregistered test
+  "first non-opening tick → phase `in_match` → latch allowed" was
+  unreachable.
+- The contradiction lies in the frozen semantics themselves, not only in the
+  implementation.
+
+**What changes:** only the end of the calibration window. Phase semantics,
+`in_match` entry, Ready? semantics and calibrator knobs are unchanged.
+
+**Why:** to preserve the original safety intent while making A1 reachable.
+That intent is that calibration must never use Ready?/pre-match evidence as
+though gameplay has begun.
+
+The uncommitted A1 working-tree changes predate this amendment. They must not
+be resumed or extended under these semantics until separately authorized.
+
+### Preserved (normative)
+
+- `in_match` entry must follow the frozen `MatchPhaseFuser` semantics
+  exactly. Phase semantics must not be redefined to make calibration
+  reachable.
+- `opening_clock_ticked` keeps its meaning: the opening frozen-clock period
+  has ended. It still stops the Ready? search, and it still triggers the
+  existing drop path when Ready? was not seen.
+- `ready_seen` must be true for any calibration sample.
+- Calibration must never sample in `intro`, `opening_countdown`,
+  `out_of_match`, or any other pre-`in_match` phase.
+- `TeamColorCalibrator` rules are unchanged: geometry, window,
+  `min_accepted_frames`, hue separation, S/V gates, spread, and the immutable
+  latch.
+
+### Qualifying A1 entry observation (normative)
+
+The qualifying A1 entry observation is the raw, unsmoothed timer detection
+on a frame that meets all of these:
+
+- it is encountered in scan order;
+- its confidence is `>= vision.timer.min_usable_confidence` (0.50);
+- its timer value satisfies the frozen `MatchPhaseFuser` condition for
+  legitimate `in_match` entry.
+
+Smoothed, held, synthesized, or below-floor timer values cannot themselves
+qualify as the A1 entry observation, and cannot open the A1 calibration
+window. The post-scan fused phase in `vision/state.py` must not be consulted
+for A1 calibration.
+
+### Bounded post-`in_match` calibration window (normative)
+
+Let `t0` be the video time of the frame carrying the qualifying A1 entry
+observation.
+
+- The window opens only after legitimate production-path entry into
+  `in_match`.
+- It is the closed interval `[t0, t0 + 3.0]` seconds of scan/video time. The
+  entry frame is eligible, and so is a frame at exactly `t0 + 3.0`.
+- A frame is a calibration candidate only if all of these hold:
+  - `ready_seen`;
+  - the window is open;
+  - the frame time lies in `[t0, t0 + 3.0]`;
+  - roster-visible evidence is present on the frame;
+  - it meets the existing calibration evidence requirements.
+- `opening_clock_ticked` no longer ends eligibility.
+- The window closes immediately on a successful calibration latch.
+- It closes when the 3.0 s bound expires, meaning the first frame with time
+  `> t0 + 3.0`.
+- It must not reopen during that match, in particular:
+  - on later non-opening timer reads;
+  - after timer gaps;
+  - after any fuser return to `in_match`.
+- 3.0 s is a fixed design value (provenance category 5). It was supplied by
+  the reviewer and was not chosen or tuned from any pair outcome. At the
+  frozen 2 fps cadence, the window contains at most 7 cadence frames.
+
+### Fail-closed behavior (normative)
+
+- If no qualifying calibration latches within the window, the match has no
+  calibration: `ally_row = unknown` and no map ink.
+- Existing downstream behavior for unavailable calibration is unchanged and
+  stays fail-closed.
+
+### Evidence exclusion (normative)
+
+- Tests may construct state combinations that production cannot reach. An
+  example is manually setting `match_phase="in_match"` while
+  `opening_clock_ticked` is false, as in the existing hand-built context
+  test.
+- Such tests may exercise a local function only. They must not be counted as
+  evidence of production reachability or of A1 success.
+
+### Reachability criterion (normative; added to Track A development success)
+
+A1 cannot pass solely because all relevant cases remain unknown. Both of the
+following are required:
+
+1. A synthetic frame sequence driven through the real production call order
+   must latch after legitimate `in_match` entry, with no hand-set phase or
+   tick state. The call order is the `cadence_scan` per-frame order: the
+   Ready-gate update with the real `MatchPhaseFuser`, then calibration.
+2. At least one successful calibration latch must occur among the complete,
+   already-declared seven-recording Track A development corpus.
+
+No particular recording is designated in advance or selected retrospectively
+as the required successful case. All seven are evaluated under the same
+frozen amended semantics. Individual recordings may remain
+unknown/fail-closed, but zero latches across all seven fails A1
+reachability.
+
+### Track A success language (amended)
+
+- **Criterion 3 ("Historical seven replays")** is amended:
+  - "Documented unknown with fail-closed semantics" remains an acceptable
+    result for an individual recording.
+  - An implementation that never reaches calibration is not an A1 success.
+  - Criterion 3 is satisfied only together with the reachability criterion
+    above.
+- **Criterion 6 (new)** is the reachability criterion above.
+- Criteria 1, 2, 4 and 5 are unchanged.
+
+### Regression requirements (normative; replace the A1 items in "Track A tests")
+
+Tests must cover at minimum:
+
+1. Ready?/pre-match roster evidence is rejected.
+2. Opening/frozen-clock frames are rejected.
+3. The legitimate first non-opening timer observation, qualifying as defined
+   above, establishes `in_match`.
+4. A qualifying roster-visible frame within the following 3.0 s window can
+   latch calibration through the production call path.
+5. A qualifying frame after the 3.0 s window cannot latch.
+6. The window cannot reopen.
+7. A timer misread or smoothing artifact must not create an alternate
+   calibration path inconsistent with the legitimate production `in_match`
+   transition. This includes:
+   - below-floor non-opening reads;
+   - smoothed, held or synthesized values;
+   - any post-scan fused phase.
+8. Failure to calibrate remains fail-closed for map-ink use.
+
+The remaining "Track A tests" items stay in force:
+
+- missing Ready? → unknown end state;
+- missing stage → map ink disabled;
+- provenance includes phase at accepted frames;
+- immutable latch after success.
+
+Provenance must additionally record:
+
+- `t0`;
+- the window bounds;
+- the window close reason (`latched` or `expired`);
+- phase-ineligible and out-of-window rejection reasons.
+
+### Disclosures
+
+- This amendment does not change phase semantics. Under the frozen fuser, a
+  single usable non-opening timer misread during the frozen clock still
+  enters `in_match` and would open the window. This residual risk is
+  disclosed, not addressed here.
+- No development or held-out media, pair outcome, fixture or candidate
+  result was inspected while drafting. No parameter was chosen or tuned from
+  pair outcomes.
+- Track B (Amendment 1) is unchanged.
