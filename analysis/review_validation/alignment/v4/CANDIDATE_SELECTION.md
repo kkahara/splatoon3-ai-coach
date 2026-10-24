@@ -42,7 +42,10 @@ model versus Candidate B2 robust latent clock fit.
 Rationale: pair-009 shows adjacent half-second populations where
 maximum-overlap count selection truncates the consistent regulation span. B1
 and B2 are the two principled replacements that do not introduce pair-specific
-tolerances. The winner is chosen only by the preregistered comparison rule in
+tolerances. Each candidate has absolute qualification criteria declared before
+comparison. The outcome may be B1, B2, neither, or a preregistered
+tie/simplicity result when both qualify without a material difference. The
+outcome is chosen only by the preregistered comparison rule in
 [`DEVELOPMENT_PREREGISTRATION.md`](DEVELOPMENT_PREREGISTRATION.md), not by
 inspecting v3 held-out outcomes.
 
@@ -56,10 +59,11 @@ cross-modal match fingerprint; C3 shared event-landmark fingerprint.
 
 **Invariant:** Provenance binding establishes acquisition and package
 integrity only. It is not proof that gameplay and Review media depict the same
-match. Empirical media-identity evidence is evaluated separately with its own
-unknown semantics. The frozen v3 structural alignment gate vocabulary is
-unchanged; Track C does not retroactively reject or accept v3 negative-control
-examples.
+match. `provenance_integrity`, `empirical_media_identity`, and
+`structural_compatibility` are separate evidence dimensions, each with
+appropriate support/pass, contradiction/fail, and unknown/not-available
+semantics. The frozen v3 structural alignment gate vocabulary is unchanged;
+Track C does not retroactively reject or accept v3 negative-control examples.
 
 ## Next authorized phase after review
 

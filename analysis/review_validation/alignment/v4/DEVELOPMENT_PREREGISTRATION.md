@@ -143,9 +143,12 @@ Report per recording/fixture:
 All must hold on the declared development corpus before Track B implementation
 competes:
 
-1. **pair-010 regression:** no calibration accepted from frames that are not
-   fused `in_match` under A1 rules applied to committed v3 pair-010 evidence
-   (frame_results / match_identity / postmortem chain).
+1. **pair-010 regression:** presentation/transition evidence is rejected as
+   authoritative calibration evidence, while later calibration from
+   independently qualifying `in_match` evidence remains permitted. If no such
+   evidence appears, the result remains fail-closed. Apply A1 rules to the
+   committed v3 pair-010 evidence (frame_results / match_identity /
+   postmortem chain).
 2. **pair-003/004 regression:** remain `unknown` when Ready? or stage/mode
    evidence is absent; no fail-open latch from diagnostic bypass paths.
 3. **Historical seven replays:** historical-side consistency `7/7` or
@@ -213,16 +216,29 @@ Apply **identical** fixture sets to both candidates:
 - ambiguous-fit flag (explicit abstention);
 - list of excluded edges (B2) or rejected populations (B1).
 
+**Absolute qualification criteria (fixed before comparison):**
+
+- A candidate must calibrate every non-ambiguous reference fixture without
+  pair-specific slack.
+- A candidate must return `unknown` for true discontinuity, insufficient
+  evidence, and unresolved competing fits.
+- A candidate must not produce a confident fit when its continuity/domain
+  evidence is inadequate.
+
 **Selection rule (fixed now):**
 
-1. Prefer candidate(s) that calibrate on all **non-ambiguous** reference
-   fixtures without inventing pair-specific slack.
-2. Among those, prefer higher regulation-span coverage on pair-009-**like**
+1. Eliminate any candidate that fails an absolute qualification criterion.
+2. If both candidates qualify, prefer higher regulation-span coverage on
+   pair-009-**like**
    adjacent-population fixtures (span top closer to true regulation endpoint
    in the fixture definition).
 3. If still tied, prefer lower `inconsistent_edge_share` on those fixtures.
-4. If still tied, declare **no winner**; require amendment (B3 or revised
-   criteria) before either enters production.
+4. If neither candidate qualifies, select **neither** and require amendment
+   before either enters production.
+5. If both qualify without a material difference, use the preregistered
+   tie/simplicity rule: choose the simpler candidate only if simplicity was
+   independently documented before comparison; otherwise select **neither** and
+   require amendment.
 
 **Forbidden:** choosing B1 or B2 because it reproduces v3 pair-009 pass/fail;
 adjusting jitter, population penalties, or overlap weights after seeing v3
@@ -230,8 +246,10 @@ held-out aggregate.
 
 ### Track B development success
 
-- Pair-009-like fixtures: selected span includes regulation endpoint within
-  fixture ground truth; ambiguous cases return `unknown`, not forced calibrate.
+- Pair-009-like fixtures: select the supported population when the
+  preregistered continuity/domain evidence is sufficient; otherwise return
+  ambiguous/`unknown`, never a confident fit from inadequately supported
+  evidence.
 - v1/v2 reference fixtures: no regression vs documented tuning expectations
   except where this preregistration explicitly documents a intended fix.
 - Unit tests pin population scoring, ties, discontinuity, and abstention.
@@ -241,21 +259,21 @@ Existing suite anchor: `tests/test_alignment.py`,
 
 ## Track C — integrity and identity reporting (not core gate change)
 
-### Distinct statuses (required fields in future alignment outputs)
+### Independent evidence dimensions (required in future reporting)
 
-| Status | Meaning |
-|---|---|
-| `provenance_integrity` | Declared pair membership, package/review-code binding, sealed artifact hashes consistent |
-| `empirical_media_identity` | Independent media-derived evidence that recordings depict the same match |
-| `structural_compatibility` | Existing mode/overtime/coverage/clock-domain checks (`PairCheck`) |
-| `unknown` | Insufficient or conflicting evidence for the above |
+| Dimension | Support/pass | Contradiction/fail | Unknown/not available |
+|---|---|---|---|
+| `provenance_integrity` | Declared pair membership, package/review-code binding, and sealed artifact hashes are consistent | Binding or artifact identity conflicts | Required provenance is missing |
+| `empirical_media_identity` | Independent media-derived evidence supports the same-match claim | Independent evidence contradicts the same-match claim | Evidence is insufficient, unavailable, or ambiguous |
+| `structural_compatibility` | Existing mode/overtime/coverage/clock-domain checks are compatible | Existing structural checks report incompatibility | Required structural inputs are missing or unusable |
 
 **Rules:**
 
 - Intact provenance **does not** imply same-match identity.
 - Missing provenance → `provenance_integrity = unknown`; not automatic reject.
 - Same-mode, clock-compatible unrelated pairs (007×008 class) may remain
-  structurally consistent with `empirical_media_identity = unknown`.
+  `structural_compatibility = support` while
+  `empirical_media_identity = unknown`.
 - Missing gameplay mode/stage metadata → explicit unknown/unusable for identity
   fingerprints; never silently consistent.
 
@@ -281,7 +299,7 @@ These committed v3 artifacts may be used as **regression fixtures** only:
 
 | Fixture | Mechanism tested | Success expectation under development |
 |---|---|---|
-| pair-010 | A: phase validity | No authoritative pre-`in_match` latch |
+| pair-010 | A: phase validity | Presentation evidence rejected as authoritative; later independently qualifying in-match evidence remains usable |
 | pair-009 | B: clock populations | Correct span or abstain on replay of edges |
 | pair-003, pair-004 | A: fail-closed | Remain unknown without Ready?/identity |
 | 003×004, 004×005, 007×008 controls | C: reporting | Structural vs identity statuses documented |
@@ -295,6 +313,8 @@ After development implementation begins:
 
 - do not change thresholds, ROIs, or gate criteria based on v3 held-out
   aggregate results;
+- do not optimize candidate parameters, thresholds, tolerances, weights, or
+  selection rules against aggregate performance across the ten v3 pairs;
 - do not open or acquire fresh v4 held-out media during development;
 - do not substitute pairs or operator declarations;
 - if a bug is found, preserve evidence and stop; fix only under a new
