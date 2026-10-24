@@ -901,3 +901,608 @@ Provenance must additionally record:
   result was inspected while drafting. No parameter was chosen or tuned from
   pair outcomes.
 - Track B (Amendment 1) is unchanged.
+
+## Amendment 3 — Track A criterion 4 correctness reference (2026-10-24)
+
+### What was frozen, what changes, why
+
+**Frozen at `ad9edfa` (Track A development success, criterion 4):**
+
+> 4. **Map ink:** no observations without latched calibration; no regression
+>    on the seven-replay map-ink comparison method from v3 Amendment 1.
+
+The referenced v3 method (`v3/PREREGISTRATION.md`) reads: "verify that map
+observations occur only after roster-gated calibration, no-calibration
+matches produce none, and ally/opponent fractions agree with the independent
+roster-color reference. Report before/after deltas per sample." v3
+Amendment 1 applied it as a before/after identity comparison ("Before/after
+outputs were exactly identical for every case").
+
+**Specification defect:**
+
+- The "independent roster-color reference" was never defined or
+  implemented. No frames, hue procedure or tolerance exist.
+- Its only sketch (`v2/diagnosis/MAP_INK_EXPOSURE.md`) uses in-match
+  roster-icon hues. That is the evidence A1 itself samples, so it is not
+  independent of A1.
+- A1 changes calibration timing by design, so a before/after identity
+  comparison cannot distinguish a regression from a correction.
+- The A1 development evaluation therefore reported criterion 4 as safety
+  PASS, correctness NOT EVALUABLE, overall NOT EVALUABLE.
+
+**What changes:** criterion 4 is split into a safety part (unchanged) and a
+correctness part defined by this amendment. The v3 Amendment 1 before/after
+comparison is retained as descriptive coverage reporting only.
+
+**Why:** to repair the specification prospectively. This amendment does not
+reinterpret any already-observed A1 result and cannot convert the existing
+NOT EVALUABLE into PASS without new, sealed evidence.
+
+### Criterion 4 (amended, normative; replaces criterion 4)
+
+4. **Map ink:**
+   - **4a safety (unchanged):** no map-ink observations without a latched
+     calibration; a match without calibration produces none.
+   - **4b correctness:** the verdict of the evaluation defined in this
+     amendment.
+   - Criterion 4 is PASS only if 4a and 4b are both PASS; FAIL if either is
+     FAIL; otherwise NOT EVALUABLE.
+
+The question 4b answers: did A1 preserve or improve the correctness of
+map-ink classification, relative to the v3-replay calibration, despite
+intentionally changing calibration timing? Coverage changes (which map-open
+moments produce observations) are not correctness and are never counted as
+regression or improvement.
+
+This supersedes Amendment 2's statement that criterion 4 is unchanged.
+Criteria 1, 2, 3 (as amended by Amendment 2), 5 and 6 are unchanged, and so
+is the rule "Failure of any criterion stops escalation to fresh held-out
+work". Track A requires all criteria to hold, so criterion 4 holds only when
+PASS; NOT EVALUABLE does not satisfy it.
+
+The team-identity and point annotations defined below serve 4b only. They
+are not operator ally-row declarations and not ground truth for criterion 3
+or any other criterion; the historical replays still provide no operator
+ground truth for those.
+
+### Preservation semantics (normative)
+
+Any finite sample showing no difference remains consistent with a small
+regression, and no externally justified margin exists (`map.ink` has no
+coaching consumer). 4b therefore recognizes exactly two positive claims:
+
+- **Identity:** A1 and v3 assign identical labels to every candidate pixel
+  of the recording's eligible population (defined below). This is
+  deterministic and label-free.
+- **Demonstrated improvement:** A1 is correct significantly more often than
+  v3 on points where they disagree, under the test below.
+
+Calibrations that differ but are not resolved by either claim are
+INCONCLUSIVE, never PASS. A non-significant result is never evidence of
+preservation.
+
+### Corpus and applicability (normative)
+
+The corpus is the declared seven-recording Track A development corpus.
+
+| Recording | 4b status | Reason |
+|---|---|---|
+| 18-18-00 | correctness-applicable | — |
+| 20-33-31 | correctness-applicable | — |
+| 22-31-53 | correctness-applicable | — |
+| 22-37-47 | correctness-applicable | — |
+| 22-57-30 | correctness-applicable | — |
+| 22-20-42 | safety/coverage only | A1 produced no calibration (accepted fail-closed); correctness undefined |
+| 18-25-16 | safety/coverage only | Production map ink never classifies: `stage_id` resolves to `ealtail_alley`, which has no stage geometry (identical in v3 and A1) |
+
+The media of 22-20-42 and 18-25-16 must not be opened under this amendment.
+Recording is the verdict unit; pixels are never pooled across recordings for
+a verdict.
+
+### Pinned inputs (normative)
+
+Source videos (SHA-256 of the file `en-live-playerview-2026-10-11 <id>.mov`;
+identity is the hash, and the path used is recorded at extraction):
+
+| Recording | Video SHA-256 |
+|---|---|
+| 18-18-00 | `04e9c2799ec385e1c24bcdb9387ad30e75c0b61489d8f74c150568fc4b921f3f` |
+| 20-33-31 | `9390fa05c32bc25fbf957b26f7986ce68dfd3d29f1b678bd5a798128b8cafc4a` |
+| 22-31-53 | `9435ceba6f19beeb1e7d8854926c8af9af2ce610531919b526cc28ebf2a414e6` |
+| 22-37-47 | `7d069efc4d4798bb6d9d0a92c38320d0cd1d97aaf98b4ac5fc3b51e6e098956c` |
+| 22-57-30 | `ffb7636db643aa817e600c0597e0ef71bcf36eb7cd61df370eae89e00f4b9e36` |
+
+Frame-selection metadata: v3-replay `vision_manifest.json` in
+`analysis/en-live-playerview-2026-10-11 <id>/`. These predate A1. Their raw
+`map_overlay` readings were verified identical to the A1 development-run
+manifests.
+
+v3 baseline calibration: v3-replay `match_identity.json`, same directories.
+A1 calibration: A1 development-run `match_identity.json` in
+`analysis/_a1_amendment2_dev/<id>/` (evaluation summary `evaluation.json`,
+SHA-256 `8c769dc4bde8a4b37d240f5fb8019bd513b92045a110d0f1269238344f6a79b6`).
+
+| Recording | v3-replay `vision_manifest.json` | v3-replay `match_identity.json` | A1 `match_identity.json` |
+|---|---|---|---|
+| 18-18-00 | `fcd5b55aaa89b5acfcd028d2a140d1ee45a44011acb55e83e9e856b87dea6429` | `ccb17a920c6bf010def1ede8b64dcb99782d0cc4b9d52b5111a4177c42ee4e57` | `deb3c7dbd65039a48f3b636f29823b019b40b1d59cbcac932705510ec7818193` |
+| 20-33-31 | `783295e27da1f98402d9b91c89e0afabf3a77d54658fbe3a4affbf85bc77ca41` | `0ed0de2707ee19644d1c684e1e1a75b5a52168da524db349856ab0888eea0323` | `d13486ec81bcf4b16dfd0e6d986bbbe8c40238f90b3a96a0253e1f88866ee27d` |
+| 22-31-53 | `c5e5770da8fa1804e4f1be70290765d6e8cb433db89e758513fa19a908b4eeda` | `fee58b967c0f8e914793c0c7d58cf7979d38bcafd4dc52354544d5bf6acf1bf4` | `6adb291f4b77cdd0770387baeefc230b1d87f47656a446b44e4e8f29c196e8c8` |
+| 22-37-47 | `ee913984c71cf53b19ca821fffa4e4122294c5dcc30c862b3bfa95539441acee` | `9b8fdd4fd963c2ee162f0e383cc1f001fcf867fd7bad214e7b4577c5fb3467f2` | `37a853e9e81bdb7d28563412e5915f2354ff2f97fbc5357cd6863ceab7bb853e` |
+| 22-57-30 | `1c68c81f8dd76f4fa3d73ae5ac248592fe294fac086697455c4a6f49cd5b776f` | `a30a6da97053b719ab7e1dc1e220cc9d33f50b60927ba1d50731ab4cb1c0c028` | `ad47138732baa35df2ec5afa80c47258f4b9e1baa8b04dac686d91efabd6c3d3` |
+
+Coverage-only recordings (descriptive inputs, not opened as media):
+
+| Recording | v3-replay `vision_manifest.json` | v3-replay `match_identity.json` | A1 `match_identity.json` |
+|---|---|---|---|
+| 18-25-16 | `7fcabed3387883fd01ec08793843858d22a920d8d1f65112b8bd87a6c34f9002` | `27c3687ddd6ec2f808f2078a5e751b0bd3609917f718e74c7e5d469ada575a3c` | `f3b9a1c15285ddf5d000e7de04d2d835fd01aaea0800d8c0791cb06a48ef157f` |
+| 22-20-42 | `a29a467b3b7d484b21fd6991e1eac410752bf3c87685ab8041de27aedf78f9ef` | `82c11f9b9b907296cfb4398b91df5672b219d7cb70af0e2f458fbbeff65a40c7` | `3b2b1ff2b5a5fad77f8c9b9f33cdda6e773659e4125d7607d59cdb68e769da5c` |
+
+Classifier configuration: `configs/default.yaml` (SHA-256
+`e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a`;
+`vision.map_ink`: `h_tolerance` 15, `s_min` 70, `v_min` 40) and
+`src/splatoon3_ai_coach/vision/map_ink.py` (SHA-256
+`50f0dba3e0e004dc17096cff6d5825a496cd917d03517de00c08402150070ab3`).
+
+Stage geometry (`configs/stage_maps/`):
+
+- `makomart/default.yaml` `ffb3f11d39bec2abb8e976c370c3fea66ab40b3adf1e852ea0c80f7275148ad2`
+- `shipshape_cargo_co/default.yaml` `64ee7e24d9824db005adf0cda55c45345ff706b015095028f9fd0bfd62a781e5`
+- `manta_maria/default.yaml` `4d192e69d981c88d4b0ee9abb9e8869884baeaadcde38a7a34b4364eeeb5b913`
+- `manta_maria/stage_mask.yaml` `f4a4d7a88b65fda9b05aabdb2d0fb50f162f1278997b46810ee54f980b184621`
+- `wahoo_world/default.yaml` `ec9940b9151e8f8574347df6de089df1311fb44c6d0bf374221b5a09eded853a`
+
+A1 implementation working-tree digests at drafting (A1 is not yet
+committed):
+
+- `vision/calibration_window.py` `1ec3929969b073adefd2f11923d88fb06cd716009dbdd0d098eed3649457ebef`
+- `vision/match_side_effects.py` `41b158549eb37bf8b7f084a7ced7ab9da781afd9b6d79abebfe1a95f9c98db08`
+- `vision/team_color_calibration.py` `ab87d07df313044e5d0194b4d0452c0ceca01df2da66643a478d59a18f28ea4d`
+- `vision/cadence_scan.py` `e34adc361a8bd81b224d3fe8be39231f136425be97f516d6b245ee4a680402fd`
+
+Any mismatch with a pinned hash: STOP before opening or processing.
+
+### Frame population and selection (normative)
+
+For each correctness-applicable recording, from its pinned v3-replay
+manifest, a cadence frame is **eligible** when all of these hold:
+
+- its raw `map_overlay` reading has `present == true`;
+- its raw `player_count` reading has `roster_visible == false` (this makes
+  the population disjoint from every A1 and v3 calibration frame and drops
+  map transitions);
+- its fused snapshot has `match_phase == "in_match"`;
+- its time is before the `MATCH_END` event `start_time`, if one exists.
+
+**Intervals:** maximal runs of eligible frames whose consecutive timestamps
+differ by exactly one cadence step (0.5 s). The **eligible population** is
+all frames of all intervals.
+
+**Ordering:** intervals with 2 or more frames first, by start time; then
+single-frame intervals, by start time.
+
+**Stage 1:** K = 8. With M_long long intervals, take K' = min(K, M_long)
+long intervals at indices `floor((j + 0.5) * M_long / K')`, j = 0 … K'−1,
+over the long-interval list. If K' < K, take K'' = K − K' single-frame
+intervals at indices `floor((j + 0.5) * M_single / K'')`, j = 0 … K''−1,
+over the single-frame list of M_single intervals. From each selected
+interval take the frame at index `floor((len − 1) / 2)`.
+
+**Stage 2 (only where triggered, see below):** the remaining unselected
+intervals, ordered the same way, selected by the same two-list procedure
+with K = min(8, remaining). Capacity known from metadata at drafting:
+18-18-00 4, 20-33-31 8, 22-31-53 8, 22-37-47 2, 22-57-30 8.
+
+No frame is selected, replaced or skipped because of its image, labels, A1
+output or v3 output.
+
+### Extraction (normative)
+
+- Decode with the pipeline `VideoLoader`, locate each selected frame by
+  `source_pts`, and verify `source_frame_index`.
+- Write a lossless PNG per frame. Record the video SHA-256, the PNG
+  SHA-256, the decoded-array SHA-256 and the decoder library versions.
+- PNGs are the frozen inputs from then on; frames are never re-decoded for
+  the comparison.
+- The extraction tool must not load any calibration or apply any
+  calibrated classifier.
+
+### Point sampling (normative)
+
+- **Domain:** the production active sample mask (`vision.map_ink._sample_mask`
+  with `resolve_stage_map_geometry(geometry_dir, stage_id, battle_mode_id)`
+  and `resolve_stage_mask(geometry_dir, stage_id)` for the pinned
+  `stage_id` / `battle_mode_id`) intersected with the production candidate
+  gate: OpenCV HSV `S >= 70` and `V >= 40` on the extracted PNG.
+- **Seed:** the first 8 bytes, big-endian, of
+  SHA-256(`"amendment3-points|" + video_identity + "|" + str(source_pts)`),
+  where `video_identity` is the manifest field. Generator:
+  `numpy.random.Generator(numpy.random.PCG64(seed))`.
+- **Draw:** shuffle the row-major flat indices of the domain
+  (`numpy.flatnonzero`) with `Generator.permutation`. Accept points in that
+  order if their Euclidean distance to every accepted point is at least 32 px.
+  Stop at P = 9 accepted points or when the shuffled list is exhausted.
+- **Duplicates:** `ceil(0.10 * N_points)` of the stage's points, chosen
+  without replacement with a seed from SHA-256(`"amendment3-dups|" +
+  point-manifest SHA-256`), each re-presented at least 50 items after its
+  first presentation (at the end of the queue if the queue is shorter).
+  The duplicate count is fixed by this rule and must not be increased.
+
+### Swatches, team identity and consistency (normative; evaluation only)
+
+Three separate concepts. Team identity is an evaluation-side annotation. It
+never enters production calibration, `resolve_team_identity`, Review
+association or A1 processing. No operator-declared ally row is used.
+
+**Neutral swatches (colour reference, no team meaning):**
+
+- At the start of the Stage 1 session, before any point is labelled, the
+  annotator selects one representative pixel from each of the two visually
+  distinct ink colours on that recording's selected map frames.
+- Each selected pixel must meet the frozen swatch-quality requirement of
+  this reference procedure: OpenCV HSV `S >= 70` and `V >= 40`. These are
+  literal constants of this amendment. They are not read from, inherited
+  from or tied to the production classifier configuration, and no later
+  configuration change alters them. The tool rejects a pixel that fails
+  them, and the annotator selects again. The fixed 9×9 neighbourhood of the
+  pixel is used for display only and is never a gate.
+- The two pixels are assigned the identities A and B by a random draw. The
+  draw and its seed are recorded. Once assigned, a recording's A/B identity
+  is immutable for all stages.
+- If the annotator cannot find two visually distinct ink colours, the answer
+  is `cant_tell`. That recording is then NOT EVALUABLE, and its points are
+  never presented.
+
+**Team identity (categorical):**
+
+- The question is: "Which swatch is my team's colour?" The answers are `A`,
+  `B` or `cant_tell`.
+- Cue material: that session's selected map frames and, for each selected
+  interval, the first later cadence frame whose fused
+  `player_lifecycle == "alive"`.
+- Cue order: (1) teammate and own-player icons on the map; (2) the colour
+  the player is visibly firing in the gameplay frames; (3) otherwise
+  `cant_tell`.
+- Each time the question is asked, the on-screen positions of A and B are
+  re-randomized and the draw recorded. Only positions change; A/B identity
+  does not.
+
+**Consistency (no hue comparison, no threshold):**
+
+- Stage 1: the question is asked at the session start (J1), before any
+  point is labelled, and at the session end (J2), after the last point is
+  labelled.
+- Stage 2, if the recording enters it: asked at the Stage 2 session start
+  (J3) and end (J4).
+- No team-identity question may display any earlier answer (J1–J3) or the
+  derived A/B → ally/opponent mapping. Neither may any point-labelling
+  screen. The annotator must not consult the committed records holding
+  them.
+- Team identity is consistent iff every answer given for the recording
+  (J1 and J2; plus J3 and J4 if Stage 2 runs) independently selects the same
+  swatch. Any `cant_tell`, or any disagreement, makes the recording NOT
+  EVALUABLE. At Stage 1 this is final and there is no Stage 2. At Stage 2
+  it makes the recording final NOT EVALUABLE.
+
+### Reference labels, blinding and display (normative)
+
+- **Vocabulary:** `ink_A` (ink of swatch A's colour), `ink_B` (ink of
+  swatch B's colour), `not_ink`, `cant_tell`. Labels carry no team meaning.
+- **Mapping:** applied only by the comparison tool, after the stage's labels,
+  team-identity answers and gate are sealed. The consistently selected
+  own-team swatch's label maps to ally, the other swatch's label to
+  opponent, and `not_ink` to other.
+- **Blinding:** recordings are shown only as random opaque tokens (key
+  sealed separately). Points of all recordings and frames are presented in
+  one shuffled queue. The annotator never sees timestamps, recording names,
+  hue values, classifier overlays, production labels, team-identity answers
+  or the A/B mapping.
+- **Display:** a C×C crop centred on the point (default C = 96), padded with
+  neutral grey (128,128,128) at image borders, shown with integer
+  nearest-neighbour zoom Z (default 4); a crosshair that leaves the centre
+  pixel uncovered. The recording's swatches A and B are shown beside it in
+  fixed positions (A left, B right), each as the 9×9 neighbourhood of its
+  pixel at the same zoom. No brightness, contrast, gamma or colour
+  alteration.
+- **Annotator:** the operator, as the single blinded annotator.
+
+### Judgeability (normative)
+
+- **Point:** a recorded label other than `cant_tell`. A duplicated point
+  counts only if both copies carry the same non-`cant_tell` label; it then
+  counts once. Otherwise, including a missing label, it is unjudgeable.
+- **Frame:** at least 6 of its 9 points judgeable (a frame with fewer than 6
+  drawn points is unjudgeable).
+- **Stage 1 recording:** a valid swatch pair, consistent team identity
+  (J1 = J2) and at least 6 of its 8 Stage 1 frames judgeable. Otherwise
+  final NOT EVALUABLE; no Stage 2.
+- **Stage 2:** the recording needs consistent team identity across J1–J4.
+  Stage 2 is usable only if it adds at least 2 judgeable frames. The final
+  combined sample must have at least 6 judgeable frames; otherwise final NOT
+  EVALUABLE. If Stage 2 adds fewer than 2, the Stage 1 INCONCLUSIVE result is
+  final.
+- **Overall:** at least 4 of the 5 correctness-applicable recordings must be
+  evaluable (not NOT EVALUABLE).
+
+### Duplicate admissibility gate (normative)
+
+The gate tests whether the reference process is admissible. It is not an
+outcome metric. It is computed from recorded labels alone, before any
+comparison of that stage is run.
+
+**Population, frozen before annotation.** No later discretion over
+eligibility or denominator membership is allowed.
+
+- D_s, the duplicate pairs of stage s: every pair produced by the duplicate
+  rule from the stage s point manifest, excluding only pairs of recordings
+  without a valid swatch pair (their points are never presented). That
+  exclusion is fixed when swatches are recorded, before any point label
+  exists.
+- Membership in D_s does not depend on team-identity answers or their
+  consistency (labels are A/B-neutral). Nor does it depend on frame or
+  recording judgeability, recording evaluability, or any comparison result.
+
+**Classification of each pair in D_s, from its two recorded copies:**
+
+| Copies | Numerator (disagreements) | Denominator |
+|---|---|---|
+| same label, not `cant_tell` | no | yes |
+| both `cant_tell` | no | no (uninformative abstention) |
+| one `cant_tell`, one other label | yes | yes |
+| two different non-`cant_tell` labels | yes | yes |
+| either copy has no recorded label | yes | yes |
+
+**Gates:**
+
+- **Stage 1 gate**, over D_1: the upper one-sided 95% Clopper–Pearson bound
+  on numerator/denominator must be at most **0.10**. Otherwise 4b is NOT
+  EVALUABLE and no comparison is computed. A zero denominator fails the gate.
+- **Stage 2 gate**, if Stage 2 runs and before any Stage 2 comparison: the
+  same bound over D_1 ∪ D_2 must be at most 0.10. D_1 pairs keep their
+  Stage 1 classification. If it fails, 4b is NOT EVALUABLE, and every
+  per-recording result already computed at Stage 1, including PRESERVED, is
+  void.
+- Rationale: reliability concerns the reference process, not when its labels
+  were collected. Because the Stage 2 recheck is fixed here in advance, a
+  Stage 2 failure is not retrospective invalidation based on A1 performance.
+- The gate does not estimate a human error rate and enters no threshold or
+  null hypothesis.
+- **Strict practical consequence:** a denominator of at least 29 with zero
+  disagreements is needed even to pass. With about 36 Stage 1 duplicates,
+  one disagreement is expected to fail the gate.
+
+### Comparison (normative)
+
+- For each judgeable point, apply `MapInkClassifier(config.vision.map_ink)`
+  with `apply_calibration(TeamColorCalibrationResult.from_dict(...))` from
+  the pinned A1 and v3 `match_identity.json` respectively, then
+  `classify_bgr` on the PNG at the point.
+- A calibration is correct at a point iff its production class equals the
+  point's mapped reference class (see Mapping).
+- Clusters are judgeable frames (one per selected interval). Per cluster i:
+  b_i = points where v3 is correct and A1 wrong; c_i = points where A1 is
+  correct and v3 wrong; d_i = c_i − b_i.
+- **Identity:** q_all = the fraction of candidate pixels (domain as in point
+  sampling), over all frames of the recording's eligible population, where
+  the A1 and v3 labels differ. Identity holds iff q_all = 0, and holds by
+  construction iff the two calibrations' `ally_h` and `opponent_h` are
+  equal. q_all is computed only after the stage's labels and gate are
+  sealed, and is unaffected by staging.
+- **Sign-flip test:** over the F_nz clusters with d_i ≠ 0, T = Σ d_i;
+  enumerate all 2^F_nz sign vectors e, T* = Σ e_i d_i.
+  p_reg = Pr(T* ≤ T); p_imp = Pr(T* ≥ T); ties included. With F_nz = 0,
+  p_reg = p_imp = 1.
+
+### Assumptions and limitations (normative disclosure)
+
+- **Exchangeability:** selected intervals are assumed separate enough that
+  the signs of their d_i are exchangeable and symmetric about 0 under the
+  null. Spatial correlation within an interval is why the interval, not the
+  pixel, is the test unit.
+- **Selection:** frame and point selection, exclusions, vocabulary,
+  classifier configuration and stopping rules are frozen here, before any
+  label or comparison result exists; otherwise the randomization
+  distribution is invalid.
+- **Reference validity:** annotation that passes the gate is treated as
+  sufficiently accurate to distinguish the classifiers. Duplicate agreement
+  and consistent team identity are not proof of correctness and cannot
+  exclude shared systematic error.
+- **Resolution:** with at most 16 intervals per recording, small or diffuse
+  differences may be unresolvable.
+- **Scope:** conclusions apply only to each recording's sampled map-open
+  population. They do not establish correctness on other maps, setups, game
+  states or fresh v4 held-out media.
+- **Identity:** q_all = 0 proves A1 and v3 label every candidate pixel of
+  the eligible population identically. It does not prove those shared
+  labels correct.
+- Significance levels below are planned conventions conditional on these
+  assumptions, not unconditional false-PASS or false-FAIL guarantees.
+
+### Thresholds, stages and verdicts (normative)
+
+- Regression: one-sided α_R = 0.01 per recording, 0.005 at each look.
+- Improvement: one-sided α_I = 0.05 per recording, 0.025 at each look.
+- Smallest attainable p is 2^−F_nz: regression needs F_nz ≥ 8, improvement
+  F_nz ≥ 6, at a look. Fewer discordant clusters can only be resolved by
+  identity.
+
+Per recording, at each look, in precedence order:
+
+1. applicable judgeability minimums not met: NOT EVALUABLE;
+2. identity: PRESERVED;
+3. p_reg ≤ 0.005: REGRESSED;
+4. p_imp ≤ 0.025: PRESERVED (improved);
+5. otherwise: INCONCLUSIVE.
+
+**Stage 2:** only for Stage 1 INCONCLUSIVE recordings. After Stage 2 labels,
+team-identity answers and the pooled gate are sealed (and only if that gate
+passes), recompute b_i, c_i and d_i over the union of all Stage 1 and Stage 2
+judgeable clusters and apply the precedence once more at the same per-look
+levels. That result is final. There is no third stage.
+
+**Finality:** if no recording is Stage 1 INCONCLUSIVE, Stage 1 results are
+final. Otherwise all Stage 1 results stay provisional until the Stage 2 gate
+passes, and become void if it fails.
+
+**4b verdict:**
+
+- NOT EVALUABLE if the Stage 1 gate fails or the Stage 2 gate fails;
+- otherwise FAIL if any recording is final REGRESSED;
+- PASS if none is REGRESSED, at least 4 recordings are evaluable, and every
+  evaluable recording is final PRESERVED;
+- NOT EVALUABLE otherwise (including any final INCONCLUSIVE recording).
+
+### Descriptive reporting (never part of a verdict)
+
+- pooled pixel accuracies of A1 and v3;
+- per recording: T/N, q_all, F_nz, p_reg, p_imp, judgeable counts;
+- per recording, for A1 and v3: the inversion rate (judgeable points whose
+  mapped reference class is ally or opponent, classified as the opposite
+  team, among those classified as either team). An inversion shared by
+  both is reported as an absolute correctness defect outside criterion 4;
+  an inversion new to A1 surfaces through the regression test;
+- coverage for all seven recordings: eligible frames and intervals, and the
+  stored v3-replay and A1 map-ink observation counts.
+
+### Pilot and firewall (normative)
+
+**Pilot material:** two recordings chosen by this rule before any pilot
+media is decoded (hashing excepted): analysis directories directly under
+`analysis/` that contain `vision_manifest.json`, excluding `_`-prefixed
+directories, `analysis/alignment-v3-heldout/`, `analysis/review_validation/`,
+any directory whose `video_identity` equals one of the seven corpus
+recordings, and any capture package; requiring stage geometry, at least 8
+eligible intervals under the frame rule, and a local source video whose
+identity matches the manifest. Take the two with the lexicographically
+smallest `video_identity`. If a chosen recording is later found to belong to
+any declared corpus or held-out set: STOP.
+
+**Pilot procedure:** the full Stage 1 procedure (selection, extraction,
+points, swatches, team identity, labels, duplicates, gate). No calibrated classifier
+is applied to pilot frames and no pilot comparison is computed.
+
+**May change after the pilot (complete list):**
+
+1. crop size C, within 64–160 px, and zoom Z (integer);
+2. marker shape, colour and thickness; whether a context thumbnail is shown;
+3. layout, key bindings, button order, progress display, break length;
+4. instruction wording and examples, drawn only from pilot material;
+5. wording of the team-cue instructions, not the cue order;
+6. interface bug fixes that leave frames, points and label meanings
+   unchanged, each with a test.
+
+**May not change:** everything else in this amendment, including corpus and
+applicability, pinned inputs, frame population, interval definition, K, the
+ordering and selection formulas, the middle-frame rule, the point domain,
+P, spacing, seeds, duplicate rate and placement, label vocabulary and
+mapping, the swatch procedure (swatch-quality requirement, A/B draw, immutability,
+9×9 display neighbourhood), the team-identity question, cue material, cue
+order and consistency rule, judgeability minimums, the 4-of-5 rule, the gate
+population, classification and 0.10 cap, the classifier and its
+configuration, the comparison, the test, α levels, Stage 2 rules, verdict
+precedence and finality, blinding, display (no pixel alteration) and
+sealing order.
+
+If the pilot shows that a frozen element is unworkable (for example, no
+usable map-icon cue): STOP. A new amendment and a fresh pilot on different
+non-corpus material are required. Corpus material stays untouched.
+
+### Tool authorization (normative)
+
+- This section defines the permitted scope; starting implementation still
+  requires separate authorization.
+- New code only under `tools/diagnostics/map_ink_reference/` (frame
+  selection, extraction, point sampling, annotation interface, gate,
+  comparison, report) with tests under `tests/`.
+- It may call production functions read-only, including module-private
+  helpers named above. It must not modify `src/`, `configs/`, A1 code,
+  A1 tests or any pinned artifact.
+- Tests must show that the extraction and annotation tools neither load nor
+  accept as input any of the following: A1 or v3 calibration hues;
+  `match_identity.json` calibration values; map-ink observations
+  (`map_observations.json`); classifier labels or calibrated classifier
+  output; comparison outcomes. The tests are a static import/AST check of
+  those modules, plus a check of their command-line and public function
+  parameters.
+- The annotation tool also must not display or accept, as input to any
+  question or labelling screen, earlier team-identity answers or the A/B
+  mapping.
+- Only the comparison and report tools may read calibrations or derive the
+  mapping, and only after the stage's labels, team-identity answers and gate
+  are sealed.
+
+### Sealing order and provenance (normative)
+
+Committed records go in `analysis/review_validation/alignment/v4/amendment3/`;
+PNGs and raw labels live in gitignored `analysis/_amendment3/`, identified by
+SHA-256 in the committed records.
+
+1. Preconditions: this amendment committed; the A1 implementation committed,
+   with its commit recorded and its files matching the working-tree digests
+   above (otherwise STOP).
+2. Tools and tests committed; tool commit recorded.
+3. Pilot run; a pilot addendum committed listing only changes from the
+   allowed list (or "none").
+4. Stage 1 frame/point manifest committed before any corpus labelling.
+5. Stage 1 session record committed (swatch pixels, A/B draw, position
+   draws, J1, J2, point labels). Token key committed afterwards. Stage 1
+   gate result over D_1 committed before any comparison.
+6. Stage 1 comparison (mapping, q_all, test) with the committed tool;
+   results committed.
+7. Stage 2, if triggered: Stage 2 manifest committed; Stage 2 session record
+   (position draws, J3, J4, labels) committed; pooled gate over D_1 ∪ D_2
+   committed before any Stage 2 comparison; then, only if it passes, the
+   combined comparison.
+8. Final report with the 4b and criterion-4 verdicts.
+
+### Prohibitions and stop conditions (normative)
+
+- No A1, classifier, configuration or threshold change in response to any
+  Amendment 3 outcome; Amendment 3 outcomes are never used to tune A1.
+- No re-extraction, re-labelling, relabelling of sealed items, extra
+  duplicates, extra stages or alternative tests after sealing.
+- No media of 22-20-42 or 18-25-16; no v3 held-out material; pair-009 stays
+  closed; no fresh v4 held-out material.
+- STOP on any hash mismatch; on a tool defect found after sealing (report;
+  a fix requires an amendment); or on a pilot finding that a frozen element
+  is unworkable.
+
+### Disclosures
+
+- Drafted after A1 development map-ink outcomes were known (calibrations,
+  sample counts, per-sample deltas, and the 22-37-47 hue change). The method
+  was chosen on principle (direct pixel ground truth); no frame, point,
+  recording, threshold or tolerance was chosen from those outcomes.
+- During design only metadata was read: raw `map_overlay` and `player_count`
+  readings, fused `match_phase` / `player_lifecycle`, `MATCH_END`, frame
+  identifiers and dimensions from the v3-replay manifests (A1-run manifests
+  only to confirm identical `map_overlay` readings), and `stage_id` /
+  `battle_mode_id`. No media was decoded; no label exists.
+- The v3 held-out final FAIL and its postmortem predate this
+  preregistration, as for Amendments 1 and 2. No v3 ten-pair aggregate
+  result, and no v3 held-out pair output, was used in drafting. The
+  criterion 4 change addresses the undefined reference, not v3 performance.
+- Newly created team-identity and point labels are evaluation-only
+  annotations created after A1 outcomes were observed. They must never be
+  described as preregistered labels.
+- The single annotator knows aggregate A1 results; blinding limits but does
+  not eliminate this risk. wahoo_world appears in two recordings.
+- Stage 2 team identity (J3, J4) is asked without displaying any earlier
+  answer or the mapping, but the annotator may remember J1/J2, and the
+  Stage 1 comparison records exist by then. Repeated judgements by one
+  person are not statistically independent replications.
+- Revised 2026-10-24 before any label existed. Swatches became neutral A/B
+  colour references. Team identity became a separate categorical question
+  with no hue threshold. The Stage 2 gate became pooled and voids Stage 1
+  results on failure. The gate population was frozen explicitly. No
+  classifier tolerance enters any admissibility rule. The swatch-quality
+  values are frozen literals of this procedure.
+- Recorded, not fixed: the English intro template
+  `calibration/templates/match_intro/en/stages/en-ealtail_alley.png` is
+  misspelled, so English Eeltail Alley matches resolve a `stage_id` with no
+  geometry and receive no map ink.
+- Recorded, not fixed: the operator `--ally-row` fallback in
+  `review/team_identity.py` is a frozen-boundary implementation defect /
+  latent contamination path with no observed contamination demonstrated.
+  This amendment does not use it.
+- Tracks B and C, Amendments 1 and 2, and all other Track A criteria are
+  unchanged.
