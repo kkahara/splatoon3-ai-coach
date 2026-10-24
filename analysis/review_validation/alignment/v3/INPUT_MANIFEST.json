@@ -1,0 +1,282 @@
+{
+  "schema": "alignment-v3-heldout-input-manifest",
+  "schema_version": 1,
+  "created_at_utc": "2026-10-24T05:37:31Z",
+  "status": "sealed_pre_opening",
+  "sealing_note": "Sealed before any held-out file was opened, decoded, probed, imported, analyzed, or inspected. The only access to captured-video bytes was opaque raw streaming SHA-256 computation (shasum -a 256). All acquisition fields are copied from the acquisition-time notes (pair-NNN/acquisition-note.txt) and are not inferred or corrected from filenames, metadata, hashes, or media contents. This manifest is never rewritten; derived hashes belong in a separate post-opening results manifest.",
+  "collection_protocol": {
+    "preregistration": "analysis/review_validation/alignment/v3/PREREGISTRATION.md",
+    "preregistration_commit": "7ad1a158e3f508001dcdade1ab59d07acaaebc7e",
+    "preregistration_sha256_at_sealing": "4fbc93ec8e24fec6db199f5684ff20b6cc9675e5b94f7b8cb3fa663e02b1e1c9",
+    "selection_rule": "consecutive, protocol-based collection; no selection or retention by outcome, apparent side correctness, or recording appearance",
+    "operator_procedure": "docs/capture/OPERATOR_CHECKLIST.md",
+    "operator_procedure_sha256": "3c4999a8743020d2703564cc671d699d4b394528768a65ceab97c61c7b4f325e",
+    "capture_contract": "timeline-capture-v1",
+    "capture_contract_doc": "src/splatoon3_ai_coach/capture/CAPTURE_CONTRACT.md",
+    "capture_contract_doc_sha256": "71d5261673263ab22e58cf838cf1182085061676abf5bed56486e4e13a7f3504",
+    "capture_contract_frozen_tag": "timeline-capture-v1-frozen",
+    "capture_contract_frozen_commit": "6eaeeb3064762251b56dcf9704114d61d374168e",
+    "acquisition_method": "manual Switch replay-code + OBS/Cam Link",
+    "ally_row_declaration": "operator-declared top/bottom at acquisition/pair-declaration time, before any v3 processing or output inspection; used solely as evaluation ground truth"
+  },
+  "frozen_identities": {
+    "implementation_commit": "5e781569e3aa37f917a8edbae4d45d4f37332c27",
+    "amendment_1_commit": "92d5a411b47b164f331077210d30c658e47ab5f1",
+    "pipeline_version": "3.0.0",
+    "vision_config_sha256": "44854d18e1d3544ff647c45ae7a2fb24437bf4fdd4a4073fee2da6425c7906be",
+    "vision_config_note": "vision_config_sha256 as recorded by the development replay; configs/ and src/splatoon3_ai_coach/config/ are unchanged between 7ad1a158e3f508001dcdade1ab59d07acaaebc7e and the implementation commit",
+    "default_config_file_sha256": "e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a",
+    "player_count_detector": "player_count@0.2.0"
+  },
+  "capture_root": "~/Movies/alignment-v3-heldout",
+  "hash_algorithm": "sha256",
+  "hash_method": "opaque raw byte-stream (shasum -a 256); no media-aware access",
+  "pairs": [
+    {
+      "pair_id": "pair-001",
+      "acquisition_note": "pair-001/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-001/en_live_player_RUMN-WLGX-LQQX-07YW_2026-10-23 20-55-16.mov",
+        "sha256": "5245891d50db01edf378a97ec695f5487aa5da6588c83329802c265b5504787b"
+      },
+      "review_timeline": {
+        "relative_path": "pair-001/en_preview_timeline_RUMN-WLGX-LQQX-07YW_2026-10-23 22-08-47.mov",
+        "sha256": "ea52787206c72a2e28d59fdd445698fdc82e6d43bf008855914476cf2b1ea0b2"
+      },
+      "mode_as_recorded": "Turf War",
+      "declared_ally_row": "top",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-002",
+      "acquisition_note": "pair-002/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-002/en_live_player_RSC1-56SG-4JMW-ASQN_2026-10-23 21-05-55.mov",
+        "sha256": "f753d8afe33320d32e31bd89a10505303d05b943694e4fd6161fe13109c47769"
+      },
+      "review_timeline": {
+        "relative_path": "pair-002/en_review_timeline_RSC1-56SG-4JMW-ASQN_2026-10-23 22-17-52.mov",
+        "sha256": "e78662b486d00309b9b87fb08dfc181a6fe6efefc1b3ae4ace7677b97ab864ff"
+      },
+      "mode_as_recorded": "Clam Blitz",
+      "declared_ally_row": "bottom",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-003",
+      "acquisition_note": "pair-003/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-003/en_live_player_REBJ-U9B8-AYD8-V309_2026-10-23 21-51-11.mov",
+        "sha256": "d5c918d7ad4484071c8911e9b274a6b84d9fbfcf07d291f40d24f557ad87d971"
+      },
+      "review_timeline": {
+        "relative_path": "pair-003/en_review_timeline_REBJ-U9B8-AYD8-V309_2026-10-23 23-15-30.mov",
+        "sha256": "0001016c6a48ff2bef80d430b02ea9775ae98a4ebe28804b3d38aea541a2a374"
+      },
+      "mode_as_recorded": "Rainmaker",
+      "declared_ally_row": "bottom",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-004",
+      "acquisition_note": "pair-004/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-004/en_live_player_RYC1-3CEW-6P90-KSF1_2026-10-23 21-28-31.mov",
+        "sha256": "eef74c2a2e37653fc9185aaaafdcccaeb854432d9251598300173a27578822ee"
+      },
+      "review_timeline": {
+        "relative_path": "pair-004/en_review_timeline_RYC1-3GEW-6P90-KSF1_2026-10-23 23-18-48.mov",
+        "sha256": "ae027d17bbebab276f8f4b653638a2c964a5515f06ac4cbb9ad9222307486d65"
+      },
+      "mode_as_recorded": "Tower Control",
+      "declared_ally_row": "top",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [
+        "Review-code spelling differs between recorded filenames: gameplay 'RYC1-3CEW-6P90-KSF1' vs Review timeline 'RYC1-3GEW-6P90-KSF1'. Retained as declared; retention unchanged."
+      ],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-005",
+      "acquisition_note": "pair-005/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-005/en_live_player_RFW6-V9LK-9TS7-NK7Y_2026-10-23 21-37-04.mov",
+        "sha256": "5aa2979c68ae28518435c4d281a02d85f5e7dba3401b9f57711087a6bf34c2a3"
+      },
+      "review_timeline": {
+        "relative_path": "pair-005/en_review_timeline_RFW6-V9LK-9TS7-NK7Y_2026-10-23 23-17-38.mov",
+        "sha256": "dedf14f428f51cea9014b8c8017bee40441c724af18b1ab8fa52b7210ad30eba"
+      },
+      "mode_as_recorded": "Tower Control",
+      "declared_ally_row": "top",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-006",
+      "acquisition_note": "pair-006/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-006/en_live_player_R5AY-2996-FMCK-C829_2026-10-23 21-44-09.mov",
+        "sha256": "b4facbbb7b00e668e1aaeba233aa3c70c77024bc574ca029d66756aebbc6ba75"
+      },
+      "review_timeline": {
+        "relative_path": "pair-006/en_preview_timeline_RSAY-2996-FMGK-C829_2026-10-23 23-16-36.mov",
+        "sha256": "612d5386fd687b074c8e4ce379224ac848d219c942cd1cc0b8d4bafe1ccb36d1"
+      },
+      "mode_as_recorded": "Rainmaker",
+      "declared_ally_row": "bottom",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [
+        "Review-code spelling differs between recorded filenames: gameplay 'R5AY-2996-FMCK-C829' vs Review timeline 'RSAY-2996-FMGK-C829'. Retained as declared; retention unchanged."
+      ],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-007",
+      "acquisition_note": "pair-007/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-007/en_live_play_RFPC-P7PP-M56Y-WFTJ_2026-10-23 23-20-56.mov",
+        "sha256": "5d1ef79ed5f68dfdfa46af31cb6da14d6272a6706dc5ea417f6f085459828248"
+      },
+      "review_timeline": {
+        "relative_path": "pair-007/en_review_timeline_RFPC-P7PP-M56Y-WFTJ_2026-10-23 23-34-23.mov",
+        "sha256": "0c3689cf592a9a3db2e270cb7817f1fcad2e5368a9f2fc90906b07c4c289e66d"
+      },
+      "mode_as_recorded": "Splat Zone",
+      "declared_ally_row": "bottom",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-008",
+      "acquisition_note": "pair-008/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-008/en_live_player_R973-TEYV-7SFE-XFYS_2026-10-23 23-35-38.mov",
+        "sha256": "df70e578a551f9696111b9f22e71bfd083255f34a878f897a6f38e88438659fb"
+      },
+      "review_timeline": {
+        "relative_path": "pair-008/en_review_timeline_R973-TEYV-7SFE-XFYS_2026-10-23 23-42-21.mov",
+        "sha256": "b3b5cf5aab0c8c56acc468115e294c0f600873192307aae6deb5291cd0c4ce67"
+      },
+      "mode_as_recorded": "Splat Zone",
+      "declared_ally_row": "bottom",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-009",
+      "acquisition_note": "pair-009/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-009/en_live_player_RERD-4VOS-1DEV-V4MJ_2026-10-23 21-20-09.mov",
+        "sha256": "9ab50c48ab0e602db6e72babb67ada695e07165bf8f8141c3d6435462845f788"
+      },
+      "review_timeline": {
+        "relative_path": "pair-009/en_review_timeline_RERD-4VOS-IDEV-V4MJ_2026-10-23 23-19-57.mov",
+        "sha256": "bd70a51c5ba3a8cc9c023bff36a06dbf4a09e3979cb1c010969d0f25109a50ac"
+      },
+      "mode_as_recorded": "Rainmaker",
+      "declared_ally_row": "top",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [
+        "Review-code spelling differs between recorded filenames: gameplay 'RERD-4VOS-1DEV-V4MJ' vs Review timeline 'RERD-4VOS-IDEV-V4MJ'. Retained as declared; retention unchanged."
+      ],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    },
+    {
+      "pair_id": "pair-010",
+      "acquisition_note": "pair-010/acquisition-note.txt",
+      "gameplay": {
+        "relative_path": "pair-010/en_live_player_RRYW-1PUTL9G2-R8A3_2026-10-23 21-13-11.mov",
+        "sha256": "91b9cc7592315d2007f23558b920a63560bb798c49f2797aabc0ae0a09ceb6fc"
+      },
+      "review_timeline": {
+        "relative_path": "pair-010/en_review_timeline_RRYW-1PUTL9G2-R8A3_2026-10-23 23-52-46.mov",
+        "sha256": "45b1f4a8f5cabad5fc8a26477377ccda5fd63021392b5924f3735c2be6212d1a"
+      },
+      "mode_as_recorded": "Clam Blitz",
+      "declared_ally_row": "bottom",
+      "protocol_eligible": true,
+      "protocol_violation": "none",
+      "acquisition_anomalies": [],
+      "retained": true,
+      "gameplay_analysis_sha256": null,
+      "vision_manifest_sha256": null,
+      "derived_artifact_status": "not_yet_generated"
+    }
+  ],
+  "composition": {
+    "pairs_total": 10,
+    "pairs_retained": 10,
+    "declared_top": 4,
+    "declared_bottom": 6,
+    "splat_zones_pairs": 2,
+    "splat_zones_pair_ids": ["pair-007", "pair-008"],
+    "mode_distribution_as_recorded": {
+      "Turf War": 1,
+      "Clam Blitz": 2,
+      "Rainmaker": 3,
+      "Tower Control": 2,
+      "Splat Zone": 2
+    },
+    "acquisition_time_violations": 0,
+    "requirements": {
+      "at_least_8_pairs": true,
+      "at_least_3_top": true,
+      "at_least_3_bottom": true,
+      "reasonable_mode_diversity": true,
+      "preferably_at_least_2_splat_zones": true
+    }
+  },
+  "unsealed_research_artifacts_present": {
+    "note": "Top-down recordings present in the capture root but not part of any acquisition pair record. Not hashed, not sealed, not opened. Research-only per the preregistration top-down cross-check; never an alignment or side-gate input.",
+    "files": [
+      "pair-001/en_preview_topdown_RUMN-WLGX-LQQX-07YW_2026-10-23 22-09-43.mov",
+      "pair-002/en_review_topdown_RSC1-56SG-4JMW-ASQN_2026-10-23 22-18-46.mov"
+    ]
+  }
+}
