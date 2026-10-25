@@ -1,0 +1,78 @@
+{
+  "amendment4_commit": "570f188c3a2322c20065b095d740a6ad2538c57a",
+  "code_commit": "c16601f4e12fd93b7b313a06f8fba0a81c2e4d64",
+  "code_sha256": {
+    "src/splatoon3_ai_coach/config/models.py": "bb1b690ef807a06b3455a39bceb07b0138757ac54d33b6c381b11233a05a9f8d",
+    "src/splatoon3_ai_coach/vision/match_intro.py": "f84363f90bdd666d652c52065f481039cd004598a9d9ff86270f17529f51df83",
+    "src/splatoon3_ai_coach/vision/models.py": "2a8d0c4df2271268c0b801e5274a01f6acb4c23c93f508f30f43c45a2954aa37"
+  },
+  "config_sha256": "e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a",
+  "pydantic_version": "2.13.5",
+  "python_version": "3.14.7",
+  "recordings": [
+    {
+      "battle_mode_id": "tower_control",
+      "battle_mode_latched_at": 5.5,
+      "intro_reading_count": 12,
+      "recording": "18-18-00",
+      "stage_id": "makomart",
+      "stage_latched_at": 5.5,
+      "video_identity": "89484c274f14a3bb7f4223af9a0d4354b24d64546448f0dbeb16940c3f2079ae",
+      "video_sha256": "04e9c2799ec385e1c24bcdb9387ad30e75c0b61489d8f74c150568fc4b921f3f",
+      "vision_manifest_path": "analysis/en-live-playerview-2026-10-11 18-18-00/vision_manifest.json",
+      "vision_manifest_sha256": "fcd5b55aaa89b5acfcd028d2a140d1ee45a44011acb55e83e9e856b87dea6429"
+    },
+    {
+      "battle_mode_id": "rainmaker",
+      "battle_mode_latched_at": 0.0,
+      "intro_reading_count": 1,
+      "recording": "20-33-31",
+      "stage_id": "shipshape_cargo_co",
+      "stage_latched_at": 0.0,
+      "video_identity": "95753f4cf697df9e5af61b183b94e47ad7fd02de8a8936e2374ffa6cdbef4872",
+      "video_sha256": "9390fa05c32bc25fbf957b26f7986ce68dfd3d29f1b678bd5a798128b8cafc4a",
+      "vision_manifest_path": "analysis/en-live-playerview-2026-10-11 20-33-31/vision_manifest.json",
+      "vision_manifest_sha256": "783295e27da1f98402d9b91c89e0afabf3a77d54658fbe3a4affbf85bc77ca41"
+    },
+    {
+      "battle_mode_id": "turf_war",
+      "battle_mode_latched_at": 26.0,
+      "intro_reading_count": 53,
+      "recording": "22-31-53",
+      "stage_id": "manta_maria",
+      "stage_latched_at": 26.0,
+      "video_identity": "a5eac11d45894ed47038d2c784ead8ce6810bea880ab69a020e55ce182109722",
+      "video_sha256": "9435ceba6f19beeb1e7d8854926c8af9af2ce610531919b526cc28ebf2a414e6",
+      "vision_manifest_path": "analysis/en-live-playerview-2026-10-11 22-31-53/vision_manifest.json",
+      "vision_manifest_sha256": "c5e5770da8fa1804e4f1be70290765d6e8cb433db89e758513fa19a908b4eeda"
+    },
+    {
+      "battle_mode_id": "splat_zones",
+      "battle_mode_latched_at": 28.0,
+      "intro_reading_count": 57,
+      "recording": "22-37-47",
+      "stage_id": "wahoo_world",
+      "stage_latched_at": 28.0,
+      "video_identity": "19c6f5423c834da483f886ec556a16a4fc4477ec05701cf0e52c8d5c2bc03538",
+      "video_sha256": "7d069efc4d4798bb6d9d0a92c38320d0cd1d97aaf98b4ac5fc3b51e6e098956c",
+      "vision_manifest_path": "analysis/en-live-playerview-2026-10-11 22-37-47/vision_manifest.json",
+      "vision_manifest_sha256": "ee913984c71cf53b19ca821fffa4e4122294c5dcc30c862b3bfa95539441acee"
+    },
+    {
+      "battle_mode_id": "splat_zones",
+      "battle_mode_latched_at": 2.0,
+      "intro_reading_count": 5,
+      "recording": "22-57-30",
+      "stage_id": "wahoo_world",
+      "stage_latched_at": 2.0,
+      "video_identity": "71260da421b6b96fb377b8c00e1917833112cda6e32e5df2b077a203712fd879",
+      "video_sha256": "ffb7636db643aa817e600c0597e0ef71bcf36eb7cd61df370eae89e00f4b9e36",
+      "vision_manifest_path": "analysis/en-live-playerview-2026-10-11 22-57-30/vision_manifest.json",
+      "vision_manifest_sha256": "1c68c81f8dd76f4fa3d73ae5ac248592fe294fac086697455c4a6f49cd5b776f"
+    }
+  ],
+  "rule": "amendment4-intro-latch-v1",
+  "schema": "amendment3-blind-input/v1",
+  "scope": "corpus",
+  "tool_commit": "c16601f4e12fd93b7b313a06f8fba0a81c2e4d64"
+}
