@@ -1506,3 +1506,249 @@ SHA-256 in the committed records.
   This amendment does not use it.
 - Tracks B and C, Amendments 1 and 2, and all other Track A criteria are
   unchanged.
+
+## Amendment 4 — Amendment 3 clarifications (2026-10-24)
+
+### What was frozen, what changes, why
+
+**Frozen:** Amendment 3 as committed at `228e037`.
+
+Implementing the Amendment 3 tooling (uncommitted, synthetic tests only, no
+media) showed points where the sealed text does not uniquely determine
+behaviour. Two were left fail-closed: A3-AMB-1 (source of `stage_id` /
+`battle_mode_id`) and A3-AMB-2 (pilot source video scope). Five
+implementation interpretations were reviewed for any effect on sampling,
+eligibility, statistics or verdicts.
+
+**What changes:** three sealed input records, rulings on those
+interpretations, a non-exposure requirement for annotation state, and
+sealing steps. Amendment 3's corpus, applicability, pinned inputs, frame
+population, selection, point sampling, swatches, team-identity question,
+vocabulary, mapping, judgeability, gate, test, α levels, Stage 2 rules,
+verdict precedence, finality and 4b verdict rules are unchanged. Where
+Amendment 3 is internally inconsistent (identity), this amendment adopts the
+reading given by Amendment 3's own normative definition.
+
+**Why:** no experimental result may depend on an implementation choice.
+Implementation choices are not authority; where the tooling disagrees with
+this amendment, the tooling is changed, with tests, before Amendment 3
+sealing step 2.
+
+### A3-AMB-1: blind-input manifest (normative)
+
+The blind-input manifest is the sole source of `stage_id` and
+`battle_mode_id` for the point-sampling domain and for the pilot geometry
+requirement.
+
+**Prohibited sources:** pixels or decoded media; filenames or directory
+names; any `match_identity.json` (v3 or A1); `evaluation.json` or any other
+calibration artifact; `map_observations.json`; classifier output; labels;
+comparison results.
+
+**Derivation rule `amendment4-intro-latch-v1`:**
+
+1. Read the pinned v3-replay `vision_manifest.json` and verify its hash.
+2. Take every stored detection whose reading has `kind == "match_intro"`,
+   parsed as the production `MatchIntroReading`, in ascending frame
+   `timestamp` order (ties in stored order).
+3. Construct the production `MatchIdentityTracker` with
+   `intro_deadline_seconds` equal to
+   `vision.match_intro.intro_deadline_seconds` of the pinned
+   `configs/default.yaml` (90.0), and call
+   `update(reading, video_time=timestamp)` for each reading, read-only.
+4. `stage_id` and `battle_mode_id` are the tracker's resulting identity.
+
+Production code is the authority for the latch semantics (the same replay as
+`score_fusion.resolve_battle_mode`). No frame is decoded.
+
+**Pinned code identity.** The rule is reproducible only with this code
+(SHA-256 of the file bytes; all unmodified at commit `228e037`):
+
+- `src/splatoon3_ai_coach/vision/match_intro.py`
+  `f84363f90bdd666d652c52065f481039cd004598a9d9ff86270f17529f51df83`
+  (`MatchIdentityTracker`, `MatchIdentity`);
+- `src/splatoon3_ai_coach/vision/models.py`
+  `2a8d0c4df2271268c0b801e5274a01f6acb4c23c93f508f30f43c45a2954aa37`
+  (`MatchIntroReading` and the manifest models that parse stored readings);
+- `src/splatoon3_ai_coach/config/models.py`
+  `bb1b690ef807a06b3455a39bceb07b0138757ac54d33b6c381b11233a05a9f8d`
+  (configuration schema that loads `intro_deadline_seconds`);
+- `configs/default.yaml` as pinned in Amendment 3.
+
+The generator records the repository commit, these file digests, and the
+Python and pydantic versions. A digest mismatch at generation: STOP. These
+files are pinned as-is and must not be modified before the step 2a manifests
+are committed.
+
+**Stop conditions:** a pin or code-digest mismatch; a correctness-applicable
+recording that latches no `stage_id`; a latched `stage_id` without a pinned
+geometry file. A null `battle_mode_id` is allowed and uses the stage default
+geometry, as production does.
+
+**Reproduction check:** the comparison tool re-executes the derivation from
+the pinned v3 manifests with code matching the pinned digests before any
+comparison. Inability to re-execute it, or any difference from the sealed
+values: STOP.
+
+**Schema `amendment3-blind-input/v1`** (corpus instance
+`amendment3/blind_input_manifest.json`; pilot instance
+`amendment3/pilot_blind_input_manifest.json`):
+
+- top level: `schema`, `scope` (`corpus` or `pilot`), `amendment4_commit`,
+  `tool_commit`, `rule` (`amendment4-intro-latch-v1`), `code_commit`,
+  `code_sha256` (path → digest for the pinned code above), `config_sha256`,
+  `python_version`, `pydantic_version`, and for the pilot instance only
+  `pilot_source_manifest_sha256`;
+- per recording: `recording`, `video_identity`, `video_sha256`,
+  `vision_manifest_path`, `vision_manifest_sha256`, `stage_id`,
+  `battle_mode_id`, `stage_latched_at`, `battle_mode_latched_at` (or null),
+  `intro_reading_count`;
+- nothing else: no template scores, hues, calibration values, observations,
+  labels, outcomes or video paths.
+
+**Scope:** the corpus instance covers the five correctness-applicable
+recordings. Coverage-only recordings need no stage identity and are not
+included.
+
+**Blind exposure:** extraction, point-sampling and annotation tools may read
+only this manifest's fields, after verifying its committed hash. The
+annotation interface never displays it; recordings stay token-blinded.
+
+**Sealing point:** generated by the committed tool after Amendment 3 step 2
+and committed before step 3 (step 2a below). Never regenerated; a change
+requires an amendment.
+
+**Post-seal discrepancy report (descriptive only):** after a stage's labels,
+team-identity answers and gate are sealed, the comparison tool checks whether
+`stage_id` / `battle_mode_id` equal the values in the pinned v3 and A1
+`match_identity.json`. Any disagreement is reported prominently as a post-seal
+discrepancy, with both values and the source hashes. It does not alter the
+manifest, domain, labels or any verdict, and is not a stop condition. Pin or
+integrity failures and failure of the reproduction check remain STOP.
+
+### A3-AMB-2: pilot-source manifest (normative)
+
+No tool ever searches the filesystem for videos; tools open only declared
+paths.
+
+`amendment3/pilot_source_manifest.json` (schema
+`amendment3-pilot-sources/v1`) is authored by the operator and committed
+before any pilot media is decoded or hashed for processing. Each entry:
+`analysis_dir` (repo-relative), `video_path`, `video_sha256` (SHA-256 of the
+file bytes), `video_identity` (production `media.video_identity` value),
+`authorization` (literal: "development/pilot media; not evaluation, held-out
+or corpus media") and `declared_by`.
+
+**Prohibited entries:** the seven corpus recordings (by `video_sha256` and by
+`video_identity`); any v3 held-out or fresh v4 held-out media; any capture
+package; `_`-prefixed directories, `alignment-v3-heldout`,
+`review_validation`; the recording made on 2026-10-24 for the short-match /
+timeline observation (not authorized). Held-out exclusion rests on the
+operator's declaration; tools do not open held-out records to check it.
+
+**Checks before any decode:** the file at `video_path` matches both
+`video_sha256` and `video_identity`; the `vision_manifest.json` in
+`analysis_dir` has the same `video_identity`; corpus and directory exclusions
+hold. Any failure: STOP, never a silent skip.
+
+**Selection:** Amendment 3's pilot rule is applied to the declared entries
+only (stage geometry via the pilot blind-input manifest built by
+`amendment4-intro-latch-v1`; at least 8 eligible intervals; verified source
+video). Take the two smallest `video_identity` values. Fewer than two: STOP.
+
+### Rulings on implementation interpretations (normative)
+
+1. **Stage 2 trigger.** With the Stage 1 comparison results, the comparison
+   tool writes `amendment3/stage2_trigger.json` containing only the SHA-256
+   of the Stage 1 comparison record and the sorted ids of the Stage 1
+   INCONCLUSIVE recordings. This is the only comparison-derived input any
+   blind tool may accept. Blind tools verify its committed hash and require
+   the Stage 2 recording set to equal it exactly. Amendment 3's prohibition
+   on other comparison outcomes is unchanged.
+2. **Observation counts (descriptive only):** the number of top-level
+   entries in a directory's `map_observations.json`, reported with the file's
+   SHA-256. Files are pinned below; a mismatch means STOP. Blind tools never
+   read these files.
+3. **Identity:** let N be the number of candidate pixels over all frames of
+   the eligible population. If N > 0, `q_all` = differing pixels / N, and
+   identity holds iff the count of differing pixels is 0. Hue equality is a
+   sufficient condition and a consistency check, not a second necessary
+   condition: if the hues differ and no pixel differs, identity holds
+   (PRESERVED at precedence 2). If N = 0, `q_all` is reported as
+   `undefined`, identity does not hold, and this is not a tool defect; such a
+   recording has no judgeable points and is NOT EVALUABLE at precedence 1.
+4. **Equal hues with differing pixels:** if the stored `ally_h` and
+   `opponent_h` are both equal, N > 0 and any pixel differs, this is a tool
+   defect: STOP and report.
+5. **Criterion 4a:** inputs for all seven recordings are the A1
+   `match_identity.json` (pinned in Amendment 3) and the A1
+   `map_observations.json` (pinned below). Per recording: if
+   `team_color_calibration` is null, pass iff the file has zero entries;
+   otherwise pass iff every entry has `round(video_time, 3) >=
+   team_color_calibration.calibrated_at`. 4a is PASS iff all seven pass,
+   otherwise FAIL. Pin mismatch or unparsable input: STOP. The report tool
+   computes 4a after step 5 and before step 6 (it reads calibration fields,
+   so not earlier) and commits `amendment3/criterion_4a.json` (per recording:
+   calibration present, `calibrated_at`, entry count, earliest observation
+   time, pass/fail). The final report takes 4a only from that record; no
+   operator-supplied 4a is accepted.
+
+Pinned `map_observations.json` (SHA-256):
+
+| Recording | A1 run (`analysis/_a1_amendment2_dev/<id>/`) | v3 replay (`analysis/en-live-playerview-2026-10-11 <id>/`) |
+|---|---|---|
+| 18-18-00 | `eb58f65c4fde629682bc382fba3723eb5de7b6049722fde33a079e4233c04045` | `d770b3dc4bf9357a2ce1b9b0ede673e2b3fabbffa5b870f62236077e200a7df2` |
+| 20-33-31 | `779dd9f05dfb02e1df3dbcd8aaf8100fd9c627a8faf76a84d7708fe01af37353` | `6df10e0e1bacba78db7f495b44c1215c5db620f5284c9a08e7fbe337f7a3f133` |
+| 22-31-53 | `bc647070c5ced03afe75e98457e170f87e1d64ce293e20697bc9a837128d39b3` | `bc647070c5ced03afe75e98457e170f87e1d64ce293e20697bc9a837128d39b3` |
+| 22-37-47 | `add5223303f9beeb94e0f666c856cba569a928748119aacfdadb17477451bb46` | `ccba8e6a40b57641c65015f8ff4d475c04ed8d184d8ca9a6a273b91ddec637aa` |
+| 22-57-30 | `4aaffcdc6ece0ebdeb17146f95d10300bd99b0791cf65b3a443b57036c12b363` | `5dd58be6d9df9efc96538d1b96a9d581f63033254c0c600ff0c4792fb2db1698` |
+| 18-25-16 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| 22-20-42 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` | `0a442f25aff9dd80dc9b85d12d84d683e216bdbbcf3ab4793e61c835a9cf1e32` |
+
+### Annotation state non-exposure (normative)
+
+- Team-identity answers (J1–J4) and the A/B mapping are never returned by any
+  annotation route or API response, rendered, or sent to the browser, at any
+  time, including on session resume.
+- Persistent progress state records, per question, only whether it was
+  answered and its position draw. Answers go to a separate answer record that
+  the annotation server writes but never reads back into a response; they
+  enter the committed session record only at the sealing step (steps 5 and 7).
+- Where practical, the stored answer is an opaque internal form (for example
+  the chosen on-screen position plus its draw id), resolved to `A` / `B` /
+  `cant_tell` only at sealing. No hashing or encryption is required.
+- Tests must show that no route response contains an answer or the mapping.
+
+### Sealing order additions (normative)
+
+- Amendment 3 step 1 additionally requires this amendment committed.
+- **2a** (after step 2, before step 3), in this order: pilot-source manifest,
+  pilot blind-input manifest, corpus blind-input manifest.
+- **5a** (after the step 5 gate record, before step 6): `criterion_4a.json`.
+- **6a** (with the step 6 results, before step 7): `stage2_trigger.json`, if
+  any recording is INCONCLUSIVE.
+- Step 8 reads 4a from `criterion_4a.json` and lists any post-seal
+  stage-identity discrepancy.
+
+### Disclosures
+
+- Drafted after the Amendment 3 tooling was implemented (uncommitted,
+  synthetic tests only). No media was opened, no label exists, no comparison
+  was computed and A1 was not compared.
+- During drafting: the SHA-256 of the fourteen `map_observations.json` files
+  above and of the pinned code files was computed without reading the
+  observation contents; the presence of stored `match_intro` readings in the
+  five pinned v3 manifests was counted without reading their values;
+  production source was read (`match_intro.py`, `match_side_effects.py`,
+  `map_ink.py`, `team_color_calibration.py`, `score_fusion.py`).
+- The 4a rule was written after the A1 development evaluation reported 4a
+  safety PASS, so its result is foreseeable. It operationalizes the sealed
+  4a wording and has no tunable parameter.
+- The identity ruling was made knowing that A1 changed the 22-37-47
+  calibration hue. No `q_all` has been computed for any recording; the ruling
+  follows Amendment 3's normative definition (label identity on every
+  candidate pixel).
+- The Stage 2 trigger lets the annotator infer which recordings were
+  INCONCLUSIVE at Stage 1.
+- Tracks B and C, Amendments 1–3 and all other Track A criteria are
+  unchanged.
