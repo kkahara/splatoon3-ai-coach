@@ -1,0 +1,45 @@
+{
+  "schema": "amendment3-pilot-sources/v1",
+  "entries": [
+    {
+      "analysis_dir": "analysis/amendment5-pilot-REH6-EAV9-NUJ6-C5E6",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_REH6-EAV9-NUJ6-C5E6_2026-10-24 15-07-18.mov",
+      "video_sha256": "00881f5bbde4eaededbe225b5f71b2319105f9c95150c7e036efddf848fec904",
+      "video_identity": "a231d86da401d896d2d8559f634f6b639a7f701c47fa80476ca5782e9b83cc23",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media",
+      "declared_by": "Kenji Kahara"
+    },
+    {
+      "analysis_dir": "analysis/amendment5-pilot-RFIK-MMLC-UURL-UC8F",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RFIK-MMLC-UURL-UC8F_2026-10-24 15-03-41.mov",
+      "video_sha256": "41528f4c8ea5412a98a50796ad6df8d913c43d664b325de48309d4018c8b8d63",
+      "video_identity": "53f11bec2d37c64e26623defabfb80c5f8d632ddaf86f5b96408ffaada67d6e0",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media",
+      "declared_by": "Kenji Kahara"
+    },
+    {
+      "analysis_dir": "analysis/amendment5-pilot-RRTO-V8LC-L095-BUVR",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RRTO-V8LC-L095-BUVR_2026-10-24 23-34-26.mov",
+      "video_sha256": "bcb78f3571800154861fd7259c9a75178a15c1d0845a7ab76b48b01b375caa9a",
+      "video_identity": "b2ab4bd6c2b40cddd55e3f4c39a77511be5d30d3097392164d755a35162f5a23",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media",
+      "declared_by": "Kenji Kahara"
+    },
+    {
+      "analysis_dir": "analysis/amendment5-pilot-RTSO-5GLH-MRT3-UX3P",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RTSO-5GLH-MRT3-UX3P_2026-10-24 22-46-27.mov",
+      "video_sha256": "f2efcf7f17109cd678f696fd4e142dcf7ccdbc760e3d5895ec88c8762f5400d3",
+      "video_identity": "56af203d994783e402f9f4dbbb21d37af2b6c07e6bbf4465504b77d199be8e03",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media",
+      "declared_by": "Kenji Kahara"
+    },
+    {
+      "analysis_dir": "analysis/amendment5-pilot-RYYN-7U9N-1TRB-PEOQ",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RYYN-7U9N-1TRB-PEOQ_2026-10-24 22-38-32.mov",
+      "video_sha256": "754c7a6e0b7a19db33eefaf6d30330b56c0e84199df02782adc063b0d8506d9b",
+      "video_identity": "a8eece5724b44bec8af9d60ed2c12e9a8893e74cce47ae85a24d5bb2277a73bf",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media",
+      "declared_by": "Kenji Kahara"
+    }
+  ]
+}
