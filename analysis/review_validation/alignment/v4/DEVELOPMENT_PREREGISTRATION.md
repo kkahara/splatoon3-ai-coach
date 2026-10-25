@@ -2127,3 +2127,671 @@ follow, unchanged.
   the tool's whole-file pin.
 - No tool or test was changed for this amendment. Tracks B and C,
   Amendments 1–5 and all other Track A criteria are unchanged.
+
+## Amendment 7 — Pilot execution path and execution guards (2026-10-25)
+
+### What was frozen, what changes, why
+
+**Frozen:** Amendments 1–6 as committed at `85d1104`, the Amendment 6 tool
+repair `a350578`, and the sealed records: candidate pool (`29f9f5a`),
+preparation record (`acd6428`), pilot-source manifest (`53a8f58`), pilot
+blind-input manifest (`c16601f`) and corpus blind-input manifest
+(`a1ea2fd`).
+
+Amendment 3 step 3 is "the full Stage 1 procedure (selection, extraction,
+points, swatches, team identity, labels, duplicates, gate)" on the two
+pilot recordings. The committed tooling implements only pilot selection
+(`pilot-select`). Its `plan`, `extract`, `points`, `annotate`, `export` and
+`gate` commands accept only the five correctness-applicable recordings, are
+keyed to the Amendment 3 media pins, and write the corpus Stage 1 record
+paths. Step 3 therefore cannot be completed with the sealed tooling. This
+was found in a read-only procedural review after step 2a was sealed and
+before any step 3 operation. Amendment 3 requires a tool defect found after
+sealing to be fixed only by an amendment.
+
+The same review found two smaller gaps:
+
+- Only `preconditions` and `blind-inputs` run the sealed precondition
+  verifier, although Amendment 6 says "Before any real run, the tooling
+  verifies all of the following".
+- Nothing in the tooling stops corpus Stage 1 work before the step 3 pilot
+  addendum is committed.
+
+**What changes:** a pilot-scoped execution path for step 3 built from the
+existing Stage 1 functions; a separate pilot record namespace; a
+mandatory STOP on a failing pilot gate; at most one post-pilot interface
+commit; a pilot addendum record and its verification; one execution guard
+on every command; a tool identity rule; production dependency pins; the
+meaning of Amendment 3's interface bug fixes; this amendment's entry in the
+authorized execution chain; one authorized tooling repair; and one
+superseded sentence.
+
+**Unchanged:** the five-source pool and every sealed record; the
+`amendment4-intro-latch-v1` rule; the pilot eligibility rule, the minimum
+of 8 eligible intervals and selection of the two smallest `video_identity`
+values among eligible declared sources; stage geometry; frame population,
+intervals and selection; extraction; point sampling, seeds and the
+duplicate rule; swatches, the team-identity question, cue material and cue
+order; vocabulary, blinding and display rules; the gate population,
+classification and 0.10 cap; no calibrated classifier on pilot frames and
+no pilot comparison; the allowed post-pilot change list; the
+unworkable-frozen-element STOP; and all corpus Stage 1 and Stage 2,
+comparison, criterion, threshold, verdict and non-exposure rules.
+
+**Why:** to make the already-preregistered pilot executable before any
+pilot information is observed, without redesigning it.
+
+### Pilot record namespace (normative)
+
+- Committed pilot records: `analysis/review_validation/alignment/v4/amendment3/pilot/`
+  (P below).
+- Working pilot output (gitignored): `analysis/_amendment3/pilot/` (W
+  below): PNGs in `W/frames/<recording>/`, session state in
+  `W/session_stage1/`.
+- Corpus records and working output keep their Amendment 3/4 paths. No
+  pilot command writes outside P and W. No corpus command reads or writes
+  inside them.
+- Every pilot record carries `"scope": "pilot"`. Pilot readers require it;
+  corpus readers reject any record that carries it. Corpus record formats
+  are unchanged.
+- A pilot recording id is its analysis directory name, as in the pilot
+  blind-input manifest. Corpus commands keep their fixed recording choices
+  and exact-set checks.
+- No pilot record is regenerated. A pilot command whose output already
+  exists: STOP.
+- Committing a pilot record does not authorize inspecting its substantive
+  contents. Contents are read only by the tooling, at the steps that need
+  them. The operator sees only what the exposure lines below allow.
+
+### Shared semantics (normative)
+
+Every scientific step of the pilot calls the function the corpus Stage 1
+path calls: `select_pilot`; `build_frame_plan` (with `purpose="pilot"`);
+`extract_recording`; `sample_stage_points` and `duplicate_point_ids`;
+`AnnotationSession`, `serve` and the annotation page;
+`export_session_records`; and the `stage_pairs` / `evaluate_gate` logic. The
+repair may move the scope-specific parts of `pipeline_blind` (records
+directory, working directory, recording set, source identity, stage
+identity source, prerequisites) into a scope object. Corpus behaviour stays
+unchanged.
+
+Complete list of pilot–corpus differences:
+
+1. **Recordings:** exactly the two `chosen` recordings of the sealed pilot
+   selection, in that order (corpus: the five correctness-applicable
+   recordings).
+2. **Source identity:** `vision_manifest_path`, `vision_manifest_sha256`,
+   `video_sha256` and `video_identity` from the sealed pilot-source and
+   pilot blind-input manifests, which equal the preparation record (corpus:
+   Amendment 3 media pins).
+3. **Video path:** the declared `video_path` of the sealed pilot-source
+   manifest; there is no `--video` option (corpus: an operator-supplied
+   path verified against the pin).
+4. **Stage identity:** the sealed pilot blind-input manifest (corpus: the
+   corpus blind-input manifest).
+5. **Stage 1 only:** no Stage 2 or trigger; no judgeability or evaluability
+   computation; no mapping, classifier, comparison, `q_all`, criterion 4a,
+   verdict or report. The plan's `stage2_interval_indices` are computed by
+   the shared function and never read.
+6. **Plan purpose:** `"pilot"`.
+7. **Paths and the `scope` field,** as above.
+8. **Batching:** `pilot-plan` and `pilot-extract` take no recording
+   argument and process both chosen recordings in selection order (corpus:
+   one command per recording).
+9. **Pilot selection record:** committed (previously working output).
+10. **Pilot gate consequence:** a failing pilot gate is a mandatory STOP,
+    with no correctness or criterion verdict consequence (below).
+11. **Pilot addendum:** as below.
+
+### Pilot execution chain (normative)
+
+Commands run as `../../.venv/bin/python -m map_ink_reference <command>`
+from `tools/diagnostics/`. Every command first passes the execution guard.
+"Sealed" means committed and unmodified. Commit groups G1–G6 are defined in
+the sealing order below.
+
+1. **Selection:** `pilot-select` (no options).
+   - Inputs: the three step 2a records; each declared source's
+     `vision_manifest.json` and video (hashing only, no decode); the seven
+     corpus manifests (identity only); exactly as now.
+   - Output: `P/pilot_selection.json`, the existing selection payload
+     (`pilot_source_manifest_sha256`, `declared`, `chosen`, `tool`) plus
+     `scope`. Committed in G1.
+   - Prerequisite: step 2a sealed in order.
+   - STOP: the existing declared-source, hash and binding checks; fewer
+     than two eligible sources.
+   - Exposure: the file holds, per declared source, stage, mode, eligible
+     interval count and eligibility, and the two chosen recordings. The
+     console shows only the output path and its SHA-256.
+2. **Frame plans:** `pilot-plan` (no options).
+   - Inputs: the sealed selection; each chosen recording's vision manifest,
+     verified against its pilot blind-input `vision_manifest_sha256`.
+   - Output: `P/frame_plans/<recording>.json`. Committed in G2.
+   - Prerequisite: G1 sealed strictly after the corpus blind-input
+     manifest.
+   - STOP: hash mismatch; the existing plan checks.
+   - Exposure: frame and interval metadata in the files; the console shows
+     paths only. No decode.
+3. **Extraction:** `pilot-extract` (no options).
+   - Inputs: both plans; the declared `video_path`, `video_sha256` and
+     `video_identity`.
+   - Output: PNGs in `W/frames/<recording>/` (working); provenance in
+     `P/extraction/<recording>.json` (committed in G2).
+   - Prerequisite: G1 sealed; a plan for each chosen recording, bound to
+     that recording's verified vision manifest digest. Before decoding, the
+     Amendment 4 checks (as amended by Amendment 5) are re-run for both
+     chosen sources (`check_declared_source`, `verify_source_video`).
+   - STOP: any failed check; the existing extraction checks (video hash and
+     identity, frame index, size, lossless round trip, missing frames).
+   - Exposure: decodes the two chosen pilot videos only. Nothing is
+     displayed.
+4. **Points and duplicates:** `pilot-points` (no options).
+   - Inputs: plans, extraction provenance, hash-verified PNGs, stage
+     identities from the sealed pilot blind-input manifest, and pinned
+     geometry.
+   - Output: `P/points_stage1.json`, the corpus structure with
+     `pilot_blind_input_manifest_sha256` in place of
+     `blind_input_manifest_sha256`, plus `P/duplicates_stage1.json`. Both
+     committed in G2.
+   - STOP: PNG hash mismatch; geometry pin failure; a chosen recording
+     without a latched stage.
+   - Exposure: point coordinates in the files.
+5. **Annotation (swatches, team identity, labels, duplicate copies):**
+   `pilot-annotate [--port]`.
+   - Inputs: sealed G2 records and hash-verified PNGs.
+   - Output: `W/session_stage1/` (state and append-only answer record).
+   - Semantics: the unchanged Stage 1 session (swatches, J1, one shuffled
+     queue with the rule's duplicates, J2), with the pre-pilot display
+     defaults.
+   - Prerequisite: G2 sealed strictly after G1.
+   - Exposure: only the blinded interface: pilot frames, crops, swatches,
+     tokens and progress. No recording names, timestamps, stage, hues,
+     classifier output, answers or mapping.
+6. **Export:** `pilot-export` (no options).
+   - Output: `P/labels_stage1.json`, `P/team_identity_stage1.json`,
+     `P/queue_stage1.json` and `P/swatches.json` (G3); `P/token_key.json`
+     and `P/queue_key_stage1.json` (G4).
+   - Prerequisite: a complete session; G2 sealed.
+   - Exposure: the files hold the pilot labels and resolved J1/J2 answers.
+     The console shows file names only.
+7. **Gate:** `pilot-gate` (no options).
+   - Inputs: G2–G4, with the existing order checks (labels before keys).
+   - Output: `P/gate_stage1.json` (the frozen Stage 1 gate result). Committed
+     in G5 whether the gate passes or fails.
+   - Exposure: numerator, denominator, bound and pass/fail, in the file
+     and on the console. This is the preregistered pilot decision point.
+   - A failing gate: STOP after G5 (see Pilot gate).
+8. **Post-pilot interface change (optional):** no command. At most one
+   commit, only after a sealed passing G5, and only for the allowed-change
+   items 1–6 of Amendment 3. If no allowed change is needed, there is no
+   such commit and the addendum records `interface_commit: null`.
+
+   **Permitted file set (exact):**
+   - `tools/diagnostics/map_ink_reference/constants.py`: only the values
+     of `DEFAULT_CROP_SIZE` and `DEFAULT_ZOOM`, within the frozen limits.
+     The module's syntax tree, with those two values masked, must equal
+     its syntax tree at the G5 commit;
+   - `tools/diagnostics/map_ink_reference/render.py`;
+   - `tools/diagnostics/map_ink_reference/server.py`;
+   - `tools/diagnostics/map_ink_reference/annotate.html`;
+   - `tools/diagnostics/map_ink_reference/session.py`, only within the
+     allowlist below;
+   - new test files under `tests/map_ink_reference/`. Existing test files
+     are not modified or deleted.
+
+   Any other path, any sealed record or any file outside these
+   directories: STOP.
+
+   **`session.py` allowlist.** Only two regions may change:
+   1. the names imported by the single
+      `from map_ink_reference.render import (...)` statement, where names
+      may only be added;
+   2. the dict literal returned by `AnnotationSession._label_task`, where
+      key/value entries may only be appended after the existing ones.
+
+   Each appended entry is one of:
+   - a string key whose value is a literal constant (string, number,
+     boolean, None, or a list or tuple of these), for presentation
+     settings covered by items 2, 3 or 6;
+   - a string key whose value has exactly the form
+     `self._handle(lambda: encode_png(F(self._load(asset), point.x,
+     point.y, settings)))`, where `F` is a function imported from
+     `render.py` (the context thumbnail of item 2, or an item 6
+     presentation fix).
+
+   Machine verification:
+   - Masking those added import names and appended entries, the syntax
+     tree of `session.py` equals its syntax tree at the G5 commit.
+   - Existing entries of the returned dict, every other statement,
+     method, class, constant and import, the state machine,
+     submissions, draws, the answer record and saved state are all
+     unchanged.
+
+   `session.py` may not be used to change annotation semantics, data or
+   provenance structures, gate behaviour, sampling, selection, extraction,
+   or any other frozen scientific behaviour.
+
+   **Item → file map:**
+   - `crop_zoom` (1): `constants.py`;
+   - `marker` (2), covering marker shape, colour and thickness and whether
+     a context thumbnail is shown: `render.py`, `session.py`
+     (allowlist only), `annotate.html`;
+   - `layout` (3): `annotate.html`, `session.py` (allowlist only);
+   - `instructions` (4), `team_cue_wording` (5): `annotate.html`;
+   - `interface_fix` (6): `annotate.html`, `server.py`, `render.py`,
+     `session.py` (allowlist only).
+
+   Every changed non-test file must be covered by a listed item.
+   `crop_zoom` is listed if and only if either value differs from 96 / 4.
+   `interface_fix` requires at least one added test file. The full map-ink
+   reference suite, `ruff check` and `ruff format --check` pass at the
+   interface commit.
+
+   **The interface commit may not:**
+   - repair a failed gate;
+   - repair a newly discovered tooling defect;
+   - alter frozen scientific semantics;
+   - alter selection, eligibility, extraction, sampling, annotation,
+     display (no pixel alteration, grey padding, integer nearest-neighbour
+     zoom, uncovered centre pixel) or gate semantics;
+   - alter sealed pilot records.
+
+   Item 6 is limited as stated in "Interface bug fixes" below. Any other
+   need: STOP, and the applicable amendment process.
+9. **Pilot addendum:**
+   `pilot-addendum (--none | --item ITEM [--item ITEM ...] --interface-commit SHA)`.
+   - Output: `P/pilot_addendum.json`. Committed alone in G6.
+   - Prerequisite: G1–G5 sealed in order, with a passing G5. With items,
+     the interface-commit conditions hold. A failing G5: STOP, and no
+     addendum is written.
+   - Exposure: nothing new.
+
+### Pilot addendum (normative)
+
+`P/pilot_addendum.json`, schema `amendment7-pilot-addendum/v1`, has exactly
+these keys:
+
+- `schema`, `scope` (`"pilot"`), `amendment7_commit`, `tool_commit` (HEAD
+  at generation);
+- `pilot_records`: for exactly the records of G1–G5, path relative to P →
+  SHA-256;
+- `changes`: allowed-change item ids from this closed list, unique and in
+  this order: `crop_zoom` (1), `marker` (2), `layout` (3), `instructions`
+  (4), `team_cue_wording` (5), `interface_fix` (6). The empty list
+  represents "none";
+- `interface_commit`: null if and only if `changes` is empty; otherwise the
+  40-hex commit of the single post-pilot interface commit.
+
+`"changes": []` with `"interface_commit": null` is the only representation
+of "none". A non-empty `changes` requires the interface commit, and the
+listed items must agree with that commit under the item → file map of
+operation 8.
+
+Nothing else: no labels, answers, counts, gate values or pass/fail,
+recording names, eligibility, timings or free text. The addendum is a JSON
+record, not text appended to this preregistration, which stays
+byte-identical to the last chain entry.
+
+**Verification** (before every corpus command; any failure STOP):
+
+1. The addendum is sealed and has exactly the schema above.
+2. Every listed record is sealed with the listed digest. The listed set
+   equals the required G1–G5 set for the two sealed chosen recordings, and
+   every listed record has `"scope": "pilot"`.
+3. G1 to G6 are each committed strictly after the previous group, by
+   ancestry. Records of one group share one commit.
+4. `amendment7_commit` equals this amendment's chain entry.
+5. The sealed G5 gate record is a passing gate.
+6. `changes` is empty if and only if `interface_commit` is null.
+7. If `interface_commit` is set, it is strictly after G5 and an ancestor
+   of the G6 commit, and it meets every condition of operation 8: the
+   permitted file set, the `constants.py` and `session.py` syntax-tree
+   checks, the item → file map, and the added test for `interface_fix`.
+8. If `crop_zoom` is absent, `DEFAULT_CROP_SIZE` is 96 and `DEFAULT_ZOOM`
+   is 4.
+
+### Pilot gate (normative)
+
+The pilot gate is computed and recorded with the frozen Stage 1 gate
+procedure: population D_1 of the pilot point manifest, the frozen pair
+classification, and the 0.10 cap on the upper one-sided 95%
+Clopper–Pearson bound, where a zero denominator fails.
+
+- **PASS:** step 3 may continue to the optional interface commit and G6.
+  A passing gate is required for both.
+- **FAIL:** a mandatory STOP. The gate record is still committed as G5.
+  No interface commit and no addendum follow, and step 3 does not
+  complete, unless a new authorization or amendment explicitly resolves
+  the failure. The failure has no correctness or criterion verdict
+  consequence. It means the frozen pilot procedure has shown a
+  workability problem, to be resolved separately under the applicable
+  amendment process and Amendment 3's unworkable-frozen-element rule.
+
+Amendment 3's unworkable-frozen-element STOP also applies after a passing
+gate. Pilot labels, answers and gate values never enter corpus records,
+comparison or verdicts.
+
+**No classifier, no comparison.** In either branch, no calibrated
+classifier is applied to any pilot frame and no pilot comparison is
+computed. No pilot command, record or verification invokes or reads the
+classifier, a calibration, map-ink observations, mapping, `q_all`,
+criterion 4a or any comparison or report output.
+
+**Effective sequences:**
+
+- **Success:** G1 selection, then G2 plans, extraction and points, then
+  annotation, then G3 export, then G4 token and queue keys, then G5 gate
+  PASS, then the optional single authorized interface commit, then G6
+  pilot addendum, then STOP. Step 3 is complete.
+- **Failure:** G5 gate FAIL, the gate record sealed, then STOP.
+
+### Execution guard and tool identity (normative)
+
+The command dispatcher applies one common guard to every command before
+anything else, so no command can be registered without it:
+
+1. `verify_preconditions`: the authorized execution chain (now including
+   this amendment) and the A1 implementation pins;
+2. clean tooling;
+3. the tool identity rule below;
+4. the production dependency pins below.
+
+In addition:
+
+- Pilot commands: STOP if `P/pilot_addendum.json` exists, or if a sealed
+  G5 gate record is a failing gate.
+- `plan`, `extract`, `points`, `annotate`, `export`, `gate`,
+  `criterion-4a`, `compare` and `report`: the addendum verification above
+  must pass. `plan` is the earliest corpus Stage 1 entry point.
+- Running `preconditions` separately is not a substitute for the guard.
+
+**Tool identity rule.** Protected paths are
+`tools/diagnostics/map_ink_reference/` and `tests/map_ink_reference/`.
+The rule applies from C7 until the step 8 final report is committed.
+
+*Bootstrap (no commit contains its own hash):*
+
+- C7 is this amendment's sealing commit. The repair records it as chain
+  entry 4. The repair comes after C7, so it can contain C7's hash.
+- C7 changes only the preregistration file.
+- Between C7 and the repair, the committed tooling still holds the
+  Amendment 6 chain. The current preregistration differs from that
+  chain's last entry, so every command STOPs. No run is possible in that
+  interval.
+- The commits from C7 (exclusive) to HEAD must form a linear history with
+  no merge commits.
+- Let T be the commits in that range that change any protected path,
+  oldest first.
+- The repair is T's first element. No other recognition is needed. It
+  must:
+  - change only the files of the tool repair authorization;
+  - have, in its own tree, a chain whose entry 4 names C7 and C7's
+    preregistration digest;
+  - be committed strictly before G1.
+
+*Allowed history:*
+
+- T is exactly the repair; or
+- T is the repair followed by one interface commit I, which:
+  - is strictly after a sealed passing G5;
+  - meets operation 8;
+  - once G6 is sealed, equals the addendum's `interface_commit`.
+- With a null `interface_commit`, T stays exactly the repair.
+- Any other history, including a third commit or a commit after G6 that
+  touches a protected path: STOP.
+
+Records keep recording HEAD as `tool_commit`.
+
+### Production dependency pins (normative)
+
+Frame selection, extraction and point sampling, for both pilot and corpus,
+call production code that no earlier amendment verifies at every command.
+The guard verifies these seven files at every command. For each, the
+committed file and the working-tree file must both equal its pinned
+SHA-256:
+
+| File | SHA-256 | Source of the pin |
+|---|---|---|
+| `src/splatoon3_ai_coach/vision/map_ink.py` | `50f0dba3e0e004dc17096cff6d5825a496cd917d03517de00c08402150070ab3` | Amendment 3 (unchanged) |
+| `src/splatoon3_ai_coach/config/models.py` | `bb1b690ef807a06b3455a39bceb07b0138757ac54d33b6c381b11233a05a9f8d` | Amendment 4 (unchanged) |
+| `src/splatoon3_ai_coach/vision/stage_maps.py` | `f443daff9fe4a142a3b22821f613a5d2c01949644c23a20fa0ca923a08adc895` | this amendment |
+| `src/splatoon3_ai_coach/vision/stage_mask.py` | `8d756f99368c109dd69d6847680ba54c68b269a298c3312c8a798731c4a00406` | this amendment |
+| `src/splatoon3_ai_coach/media/video.py` | `6285c206ae2af3f20df2398e6b65307ce664ec4d29506ee41a1721d79a238b87` | this amendment |
+| `src/splatoon3_ai_coach/media/video_identity.py` | `895794741d8ba5698cfbda4d5da98f588e46a1b74358262d713e336d0b52017b` | this amendment |
+| `src/splatoon3_ai_coach/types.py` | `ad6f423fc8a5422a5febc66972143e3d5c322c5a19210bdc29071188569983ea` | this amendment |
+
+- The Amendment 3 and Amendment 4 pins are not replaced. They are also
+  verified by this guard, in addition to their existing checks.
+- The five new values were computed from the committed tree at
+  `a1ea2fddcd520e62ccf265d7eb8b3364cabecb33`. They identify both the
+  versions in C7's parent and those in C7's tree.
+- C7 changes only the preregistration file and none of these seven files.
+  If C7's parent holds different bytes for any of them: STOP before
+  sealing.
+- A mismatch at any command: STOP. A mismatched file is never restored or
+  repaired automatically.
+- The repair may add verification of these pins. It may not modify any of
+  the seven files. The pins are defined as literals in `execution.py`.
+  Tests show that the `map_ink.py` value equals the Amendment 3 pin in
+  `unblinded_pins.py`, and the `config/models.py` value equals the
+  Amendment 4 pin in `pins.py`.
+
+**Dependency-closure boundary.** The guard covers the sealed first-party
+files that Amendments 3–7 identify as directly affecting successful-path:
+
+- source and video identity;
+- media decoding used by the frozen procedure;
+- stage and map geometry;
+- frame, interval and point derivation;
+- point-sampling semantics;
+- relevant sealed configuration-model semantics.
+
+It does not recursively pin every imported Python module. Exception-only
+and support modules that do not affect successful-path experimental
+values are outside this pin set. In particular,
+`src/splatoon3_ai_coach/exceptions.py` (imported by `media/video.py`) was
+reviewed: it contributes exception definitions only and is outside the
+pin set. Third-party libraries and the environment are treated exactly as
+Amendment 3 specifies. This amendment adds no third-party version
+requirement. The boundary removes no pin required by Amendments 3–7.
+
+### Interface bug fixes (normative)
+
+Amendment 3's "interface bug fixes" (allowed-change item 6) means only
+defects in the presentation or interaction of the human annotation
+workflow. It does not authorize changes to:
+
+- scientific semantics;
+- source, interval, frame or point derivation;
+- extraction or sampling;
+- team-identity meaning, labels or duplicate semantics;
+- gate logic or thresholds;
+- comparison behaviour;
+- provenance or execution guards.
+
+A newly discovered defect outside this allowance is a tooling or
+specification defect: STOP, and the applicable amendment process.
+
+### Authorized execution chain (normative)
+
+This amendment explicitly joins the Amendment 6 authorized execution chain
+as entry 4: its sealing commit and the file SHA-256 at that commit,
+recorded in the tooling by the repair below. Every Amendment 6 rule
+applies unchanged.
+
+### Tool repair authorization (normative)
+
+After this amendment is committed, one tooling commit may make exactly
+these changes:
+
+- `constants.py`: add the chain entry and the pilot namespace, schema and
+  allowed-item constants. Existing values unchanged.
+- `cli.py`: the dispatcher guard; the pilot commands with only the options
+  above; the pilot selection output path and console line. Corpus command
+  options unchanged.
+- `seal.py`: the tool identity rule. Existing functions keep their
+  behaviour.
+- `pipeline_blind.py`: the scope object. Corpus behaviour unchanged.
+- `records.py`: an optional `scope` field for pilot records. Corpus output
+  unchanged.
+- New modules `execution.py` (guard), `pilot_pipeline.py` and
+  `pilot_addendum.py`, each assigned to an isolation-test module group, and
+  the module list in `__init__.py`.
+- Under `tests/map_ink_reference/`: a new `test_mir_amendment7.py`,
+  synthetic fixtures and helpers. Existing tests change only where the
+  chain, module groups, command list or options, or the selection output
+  path change.
+
+Nothing else may change, including:
+
+- `src/` and `configs/`;
+- A1 code and tests;
+- pinned artifacts, sealed records and this preregistration;
+- `population.py`, `plan.py`, `points.py`, `domain.py`, `extraction.py`,
+  `render.py`, `queueing.py`, `session.py`, `server.py`, `gate.py`,
+  `annotate.html`, `trigger.py`, `intro_latch.py`, `stage_identity.py`,
+  `pins.py` and `pilot.py`;
+- the unblinded modules (`unblinded_pins.py`, `mapping.py`,
+  `comparison.py`, `statistics.py`, `verdicts.py`,
+  `pipeline_unblinded.py`, `criterion_4a.py`, `report.py`).
+
+The repair's machine-checked file set is exactly:
+
+- these paths under `tools/diagnostics/map_ink_reference/`:
+  `constants.py`, `cli.py`, `seal.py`, `pipeline_blind.py`, `records.py`,
+  `__init__.py`, and the new `execution.py`, `pilot_pipeline.py` and
+  `pilot_addendum.py`;
+- files under `tests/map_ink_reference/`.
+
+The full map-ink reference test suite, `ruff check` and
+`ruff format --check` must pass before the repair is committed.
+
+Amendment 6's "Nothing else may change" governs the Amendment 6 repair
+only. It does not restrict this repair, which is governed by this section.
+
+### Testing requirements (normative)
+
+Synthetic fixtures only. Neither the five prepared pilot sources nor any
+corpus recording may be used. Tests show that:
+
+1. pilot commands take no recording option, and pilot operations reject
+   any recording outside the sealed selection;
+2. corpus commands reject pilot recordings and records carrying
+   `"scope": "pilot"`;
+3. pilot and corpus artifact paths cannot collide; pilot writes stay inside
+   P and W; an existing pilot output STOPs;
+4. pilot selection is unchanged: identical output on fixtures, the two
+   smallest eligible `video_identity` values, and STOP with fewer than two;
+5. pilot plans, extraction, points, duplicates, session records and gate
+   equal the shared functions' output on the same synthetic input;
+6. no pilot path reaches comparison or a classifier: the new pilot modules
+   pass the blind isolation checks; `compare`, `criterion-4a` and `report`
+   never read P; there is no pilot comparison command;
+7. every parser subcommand STOPs when the chain, an A1 pin, clean tooling or
+   the tool identity rule fails (enumerated over the parser, so a new
+   command without the guard fails the test);
+8. every guarded corpus command STOPs without a sealed valid addendum and
+   proceeds with one;
+9. missing, modified, extra or wrongly ordered pilot records; a split
+   commit group; an invalid `changes` or `interface_commit`; an interface
+   commit outside the allowed files; a second post-repair tool commit; and
+   any pilot command after the addendum: each STOPs;
+10. existing corpus behaviour is unchanged: existing corpus tests pass, and
+    corpus records are byte-identical on fixtures;
+11. after a sealed failing G5: `pilot-addendum`, every other pilot command
+    and every corpus command STOP, and any interface commit fails the tool
+    identity rule;
+12. an interface commit STOPs if:
+    - it touches a path outside the permitted set, modifies or deletes an
+      existing test, or changes `constants.py` beyond the two values;
+    - it changes `session.py` outside the allowlist: removes or reorders
+      an existing import name or returned-dict entry, changes an existing
+      entry, adds an entry of another form, or changes any other
+      statement;
+    - its changed files are not covered by the listed items;
+    - `interface_fix` is listed without an added test;
+    - `crop_zoom` disagrees with the values;
+    - it precedes a passing G5, or a second one exists;
+13. the tool identity rule recognizes the repair as the first commit after
+    C7 that touches a protected path. It STOPs on a merge commit; on a
+    repair outside its file set, without the C7 chain entry, or after G1;
+    on a C7 that changes anything besides the preregistration; and on any
+    protected-path commit after G6;
+14. a mismatch of each of the seven production dependency pins,
+    independently (including `types.py` and `config/models.py`), makes every
+    command STOP; an uncommitted modification of a pinned file STOPs; the
+    guard never rewrites a pinned file; the `map_ink.py` value equals the
+    Amendment 3 pin; and the `config/models.py` value equals the Amendment 4
+    pin.
+
+### Sealing order additions (normative)
+
+Before Amendment 3 step 3, in this order:
+
+1. this amendment committed;
+2. the tool repair implemented, tested with synthetic fixtures only, and
+   reviewed;
+3. the repair committed alone, with its commit and the Amendment 7 chain
+   entry reported;
+4. `preconditions` passes at the repaired commit;
+5. STOP for explicit authorization.
+
+Amendment 3 step 3 then consists of, in this order, each group committed
+strictly after the previous one and containing only its records:
+
+- G1: pilot selection;
+- G2: frame plans, extraction provenance, points and duplicates (before
+  any annotation);
+- annotation (working output);
+- G3: labels, team identity, queue and swatches;
+- G4: token key and queue key;
+- G5: gate, committed whether it passes or fails;
+- on PASS only: the optional single post-pilot interface commit;
+- on PASS only: G6, the pilot addendum; then STOP, and step 3 is
+  complete.
+
+On a failing G5: STOP after G5. No interface commit and no G6 follow
+without a new authorization or amendment that explicitly resolves the
+failure.
+
+Step 4 and everything after it follow, unchanged, behind the addendum
+verification. No calibrated classifier and no pilot comparison are
+invoked in any branch.
+
+### Superseded sentences (normative)
+
+1. Amendment 6, Tool repair authorization: "The repair commit is recorded
+   as the tool commit for every later real run." This now reads: until the
+   Amendment 7 repair commit; from then on, the tool identity rule of
+   Amendment 7 applies. `f636a6e` stays the step 2 tool commit of record.
+
+### Disclosures
+
+- Drafted after step 2a was sealed (`a1ea2fd`) and a read-only procedural
+  review, before any step 3 operation. `pilot-select` has not run. No pilot
+  eligibility count, selection, plan, extracted frame, point or label
+  exists or is known.
+- Generating the pilot and corpus blind-input manifests showed each
+  recording's latched stage, battle mode and latch time on the console
+  (tracker INFO logs). The drafter saw them in that form. They were not
+  used.
+- The operator played the pilot matches (Amendment 5).
+- Revised before commit under the operator's rulings: pilot records are
+  committed; a failing pilot gate is a mandatory STOP; there is at most one
+  post-pilot interface commit with an exact file set; the history-based
+  tool identity rule applies; the addendum is closed; and the console and
+  command interface are as drafted.
+- Revised again before commit: the production dependency pins were added;
+  the meaning of interface bug fixes was stated; `session.py` was added to
+  the interface-commit file set under a syntax-tree allowlist; and the
+  `types.py` pin, the guard check of the Amendment 4 `config/models.py`
+  pin and the dependency-closure boundary were added. The five new pins
+  were computed from the committed source files at `a1ea2fd` (code only;
+  no experimental input).
+- During drafting only this preregistration, tool and test source, and the
+  seven pinned production source files (to hash them and check their
+  imports) were read. No media, vision manifest, analysis output or sealed record content
+  was opened.
+- No tool or test was changed for this amendment. Tracks B and C,
+  Amendments 1–6 and all other Track A criteria are unchanged except for
+  the sentence superseded above.
