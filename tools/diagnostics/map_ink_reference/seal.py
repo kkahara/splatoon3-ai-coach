@@ -7,16 +7,13 @@ commits by ancestry.
 
 from __future__ import annotations
 
+import hashlib
 import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from map_ink_reference.constants import (
-    PREREGISTRATION_COMMIT,
-    PREREGISTRATION_PATH,
-    PREREGISTRATION_SHA256,
-)
-from map_ink_reference.errors import ProcedureOrderError, SealViolation
+from map_ink_reference.constants import PREREGISTRATION_CHAIN, PREREGISTRATION_PATH
+from map_ink_reference.errors import PinMismatch, ProcedureOrderError, SealViolation
 from map_ink_reference.pins import verify_pin
 
 
@@ -80,12 +77,61 @@ def require_tool_clean(repo: Path, tool_dir: Path) -> str:
     return head_commit(repo)
 
 
-def verify_preconditions(repo: Path, a1_pins: Mapping[str, str]) -> None:
-    """Sealing step 1: Amendments 3 and 4 committed; A1 committed and matching."""
+def _file_at_commit(repo: Path, commit: str, rel: str) -> bytes:
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "show", f"{commit}:{rel}"],
+        capture_output=True,
+        check=False,
+    )
+    if proc.returncode:
+        raise SealViolation(f"{rel} is not readable at commit {commit}")
+    return proc.stdout
+
+
+def _verify_chain_entry(
+    repo: Path, entry: tuple[str, str, str], previous: tuple[str, bytes] | None
+) -> bytes:
+    name, commit, digest = entry
+    require_ancestor(repo, commit)
+    earlier, earlier_content = previous if previous is not None else (None, b"")
+    if earlier is not None:
+        is_after = not _git(
+            repo, "merge-base", "--is-ancestor", earlier, commit, check=False
+        ).returncode
+        if commit == earlier or not is_after:
+            raise ProcedureOrderError(f"{name} is not sealed after the previous entry")
+    content = _file_at_commit(repo, commit, PREREGISTRATION_PATH)
+    actual = hashlib.sha256(content).hexdigest()
+    if actual != digest:
+        raise PinMismatch(f"{name}: preregistration digest {actual} != pinned {digest}")
+    if not content.startswith(earlier_content):
+        raise SealViolation(f"{name} alters earlier sealed preregistration text")
+    return content
+
+
+def verify_preregistration_chain(repo: Path) -> None:
+    """Amendment 6: the explicit authorized chain, and the current file at its end.
+
+    ``HEAD`` may descend from the last chain commit; the current file must be
+    committed, unmodified and byte-identical to the file at that commit.
+    """
+    if not PREREGISTRATION_CHAIN:
+        raise SealViolation("no authorized preregistration chain")
+    previous: tuple[str, bytes] | None = None
+    for entry in PREREGISTRATION_CHAIN:
+        previous = (entry[1], _verify_chain_entry(repo, entry, previous))
     prereg = repo / PREREGISTRATION_PATH
-    verify_pin(prereg, PREREGISTRATION_SHA256)
     require_sealed(repo, prereg)
-    require_ancestor(repo, PREREGISTRATION_COMMIT)
+    if prereg.read_bytes() != previous[1]:
+        raise PinMismatch(
+            "preregistration differs from the last authorized amendment "
+            f"({PREREGISTRATION_CHAIN[-1][0]})"
+        )
+
+
+def verify_preconditions(repo: Path, a1_pins: Mapping[str, str]) -> None:
+    """Sealing step 1: authorized preregistration chain; A1 committed and matching."""
+    verify_preregistration_chain(repo)
     for rel, digest in a1_pins.items():
         verify_pin(repo / rel, digest)
         require_sealed(repo, repo / rel)

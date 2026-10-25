@@ -15,7 +15,7 @@ import pytest
 from map_ink_reference.constants import (
     AMENDMENT4_COMMIT,
     CORRECTNESS_APPLICABLE,
-    PREREGISTRATION_COMMIT,
+    PREREGISTRATION_CHAIN,
     Q_ALL_UNDEFINED,
     RECORDS_DIR,
     SCOPE_CORPUS,
@@ -104,7 +104,7 @@ def test_real_production_code_and_config_match_the_sealed_pins() -> None:
     """Read-only: the three pinned source files and configs/default.yaml."""
     assert intro_latch.verify_code_identity(REPO) == pins.INTRO_LATCH_CODE_PINS
     assert intro_latch.intro_deadline_seconds(REPO) == 90.0
-    assert AMENDMENT4_COMMIT == PREREGISTRATION_COMMIT
+    assert PREREGISTRATION_CHAIN[0][1] == AMENDMENT4_COMMIT
 
 
 def test_code_identity_rejects_a_module_that_is_not_the_pinned_file() -> None:

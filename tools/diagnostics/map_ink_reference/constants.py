@@ -9,15 +9,30 @@ from __future__ import annotations
 from fractions import Fraction
 
 AMENDMENT3_COMMIT = "228e03774c2d5e9737f35698ea42cc11a0937a87"
-# Amendment 4 (clarifications of Amendment 3); the preregistration file as
-# sealed by this commit is the normative text the tooling implements.
+# Amendment 4 (clarifications of Amendment 3); recorded as ``amendment4_commit``.
 AMENDMENT4_COMMIT = "570f188c3a2322c20065b095d740a6ad2538c57a"
-PREREGISTRATION_COMMIT = AMENDMENT4_COMMIT
 PREREGISTRATION_PATH = (
     "analysis/review_validation/alignment/v4/DEVELOPMENT_PREREGISTRATION.md"
 )
-PREREGISTRATION_SHA256 = (
-    "4ffeeaf899185d84beea1e97c59b0baa46798cb7390cf294fae3343804e757e1"
+# Amendment 6 authorized execution chain: (amendment, commit, SHA-256 of the
+# preregistration file at that commit), in sealing order. A later amendment is
+# authorized only by being added here under its own sealed authorization.
+PREREGISTRATION_CHAIN = (
+    (
+        "amendment4",
+        AMENDMENT4_COMMIT,
+        "4ffeeaf899185d84beea1e97c59b0baa46798cb7390cf294fae3343804e757e1",
+    ),
+    (
+        "amendment5",
+        "ca4e08821ca9c80f45125c168fe3caf3af536a3e",
+        "2a0a23ba0d4db8484eb7752861384546855dc65374d975580c7d11a77df6cb57",
+    ),
+    (
+        "amendment6",
+        "85d1104c1c969d3c9bdf7b179dda675d9c7748d5",
+        "e978e63f4da562f85eb4d7c42ff918df0f769b0e85ff012e2670307d71ee88df",
+    ),
 )
 
 # Committed records and gitignored working artifacts.

@@ -69,16 +69,20 @@ def test_preconditions_need_amendment_and_committed_a1(
     prereg.write_text("sealed\n")
     a1 = repo / "a1.py"
     a1.write_text("code\n")
+    digest = sha256_file(prereg)
     monkeypatch.setattr(seal, "PREREGISTRATION_PATH", "prereg.md")
-    monkeypatch.setattr(seal, "PREREGISTRATION_SHA256", sha256_file(prereg))
-    monkeypatch.setattr(seal, "PREREGISTRATION_COMMIT", "f" * 40)
+    monkeypatch.setattr(
+        seal, "PREREGISTRATION_CHAIN", (("amendment4", "f" * 40, digest),)
+    )
     pins = {"a1.py": sha256_file(a1)}
     with pytest.raises(SealViolation):
         seal.verify_preconditions(repo, pins)
     amendment = commit(repo, [prereg], "amendment")
-    with pytest.raises(SealViolation):  # Amendment 4 commit is not in history
+    with pytest.raises(SealViolation):  # the chain commit is not in history
         seal.verify_preconditions(repo, {})
-    monkeypatch.setattr(seal, "PREREGISTRATION_COMMIT", amendment)
+    monkeypatch.setattr(
+        seal, "PREREGISTRATION_CHAIN", (("amendment4", amendment, digest),)
+    )
     with pytest.raises(SealViolation):
         seal.verify_preconditions(repo, pins)
     commit(repo, [a1], "a1")
