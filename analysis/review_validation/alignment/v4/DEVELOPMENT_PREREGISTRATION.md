@@ -1752,3 +1752,227 @@ Pinned `map_observations.json` (SHA-256):
   INCONCLUSIVE at Stage 1.
 - Tracks B and C, Amendments 1–3 and all other Track A criteria are
   unchanged.
+
+## Amendment 5 — Pilot source preparation (2026-10-24)
+
+### What was frozen, what changes, why
+
+**Frozen:** Amendments 1–4 as committed at `570f188`.
+
+A newly recorded pilot source has no `vision_manifest.json`, `video_sha256`
+or `video_identity` until it is analyzed and hashed, and the pilot-source
+manifest requires all three. Amendment 4 requires that manifest to be
+committed "before any pilot media is decoded or hashed for processing", and
+Amendment 3 chooses pilot material "before any pilot media is decoded
+(hashing excepted)". Together these leave no permitted way to declare a new
+source.
+
+**What changes:** a source-preparation phase before the pilot-source
+manifest, its boundary with pilot execution, a candidate pool fixed before
+preparation, closed technical exclusion conditions, two committed records,
+and the three superseded sentences listed below. Nothing else changes:
+pinned stages and inputs, eligibility, the ≥8 eligible-interval
+requirement, selection of the two smallest `video_identity` values,
+prohibited entries and exclusions, the pilot procedure, annotation,
+comparison, thresholds, criteria, STOP conditions, blinding and
+non-exposure, and the sealing order from the pilot-source manifest onward
+are all as in Amendments 3 and 4.
+
+**Why:** a source can only be declared after it is analyzed and hashed.
+Preparation must not become a chance to choose sources by their
+experimental behaviour.
+
+### Source preparation and pilot execution (normative)
+
+**Source preparation** consists of exactly these operations on a pool
+candidate, and nothing else:
+
+1. **Hashing:** SHA-256 of the video file bytes, and the production
+   `media.video_identity` value (byte read, no decode).
+2. **Production analysis:** one run of
+   `s3-coach analyze <video_path> --out <analysis_dir>` with the pinned
+   `configs/default.yaml`, no other options, at a recorded commit whose
+   `src/` and `configs/` are unmodified, creating the source's
+   `vision_manifest.json`. The command, code, configuration and options are
+   identical for every candidate.
+
+These operations are preparation, not execution of the Amendment 3/4 pilot.
+
+**Pilot execution** is everything from the pilot-source manifest onward,
+including: pilot-specific frame extraction; eligible-interval computation;
+stage-identity derivation (`blind-inputs`); pilot selection
+(`pilot-select`); point sampling; annotation and any use of the annotation
+interface; any A1, v3 or reference comparison; criterion 4a; Stage 1 and
+Stage 2.
+
+**Prohibited during preparation** (until the pilot-source manifest is
+committed): every pilot-execution operation above, and inspecting or using
+any analysis output beyond the read allowance below.
+
+**Read allowance during preparation:** only the analysis exit status;
+whether `vision_manifest.json` exists; its top-level `video_identity`; and
+its SHA-256. Console output goes to a log file, which is read only after a
+non-zero exit, and only for the failure message. These stay unread until
+the pilot-source manifest is committed:
+
+- every other part of the vision manifest (readings including
+  `match_intro`, latched stage or mode, snapshots, events, frame results);
+- `match_identity.json` and any calibration value;
+- `map_observations.json`;
+- scenarios and scenario contexts;
+- debug frames;
+- viewer output.
+
+No frame is displayed and the video is not played.
+
+**One analysis per candidate.** A run that exits 0 and writes
+`vision_manifest.json` is final; it is never re-run, replaced or edited. A
+run that did not finish for an environmental reason unrelated to the
+source (process killed, disk full, out of memory) may be repeated with the
+same command after its partial output is deleted; every attempt and its
+reason are recorded. No setting may change between attempts or candidates.
+
+### Candidate pool (normative)
+
+The candidates are fixed by acquisition-time facts only, before any
+preparation operation touches any of them.
+
+`amendment3/pilot_candidate_pool.json` (schema
+`amendment5-pilot-candidate-pool/v1`) is authored by the operator and
+committed after this amendment and before any preparation operation.
+Top level: `amendment5_commit`, `declared_by`. Each entry:
+
+- `candidate_id`;
+- `video_path` (repo-relative);
+- `analysis_dir` (repo-relative, directly under `analysis/`, not yet
+  existing);
+- `recorded_stage` (the stage the operator played, as known at
+  acquisition);
+- `recorded_on`;
+- `authorization` (the Amendment 4 literal).
+
+Nothing else, and no value derived from opening the file.
+
+Amendment 4's prohibited entries apply to the pool unchanged. In
+particular, the recording made on 2026-10-24 for the short-match / timeline
+observation is not a candidate. The pool closes at its commit. Adding a
+candidate requires a new amendment.
+
+**No outcome-dependent removal.** Every pool candidate ends in exactly one of
+two states:
+
+- declared in the pilot-source manifest; or
+- excluded under a technical exclusion condition below.
+
+No other removal is allowed: not for operator preference, apparent quality,
+duration, gameplay, or any expected or observed experimental behaviour.
+Eligibility (stage latch, ≥8 eligible intervals, verified source) is
+applied only at pilot selection, to declared entries, as in Amendment 4.
+
+### Technical exclusion conditions (normative, closed list)
+
+A candidate is excluded before declaration only for:
+
+- **T1 unreadable source:** the file at `video_path` does not exist or
+  cannot be read to the end for hashing.
+- **T2 no manifest:** production analysis does not exit 0 with a
+  `vision_manifest.json` (after any environmental repeats allowed above).
+- **T3 unpinned recorded stage:** `recorded_stage` in the committed pool is
+  not one of the stages with pinned geometry (`makomart`,
+  `shipshape_cargo_co`, `manta_maria`, `wahoo_world`).
+
+Each exclusion is recorded with the condition, the failing operation, the
+exit status or error message, the SHA-256 of the log file (T2), the commit
+and the time. The excluded candidate's outputs are kept and never used.
+
+These findings during preparation are STOP, not exclusion:
+
+- `vision_manifest.json` `video_identity` differs from the independently
+  computed `video_identity`;
+- two candidates have the same `video_sha256` or `video_identity`;
+- a candidate matches a corpus recording, is a capture package or lies
+  inside one, or falls under any other Amendment 4 prohibited entry.
+
+Stage identity derived from the stored intro readings is not examined
+during preparation. After declaration, a latched `stage_id` without pinned
+geometry remains a STOP of pilot blind-input generation (Amendment 4,
+unchanged), and a source that latches no stage is ineligible.
+
+### Preparation record (normative)
+
+`amendment3/pilot_source_preparation.json` (schema
+`amendment5-pilot-source-preparation/v1`) is committed after preparation
+and before the pilot-source manifest.
+
+Top level:
+
+- `pool_sha256`;
+- `code_commit`;
+- `config_sha256`;
+- `analyze_command` (template);
+- `python_version`.
+
+Per candidate:
+
+- `candidate_id`;
+- `status` (`prepared` or `excluded`);
+- `video_sha256`, `video_identity`, `vision_manifest_sha256` and
+  `manifest_video_identity` (each null where not produced);
+- `attempts` (exit status and any environmental reason);
+- `exclusion` (as above, or null).
+
+Nothing else: no readings, stage, mode, counts, hues, observations, timings
+or outcomes.
+
+**Consistency (operator-verified, any failure STOP):**
+
+- The pilot-source manifest declares exactly the `prepared` candidates, with
+  their `video_path`, `analysis_dir`, `video_sha256` and `video_identity`
+  equal to this record.
+- The pilot blind-input manifest's `vision_manifest_sha256` equals this
+  record.
+
+### Superseded sentences (normative)
+
+1. Amendment 3, Pilot material: "before any pilot media is decoded (hashing
+   excepted)". This now reads: before any pilot-execution operation, with
+   Amendment 5 source preparation (hashing and one production analysis)
+   excepted.
+2. Amendment 4, A3-AMB-2: "committed before any pilot media is decoded or
+   hashed for processing". This now reads: committed after the Amendment 5
+   preparation record and before any pilot-execution operation.
+3. Amendment 4, A3-AMB-2: "Checks before any decode". This now reads:
+   checks before any pilot-execution decode. The checks themselves and
+   their STOP are unchanged.
+
+Amendment 4's "No tool ever searches the filesystem for videos; tools open
+only declared paths" is unchanged. Preparation opens only paths in the
+committed pool.
+
+### Sealing order additions (normative)
+
+Within Amendment 4 step 2a, before the pilot-source manifest, in this order:
+
+1. this amendment committed;
+2. candidate pool committed;
+3. source preparation;
+4. preparation record committed.
+
+Step 2a then continues unchanged with the pilot-source manifest, pilot
+blind-input manifest and corpus blind-input manifest.
+
+### Disclosures
+
+- Drafted after the Amendment 3/4 tooling was committed (`f636a6e`) and
+  before any candidate recording was opened, hashed, decoded or analyzed.
+- At drafting, the operator had stated five candidate recordings by
+  acquisition facts only: three MakoMart, one Manta Maria and one Wahoo
+  World. No other property of them was known to the drafter.
+- The operator played the matches and so has gameplay knowledge from
+  acquisition. The pool is fixed by acquisition facts for that reason.
+- Production analysis writes A1 calibration and map-ink outputs into each
+  `analysis_dir`. They are not read before the pilot-source manifest is
+  committed, and blind tools never read them (Amendment 3).
+- No tool or test was changed for this amendment. Tracks B and C,
+  Amendments 1–4 and all other Track A criteria are unchanged except for
+  the three sentences superseded above.
