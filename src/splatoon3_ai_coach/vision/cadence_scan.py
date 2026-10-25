@@ -162,7 +162,11 @@ def _observe_cadence_frame(
     )
     if map_ctx is not None:
         update_identity_from_detections(map_ctx, detections, video_frame.timestamp)
-        update_ready_gate_from_detections(map_ctx, detections)
+        update_ready_gate_from_detections(
+            map_ctx,
+            detections,
+            video_time=float(video_frame.timestamp),
+        )
         maybe_calibrate_team_colors(map_ctx, video_frame, detections)
         maybe_sample_map_ink(map_ctx, video_frame, detections)
     frame_path = optional_debug_snapshot(video_frame, debug_dir, output_dir)

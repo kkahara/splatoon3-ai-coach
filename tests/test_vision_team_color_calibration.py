@@ -14,6 +14,7 @@ from splatoon3_ai_coach.config.models import (
     PlayerCountDetectorConfig,
 )
 from splatoon3_ai_coach.media.video import VideoFrame
+from splatoon3_ai_coach.vision.calibration_window import CalibrationWindow
 from splatoon3_ai_coach.vision.map_ink import MapInkClassifier
 from splatoon3_ai_coach.vision.match_intro import MatchIdentityTracker
 from splatoon3_ai_coach.vision.models import DetectorResult, PlayerCountReading
@@ -263,7 +264,11 @@ def test_from_configs_uses_ally4_and_opponent1_only() -> None:
 
 
 def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
-    """Case H: classify YAML before latch; apply once; calibrated after."""
+    """Case H: classify YAML before latch; apply once; calibrated after.
+
+    Local-function test: phase and window are hand-set. Production
+    reachability is covered in ``test_vision_a1_calibration_window.py``.
+    """
     cfg = MapInkAnalyzerConfig(
         enabled=True,
         team_color_calibration_enabled=True,
@@ -287,6 +292,8 @@ def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
         config=app,
         calibrator=cal,
         ready_seen=True,
+        match_phase="in_match",
+        calibration_window=CalibrationWindow(t0=2.0),
     )
     frame_img = _synthetic_hud(11, 119)
     for t in (2.0, 2.5, 3.0):
@@ -313,8 +320,36 @@ def test_h_pipeline_yaml_then_latch_then_calibrated() -> None:
     assert map_ctx.calibration is first
 
 
+def test_pipeline_rejects_ready_roster_before_in_match_phase() -> None:
+    """Presentation evidence cannot authorize calibration before phase fusion."""
+    cfg = MapInkAnalyzerConfig(
+        enabled=True,
+        team_color_calibration_enabled=True,
+        min_accepted_frames=1,
+    )
+    app = load_config(default_config_path())
+    app.vision.map_ink = cfg
+    map_ctx = MapInkScanContext(
+        identity=MatchIdentityTracker(),
+        classifier=MapInkClassifier(cfg),
+        config=app,
+        calibrator=_calibrator(min_accepted_frames=1),
+        ready_seen=True,
+        match_phase="opening_countdown",
+    )
+    frame = _synthetic_hud(11, 119)
+    vf = VideoFrame(timestamp=2.0, frame_index=120, image=frame)
+    _maybe_calibrate_team_colors(map_ctx, vf, [_roster_detection("pc-presentation")])
+    assert map_ctx.calibration is None
+    tally = map_ctx.calibration_window.rejections["phase_ineligible:opening_countdown"]
+    assert (tally.count, tally.first_at) == (1, 2.0)
+
+
 def test_pipeline_skips_color_until_ready_seen() -> None:
-    """Team-color observe requires Ready? before the opening clock ticks."""
+    """Ready? is required; a ticked opening clock no longer ends eligibility.
+
+    Local-function test with a hand-opened window (not reachability evidence).
+    """
     cfg = MapInkAnalyzerConfig(
         enabled=True,
         team_color_calibration_enabled=True,
@@ -328,6 +363,9 @@ def test_pipeline_skips_color_until_ready_seen() -> None:
         classifier=MapInkClassifier(cfg),
         config=app,
         calibrator=cal,
+        match_phase="in_match",
+        calibration_window=CalibrationWindow(t0=2.0),
+        opening_clock_ticked=True,
     )
     frame = _synthetic_hud(11, 119)
     vf = VideoFrame(timestamp=2.0, frame_index=120, image=frame)
@@ -337,13 +375,8 @@ def test_pipeline_skips_color_until_ready_seen() -> None:
     map_ctx.ready_seen = True
     _maybe_calibrate_team_colors(map_ctx, vf, [_roster_detection("pc-late")])
     assert map_ctx.calibration is not None
-
-    map_ctx.calibration = None
-    cal2 = _calibrator(min_accepted_frames=1)
-    map_ctx.calibrator = cal2
-    map_ctx.opening_clock_ticked = True
-    _maybe_calibrate_team_colors(map_ctx, vf, [])
-    assert map_ctx.calibration is None
+    assert map_ctx.calibration.accepted_match_phases == ("in_match",)
+    assert map_ctx.calibration_window.close_reason == "latched"
 
 
 def test_pipeline_requires_roster_visibility_evidence() -> None:

@@ -12,6 +12,7 @@ from loguru import logger
 from splatoon3_ai_coach.config.models import AppConfig
 from splatoon3_ai_coach.media.video import VideoFrame
 from splatoon3_ai_coach.vision.base import BaseDetector
+from splatoon3_ai_coach.vision.calibration_window import CalibrationWindow
 from splatoon3_ai_coach.vision.map_ink import (
     MAP_OBSERVATIONS_FILENAME,
     MapInkClassifier,
@@ -21,10 +22,12 @@ from splatoon3_ai_coach.vision.map_ink import (
     write_map_observations,
 )
 from splatoon3_ai_coach.vision.match_intro import MatchIdentityTracker
+from splatoon3_ai_coach.vision.match_phase import MatchPhaseFuser
 from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     MapOverlayReading,
     MatchIntroReading,
+    MatchPhase,
     PlayerCountReading,
     ReadyReading,
     TimerReading,
@@ -52,6 +55,10 @@ class MapInkScanContext:
     config: AppConfig | None = None
     calibrator: TeamColorCalibrator | None = None
     calibration: TeamColorCalibrationResult | None = None
+    # Scan-order phase from qualifying raw timer reads (never post-scan fusion).
+    phase_fuser: MatchPhaseFuser | None = None
+    match_phase: MatchPhase = "out_of_match"
+    calibration_window: CalibrationWindow = field(default_factory=CalibrationWindow)
     # Ready? search: stage known → first non-opening timer tick.
     ready_seen: bool = False
     opening_clock_ticked: bool = False
@@ -102,8 +109,23 @@ def update_identity_from_detections(
 def update_ready_gate_from_detections(
     map_ctx: MapInkScanContext,
     detections: list[DetectorResult],
+    video_time: float | None = None,
 ) -> None:
-    """Track Ready? sightings and the first non-opening timer tick."""
+    """Track Ready? sightings and the first non-opening timer tick.
+
+    With ``video_time``, also steps the scan match phase and the A1
+    calibration window for this frame (``step_scan_match_phase``).
+    """
+    _update_ready_search(map_ctx, detections)
+    if video_time is not None:
+        step_scan_match_phase(map_ctx, detections, video_time)
+
+
+def _update_ready_search(
+    map_ctx: MapInkScanContext,
+    detections: list[DetectorResult],
+) -> None:
+    """Ready? sightings and ``opening_clock_ticked`` (any timer detection)."""
     opening = opening_clock_values(map_ctx)
     for det in detections:
         if det.detector_name == "ready":
@@ -134,6 +156,45 @@ def update_ready_gate_from_detections(
                 map_ctx,
                 reason="opening clock ticked without Ready? detection",
             )
+
+
+def step_scan_match_phase(
+    map_ctx: MapInkScanContext,
+    detections: list[DetectorResult],
+    video_time: float,
+) -> None:
+    """Step the frozen fuser from this frame's qualifying raw timer read.
+
+    The qualifying read is the highest-confidence raw timer detection on the
+    frame with confidence at or above ``vision.timer.min_usable_confidence``.
+    Below-floor frames step the fuser with no timer value. The first
+    ``in_match`` opens the A1 calibration window at ``video_time``.
+    """
+    if map_ctx.phase_fuser is None or map_ctx.config is None:
+        return
+    floor = map_ctx.config.vision.timer.min_usable_confidence
+    seconds = qualifying_timer_seconds(detections, floor)
+    map_ctx.match_phase = map_ctx.phase_fuser.step(video_time, seconds)
+    map_ctx.calibration_window.advance(video_time, map_ctx.match_phase)
+
+
+def qualifying_timer_seconds(
+    detections: list[DetectorResult],
+    min_usable_confidence: float,
+) -> float | None:
+    """Raw seconds of the best timer detection at or above the floor."""
+    timers = [
+        det
+        for det in detections
+        if det.detector_name == "timer" and isinstance(det.reading, TimerReading)
+    ]
+    if not timers:
+        return None
+    best = max(timers, key=lambda det: det.confidence)
+    if best.confidence < min_usable_confidence:
+        return None
+    assert isinstance(best.reading, TimerReading)
+    return float(best.reading.seconds_remaining)
 
 
 def opening_clock_values(map_ctx: MapInkScanContext) -> set[float]:
@@ -183,7 +244,12 @@ def maybe_calibrate_team_colors(
     video_frame: VideoFrame,
     detections: list[DetectorResult],
 ) -> None:
-    """Sample timer-adjacent HUD hues only with positive roster evidence."""
+    """Sample timer-adjacent HUD hues inside the A1 post-``in_match`` window.
+
+    Requires Ready?, positive roster evidence, and a frame time inside the
+    one-shot ``[t0, t0 + 3.0]`` window opened by the scan fuser.
+    ``opening_clock_ticked`` does not end eligibility.
+    """
     cfg = map_ctx.config
     if cfg is None or not cfg.vision.map_ink.enabled:
         return
@@ -194,20 +260,27 @@ def maybe_calibrate_team_colors(
     calibrator = map_ctx.calibrator
     if calibrator is None or calibrator.is_latched:
         return
-    if not map_ctx.ready_seen or map_ctx.opening_clock_ticked:
+    if not map_ctx.ready_seen:
         return
     roster_evidence = _roster_visibility_evidence(detections)
     if roster_evidence is None:
         return
-    evidence_id = roster_evidence[0]
+    video_time = float(video_frame.timestamp)
+    window = map_ctx.calibration_window
+    rejection = window.admit(video_time, map_ctx.match_phase)
+    if rejection is not None:
+        window.record_rejection(rejection, video_time)
+        return
     result = calibrator.observe(
         video_frame.image,
-        float(video_frame.timestamp),
+        video_time,
         roster_visible=True,
-        evidence_id=evidence_id,
+        evidence_id=roster_evidence[0],
+        match_phase=map_ctx.match_phase,
     )
     if result is None:
         return
+    window.close_latched(video_time)
     map_ctx.calibration = result
     if map_ctx.classifier is not None:
         map_ctx.classifier.apply_calibration(result)
@@ -320,6 +393,7 @@ def build_map_ink_context(
     classifier = None
     diagnostics = None
     calibrator = None
+    phase_fuser = MatchPhaseFuser(config.vision.lifecycle)
     if config.vision.map_ink.enabled:
         classifier = MapInkClassifier(config.vision.map_ink)
         if config.vision.map_ink.team_color_calibration_enabled:
@@ -335,6 +409,7 @@ def build_map_ink_context(
         diagnostics_dir=diagnostics,
         config=config,
         calibrator=calibrator,
+        phase_fuser=phase_fuser,
     )
 
 
@@ -362,6 +437,7 @@ def persist_map_artifacts(map_ctx: MapInkScanContext, output_dir: Path) -> None:
         "map_ink_enabled": map_ink_enabled,
         "ready_seen": map_ctx.ready_seen,
         "team_color_calibration": calibration_payload,
+        "team_color_calibration_window": map_ctx.calibration_window.to_dict(),
     }
     path = output_dir / MATCH_IDENTITY_FILENAME
     path.write_text(

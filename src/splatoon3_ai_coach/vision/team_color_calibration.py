@@ -6,8 +6,9 @@ only: **ally-4** (rightmost ally) and **opponent-1** (leftmost opponent)::
     aaaa | timer | oooo
          ^               ^
 
-The pipeline only feeds frames after ``Ready?`` is seen and before the
-opening clock ticks (5:00 → 4:59). Geometry only — not ``PlayerCountDetector``.
+The pipeline only feeds frames after ``Ready?`` is seen and inside the
+one-shot post-``in_match`` window (``vision/calibration_window.py``).
+Geometry only — not ``PlayerCountDetector``.
 Latches ally/opponent hue centers after a few corroborating frames, then
 stays immutable for the match.
 """
@@ -25,6 +26,7 @@ from splatoon3_ai_coach.config.models import (
     PlayerCountDetectorConfig,
 )
 from splatoon3_ai_coach.types import NormalizedBox
+from splatoon3_ai_coach.vision.models import MatchPhase
 from splatoon3_ai_coach.vision.roi import crop_roi
 
 # 1-based HUD indices: ally-4 and opponent-1 (closest to the center timer).
@@ -48,6 +50,7 @@ class TeamColorCalibrationResult:
     accepted_frame_times: tuple[float, ...] = ()
     accepted_ally_hues: tuple[float, ...] = ()
     accepted_opponent_hues: tuple[float, ...] = ()
+    accepted_match_phases: tuple[MatchPhase | None, ...] = ()
     roster_visibility_basis: str | None = None
     source: str = _SOURCE
 
@@ -66,6 +69,7 @@ class TeamColorCalibrationResult:
             "accepted_opponent_hues": [
                 round(value, 1) for value in self.accepted_opponent_hues
             ],
+            "accepted_match_phases": list(self.accepted_match_phases),
             "roster_visibility_basis": self.roster_visibility_basis,
             "source": self.source,
         }
@@ -90,6 +94,7 @@ class TeamColorCalibrationResult:
             accepted_opponent_hues=tuple(
                 float(value) for value in payload.get("accepted_opponent_hues", [])
             ),
+            accepted_match_phases=tuple(payload.get("accepted_match_phases", [])),
             roster_visibility_basis=(
                 None
                 if payload.get("roster_visibility_basis") is None
@@ -155,6 +160,7 @@ class TeamColorCalibrator:
     _accepted_frame_ids: list[str] = field(default_factory=list)
     _accepted_ally_hues: list[float] = field(default_factory=list)
     _accepted_opponent_hues: list[float] = field(default_factory=list)
+    _accepted_match_phases: list[MatchPhase | None] = field(default_factory=list)
     _result: TeamColorCalibrationResult | None = None
 
     @classmethod
@@ -195,11 +201,14 @@ class TeamColorCalibrator:
         *,
         roster_visible: bool = False,
         evidence_id: str | None = None,
+        match_phase: MatchPhase | None = None,
     ) -> TeamColorCalibrationResult | None:
         """Sample a roster-visible frame; return the result when first latched.
 
         ``roster_visible`` is positive detector evidence, not a timing
         assumption. Without it the frame cannot contribute to calibration.
+        ``match_phase`` is the caller's fused phase, recorded as provenance
+        only; phase eligibility is decided by the caller.
         After latch, later calls are no-ops and return ``None``.
         """
         if self._result is not None:
@@ -227,6 +236,7 @@ class TeamColorCalibrator:
         self._accepted_frame_ids.append(evidence_id or f"frame@{video_time:.3f}")
         self._accepted_ally_hues.append(ally.h_median)
         self._accepted_opponent_hues.append(opp.h_median)
+        self._accepted_match_phases.append(match_phase)
         if len(self._accepted_times) < self.min_accepted_frames:
             return None
 
@@ -242,6 +252,7 @@ class TeamColorCalibrator:
             accepted_frame_times=tuple(self._accepted_times),
             accepted_ally_hues=tuple(self._accepted_ally_hues),
             accepted_opponent_hues=tuple(self._accepted_opponent_hues),
+            accepted_match_phases=tuple(self._accepted_match_phases),
             roster_visibility_basis="player_count.roster_visible",
             source=_SOURCE,
         )
