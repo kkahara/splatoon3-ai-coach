@@ -1,0 +1,79 @@
+{
+  "amendment4_commit": "570f188c3a2322c20065b095d740a6ad2538c57a",
+  "code_commit": "53a8f58bd8bef8775ae0557c234004a95238d2d2",
+  "code_sha256": {
+    "src/splatoon3_ai_coach/config/models.py": "bb1b690ef807a06b3455a39bceb07b0138757ac54d33b6c381b11233a05a9f8d",
+    "src/splatoon3_ai_coach/vision/match_intro.py": "f84363f90bdd666d652c52065f481039cd004598a9d9ff86270f17529f51df83",
+    "src/splatoon3_ai_coach/vision/models.py": "2a8d0c4df2271268c0b801e5274a01f6acb4c23c93f508f30f43c45a2954aa37"
+  },
+  "config_sha256": "e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a",
+  "pilot_source_manifest_sha256": "f091a4ab465fb7df2077eed16ec381ab5eb5d8037cf91564645b4d0dbf967c2d",
+  "pydantic_version": "2.13.5",
+  "python_version": "3.14.7",
+  "recordings": [
+    {
+      "battle_mode_id": "splat_zones",
+      "battle_mode_latched_at": 2.5,
+      "intro_reading_count": 7,
+      "recording": "amendment5-pilot-REH6-EAV9-NUJ6-C5E6",
+      "stage_id": "makomart",
+      "stage_latched_at": 3.0,
+      "video_identity": "a231d86da401d896d2d8559f634f6b639a7f701c47fa80476ca5782e9b83cc23",
+      "video_sha256": "00881f5bbde4eaededbe225b5f71b2319105f9c95150c7e036efddf848fec904",
+      "vision_manifest_path": "analysis/amendment5-pilot-REH6-EAV9-NUJ6-C5E6/vision_manifest.json",
+      "vision_manifest_sha256": "58a402b173dc016b5f77cae611008483592d67f2c84e283d97fcaa78fe248dc6"
+    },
+    {
+      "battle_mode_id": "splat_zones",
+      "battle_mode_latched_at": 3.0,
+      "intro_reading_count": 7,
+      "recording": "amendment5-pilot-RFIK-MMLC-UURL-UC8F",
+      "stage_id": "wahoo_world",
+      "stage_latched_at": 3.0,
+      "video_identity": "53f11bec2d37c64e26623defabfb80c5f8d632ddaf86f5b96408ffaada67d6e0",
+      "video_sha256": "41528f4c8ea5412a98a50796ad6df8d913c43d664b325de48309d4018c8b8d63",
+      "vision_manifest_path": "analysis/amendment5-pilot-RFIK-MMLC-UURL-UC8F/vision_manifest.json",
+      "vision_manifest_sha256": "df3d975f4b7d7553aa5c80eabcd44d06c62e3345466c7b58340f808998e0d288"
+    },
+    {
+      "battle_mode_id": "tower_control",
+      "battle_mode_latched_at": 4.0,
+      "intro_reading_count": 9,
+      "recording": "amendment5-pilot-RRTO-V8LC-L095-BUVR",
+      "stage_id": "manta_maria",
+      "stage_latched_at": 4.0,
+      "video_identity": "b2ab4bd6c2b40cddd55e3f4c39a77511be5d30d3097392164d755a35162f5a23",
+      "video_sha256": "bcb78f3571800154861fd7259c9a75178a15c1d0845a7ab76b48b01b375caa9a",
+      "vision_manifest_path": "analysis/amendment5-pilot-RRTO-V8LC-L095-BUVR/vision_manifest.json",
+      "vision_manifest_sha256": "05d32aab13ce474a00572893f53c67717e23638a87bf30f76f10aa4968cc4043"
+    },
+    {
+      "battle_mode_id": "clam_blitz",
+      "battle_mode_latched_at": 3.0,
+      "intro_reading_count": 8,
+      "recording": "amendment5-pilot-RTSO-5GLH-MRT3-UX3P",
+      "stage_id": "makomart",
+      "stage_latched_at": 3.5,
+      "video_identity": "56af203d994783e402f9f4dbbb21d37af2b6c07e6bbf4465504b77d199be8e03",
+      "video_sha256": "f2efcf7f17109cd678f696fd4e142dcf7ccdbc760e3d5895ec88c8762f5400d3",
+      "vision_manifest_path": "analysis/amendment5-pilot-RTSO-5GLH-MRT3-UX3P/vision_manifest.json",
+      "vision_manifest_sha256": "97c9479fe50c241d64fc40fe729c4140a70f0c475c6b58bcae17f699fd55a458"
+    },
+    {
+      "battle_mode_id": "clam_blitz",
+      "battle_mode_latched_at": 5.0,
+      "intro_reading_count": 11,
+      "recording": "amendment5-pilot-RYYN-7U9N-1TRB-PEOQ",
+      "stage_id": "makomart",
+      "stage_latched_at": 5.0,
+      "video_identity": "a8eece5724b44bec8af9d60ed2c12e9a8893e74cce47ae85a24d5bb2277a73bf",
+      "video_sha256": "754c7a6e0b7a19db33eefaf6d30330b56c0e84199df02782adc063b0d8506d9b",
+      "vision_manifest_path": "analysis/amendment5-pilot-RYYN-7U9N-1TRB-PEOQ/vision_manifest.json",
+      "vision_manifest_sha256": "d4503d9d1df77d83cb45549e87af4fd7569915195ce225ea5c90fcf1437714be"
+    }
+  ],
+  "rule": "amendment4-intro-latch-v1",
+  "schema": "amendment3-blind-input/v1",
+  "scope": "pilot",
+  "tool_commit": "53a8f58bd8bef8775ae0557c234004a95238d2d2"
+}
