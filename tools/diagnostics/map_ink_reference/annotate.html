@@ -1,0 +1,78 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Map ink reference</title>
+<style>
+body{font-family:sans-serif;margin:16px;background:#202020;color:#eee}
+img{image-rendering:pixelated;border:1px solid #555;margin:4px}
+button{font-size:16px;margin:4px;padding:6px 12px}
+.row{display:flex;flex-wrap:wrap;align-items:flex-start}
+.frame{max-width:640px;cursor:crosshair}
+#err{color:#f88}
+</style></head><body>
+<div id="err"></div><div id="app">Loading…</div>
+<script>
+let task=null, picks=[], loupe=null;
+const app=document.getElementById('app'), err=document.getElementById('err');
+const img=h=>`<img src="/api/image/${h}">`;
+async function api(path,body){
+  const r=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)}:{});
+  const j=await r.json(); if(!r.ok){err.textContent=j.error;throw j.error} err.textContent='';
+  return j;
+}
+async function load(){task=await api('/api/task');picks=[];loupe=null;render();}
+function render(){
+  if(task.kind==='swatch')return swatch();
+  if(task.kind==='team')return team();
+  if(task.kind==='label')return label();
+  app.innerHTML='<h2>Stage complete.</h2>';
+}
+function swatch(){
+  app.innerHTML=`<h3>Pick two pixels of visually distinct ink colours</h3>
+   <p>Picked: ${picks.length}/2</p><div class="row" id="frames"></div>
+   <div id="loupe"></div>
+   <button id="ok" ${picks.length===2?'':'disabled'}>Submit swatches</button>
+   <button id="ct">cant_tell</button><button id="reset">Clear picks</button>`;
+  const fr=document.getElementById('frames');
+  task.frames.forEach(f=>{const i=new Image();i.src='/api/image/'+f.image;i.className='frame';
+    i.onclick=async e=>{const x=Math.floor(e.offsetX*i.naturalWidth/i.width),
+      y=Math.floor(e.offsetY*i.naturalHeight/i.height);
+      loupe=await api(`/api/loupe?frame=${f.index}&x=${x}&y=${y}`);
+      loupe.frame=f.index;showLoupe();};
+    fr.appendChild(i);});
+  document.getElementById('ok').onclick=()=>
+    api('/api/swatch',{token:task.token,picks}).then(load);
+  document.getElementById('ct').onclick=()=>
+    api('/api/swatch',{token:task.token,picks:null}).then(load);
+  document.getElementById('reset').onclick=()=>{picks=[];swatch();};
+  if(loupe)showLoupe();
+}
+function showLoupe(){
+  const d=document.getElementById('loupe');d.innerHTML='<p>Click the exact pixel:</p>';
+  const i=new Image();i.src='/api/image/'+loupe.image;i.style.cursor='crosshair';
+  i.onclick=e=>{if(picks.length>=2)return;
+    picks.push({frame_index:loupe.frame,x:loupe.origin[0]+Math.floor(e.offsetX/loupe.zoom),
+      y:loupe.origin[1]+Math.floor(e.offsetY/loupe.zoom)});loupe=null;swatch();};
+  d.appendChild(i);
+}
+function team(){
+  app.innerHTML=`<h3>${task.question}</h3>
+   <div class="row">${task.swatches.map(img).join('')}</div>
+   <button data-c="left">Left swatch</button><button data-c="right">Right swatch</button>
+   <button data-c="cant_tell">cant_tell</button>
+   <h4>Map</h4><div class="row">${task.map_frames.map(img).join('')}</div>
+   <h4>Gameplay</h4><div class="row">${task.gameplay_frames.map(img).join('')}</div>`;
+  app.querySelectorAll('button').forEach(b=>b.onclick=()=>
+    api('/api/team',{token:task.token,choice:b.dataset.c}).then(load));
+}
+function label(){
+  app.innerHTML=`<p>${task.progress[0]+1} / ${task.progress[1]}</p>
+   <div class="row">${img(task.crop)}
+   <div>A ${img(task.swatch_A)}</div><div>B ${img(task.swatch_B)}</div></div>
+   ${task.labels.map((l,k)=>`<button data-l="${l}">${k+1}: ${l}</button>`).join('')}`;
+  app.querySelectorAll('button').forEach(b=>b.onclick=()=>send(b.dataset.l));
+}
+function send(l){api('/api/label',{item_id:task.item_id,label:l}).then(load);}
+document.onkeydown=e=>{if(task&&task.kind==='label'){const k=parseInt(e.key)-1;
+  if(k>=0&&k<task.labels.length)send(task.labels[k]);}};
+load();
+</script></body></html>
