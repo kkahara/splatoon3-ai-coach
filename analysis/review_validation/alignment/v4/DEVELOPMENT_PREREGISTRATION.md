@@ -1976,3 +1976,154 @@ blind-input manifest and corpus blind-input manifest.
 - No tool or test was changed for this amendment. Tracks B and C,
   Amendments 1–4 and all other Track A criteria are unchanged except for
   the three sentences superseded above.
+
+## Amendment 6 — Preregistration identity and execution chain (2026-10-25)
+
+### What was frozen, what changes, why
+
+**Frozen:** Amendments 1–5 as committed at `ca4e088`, and the candidate
+pool committed at `29f9f5a`.
+
+The committed Amendment 3/4 tooling (`f636a6e`) pins the SHA-256 of the
+whole preregistration file to its Amendment 4 value. Appending Amendment 5
+grew the file, so the tool's precondition check now fails. Every real
+step 2a command runs that check. This was found after sealing, before any
+Amendment 5 preparation operation; no candidate was accessed. Amendment 3
+requires a tool defect found after sealing to be fixed only by an
+amendment.
+
+**What changes:** the meaning of the preregistration pin, and one
+authorized tooling repair. Nothing else changes: Amendments 1–5, every
+other pin, schema, record, rule, threshold, criterion, STOP condition and
+blinding requirement stay as committed.
+
+**Why:** an additive, sealed amendment does not change what an earlier
+amendment said. The tooling should be able to prove that, and should still
+refuse to run under text that nobody authorized for execution.
+
+### Historical identity (normative)
+
+Each sealed amendment is identified by its commit and by the SHA-256 of
+the preregistration file bytes at that commit. These identities are
+immutable and verifiable on their own from the repository:
+
+| Record | Commit | File SHA-256 |
+|---|---|---|
+| Preregistration through Amendment 4 | `570f188c3a2322c20065b095d740a6ad2538c57a` | `4ffeeaf899185d84beea1e97c59b0baa46798cb7390cf294fae3343804e757e1` |
+| Preregistration through Amendment 5 | `ca4e08821ca9c80f45125c168fe3caf3af536a3e` | `2a0a23ba0d4db8484eb7752861384546855dc65374d975580c7d11a77df6cb57` |
+| `amendment3/pilot_candidate_pool.json` | `29f9f5a8066e531f9bf3d58d3b0585ea5c2617ec` | `5ff846ad71fb7f782b8fd6fffa16dea5ae13f585a248d37382a5838195827a12` |
+
+A later amendment that only appends text leaves every earlier identity
+intact: the earlier file is a byte prefix of the later one, and the earlier
+commit and digest still verify. Growth of the file is not a change to an
+earlier amendment.
+
+Amendment 4's `amendment4_commit` field in the blind-input manifests keeps
+its meaning and value (`570f188…`).
+
+### Execution authorization (normative)
+
+Historical identity does not authorize execution. A run is authorized only
+under an explicit **authorized execution chain**: an ordered list, held in
+the tooling, of (amendment, commit, file SHA-256). For this experiment the
+chain is:
+
+1. Amendment 4: `570f188…`, `4ffeeaf8…`;
+2. Amendment 5: `ca4e088…`, `2a0a23ba…`;
+3. Amendment 6: its sealing commit and the file SHA-256 at that commit,
+   recorded in the tooling by the repair below.
+
+Before any real run, the tooling verifies all of the following. Any
+failure: STOP.
+
+- Each chain commit exists and is an ancestor of `HEAD`, each strictly
+  after the previous one.
+- The preregistration file bytes at each chain commit have the listed
+  SHA-256.
+- Each chain entry's file is a byte prefix of the next entry's file
+  (additive only).
+- The working-tree file is committed, unmodified, and has exactly the
+  SHA-256 of the last chain entry.
+
+`HEAD` need not be the last chain commit. It may be any descendant of it,
+for example the authorized tool-repair commit, provided the current
+preregistration file is byte-for-byte identical to the file at the last
+chain commit.
+
+So a later amendment, whether committed or not, makes the current file
+differ from the last chain entry, and every real run STOPs. It is not
+authorized because it is appended, committed, or later in history.
+
+A later amendment joins the chain only if:
+
+- it says so explicitly;
+- it is sealed; and
+- the tooling is then changed, under that amendment's authorization, to
+  list its commit and digest.
+
+"Accept the latest file" and "accept any descendant commit" are not
+authorization rules.
+
+The candidate pool's identity above is checked by the operator, as are
+Amendment 5's other consistency checks, before the first preparation
+operation. A difference: STOP.
+
+### Tool repair authorization (normative)
+
+After this amendment is committed, one tooling commit may make exactly
+these changes under `tools/diagnostics/map_ink_reference/` and
+`tests/map_ink_reference/`:
+
+- `constants.py`: replace the single preregistration pin with the
+  authorized execution chain above, keeping `AMENDMENT4_COMMIT` and its
+  value.
+- `seal.py`: `verify_preconditions` verifies the chain as specified above
+  instead of a single whole-file digest. The A1 implementation pins and all
+  other checks are unchanged.
+- Tests that show:
+  - the Amendment 4 historical identity still verifies;
+  - the chain verifies at the repaired commit;
+  - appended uncommitted text STOPs;
+  - a committed amendment that is not in the chain STOPs;
+  - an edit to earlier text (not a byte prefix) STOPs;
+  - a wrong digest or out-of-order commit STOPs.
+
+  Existing tests that set the old single pin are updated to the chain.
+
+Nothing else may change, including:
+
+- `src/` and `configs/`;
+- A1 code and tests;
+- pinned artifacts and committed records;
+- the blind-input and pilot-source schemas;
+- pilot selection, eligibility, extraction, sampling, annotation,
+  comparison and report logic.
+
+The full map-ink reference test suite must pass before the repair is
+committed. The repair commit is recorded as the tool commit for every
+later real run. `f636a6e` stays the step 2 tool commit of record.
+
+### Sealing order additions (normative)
+
+After the candidate pool (Amendment 5 sub-step 2), in this order:
+
+1. this amendment committed;
+2. the tool repair committed, with its commit and the Amendment 6 chain
+   entry reported;
+3. `preconditions` passes at the repaired commit.
+
+Amendment 5 sub-step 3 (source preparation) and everything after it
+follow, unchanged.
+
+### Disclosures
+
+- Drafted after `preconditions` failed on the whole-file pin and before any
+  candidate video was hashed, opened, decoded or analyzed. No
+  `analysis_dir` exists for any candidate.
+- During drafting, the preregistration file was read from commits
+  `570f188` and `ca4e088` to confirm the digests above and that the
+  Amendment 4 file is a byte prefix of the Amendment 5 file.
+- Amendment 5's drafter did not foresee that appending an amendment breaks
+  the tool's whole-file pin.
+- No tool or test was changed for this amendment. Tracks B and C,
+  Amendments 1–5 and all other Track A criteria are unchanged.
