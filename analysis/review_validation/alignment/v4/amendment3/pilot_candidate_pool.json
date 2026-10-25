@@ -1,0 +1,47 @@
+{
+  "schema": "amendment5-pilot-candidate-pool/v1",
+  "amendment5_commit": "ca4e08821ca9c80f45125c168fe3caf3af536a3e",
+  "declared_by": "Kenji Kahara",
+  "entries": [
+    {
+      "candidate_id": "REH6-EAV9-NUJ6-C5E6",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_REH6-EAV9-NUJ6-C5E6_2026-10-24 15-07-18.mov",
+      "analysis_dir": "analysis/amendment5-pilot-REH6-EAV9-NUJ6-C5E6",
+      "recorded_stage": "makomart",
+      "recorded_on": "2026-10-24",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media"
+    },
+    {
+      "candidate_id": "RFIK-MMLC-UURL-UC8F",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RFIK-MMLC-UURL-UC8F_2026-10-24 15-03-41.mov",
+      "analysis_dir": "analysis/amendment5-pilot-RFIK-MMLC-UURL-UC8F",
+      "recorded_stage": "wahoo_world",
+      "recorded_on": "2026-10-24",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media"
+    },
+    {
+      "candidate_id": "RRTO-V8LC-L095-BUVR",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RRTO-V8LC-L095-BUVR_2026-10-24 23-34-26.mov",
+      "analysis_dir": "analysis/amendment5-pilot-RRTO-V8LC-L095-BUVR",
+      "recorded_stage": "manta_maria",
+      "recorded_on": "2026-10-24",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media"
+    },
+    {
+      "candidate_id": "RTSO-5GLH-MRT3-UX3P",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RTSO-5GLH-MRT3-UX3P_2026-10-24 22-46-27.mov",
+      "analysis_dir": "analysis/amendment5-pilot-RTSO-5GLH-MRT3-UX3P",
+      "recorded_stage": "makomart",
+      "recorded_on": "2026-10-24",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media"
+    },
+    {
+      "candidate_id": "RYYN-7U9N-1TRB-PEOQ",
+      "video_path": "analysis/amendment5-pilot-media-2026-10-24/en_live_player_RYYN-7U9N-1TRB-PEOQ_2026-10-24 22-38-32.mov",
+      "analysis_dir": "analysis/amendment5-pilot-RYYN-7U9N-1TRB-PEOQ",
+      "recorded_stage": "makomart",
+      "recorded_on": "2026-10-24",
+      "authorization": "development/pilot media; not evaluation, held-out or corpus media"
+    }
+  ]
+}
