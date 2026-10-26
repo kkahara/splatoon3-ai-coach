@@ -7,12 +7,49 @@ button{font-size:16px;margin:4px;padding:6px 12px}
 .row{display:flex;flex-wrap:wrap;align-items:flex-start}
 .frame{max-width:640px;cursor:crosshair}
 #err{color:#f88}
+#amendment9-instructions{max-width:70em;border-top:1px solid #666;margin-top:20px}
 </style></head><body>
 <div id="err"></div><div id="app">Loading…</div>
 <script>
 let task=null, picks=[], loupe=null;
 const app=document.getElementById('app'), err=document.getElementById('err');
 const img=h=>`<img src="/api/image/${h}">`;
+const instructions=()=>`<section id="amendment9-instructions">
+  <h3>Apply these definitions to every item, from first to last.</h3>
+  <h4>Point labels</h4>
+  <p>Label only the visible pixel at the centre of the crosshair. The crosshair
+  leaves that pixel uncovered. Use the crop and the two displayed swatches.</p>
+  <ul>
+    <li><code>ink_A</code>: You can determine that the centre pixel depicts map
+    ink in swatch A's colour.</li>
+    <li><code>ink_B</code>: You can determine that the centre pixel depicts map
+    ink in swatch B's colour.</li>
+    <li><code>not_ink</code>: You can determine that the centre pixel does not
+    depict map ink in either swatch colour.</li>
+    <li><code>cant_tell</code>: From the displayed crop and swatches, you cannot
+    determine which one of <code>ink_A</code>, <code>ink_B</code> or
+    <code>not_ink</code> applies.</li>
+  </ul>
+  <p><code>not_ink</code> is a determination that the pixel is not ink of either
+  swatch colour. <code>cant_tell</code> is an abstention because you cannot make
+  one of the three determinations. Do not use <code>cant_tell</code> merely
+  because a colour is unexpected or because you do not know its colour name.
+  A and B are neutral colour references and have no team meaning.</p>
+  <p>Each submitted label is final and cannot be revised.</p>
+  <h4>Team identity</h4>
+  <p>The question is: “Which swatch is my team's colour?” “My team” means the
+  team of the player whose view was recorded. Use only the frames on this
+  screen and decide in this order:</p>
+  <ol>
+    <li>First use the teammate and own-player icons on the selected map frames.</li>
+    <li>Only if those do not decide, use the colour visibly fired in the
+    available gameplay cue frames.</li>
+    <li>If neither cue decides, choose <code>cant_tell</code>.</li>
+  </ol>
+  <p>Do not answer from an expected colour or a colour name. The two swatches
+  may exchange left/right positions. Answer each presentation independently;
+  no earlier answer is shown.</p>
+</section>`;
 async function api(path,body){
   const r=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(body)}:{});
@@ -31,7 +68,8 @@ function swatch(){
    <p>Picked: ${picks.length}/2</p><div class="row" id="frames"></div>
    <div id="loupe"></div>
    <button id="ok" ${picks.length===2?'':'disabled'}>Submit swatches</button>
-   <button id="ct">cant_tell</button><button id="reset">Clear picks</button>`;
+   <button id="ct">cant_tell</button><button id="reset">Clear picks</button>
+   ${instructions()}`;
   const fr=document.getElementById('frames');
   task.frames.forEach(f=>{const i=new Image();i.src='/api/image/'+f.image;i.className='frame';
     i.onclick=async e=>{const x=Math.floor(e.offsetX*i.naturalWidth/i.width),
@@ -60,7 +98,8 @@ function team(){
    <button data-c="left">Left swatch</button><button data-c="right">Right swatch</button>
    <button data-c="cant_tell">cant_tell</button>
    <h4>Map</h4><div class="row">${task.map_frames.map(img).join('')}</div>
-   <h4>Gameplay</h4><div class="row">${task.gameplay_frames.map(img).join('')}</div>`;
+   <h4>Gameplay</h4><div class="row">${task.gameplay_frames.map(img).join('')}</div>
+   ${instructions()}`;
   app.querySelectorAll('button').forEach(b=>b.onclick=()=>
     api('/api/team',{token:task.token,choice:b.dataset.c}).then(load));
 }
@@ -68,7 +107,8 @@ function label(){
   app.innerHTML=`<p>${task.progress[0]+1} / ${task.progress[1]}</p>
    <div class="row">${img(task.crop)}
    <div>A ${img(task.swatch_A)}</div><div>B ${img(task.swatch_B)}</div></div>
-   ${task.labels.map((l,k)=>`<button data-l="${l}">${k+1}: ${l}</button>`).join('')}`;
+   ${task.labels.map((l,k)=>`<button data-l="${l}">${k+1}: ${l}</button>`).join('')}
+   ${instructions()}`;
   app.querySelectorAll('button').forEach(b=>b.onclick=()=>send(b.dataset.l));
 }
 function send(l){api('/api/label',{item_id:task.item_id,label:l}).then(load);}

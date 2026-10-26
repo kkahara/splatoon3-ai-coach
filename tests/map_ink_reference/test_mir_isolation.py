@@ -39,6 +39,9 @@ BLIND = (
     "execution",
     "pilot_pipeline",
     "pilot_addendum",
+    "pilot2_sources",
+    "pilot2_pipeline",
+    "pilot2_addendum",
 )
 NEUTRAL = ("constants", "errors", "io_utils", "pins", "seal")
 # Step 2a derivation: replays stored intro readings through production code.
@@ -109,6 +112,15 @@ BLIND_CLI_COMMANDS = (
     "pilot-export",
     "pilot-gate",
     "pilot-addendum",
+    "pilot1-close-gate",
+    "pilot2-select",
+    "pilot2-plan",
+    "pilot2-extract",
+    "pilot2-points",
+    "pilot2-annotate",
+    "pilot2-export",
+    "pilot2-gate",
+    "pilot2-addendum",
 )
 BLIND_CLI_OPTIONS = {
     "recording",

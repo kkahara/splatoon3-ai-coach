@@ -24,4 +24,7 @@ Module groups:
 - Amendment 7 execution: ``execution``, ``pilot_pipeline`` and
   ``pilot_addendum``. These modules only orchestrate the frozen blind
   functions and never implement scientific rules.
+- Amendment 9 replacement execution: ``pilot2_sources``, ``pilot2_pipeline``
+  and ``pilot2_addendum``. These isolate P2/W2 while reusing the same frozen
+  lower-level Stage 1 functions.
 """

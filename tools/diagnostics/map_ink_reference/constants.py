@@ -43,6 +43,11 @@ PREREGISTRATION_CHAIN = (
         "04caeda69ccca22941800bd0ff4195df0aae813b",
         "6959f153dc6a2b51622a4480126e7853534c2abf81a9debdda1092fc9dabcb97",
     ),
+    (
+        "amendment9",
+        "736b42a19e326de73e4bd418fdb7e4fcd1a4bf8b",
+        "18172a384fb0efb973c2696957af57bd28fd24dd1cc30126eb6b0d0605013b71",
+    ),
 )
 # Amendment 8 tool identity: the first protected-path commit after C7.
 AMENDMENT7_REPAIR_COMMIT = "3883dd7bd14877705f61fe44b3b46a2c46a47afc"
@@ -62,6 +67,7 @@ PILOT_SOURCE_SCHEMA = "amendment3-pilot-sources/v1"
 INTRO_LATCH_RULE = "amendment4-intro-latch-v1"
 SCOPE_CORPUS = "corpus"
 SCOPE_PILOT = "pilot"
+SCOPE_PILOT2 = "pilot2"
 PILOT_AUTHORIZATION = "development/pilot media; not evaluation, held-out or corpus media"
 Q_ALL_UNDEFINED = "undefined"
 
@@ -90,7 +96,7 @@ SWATCH_S_MIN = 70
 SWATCH_V_MIN = 40
 SWATCH_DISPLAY_SIZE = 9
 
-# Display (crop size and zoom may change after the pilot within these limits).
+# Display values (Amendment 9 removes the optional post-pilot interface commit).
 DEFAULT_CROP_SIZE = 96
 MIN_CROP_SIZE = 64
 MAX_CROP_SIZE = 160
@@ -147,3 +153,18 @@ PILOT_ALLOWED_CHANGES = (
     "team_cue_wording",
     "interface_fix",
 )
+
+# Amendment 9 replacement-pilot namespace (P2/W2).
+PILOT2_RECORDS_DIR = f"{RECORDS_DIR}/pilot2"
+PILOT2_WORK_DIR = f"{WORK_DIR}/pilot2"
+PILOT2_SELECTION = "pilot_selection.json"
+PILOT2_ADDENDUM = "pilot_addendum.json"
+PILOT2_ADDENDUM_SCHEMA = "amendment9-pilot2-addendum/v1"
+SUPPLEMENTARY_DIR = "supplementary"
+SUPPLEMENTARY_POOL = "pilot_candidate_pool.json"
+SUPPLEMENTARY_PREPARATION = "pilot_source_preparation.json"
+SUPPLEMENTARY_SOURCE_MANIFEST = "pilot_source_manifest.json"
+SUPPLEMENTARY_BLIND_INPUT_MANIFEST = "pilot_blind_input_manifest.json"
+SUPPLEMENTARY_POOL_SCHEMA = "amendment5-pilot-candidate-pool/v1"
+SUPPLEMENTARY_PREPARATION_SCHEMA = "amendment5-pilot-source-preparation/v1"
+SUPPLEMENTARY_COUNT = 5

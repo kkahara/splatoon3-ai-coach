@@ -142,6 +142,19 @@ PROTECTED_ROOTS = (
     "tools/diagnostics/map_ink_reference/",
     "tests/map_ink_reference/",
 )
+REPAIR9_ALLOWED = frozenset(
+    {
+        "tools/diagnostics/map_ink_reference/constants.py",
+        "tools/diagnostics/map_ink_reference/cli.py",
+        "tools/diagnostics/map_ink_reference/execution.py",
+        "tools/diagnostics/map_ink_reference/seal.py",
+        "tools/diagnostics/map_ink_reference/annotate.html",
+        "tools/diagnostics/map_ink_reference/__init__.py",
+        "tools/diagnostics/map_ink_reference/pilot2_pipeline.py",
+        "tools/diagnostics/map_ink_reference/pilot2_sources.py",
+        "tools/diagnostics/map_ink_reference/pilot2_addendum.py",
+    }
+)
 
 
 def chain_entry(name: str) -> tuple[str, str]:
@@ -219,3 +232,20 @@ def protected_commits(repo: Path, base: str) -> list[str]:
         if any(path.startswith(PROTECTED_ROOTS) for path in changed_paths(repo, commit)):
             touching.append(commit)
     return touching
+
+
+def verify_repair9_paths(repo: Path, commit: str) -> None:
+    """Require Repair 9 to contain only its exact authorized source/test paths."""
+    changed = changed_paths(repo, commit)
+    if not changed or any(
+        path not in REPAIR9_ALLOWED and not path.startswith(PROTECTED_ROOTS[1])
+        for path in changed
+    ):
+        raise SealViolation("repair 9 changes a path outside its exact allowlist")
+    new_modules = {
+        "tools/diagnostics/map_ink_reference/pilot2_pipeline.py",
+        "tools/diagnostics/map_ink_reference/pilot2_sources.py",
+        "tools/diagnostics/map_ink_reference/pilot2_addendum.py",
+    }
+    if any(changed.get(path) != "A" for path in new_modules):
+        raise SealViolation("repair 9 must add the three pilot2 modules")

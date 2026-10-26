@@ -23,6 +23,7 @@ import map_ink_reference
 import map_ink_reference.cli as cli
 import map_ink_reference.execution as execution
 import map_ink_reference.intro_latch as intro_latch
+import map_ink_reference.pilot2_pipeline as pilot2_pipeline
 import map_ink_reference.pilot_pipeline as pilot_pipeline
 import map_ink_reference.pins as pins
 import map_ink_reference.seal as seal
@@ -83,6 +84,7 @@ PACKAGE_DIR = Path(map_ink_reference.__file__).parent
 
 CHAIN_END = ")\nDEFAULT_CROP_SIZE"
 C8_TEXT = "## synthetic Amendment 8\n"
+C9_TEXT = "## synthetic Amendment 9\n"
 REPAIR8_TEST = f"{TEST_REL}/test_repair8.py"
 
 
@@ -93,6 +95,8 @@ def constants_source(
     zoom: Any = 4,
     c8: str | None = None,
     digest8: str | None = None,
+    c9: str | None = None,
+    digest9: str | None = None,
 ) -> str:
     """Synthetic ``constants.py``; ``c7=None`` is the pre-repair chain.
 
@@ -118,13 +122,22 @@ def constants_source(
             "",
         ]
     )
-    return source if c8 is None else add_entry5(source, c8, digest8)
+    if c8 is not None:
+        source = add_entry5(source, c8, digest8)
+    return source if c9 is None else add_entry6(source, c9, digest9)
 
 
 def add_entry5(source: str, c8: str, digest8: str | None) -> str:
     """Append chain entry 5 to a synthetic ``constants.py`` text."""
     assert CHAIN_END in source
     entry = f'    ("amendment8", "{c8}", "{digest8}"),\n'
+    return source.replace(CHAIN_END, entry + CHAIN_END, 1)
+
+
+def add_entry6(source: str, c9: str, digest9: str | None) -> str:
+    """Append chain entry 6 to a synthetic ``constants.py`` text."""
+    assert CHAIN_END in source
+    entry = f'    ("amendment9", "{c9}", "{digest9}"),\n'
     return source.replace(CHAIN_END, entry + CHAIN_END, 1)
 
 
@@ -183,6 +196,9 @@ class Workspace:
     c8: str
     digest8: str
     repair8: str
+    c9: str
+    digest9: str
+    repair9: str
     geometry: Path
     media: dict
     coverage: dict
@@ -198,8 +214,17 @@ class Workspace:
         return self.repo / RECORDS_DIR
 
     def constants(self, crop: Any = 96, zoom: Any = 4) -> str:
-        """The repair 8 ``constants.py`` with these display values."""
-        return constants_source(self.c7, self.digest, crop, zoom, self.c8, self.digest8)
+        """The repair 9 ``constants.py`` with these display values."""
+        return constants_source(
+            self.c7,
+            self.digest,
+            crop,
+            zoom,
+            self.c8,
+            self.digest8,
+            self.c9,
+            self.digest9,
+        )
 
     def patch(self, mp: pytest.MonkeyPatch) -> None:
         """Point every pin and identity table at the synthetic repository."""
@@ -209,9 +234,11 @@ class Workspace:
             (
                 ("amendment7", self.c7, self.digest),
                 ("amendment8", self.c8, self.digest8),
+                ("amendment9", self.c9, self.digest9),
             ),
         )
         mp.setattr(execution, "AMENDMENT7_REPAIR_COMMIT", self.repair7)
+        mp.setattr(execution, "REPAIR8_COMMIT", self.repair8)
         mp.setattr(execution, "A1_IMPLEMENTATION_PINS", dict(self.a1))
         mp.setattr(execution, "PRODUCTION_PINS", dict(self.production))
         mp.setattr(
@@ -230,6 +257,7 @@ class Workspace:
         for rid, digest in self.coverage.items():
             mp.setitem(pins.COVERAGE_MANIFEST_PINS, rid, digest)
         mp.setattr(pilot_pipeline, "verify_geometry_pins", lambda repo: self.geometry)
+        mp.setattr(pilot2_pipeline, "verify_geometry_pins", lambda repo: self.geometry)
         mp.setattr(cli, "_repo", lambda: self.repo)
 
     def copy_to(self, dest: Path) -> Workspace:
@@ -340,6 +368,18 @@ def commit_repair8(repo: Path, c8: str, digest8: str) -> str:
     return commit(repo, [constants, test], "repair 8")
 
 
+def commit_repair9(repo: Path, c9: str, digest9: str) -> str:
+    """Synthetic Repair 9 with entry 6 and the three required new modules."""
+    constants = repo / CONSTANTS_REL
+    constants.write_text(add_entry6(constants.read_text(), c9, digest9))
+    paths = [constants]
+    for name in ("pilot2_pipeline.py", "pilot2_sources.py", "pilot2_addendum.py"):
+        path = repo / TOOL_REL / name
+        path.write_text(f'"""Synthetic {name}."""\n')
+        paths.append(path)
+    return commit(repo, paths, "repair 9")
+
+
 def build_repaired(root: Path, mp: pytest.MonkeyPatch) -> Workspace:
     """Frozen tooling, pins, C7, the repair, C8, repair 8 and sealed step 2a."""
     repo = init_repo(root / "repo")
@@ -367,8 +407,19 @@ def build_repaired(root: Path, mp: pytest.MonkeyPatch) -> Workspace:
     c8 = commit(repo, [prereg], "C8")
     digest8 = _sha(prereg)
     repair8 = commit_repair8(repo, c8, digest8)
+    prereg.write_text(prereg.read_text() + C9_TEXT)
+    c9 = commit(repo, [prereg], "C9")
+    digest9 = _sha(prereg)
+    repair9 = commit_repair9(repo, c9, digest9)
     geometry = write_geometry(root)
-    DecodableStep2a(repo, repo / RECORDS_DIR, mp).seal()
+    step2a = DecodableStep2a(repo, repo / RECORDS_DIR, mp)
+    step2a.sources.extend(
+        [
+            step2a.pilot_source("pilot-d", 8),
+            step2a.pilot_source("pilot-e", 8),
+        ]
+    )
+    step2a.seal()
     workspace = Workspace(
         repo=repo,
         c7=c7,
@@ -377,6 +428,9 @@ def build_repaired(root: Path, mp: pytest.MonkeyPatch) -> Workspace:
         c8=c8,
         digest8=digest8,
         repair8=repair8,
+        c9=c9,
+        digest9=digest9,
+        repair9=repair9,
         geometry=geometry,
         media={rid: pins.MEDIA_PINS[rid] for rid in CORRECTNESS_APPLICABLE},
         coverage={rid: pins.COVERAGE_MANIFEST_PINS[rid] for rid in COVERAGE_ONLY},

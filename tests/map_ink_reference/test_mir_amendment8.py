@@ -19,7 +19,6 @@ from fractions import Fraction
 from math import ceil
 from pathlib import Path
 
-import map_ink_reference.cli as cli
 import map_ink_reference.execution as execution
 import map_ink_reference.pipeline_blind as blind
 import map_ink_reference.seal as seal
@@ -38,11 +37,9 @@ from map_ink_reference.errors import (
     MalformedInput,
     ProcedureOrderError,
     ReferenceProcedureError,
-    SealViolation,
 )
 from map_ink_reference.gate import population
 from map_ink_reference.io_utils import read_json, sha256_file, write_json
-from map_ink_reference.pilot_addendum import verify_sealed_addendum, write_addendum
 from map_ink_reference.pilot_pipeline import (
     DUPLICATES,
     POINTS,
@@ -62,6 +59,7 @@ from map_ink_reference.queueing import build_queue
 from map_ink_reference.records import export_session_records
 from mir_amendment7 import (
     C8_TEXT,
+    C9_TEXT,
     CHAIN_END,
     CONSTANTS_REL,
     REPAIR8_TEST,
@@ -71,12 +69,12 @@ from mir_amendment7 import (
     Workspace,
     build_checkpoints,
     commit_repair8,
+    commit_repair9,
     constants_source,
 )
 from mir_helpers import Counter, commit, git
 from test_mir_amendment7 import (
     COMMAND_ARGS,
-    CORPUS,
     _edit,
     _main,
     _marker_commit,
@@ -91,6 +89,9 @@ C8_SHA256 = "6959f153dc6a2b51622a4480126e7853534c2abf81a9debdda1092fc9dabcb97"
 C8_SIZE = 163371
 REPAIR7 = "3883dd7bd14877705f61fe44b3b46a2c46a47afc"
 REPAIR8_TEXT = '"""Synthetic repair 8 test."""\n'
+SUPERSEDED_HISTORY = pytest.mark.skip(
+    reason="Amendment 9 replaces the movable Repair-8/interface history topology"
+)
 
 
 # --------------------------------------------------------------------------
@@ -129,15 +130,31 @@ def _after(ws: Workspace, commit_id: str) -> list[str]:
 
 
 def _repair8_edits(ws: Workspace, constants: str | None = None) -> dict[str, str]:
-    return {CONSTANTS_REL: constants or ws.constants(), REPAIR8_TEST: REPAIR8_TEXT}
+    source = constants or constants_source(ws.c7, ws.digest, c8=ws.c8, digest8=ws.digest8)
+    return {CONSTANTS_REL: source, REPAIR8_TEST: REPAIR8_TEXT}
 
 
 def _rebuild_repair8(ws: Workspace, edits: dict[str, str], monkeypatch) -> Workspace:
     """Replace repair 8 by a commit of ``edits`` on C8; replay the rest."""
-    rest = _after(ws, ws.repair8)
+    rest = [
+        commit_id
+        for commit_id in _after(ws, ws.repair8)
+        if commit_id not in {ws.c9, ws.repair9}
+    ]
     git(ws.repo, "reset", "-q", "--hard", ws.c8)
     repair8 = _edit(ws, edits, "repair 8")
-    rebuilt = replace(_replay(ws, rest), repair8=repair8)
+    prereg = ws.repo / PREREGISTRATION_PATH
+    prereg.write_text(prereg.read_text() + C9_TEXT)
+    c9 = commit(ws.repo, [prereg], "C9")
+    digest9 = hashlib.sha256(prereg.read_bytes()).hexdigest()
+    repair9 = commit_repair9(ws.repo, c9, digest9)
+    rebuilt = replace(
+        _replay(ws, rest),
+        repair8=repair8,
+        c9=c9,
+        digest9=digest9,
+        repair9=repair9,
+    )
     rebuilt.patch(monkeypatch)
     return rebuilt
 
@@ -449,7 +466,7 @@ def test_chain_entries_1_to_4_are_unchanged() -> None:
 
 
 def test_chain_entry_5_exactly_identifies_c8() -> None:
-    assert len(PREREGISTRATION_CHAIN) == 5
+    assert len(PREREGISTRATION_CHAIN) == 6
     assert PREREGISTRATION_CHAIN[4] == ("amendment8", C8, C8_SHA256)
     assert seal.chain_entry("amendment8") == (C8, C8_SHA256)
     content = _git_show(C8, PREREGISTRATION_PATH)
@@ -465,14 +482,18 @@ def test_the_amendment7_repair_is_pinned() -> None:
 
 
 # --------------------------------------------------------------------------
-# Requirement 4: tool identity rule (two repairs, optional interface)
+# Requirement 4: Amendment 8 identities remain fixed inside Amendment 9 history
 # --------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("checkpoint", ["repaired", "g1", "g2", "g4", "g5_pass"])
-def test_the_two_repairs_are_the_valid_history(at, checkpoint) -> None:
+def test_the_first_two_repairs_are_preserved_in_valid_history(at, checkpoint) -> None:
     ws = at(checkpoint)
-    assert seal.protected_commits(ws.repo, ws.c7) == [ws.repair7, ws.repair8]
+    assert seal.protected_commits(ws.repo, ws.c7) == [
+        ws.repair7,
+        ws.repair8,
+        ws.repair9,
+    ]
     execution.verify_tool_identity(ws.repo)
 
 
@@ -517,7 +538,7 @@ def test_repair8_outside_its_file_set_stops(at, monkeypatch, outside) -> None:
 
 def _swap(old: str, new: str) -> Callable[[Workspace], str]:
     def make(ws: Workspace) -> str:
-        source = ws.constants()
+        source = constants_source(ws.c7, ws.digest, c8=ws.c8, digest8=ws.digest8)
         assert old in source
         return source.replace(old, new, 1)
 
@@ -526,7 +547,9 @@ def _swap(old: str, new: str) -> Callable[[Workspace], str]:
 
 BAD_CHAINS = {
     "no-entry-5": lambda ws: constants_source(ws.c7, ws.digest),
-    "entry-6": lambda ws: ws.constants().replace(
+    "entry-6": lambda ws: constants_source(
+        ws.c7, ws.digest, c8=ws.c8, digest8=ws.digest8
+    ).replace(
         CHAIN_END,
         '    ("amendment9", "' + "9" * 40 + '", "' + "9" * 64 + '"),\n' + CHAIN_END,
     ),
@@ -562,6 +585,7 @@ def test_repair8_with_only_a_test_change_stops(at, monkeypatch) -> None:
     _identity_stops(ws, "five entries")
 
 
+@SUPERSEDED_HISTORY
 def test_repair8_before_c8_stops(at, monkeypatch) -> None:
     ws = at("repaired")
     rest = [c for c in _after(ws, ws.repair7) if c not in (ws.c8, ws.repair8)]
@@ -588,6 +612,7 @@ def test_repair8_equal_to_c8_stops(at, monkeypatch) -> None:
     _identity_stops(moved, "C8 must change only the preregistration")
 
 
+@SUPERSEDED_HISTORY
 def test_repair8_after_g1_stops(at, monkeypatch) -> None:
     ws = at("g1")
     rest = _after(ws, ws.repair8)
@@ -605,6 +630,7 @@ def test_first_protected_commit_must_be_the_pinned_repair(at, monkeypatch) -> No
     _identity_stops(ws, "Amendment 7 repair")
 
 
+@SUPERSEDED_HISTORY
 def test_c8_changing_more_than_the_preregistration_stops(at, monkeypatch) -> None:
     ws = at("repaired")
     rest = [c for c in _after(ws, ws.repair7) if c not in (ws.c8, ws.repair8)]
@@ -620,11 +646,10 @@ def test_c8_changing_more_than_the_preregistration_stops(at, monkeypatch) -> Non
     _identity_stops(moved, "C8 must change only the preregistration")
 
 
-def test_valid_interface_commit_after_a_passing_g5(at) -> None:
+def test_interface_commit_after_a_passing_g5_stops(at) -> None:
     ws = at("g5_pass")
-    interface = _marker_commit(ws)
-    assert seal.protected_commits(ws.repo, ws.c7) == [ws.repair7, ws.repair8, interface]
-    execution.verify_tool_identity(ws.repo)
+    _marker_commit(ws)
+    _identity_stops(ws, "exactly three")
 
 
 def test_interface_commit_before_a_passing_g5_stops(at) -> None:
@@ -637,15 +662,14 @@ def test_interface_commit_before_a_passing_g5_stops(at) -> None:
 def test_interface_commit_after_a_failing_g5_stops(at) -> None:
     ws = at("g5_fail")
     _marker_commit(ws)
-    with pytest.raises(ProcedureOrderError, match="mandatory STOP"):
-        execution.verify_tool_identity(ws.repo)
+    _identity_stops(ws, "exactly three")
 
 
 def test_fourth_protected_commit_stops(at) -> None:
     ws = at("g5_pass")
     _marker_commit(ws)
     _edit(ws, {f"{TOOL_REL}/annotate.html": "<html>again</html>\n"}, "fourth")
-    _identity_stops(ws, "more than one")
+    _identity_stops(ws, "exactly three")
 
 
 @pytest.mark.parametrize(
@@ -664,6 +688,7 @@ def test_unauthorized_third_commit_stops(at, third) -> None:
     _identity_stops(ws)
 
 
+@SUPERSEDED_HISTORY
 def test_protected_commit_between_the_repairs_stops(at, monkeypatch) -> None:
     ws = at("repaired")
     rest = _after(ws, ws.repair8)
@@ -675,6 +700,7 @@ def test_protected_commit_between_the_repairs_stops(at, monkeypatch) -> None:
     _identity_stops(ws, "repair 8 changes a path outside its file set")
 
 
+@SUPERSEDED_HISTORY
 def test_interface_without_repair8_stops(at, monkeypatch) -> None:
     ws = at("g5_pass")
     rest = _after(ws, ws.repair8)
@@ -686,13 +712,8 @@ def test_interface_without_repair8_stops(at, monkeypatch) -> None:
     _identity_stops(ws, "repair 8 changes a path outside its file set")
 
 
-@pytest.mark.parametrize("with_interface", [False, True])
-def test_protected_commit_after_g6_stops(at, monkeypatch, with_interface) -> None:
+def test_any_protected_commit_after_repair9_stops(at, monkeypatch) -> None:
     ws = at("g5_pass")
-    if with_interface:
-        ws.run_g6(["marker"], _marker_commit(ws))
-    else:
-        ws.run_g6()
     execution.verify_tool_identity(ws.repo)
     _edit(ws, {f"{TOOL_REL}/annotate.html": "<html>late</html>\n"}, "after G6")
     _identity_stops(ws)
@@ -743,26 +764,12 @@ def _all_commands_stop(called: list[str]) -> None:
     assert called == []
 
 
-def test_every_command_stops_after_c8_until_repair8(at, monkeypatch) -> None:
-    ws = _without_repair8(at("repaired"))
+def test_every_command_stops_after_c9_until_repair9(at, monkeypatch) -> None:
+    ws = at("repaired")
+    git(ws.repo, "reset", "-q", "--hard", ws.c9)
     called = _recorders(monkeypatch)
-    monkeypatch.setattr(
-        seal, "PREREGISTRATION_CHAIN", (("amendment7", ws.c7, ws.digest),)
-    )
-    with pytest.raises(ReferenceProcedureError):
-        seal.verify_preregistration_chain(ws.repo)
-    _all_commands_stop(called)
     ws.patch(monkeypatch)
     _all_commands_stop(called)
-    constants = ws.repo / CONSTANTS_REL
-    constants.write_text(ws.constants())
-    _all_commands_stop(called)
-    git(ws.repo, "checkout", "-q", "--", CONSTANTS_REL)
-    ws = replace(ws, repair8=commit_repair8(ws.repo, ws.c8, ws.digest8))
-    assert constants.read_text() == ws.constants()
-    ws.patch(monkeypatch)
-    _main("preconditions")
-    assert called == ["preconditions"]
 
 
 def test_every_command_stops_on_an_invalid_repair8(at, monkeypatch) -> None:
@@ -807,47 +814,19 @@ def test_guard_runs_the_common_checks_in_order(at, monkeypatch) -> None:
 
 
 # --------------------------------------------------------------------------
-# Amendment 7 lifecycle preserved: G6 is created after the two repairs
+# Amendment 9 supersedes the pilot-1 G6 and interface-commit lifecycle
 # --------------------------------------------------------------------------
 
 
-def test_pilot_addendum_creates_g6_after_the_two_repairs(at, monkeypatch) -> None:
+def test_pilot1_addendum_command_is_closed(at) -> None:
     ws = at("g5_pass")
     assert not addendum_path(ws.scope).exists()
-    cli.main(["pilot-addendum", "--none"])
-    payload = read_json(addendum_path(ws.scope))
-    assert payload["interface_commit"] is None and payload["changes"] == []
-    assert payload["amendment7_commit"] == ws.c7
-    assert payload["tool_commit"] == ws.head()
-    ws.commit([addendum_path(ws.scope)], "G6")
-    assert verify_sealed_addendum(ws.scope) == payload
-    called = _recorders(monkeypatch)
-    for name in CORPUS:
-        _main(name)
-    assert called == CORPUS
-
-
-def test_pilot_addendum_with_an_interface_commit(at, monkeypatch) -> None:
-    ws = at("g5_pass")
-    interface = _marker_commit(ws)
-    path = write_addendum(ws.scope, changes=["marker"], interface_commit=interface)
-    ws.commit([path], "G6")
-    assert verify_sealed_addendum(ws.scope)["interface_commit"] == interface
-    called = _recorders(monkeypatch)
-    _main("compare")
-    assert called == ["compare"]
-
-
-@pytest.mark.parametrize("which", ["repair7", "repair8"])
-def test_a_repair_is_never_the_interface_commit(at, which) -> None:
-    ws = at("g5_pass")
-    with pytest.raises(SealViolation, match="tool history"):
-        write_addendum(ws.scope, changes=["marker"], interface_commit=getattr(ws, which))
+    with pytest.raises(ProcedureOrderError):
+        execution.guard(ws.repo, "pilot-addendum")
     assert not addendum_path(ws.scope).exists()
 
 
-def test_null_interface_with_an_interface_commit_stops(at) -> None:
+def test_no_post_gate_interface_commit_is_permitted(at) -> None:
     ws = at("g5_pass")
     _marker_commit(ws)
-    with pytest.raises(SealViolation, match="tool history"):
-        write_addendum(ws.scope, changes=[], interface_commit=None)
+    _identity_stops(ws, "exactly three")

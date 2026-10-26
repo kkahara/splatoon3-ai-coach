@@ -1,15 +1,14 @@
-"""Amendment 7's common fail-closed execution guard.
+"""Amendment 9's common fail-closed execution guard.
 
 The dispatcher calls ``guard`` before every command: the authorized chain and
 A1 pins, clean tooling, the tool identity rule and the production dependency
-pins; then the pilot STOPs or the sealed G6 addendum verification.
+pins; then the pilot-1 closure, pilot-2 sequence, or sealed H6 prerequisite.
 """
 
 from __future__ import annotations
 
 import ast
 import hashlib
-import json
 from pathlib import Path
 
 from map_ink_reference.constants import (
@@ -17,28 +16,39 @@ from map_ink_reference.constants import (
     PILOT_BLIND_INPUT_MANIFEST,
     RECORDS_DIR,
     SCOPE_PILOT,
+    SCOPE_PILOT2,
 )
 from map_ink_reference.errors import (
     IsolationViolation,
-    MalformedInput,
     ProcedureOrderError,
     SealViolation,
 )
 from map_ink_reference.io_utils import read_json, sha256_file
+from map_ink_reference.pilot2_addendum import verify_sealed_addendum
+from map_ink_reference.pilot2_pipeline import (
+    GATE as PILOT2_GATE,
+)
+from map_ink_reference.pilot2_pipeline import (
+    H3_NAMES,
+    H4_NAMES,
+    Pilot2Scope,
+)
+from map_ink_reference.pilot2_pipeline import (
+    addendum_path as pilot2_addendum_path,
+)
+from map_ink_reference.pilot2_pipeline import (
+    selection_path as pilot2_selection_path,
+)
 from map_ink_reference.pilot_addendum import (
     CONSTANTS,
     SEALED_DISPLAY,
     TEST_ROOT,
     display_defaults,
-    passing_gate_commit,
-    verify_interface_commit,
-    verify_sealed_addendum,
 )
 from map_ink_reference.pilot_pipeline import (
+    G4_NAMES,
     GATE,
     PilotScope,
-    addendum_path,
-    selection_path,
 )
 from map_ink_reference.seal import (
     adding_commit,
@@ -49,9 +59,11 @@ from map_ink_reference.seal import (
     head_commit,
     preregistration_path,
     protected_commits,
+    require_sealed,
     require_tool_clean,
     strictly_after,
     verify_preconditions,
+    verify_repair9_paths,
 )
 
 PRODUCTION_PINS = dict(
@@ -113,6 +125,7 @@ REPAIR8_FILES = frozenset(
         "seal.py",
     )
 )
+REPAIR8_COMMIT = "0ee675d47abc1361f583362217a02a9922647e24"
 # Split literals: the blind isolation check forbids these file names verbatim.
 A1_IMPLEMENTATION_PINS = dict(
     (
@@ -144,6 +157,19 @@ PILOT_COMMANDS = frozenset(
         "pilot-export",
         "pilot-gate",
         "pilot-addendum",
+    }
+)
+PILOT1_CLOSURE_COMMANDS = frozenset({"pilot1-close-gate", "pilot1-gate-report"})
+PILOT2_COMMANDS = frozenset(
+    {
+        "pilot2-select",
+        "pilot2-plan",
+        "pilot2-extract",
+        "pilot2-points",
+        "pilot2-annotate",
+        "pilot2-export",
+        "pilot2-gate",
+        "pilot2-addendum",
     }
 )
 CORPUS_COMMANDS = frozenset(
@@ -254,86 +280,181 @@ def _verify_amendment_commit(repo: Path, commit: str, label: str) -> None:
         raise SealViolation(f"{label} must change only the preregistration file")
 
 
-def _sealed_interface(repo: Path, g6: str, scope: PilotScope) -> object:
-    rel = scope.rel(addendum_path(scope))
-    try:
-        return json.loads(file_at_commit(repo, g6, rel))["interface_commit"]
-    except (ValueError, KeyError, TypeError) as exc:
-        raise MalformedInput("sealed pilot addendum is malformed") from exc
-
-
 def verify_repairs(repo: Path) -> list[str]:
-    """Amendment 8 history: T[0] is the Amendment 7 repair and T[1] is repair 8."""
+    """Amendment 9: T is exactly repair 7, repair 8 and repair 9."""
     c7, _ = chain_entry("amendment7")
     c8, _ = chain_entry("amendment8")
+    c9, _ = chain_entry("amendment9")
     _verify_amendment_commit(repo, c7, "C7")
     _verify_amendment_commit(repo, c8, "C8")
+    _verify_amendment_commit(repo, c9, "C9")
     tool = protected_commits(repo, c7)
     if not tool or tool[0] != AMENDMENT7_REPAIR_COMMIT:
         raise SealViolation("the Amendment 7 repair is not committed first after C7")
     verify_repair(repo, tool[0], c7)
+    if display_defaults(repo, tool[0]) != SEALED_DISPLAY:
+        raise SealViolation("Amendment 7 repair changes the sealed display defaults")
     if len(tool) < 2:
         raise SealViolation("repair 8 is not committed after C8")
+    if tool[1] != REPAIR8_COMMIT:
+        raise SealViolation("T[1] is not the frozen repair 8 commit")
     verify_repair8(repo, tool[1], tool[0], c8)
+    if len(tool) < 3:
+        raise SealViolation("repair 9 is not committed after C9")
+    if len(tool) != 3:
+        raise SealViolation("protected history must contain exactly three repairs")
+    repair9 = tool[2]
+    if len(commit_parents(repo, repair9)) != 1 or not strictly_after(repo, c9, repair9):
+        raise SealViolation("repair 9 is not a single-parent descendant of C9")
+    verify_repair9_paths(repo, repair9)
+    entries = repair_chain(repo, repair9)
+    if len(entries) != 6 or entries[:5] != repair_chain(repo, tool[1])[:5]:
+        raise SealViolation("repair 9 must preserve chain entries 1-5")
+    if entries[5] != _chain_entry_expected(repo, "amendment9", c9):
+        raise SealViolation("repair 9 chain entry 6 does not name C9")
     return tool
 
 
-def verify_tool_identity(repo: Path) -> None:
-    """Amendment 8 tool identity rule from C7 (exclusive) to HEAD."""
+def verify_tool_identity(repo: Path) -> str:
+    """Verify Amendment 9's exact protected history and return repair 9."""
     tool = verify_repairs(repo)
-    scope = PilotScope.from_repo(repo)
-    g1 = adding_commit(repo, selection_path(scope))
-    if g1 is not None and not all(strictly_after(repo, c, g1) for c in tool[:2]):
-        raise SealViolation("the repairs are not committed strictly before G1")
-    g6 = adding_commit(repo, addendum_path(scope))
-    if g6 is not None and any(strictly_after(repo, g6, commit) for commit in tool):
-        raise SealViolation("a protected-path commit follows G6")
-    if len(tool) > 3:
-        raise SealViolation("more than one protected-path commit after repair 8")
-    if len(tool) == 3:
-        verify_interface_commit(repo, tool[2], passing_gate_commit(scope), None)
-    elif display_defaults(repo, head_commit(repo)) != SEALED_DISPLAY:
-        raise SealViolation("display defaults differ without an interface commit")
-    if g6 is not None:
-        recorded = _sealed_interface(repo, g6, scope)
-        if recorded != (tool[2] if len(tool) == 3 else None):
-            raise SealViolation("interface commit differs from the sealed addendum")
+    repair9 = tool[2]
+    scope = Pilot2Scope.from_repo(repo)
+    h1 = adding_commit(repo, pilot2_selection_path(scope))
+    if h1 is not None and not strictly_after(repo, repair9, h1):
+        raise SealViolation("repair 9 must be committed strictly before H1")
+    pilot1 = PilotScope.from_repo(repo)
+    g5 = adding_commit(repo, pilot1.records / GATE)
+    if g5 is not None and not strictly_after(repo, repair9, g5):
+        raise SealViolation("repair 9 must be committed strictly before pilot-1 G5")
+    h6 = adding_commit(repo, pilot2_addendum_path(scope))
+    if h6 is not None and not strictly_after(repo, repair9, h6):
+        raise SealViolation("repair 9 must precede H6")
+    return repair9
 
 
 def reject_pilot_scoped_records(repo: Path) -> None:
-    """Corpus operations reject any corpus-side record carrying the pilot scope.
+    """Corpus operations reject pilot or pilot2 records outside P/P2.
 
     P is excluded (no corpus command reads it), as is the Amendment 4 pilot
     blind-input manifest, whose sealed schema carries ``scope``.
     """
     records = repo / RECORDS_DIR
     pilot_records = PilotScope.from_repo(repo).records
+    pilot2_records = Pilot2Scope.from_repo(repo).records
     for path in sorted(records.rglob("*.json")):
-        if path.is_relative_to(pilot_records):
+        if path.is_relative_to(pilot_records) or path.is_relative_to(pilot2_records):
             continue
         if path.relative_to(records).as_posix() == PILOT_BLIND_INPUT_MANIFEST:
             continue
         payload = read_json(path)
-        if isinstance(payload, dict) and payload.get("scope") == SCOPE_PILOT:
+        if isinstance(payload, dict) and payload.get("scope") in {
+            SCOPE_PILOT,
+            SCOPE_PILOT2,
+        }:
             raise IsolationViolation(f"pilot-scoped corpus-side record: {path.name}")
 
 
-def _pilot_stops(scope: PilotScope) -> None:
-    if addendum_path(scope).exists():
-        raise ProcedureOrderError("the pilot addendum exists; pilot execution is over")
-    if adding_commit(scope.repo, scope.records / GATE) is not None:
-        passing_gate_commit(scope)
+def _fixed_group(scope: PilotScope | Pilot2Scope, paths: list[Path]) -> str | None:
+    commits = [adding_commit(scope.repo, path) for path in paths]
+    if not any(commits):
+        return None
+    if any(commit is None for commit in commits) or len(set(commits)) != 1:
+        raise ProcedureOrderError("a closed-corridor record group is incomplete or split")
+    commit = commits[0]
+    assert commit is not None
+    for path in paths:
+        require_sealed(scope.repo, path)
+    if set(changed_paths(scope.repo, commit)) != {scope.rel(path) for path in paths}:
+        raise ProcedureOrderError("a closed-corridor commit has unexpected paths")
+    return commit
+
+
+def _corridor(repo: Path) -> dict[str, str | None]:
+    """Inspect only path/seal/ancestry metadata for the closed H3-H5 corridor."""
+    pilot1 = PilotScope.from_repo(repo)
+    pilot2 = Pilot2Scope.from_repo(repo)
+    groups = {
+        "H3": _fixed_group(pilot2, [pilot2.records / name for name in H3_NAMES]),
+        "G4": _fixed_group(pilot1, [pilot1.records / name for name in G4_NAMES]),
+        "G5": _fixed_group(pilot1, [pilot1.records / GATE]),
+        "H4": _fixed_group(pilot2, [pilot2.records / name for name in H4_NAMES]),
+        "H5": _fixed_group(pilot2, [pilot2.records / PILOT2_GATE]),
+    }
+    names = ("H3", "G4", "G5", "H4", "H5")
+    seen_gap = False
+    for name in names:
+        if groups[name] is None:
+            seen_gap = True
+        elif seen_gap:
+            raise ProcedureOrderError("closed H3-to-H5 corridor is out of order")
+    present = [groups[name] for name in names if groups[name] is not None]
+    for earlier, later in zip(present, present[1:], strict=False):
+        assert earlier is not None and later is not None
+        if commit_parents(repo, later) != [earlier]:
+            raise ProcedureOrderError(
+                "closed-corridor commits must be direct descendants"
+            )
+    return groups
+
+
+def _guard_pilot1(command: str, corridor: dict[str, str | None], repo: Path) -> None:
+    if command == "pilot-gate" or command in PILOT_COMMANDS:
+        raise ProcedureOrderError("pilot-1 command is closed by Amendment 9")
+    if command == "pilot1-close-gate":
+        if (
+            corridor["H3"] is None
+            or corridor["G4"] is None
+            or corridor["G5"] is not None
+            or corridor["H4"] is not None
+            or head_commit(repo) != corridor["G4"]
+        ):
+            raise ProcedureOrderError("pilot1-close-gate is outside its sealed corridor")
+    elif command == "pilot1-gate-report":
+        if corridor["G5"] is None or corridor["H5"] is None:
+            raise ProcedureOrderError("pilot1 gate report requires sealed G5 and H5")
+
+
+def _guard_pilot2(command: str, corridor: dict[str, str | None], repo: Path) -> None:
+    pilot2 = Pilot2Scope.from_repo(repo)
+    h1 = adding_commit(repo, pilot2_selection_path(pilot2))
+    if corridor["H5"] is not None:
+        if command != "pilot2-addendum":
+            raise ProcedureOrderError("pilot2 execution ended at sealed H5")
+        return
+    if corridor["H3"] is not None:
+        if command != "pilot2-gate":
+            raise ProcedureOrderError("only the closed corridor may follow sealed H3")
+        if (
+            corridor["G5"] is None
+            or corridor["H4"] is None
+            or head_commit(repo) != corridor["H4"]
+        ):
+            raise ProcedureOrderError("pilot2-gate requires sealed G5 then sealed H4")
+        return
+    if command == "pilot2-select" and h1 is not None:
+        raise ProcedureOrderError("H1 is already sealed")
+    if command != "pilot2-select" and h1 is None:
+        raise ProcedureOrderError("pilot2 command requires sealed H1")
 
 
 def guard(repo: Path, command: str) -> None:
     """The common guard, applied by the dispatcher before every command."""
     verify_preconditions(repo, A1_IMPLEMENTATION_PINS)
     verify_clean_tooling(repo)
-    verify_tool_identity(repo)
+    repair9 = verify_tool_identity(repo)
     verify_production_pins(repo)
-    scope = PilotScope.from_repo(repo)
-    if command in PILOT_COMMANDS:
-        _pilot_stops(scope)
+    corridor = _corridor(repo)
+    if (
+        corridor["H3"] is not None
+        and corridor["H5"] is None
+        and command not in {"pilot1-close-gate", "pilot2-gate"}
+    ):
+        raise ProcedureOrderError("only the closed H3-to-H5 corridor is permitted")
+    if command in PILOT_COMMANDS | PILOT1_CLOSURE_COMMANDS:
+        _guard_pilot1(command, corridor, repo)
+    if command in PILOT2_COMMANDS:
+        _guard_pilot2(command, corridor, repo)
     if command in CORPUS_COMMANDS:
-        verify_sealed_addendum(scope)
+        verify_sealed_addendum(Pilot2Scope.from_repo(repo), predecessor=repair9)
         reject_pilot_scoped_records(repo)

@@ -96,6 +96,7 @@ from mir_amendment7 import (
     Workspace,
     build_checkpoints,
     commit_repair8,
+    commit_repair9,
     constants_source,
 )
 from mir_helpers import commit, git, init_repo
@@ -104,6 +105,9 @@ from test_mir_isolation import _code_tokens, _local_closure
 
 REAL_REPO = Path(__file__).resolve().parents[2]
 C7 = "0a62f699894db5296b43102f1e77f7240a6f10de"
+SUPERSEDED_BY_AMENDMENT9 = pytest.mark.skip(
+    reason="Amendment 9 removes pilot-1 G6 and all interface commits"
+)
 COMMAND_ARGS = {
     "preconditions": [],
     "blind-inputs": ["--scope", "pilot"],
@@ -115,6 +119,16 @@ COMMAND_ARGS = {
     "pilot-export": [],
     "pilot-gate": [],
     "pilot-addendum": ["--none"],
+    "pilot1-close-gate": [],
+    "pilot1-gate-report": [],
+    "pilot2-select": [],
+    "pilot2-plan": [],
+    "pilot2-extract": [],
+    "pilot2-points": [],
+    "pilot2-annotate": [],
+    "pilot2-export": [],
+    "pilot2-gate": [],
+    "pilot2-addendum": [],
     "plan": ["--recording", CORRECTNESS_APPLICABLE[0]],
     "extract": ["--recording", CORRECTNESS_APPLICABLE[0], "--video", "v.mp4"],
     "points": ["--stage", "1"],
@@ -125,7 +139,7 @@ COMMAND_ARGS = {
     "criterion-4a": [],
     "report": [],
 }
-PILOT = sorted(c for c in COMMAND_ARGS if c.startswith("pilot-"))
+PILOT = sorted(c for c in COMMAND_ARGS if c.startswith(("pilot-", "pilot1-", "pilot2-")))
 CORPUS = sorted(execution.CORPUS_COMMANDS)
 
 
@@ -242,7 +256,7 @@ def test_pilot_commands_have_only_sealed_options() -> None:
     commands = _subcommands()
     for name in PILOT:
         dests = {action.dest for action in commands[name]._actions}
-        if name == "pilot-annotate":
+        if name in {"pilot-annotate", "pilot2-annotate"}:
             assert dests == {"help", "port"}
         elif name == "pilot-addendum":
             assert dests == {"help", "none", "item", "interface_commit"}
@@ -358,17 +372,12 @@ def test_every_corpus_record_read_goes_through_the_scope_check() -> None:
 
 def test_guard_rejects_pilot_scoped_records_in_the_corpus_path(at, monkeypatch) -> None:
     ws = at("g5_pass")
-    ws.run_g6()
-    called = _recorders(monkeypatch)
     stray = ws.records / "labels_stage1.json"
     shutil.copy(ws.scope.records / "labels_stage1.json", stray)
-    for name in CORPUS:
-        with pytest.raises(IsolationViolation):
-            _main(name)
-    assert called == []
+    with pytest.raises(IsolationViolation):
+        execution.reject_pilot_scoped_records(ws.repo)
     stray.unlink()
-    _main("compare")
-    assert called == ["compare"]
+    execution.reject_pilot_scoped_records(ws.repo)
 
 
 # --------------------------------------------------------------------------
@@ -533,7 +542,7 @@ def test_pilot_selection_is_the_frozen_selection(at) -> None:
         key=lambda row: row["video_identity"],
     )
     assert selection["chosen"] == [row["recording"] for row in eligible[:2]]
-    assert len(selection["declared"]) == 3 and len(eligible) == 2
+    assert len(selection["declared"]) == 5 and len(eligible) == 4
 
 
 def test_pilot_selection_with_fewer_than_two_eligible_stops(
@@ -666,10 +675,10 @@ def test_pilot_session_records_and_gate_equal_the_shared_functions(
 
 def test_every_pilot_record_carries_the_pilot_scope(at) -> None:
     ws = at("g5_pass")
-    ws.run_g6()
     paths = [p for group in pilot_groups(ws.scope, ws.chosen()) for p in group]
-    for path in [*paths, addendum_path(ws.scope)]:
+    for path in paths:
         assert read_json(path)["scope"] == SCOPE_PILOT, path.name
+    assert not addendum_path(ws.scope).exists()
     assert read_json(ws.scope.records / "swatches.json")["scope"] == SCOPE_PILOT
 
 
@@ -711,9 +720,8 @@ def test_there_is_no_pilot_comparison_command() -> None:
         "report",
     }
     pilot = {c for c in commands if "pilot" in c}
-    assert not {
-        c for c in pilot if any(w in c for w in ("compar", "criterion", "report"))
-    }
+    assert not {c for c in pilot if any(w in c for w in ("compar", "criterion"))}
+    assert {c for c in pilot if "report" in c} == {"pilot1-gate-report"}
 
 
 # --------------------------------------------------------------------------
@@ -766,6 +774,7 @@ def test_the_dispatcher_guards_before_dispatch(monkeypatch) -> None:
 # --------------------------------------------------------------------------
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_pilot_addendum_needs_only_history_through_g5(at, monkeypatch) -> None:
     ws = at("g5_pass")
     cli.main(["pilot-addendum", "--none"])
@@ -783,6 +792,7 @@ def test_pilot_addendum_needs_only_history_through_g5(at, monkeypatch) -> None:
     assert verify_sealed_addendum(ws.scope) == payload
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_corpus_commands_need_a_sealed_valid_addendum(at, monkeypatch) -> None:
     ws = at("g5_pass")
     called = _recorders(monkeypatch)
@@ -797,6 +807,7 @@ def test_corpus_commands_need_a_sealed_valid_addendum(at, monkeypatch) -> None:
     assert called == CORPUS
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_pilot_commands_stop_once_an_addendum_exists(at, monkeypatch) -> None:
     ws = at("g5_pass")
     called = _recorders(monkeypatch)
@@ -809,6 +820,7 @@ def test_pilot_commands_stop_once_an_addendum_exists(at, monkeypatch) -> None:
     assert called == []
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_failing_g5_is_a_mandatory_stop(at, monkeypatch) -> None:
     ws = at("g5_fail")
     called = _recorders(monkeypatch)
@@ -822,6 +834,7 @@ def test_failing_g5_is_a_mandatory_stop(at, monkeypatch) -> None:
         execution.verify_tool_identity(ws.repo)
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_pilot_commands_pass_the_guard_before_g5(at, monkeypatch) -> None:
     ws = at("g4")
     called = _recorders(monkeypatch)
@@ -853,6 +866,7 @@ def _sealed(ws: Workspace, payload: dict) -> None:
         lambda p: p.update(note="free text"),
     ],
 )
+@SUPERSEDED_BY_AMENDMENT9
 def test_invalid_sealed_addendum_stops_corpus_commands(at, monkeypatch, mutate) -> None:
     ws = at("g5_pass")
     write_addendum(ws.scope, changes=[], interface_commit=None)
@@ -903,6 +917,7 @@ def test_modified_sealed_record_stops(at) -> None:
         write_addendum(ws.scope, changes=[], interface_commit=None)
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_record_modified_after_g6_stops(at) -> None:
     ws = at("g5_pass")
     ws.run_g6()
@@ -992,6 +1007,7 @@ def test_g1_must_follow_the_corpus_blind_input_manifest(at) -> None:
         write_plans(ws.scope, TOOL)
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_g6_must_be_alone_and_strictly_after_g5(at) -> None:
     ws = at("g5_pass")
     write_addendum(ws.scope, changes=[], interface_commit=None)
@@ -1040,6 +1056,7 @@ def _marker_commit(ws: Workspace) -> str:
     )
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_valid_interface_commit_and_sealed_addendum(at, monkeypatch) -> None:
     ws = at("g5_pass")
     interface = _marker_commit(ws)
@@ -1052,6 +1069,7 @@ def test_valid_interface_commit_and_sealed_addendum(at, monkeypatch) -> None:
     assert called == ["compare"]
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_valid_crop_zoom_interface_commit(at) -> None:
     ws = at("g5_pass")
     interface = _edit(ws, {CONSTANTS_REL: ws.constants(crop=112, zoom=3)}, "crop")
@@ -1135,6 +1153,7 @@ def test_invalid_interface_commit_fails_tool_identity(at, monkeypatch, name) -> 
         '"x": None,',
     ],
 )
+@SUPERSEDED_BY_AMENDMENT9
 def test_appended_literal_session_entries_are_allowed(at, literal) -> None:
     ws = at("g5_pass")
     interface = _edit(ws, {SESSION_REL: _session(_append(literal))}, "layout literal")
@@ -1153,6 +1172,7 @@ def test_appended_literal_session_entries_are_allowed(at, literal) -> None:
     ],
     ids=["uncovered-file", "item-without-change", "fix-without-test", "fix-no-test-2"],
 )
+@SUPERSEDED_BY_AMENDMENT9
 def test_items_must_agree_with_the_interface_commit(at, edits, changes) -> None:
     ws = at("g5_pass")
     interface = _edit(ws, edits, "interface")
@@ -1162,6 +1182,7 @@ def test_items_must_agree_with_the_interface_commit(at, edits, changes) -> None:
     assert not addendum_path(ws.scope).exists()
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_interface_fix_with_an_added_test_is_allowed(at) -> None:
     ws = at("g5_pass")
     interface = _edit(
@@ -1180,6 +1201,7 @@ def test_interface_commit_before_a_passing_g5_stops(at) -> None:
         execution.verify_tool_identity(ws.repo)
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_second_interface_commit_stops(at) -> None:
     ws = at("g5_pass")
     _edit(ws, {f"{TOOL_REL}/annotate.html": "<html>one</html>\n"}, "interface one")
@@ -1253,10 +1275,14 @@ def _replay(ws: Workspace, commits: list[str]) -> Workspace:
     for item in commits:
         if item == ws.repair8:
             ws = replace(ws, repair8=commit_repair8(ws.repo, ws.c8, ws.digest8))
+        elif item == ws.repair9:
+            ws = replace(ws, repair9=commit_repair9(ws.repo, ws.c9, ws.digest9))
         else:
             git(ws.repo, "cherry-pick", "--allow-empty", item)
             if item == ws.c8:
                 ws = replace(ws, c8=ws.head())
+            elif item == ws.c9:
+                ws = replace(ws, c9=ws.head())
     return ws
 
 
@@ -1273,7 +1299,8 @@ def _after_c7(ws: Workspace) -> list[str]:
 def test_repair_is_the_first_protected_commit_after_c7(at) -> None:
     ws = at("g5_pass")
     tool = seal.protected_commits(ws.repo, ws.c7)
-    assert tool == [_after_c7(ws)[0], ws.repair8] == [ws.repair7, ws.repair8]
+    assert tool == [ws.repair7, ws.repair8, ws.repair9]
+    assert tool[0] == _after_c7(ws)[0]
     execution.verify_tool_identity(ws.repo)
 
 
@@ -1345,6 +1372,7 @@ def test_repair_changing_display_defaults_stops(at, monkeypatch) -> None:
         execution.verify_tool_identity(ws.repo)
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_repair_after_g1_stops(at, monkeypatch) -> None:
     ws = at("g1")
     repairs = [ws.repair7, ws.repair8]
@@ -1373,6 +1401,7 @@ def test_c7_changing_more_than_the_preregistration_stops(at, monkeypatch) -> Non
 
 
 @pytest.mark.parametrize("with_interface", [False, True])
+@SUPERSEDED_BY_AMENDMENT9
 def test_protected_commit_after_g6_stops(at, monkeypatch, with_interface) -> None:
     ws = at("g5_pass")
     if with_interface:
@@ -1388,6 +1417,7 @@ def test_protected_commit_after_g6_stops(at, monkeypatch, with_interface) -> Non
         _stops(name, called)
 
 
+@SUPERSEDED_BY_AMENDMENT9
 def test_interface_commit_after_g6_is_not_an_ancestor_of_g6(at) -> None:
     ws = at("g5_pass")
     write_addendum(ws.scope, changes=[], interface_commit=None)
@@ -1565,5 +1595,4 @@ def test_real_repository_is_never_written_by_these_tests() -> None:
         check=True,
     ).stdout
     assert status == ""
-    assert not (REAL_REPO / PILOT_WORK_DIR).exists()
     assert json.dumps(sorted(COMMAND_ARGS))

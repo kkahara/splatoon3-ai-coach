@@ -153,6 +153,126 @@ def cmd_pilot_addendum(args: argparse.Namespace) -> None:
     logger.info("pilot addendum: {}", output)
 
 
+def _pilot2_scope(repo: Path):
+    from map_ink_reference.pilot2_pipeline import Pilot2Scope
+
+    return Pilot2Scope.from_repo(repo)
+
+
+def _repair9(repo: Path) -> str:
+    from map_ink_reference.execution import verify_repairs
+
+    return verify_repairs(repo)[2]
+
+
+def cmd_pilot1_close_gate(args: argparse.Namespace) -> None:
+    """Write pilot-1 G5 once without exposing any outcome field."""
+    from map_ink_reference.pilot_pipeline import GATE, gate
+
+    repo = _repo()
+    scope = _pilot_scope(repo)
+    gate(scope, _tool(repo))
+    logger.info("pilot gate record written {}", scope.records / GATE)
+
+
+def cmd_pilot1_gate_report(args: argparse.Namespace) -> None:
+    """After H5, expose only the four authorized pilot-1 summary fields."""
+    from map_ink_reference.pilot_pipeline import GATE, read_pilot_record
+
+    scope = _pilot_scope(_repo())
+    result = read_pilot_record(scope.records / GATE)
+    logger.info(
+        "pilot gate: numerator={} denominator={} upper_bound={} passed={}",
+        result["numerator"],
+        result["denominator"],
+        result["upper_bound"],
+        result["passed"],
+    )
+
+
+def cmd_pilot2_select(args: argparse.Namespace) -> None:
+    """H1: deterministic replacement-pilot source selection."""
+    from map_ink_reference.pilot2_pipeline import write_selection
+
+    repo = _repo()
+    output, digest = write_selection(_pilot2_scope(repo), _tool(repo))
+    logger.info("pilot2 selection: {} sha256={}", output, digest)
+
+
+def cmd_pilot2_plan(args: argparse.Namespace) -> None:
+    """H2: build both pilot-2 frame plans."""
+    from map_ink_reference.pilot2_pipeline import write_plans
+
+    repo = _repo()
+    logger.info(
+        "pilot2 plans: {}",
+        write_plans(_pilot2_scope(repo), _tool(repo), predecessor=_repair9(repo)),
+    )
+
+
+def cmd_pilot2_extract(args: argparse.Namespace) -> None:
+    """H2: extract both selected pilot-2 recordings."""
+    from map_ink_reference.pilot2_pipeline import extract_plans
+
+    repo = _repo()
+    extract_plans(_pilot2_scope(repo), _tool(repo), predecessor=_repair9(repo))
+    logger.info("pilot2 extraction complete")
+
+
+def cmd_pilot2_points(args: argparse.Namespace) -> None:
+    """H2: sample pilot-2 points and frozen duplicates."""
+    from map_ink_reference.pilot2_pipeline import write_points
+
+    repo = _repo()
+    outputs = write_points(_pilot2_scope(repo), _tool(repo), predecessor=_repair9(repo))
+    logger.info("pilot2 points: {}", outputs)
+
+
+def cmd_pilot2_annotate(args: argparse.Namespace) -> None:
+    """Serve the required human pilot-2 annotation session."""
+    from map_ink_reference.pilot2_pipeline import session_dir, session_inputs
+    from map_ink_reference.server import serve
+    from map_ink_reference.session import AnnotationSession
+
+    repo = _repo()
+    scope = _pilot2_scope(repo)
+    inputs = session_inputs(scope, predecessor=_repair9(repo))
+    serve(AnnotationSession(inputs, session_dir(scope)), args.port)
+
+
+def cmd_pilot2_export(args: argparse.Namespace) -> None:
+    """Export completed W2 human annotation to H3 and pending H4."""
+    from map_ink_reference.pilot2_pipeline import export
+
+    repo = _repo()
+    outputs = export(_pilot2_scope(repo), _tool(repo), predecessor=_repair9(repo))
+    logger.info("pilot2 records: {}", sorted(outputs))
+
+
+def cmd_pilot2_gate(args: argparse.Namespace) -> None:
+    """H5: run the unchanged Stage 1 gate once."""
+    from map_ink_reference.pilot2_pipeline import gate
+
+    repo = _repo()
+    result = gate(_pilot2_scope(repo), _tool(repo), predecessor=_repair9(repo))
+    logger.info(
+        "pilot2 gate: numerator={} denominator={} upper_bound={} passed={}",
+        result["numerator"],
+        result["denominator"],
+        result["upper_bound"],
+        result["passed"],
+    )
+
+
+def cmd_pilot2_addendum(args: argparse.Namespace) -> None:
+    """H6: write the frozen empty/null addendum directly after passing H5."""
+    from map_ink_reference.pilot2_addendum import write_addendum
+
+    repo = _repo()
+    output = write_addendum(_pilot2_scope(repo), predecessor=_repair9(repo))
+    logger.info("pilot2 addendum: {}", output)
+
+
 def cmd_plan(args: argparse.Namespace) -> None:
     """Frame plan from the pinned v3-replay manifest (metadata only)."""
     from map_ink_reference.pipeline_blind import write_plan
@@ -272,6 +392,18 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument("--item", action="append", choices=PILOT_ALLOWED_CHANGES)
     p.add_argument("--interface-commit")
     p.set_defaults(func=cmd_pilot_addendum)
+    sub.add_parser("pilot1-close-gate").set_defaults(func=cmd_pilot1_close_gate)
+    sub.add_parser("pilot1-gate-report").set_defaults(func=cmd_pilot1_gate_report)
+    sub.add_parser("pilot2-select").set_defaults(func=cmd_pilot2_select)
+    sub.add_parser("pilot2-plan").set_defaults(func=cmd_pilot2_plan)
+    sub.add_parser("pilot2-extract").set_defaults(func=cmd_pilot2_extract)
+    sub.add_parser("pilot2-points").set_defaults(func=cmd_pilot2_points)
+    p = sub.add_parser("pilot2-annotate")
+    p.add_argument("--port", type=int, default=8765)
+    p.set_defaults(func=cmd_pilot2_annotate)
+    sub.add_parser("pilot2-export").set_defaults(func=cmd_pilot2_export)
+    sub.add_parser("pilot2-gate").set_defaults(func=cmd_pilot2_gate)
+    sub.add_parser("pilot2-addendum").set_defaults(func=cmd_pilot2_addendum)
     for name, func in (("plan", cmd_plan), ("extract", cmd_extract)):
         p = sub.add_parser(name)
         p.add_argument("--recording", required=True, choices=CORRECTNESS_APPLICABLE)
