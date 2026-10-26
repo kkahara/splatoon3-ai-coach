@@ -1,0 +1,32 @@
+{
+  "amendment9_commit": "736b42a19e326de73e4bd418fdb7e4fcd1a4bf8b",
+  "changes": [],
+  "interface_commit": null,
+  "pilot1_group_commits": {
+    "G1": "e4fe3f719f5165cf2a517f9c6645b5692eac7623",
+    "G2": "6f3d18d40f992e69e19449e830ebc65234024636",
+    "G3": "4d763353d4c5466a61e6199afa9eb8685ebfe69b",
+    "G4": "93b51c0ff883188fe2f34352554bcfa8bff1a561",
+    "G5": "82fb90c8d9cafb4e977455964a33f9269fbe9d14"
+  },
+  "pilot2_records": {
+    "duplicates_stage1.json": "b6a570c3baa613770f5c19f3458007c5d17db20876815e0b88ec47b378383d03",
+    "extraction/amendment5-pilot-REH6-EAV9-NUJ6-C5E6.json": "ede8e2388c2717c2dce2e2ffd68772d90324f32da910f7ab8711bf92495b5026",
+    "extraction/amendment5-pilot-RYYN-7U9N-1TRB-PEOQ.json": "024f66066fe69dfa634435a6ba2e409230829acfd1188b6e36ebfe0a2cf0f697",
+    "frame_plans/amendment5-pilot-REH6-EAV9-NUJ6-C5E6.json": "3331707be045745dbf473b74e949d9842074c7a015750792ce5b0a1d4181aff5",
+    "frame_plans/amendment5-pilot-RYYN-7U9N-1TRB-PEOQ.json": "4ca7b88aa2cb66ee9f974ff71221425673b53e18bebdd50ce293b6df3e8faf71",
+    "gate_stage1.json": "147c57b8b552094559f1ac188ca342569a6a1f7db5bd708bdea43e84aa0f486e",
+    "labels_stage1.json": "01347fa4f801fb6f6dbb4f09d3b8617fb47b8d0df0ecf6d40576de8888801437",
+    "pilot_selection.json": "fb20051c34a72a6376a53511a4eea03f99cffe31a0850492ab6e1112d1226dfd",
+    "points_stage1.json": "d4c9256166b81f7513d789784c075279e5263510a5d1712ba826038a176a4e0f",
+    "queue_key_stage1.json": "5714d4957fe42f30e75863ce9dde7a7a32fb97017938d532bca1bc9424a1befb",
+    "queue_stage1.json": "8432560e797f8f114f832967dbd2cefd9a587af43315b568b55c805be6d4bb4b",
+    "swatches.json": "93d2fce418555e801e7157ac599624d1531086fcfc5e5d4c6111fa9593e01241",
+    "team_identity_stage1.json": "eca08ddaf4501879cf76d6c3ccad9c4ab3188b874618ce46a3cac7ea256c45c3",
+    "token_key.json": "efc02f8889149347d200498a33d9d98098c9082fa2493b323f1122f77e1fce43"
+  },
+  "schema": "amendment9-pilot2-addendum/v1",
+  "scope": "pilot2",
+  "supplementary_records": {},
+  "tool_commit": "55ee15a60a62a795eb6241a84830c4f997af5ee3"
+}
