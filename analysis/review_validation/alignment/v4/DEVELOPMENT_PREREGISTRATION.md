@@ -2795,3 +2795,387 @@ invoked in any branch.
 - No tool or test was changed for this amendment. Tracks B and C,
   Amendments 1–6 and all other Track A criteria are unchanged except for
   the sentence superseded above.
+
+## Amendment 8 — Pilot duplicate rule (2026-10-25)
+
+### What was frozen, what changes, why
+
+**Frozen:** the preregistration through Amendment 7 as committed at C7,
+`0a62f699894db5296b43102f1e77f7240a6f10de` (file SHA-256
+`26ed135efbfb2127523601447f0edb1f4cef132daff4d1afc1bfb902fe6fb5a8`,
+143,553 bytes). That file is a byte prefix of this one. C7 is the commit
+that added Amendment 7. Each earlier amendment keeps its own sealing
+identity, the preregistration file at the commit that added it:
+
+| Amendment | Commit | File SHA-256 at that commit |
+|---|---|---|
+| 1 | `7b5c11121b3ecb4ac8df72016dcac712e4a0011f` | `0eea5c1f6559636f4f7b3abc94549d31befafb5853a5b4558dac33e628f2a906` |
+| 2 | `6a9d705df5585a4e6e1c5c18eda38ebb2e736f18` | `2106b0120b49e3ada6b1924e5b934016fb99562d097f0d824a3534a363b78d3b` |
+| 3 | `228e03774c2d5e9737f35698ea42cc11a0937a87` | `24abb418bf755de13085b47c2465bf0b864ea088011b669214a5cac4570e9c56` |
+| 4 (chain entry 1) | `570f188c3a2322c20065b095d740a6ad2538c57a` | `4ffeeaf899185d84beea1e97c59b0baa46798cb7390cf294fae3343804e757e1` |
+| 5 (chain entry 2) | `ca4e08821ca9c80f45125c168fe3caf3af536a3e` | `2a0a23ba0d4db8484eb7752861384546855dc65374d975580c7d11a77df6cb57` |
+| 6 (chain entry 3) | `85d1104c1c969d3c9bdf7b179dda675d9c7748d5` | `e978e63f4da562f85eb4d7c42ff918df0f769b0e85ff012e2670307d71ee88df` |
+| 7 (chain entry 4, C7) | `0a62f699894db5296b43102f1e77f7240a6f10de` | `26ed135efbfb2127523601447f0edb1f4cef132daff4d1afc1bfb902fe6fb5a8` |
+
+Also frozen: the Amendment 6 tool repair
+`a350578ebee9ba8728001157c0832b19323b08d2`; the Amendment 7 tool repair
+`3883dd7bd14877705f61fe44b3b46a2c46a47afc` (parent C7), which this
+amendment neither modifies nor replaces; and the sealed records named in
+Amendment 7: candidate pool `29f9f5a8066e531f9bf3d58d3b0585ea5c2617ec`,
+preparation record `acd64282dbfdf71a64b4faa9f180ed9eb2250d3b`, pilot-source
+manifest `53a8f58bd8bef8775ae0557c234004a95238d2d2`, pilot blind-input
+manifest `c16601f4e12fd93b7b313a06f8fba0a81c2e4d64` and corpus blind-input
+manifest `a1ea2fddcd520e62ccf265d7eb8b3364cabecb33`.
+
+**Finding:** the frozen pilot gate cannot pass. Amendment 3 step 3 runs the
+Stage 1 procedure on two pilot recordings. Stage 1 selects 8 frames per
+recording and at most P = 9 points per frame, so the pilot has at most
+N = 2 × 8 × 9 = 144 points. The frozen duplicate rule `ceil(0.10 * N)`
+gives at most 15 duplicate pairs. With 0 disagreements in a denominator of
+15, the upper one-sided 95% Clopper–Pearson bound is 0.18104
+(1 − 0.05^(1/15)), above the 0.10 cap. A smaller N gives no more pairs. The
+pilot gate therefore fails for every possible set of labels, and the
+Amendment 7 failing-G5 STOP would be reached by construction. This is a
+frozen element that is unworkable by arithmetic alone.
+
+It was found after the Amendment 7 repair was committed and before any
+Amendment 3 step 3 operation. `pilot-select` has not run. No pilot
+selection, plan, extracted frame, point, label or gate value exists or is
+known.
+
+**What changes:** the pilot duplicate count; this amendment's entry in the
+authorized execution chain; the tool identity rule, to admit one tool
+repair; one authorized tool repair; and the sentences superseded below.
+
+**Unchanged:** Amendments 1–7 except the superseded sentences; the five
+prepared pilot sources and every sealed record; pilot eligibility and
+selection; frame population, intervals and selection; extraction; the point
+domain, P, spacing and point seeds; the duplicate selection mechanism and
+seed text; duplicate placement; the label vocabulary; swatches and team
+identity; blinding and display; the gate population, the frozen pair
+classification, the upper one-sided 95% Clopper–Pearson calculation and
+the 0.10 cap, with a zero denominator failing; the mandatory STOP on a
+failing G5; the pilot namespace, commit groups G1–G6 and the pilot
+addendum; the allowed post-pilot change list; the production dependency
+pins; and the corpus duplicate rule and all corpus Stage 1 and Stage 2,
+comparison, criterion, threshold, verdict and non-exposure rules.
+
+**Why:** to make the preregistered pilot gate passable with a margin for
+disagreements and for excluded pairs, before any pilot information is
+observed, without changing the gate itself or the corpus.
+
+### Pilot duplicate rule (normative)
+
+- For the Amendment 3 step 3 pilot only, the duplicate count is
+  `ceil(2 * N / 3)` of the pilot's N Stage 1 points, computed in exact
+  integer arithmetic as `-(-2 * N // 3)`. At the maximum N = 144 it is 96.
+- Selection is otherwise the frozen rule: without replacement, with the
+  seed from SHA-256(`"amendment3-dups|" + point-manifest SHA-256`) and
+  `numpy.random.Generator(numpy.random.PCG64(seed))`, taking
+  `choice(N, size=count, replace=False)`.
+- Placement is the frozen rule: each duplicate is re-presented at least 50
+  items after its first presentation, at the end of the queue if the queue
+  is shorter.
+- Excluded pairs are never topped up or replaced. The duplicate count is
+  fixed by this rule before annotation and must not be increased.
+- The corpus duplicate rule stays `ceil(0.10 * N_points)` for Stage 1 and
+  Stage 2.
+
+### Statistical rationale (informative)
+
+Every value in this section was computed with the repository's frozen
+`clopper_pearson_upper` (`tools/diagnostics/map_ink_reference/gate.py`) or
+exact rational arithmetic, on synthetic inputs only. No pilot or corpus
+information was used.
+
+**Minimum denominator to pass, by number of disagreements x** (upper
+one-sided 95% bound at most 0.10; for each x every larger denominator also
+passes):
+
+| x | Minimum n | Bound at n | Bound at n − 1 |
+|---|---|---|---|
+| 0 | 29 | 0.098145 | 0.101466 |
+| 1 | 46 | 0.099024 | 0.101134 |
+| 2 | 61 | 0.099635 | 0.101236 |
+| 3 | 76 | 0.098870 | 0.100146 |
+| 4 | 89 | 0.099899 | 0.101000 |
+
+**At the maximum pilot population (N = 144, 96 duplicate pairs).** The
+denominator is 96 minus the pairs excluded as both `cant_tell` (e).
+
+- With e = 0, up to x = 4 disagreements can pass.
+- The largest e at which x can still pass: 50 for x = 1, 35 for x = 2,
+  20 for x = 3 and 7 for x = 4.
+
+**One-third exclusion, as a stress scenario.** As a prospective conservative
+stress scenario only, the design is evaluated with one third of duplicate
+pairs excluded. One third was chosen as a deliberately substantial
+denominator-loss scenario before any pilot information exists. The
+preregistration separately permits up to 3 unjudgeable points out of 9 per
+frame, but that individual-point tolerance does not imply a one-third
+both-`cant_tell` duplicate-pair exclusion rate. No empirical exclusion rate
+is assumed. Under this scenario, e = 32 and n = 64, so x = 2 can pass
+(bound 0.095122) and x = 3 cannot (bound 0.116717).
+
+**Lost-recording scenarios.** Two different situations:
+
+1. *One recording in the population before selection.* If the point
+   population held only one recording, N would be at most 72 and the rule
+   would select at most `ceil(2 * 72 / 3)` = 48 pairs directly. With 48
+   pairs, x = 1 can pass only if e ≤ 2, and x = 2 cannot pass. This cannot
+   arise in the sealed procedure, because both chosen recordings are
+   always in the pilot point manifest. It is stated only to separate it
+   from the next case.
+2. *Selection from the combined population, then one recording lost.* The
+   duplicates are drawn from the combined pilot point manifest before any
+   annotation. A recording without a valid swatch pair is fixed when
+   swatches are recorded, before any point label exists, and its pairs
+   leave D_1. Model, at the maximum population (exactly 72 points per
+   recording, N = 144, 96 pairs): `choice(144, size=96, replace=False)` is
+   a uniformly random 96-subset of the 144 points. Let S be the number of
+   those 96 that belong to the surviving recording. Then S follows the
+   hypergeometric distribution with population 144, 72 success states and
+   96 draws:
+   P(S = s) = C(72, s) × C(72, 96 − s) / C(144, 96), for 24 ≤ s ≤ 72
+   (at least 96 − 72 = 24 must come from the survivor).
+   - Expectation 96 × 72 / 144 = 48; variance
+     96 × (1/2) × (1/2) × (144 − 96)/(144 − 1) = 1152/143 ≈ 8.0559
+     (standard deviation ≈ 2.838).
+   - Exact, from the pmf in rational arithmetic (authoritative):
+     P(S ≥ 46) = 188068003494954700881733 / 231735263138871447416450
+     ≈ 0.8115640276.
+   - P(S ≥ 29) = 1 − P(S ≤ 28), with P(S ≤ 28) ≈ 1.787811 × 10^−13:
+     extremely close to 1, not equal to 1.
+   - P(S ≥ 61) ≈ 3.431458 × 10^−6. P(S ≥ 76) = 0, since S ≤ 72.
+   - S counts surviving pairs before exclusions; the denominator is S − e.
+     With fewer than 72 points in a recording, the hypergeometric
+     parameters change accordingly. A Monte Carlo run of the frozen
+     generator class over synthetic seeds agreed with the exact value; it
+     is a non-normative cross-check only.
+
+### Queue placement (normative) and tail concentration (informative)
+
+This amendment deliberately keeps the frozen placement rule (at least 50
+items later, or at the queue end) unchanged. A higher duplicate count makes
+more first presentations fall within 50 items of the queue end. Their
+repeats are appended at the end, so the queue ends in a block of repeats.
+
+Informative supporting calculation, not a requirement of this amendment:
+with the frozen `build_queue` on synthetic identifiers at the maximum
+population (N = 144, 96 pairs, a queue of 240 items), the final run of
+consecutive repeats averaged 43.55 items (median 44, range 21–66) over
+3,000 synthetic draws. Under the corpus-rate count of 15 pairs it averaged
+6.02. These figures illustrate the tradeoff. They are not values the
+procedure must reproduce.
+
+This is a disclosed memory and carryover tradeoff of the frozen placement
+rule at a higher duplicate rate. It is not evidence for changing the
+placement mechanism, and no placement change is made or authorized.
+
+### Corpus (normative)
+
+The corpus duplicate rule, records and behaviour are unchanged. Corpus
+records produced by the repaired tooling must be byte-identical to those of
+the Amendment 7 repair on the same input.
+
+Disclosure: at the maximum corpus Stage 1 population (N = 360, 36 pairs),
+the corpus gate can pass only with zero disagreements and at most 7
+excluded pairs. This is consistent with Amendment 3's "strict practical
+consequence" and is stated here only as arithmetic. This amendment does
+not change it. Any change would need its own
+amendment before corpus Stage 1 labelling.
+
+### Pilot gate meaning (normative)
+
+The pilot gate remains the frozen Stage 1 gate procedure over the pilot's
+D_1, under this amendment's pilot duplicate rule. A pass or fail is a
+workability result for the reference process on pilot material. It is not
+a rehearsal or prediction of the corpus gate, whose duplicate count is
+smaller. A failing G5 remains a mandatory STOP.
+
+### Pilot sources and selection (normative)
+
+Amendment 3's requirement of "a new amendment and a fresh pilot on
+different non-corpus material" applies when the pilot shows a frozen
+element is unworkable. Here the element was shown unworkable by arithmetic
+on the frozen constants, before any pilot operation. No pilot information
+exists, so the requirement is not triggered. The five prepared pilot
+sources, the sealed step 2a records and the pilot selection rule stay in
+use unchanged.
+
+### Duplicate rate after the pilot (normative)
+
+Amendment 3's post-pilot list stays in force. Once the pilot begins, neither
+the pilot duplicate rule of this amendment nor the unchanged corpus duplicate
+rule and its placement may subsequently be changed based on pilot results.
+
+### Authorized execution chain (normative)
+
+This amendment explicitly joins the Amendment 6 authorized execution chain
+as entry 5: its sealing commit (C8 below) and the file SHA-256 at that
+commit, recorded in the tooling by the repair below. Entries 1–4 are
+unchanged. Every Amendment 6 rule applies unchanged.
+
+### Tool identity rule (normative)
+
+This replaces the "Allowed history" of the Amendment 7 tool identity rule.
+Everything else in that rule stays: protected paths, the period of
+application, a linear history with no merge commits from C7 (exclusive) to
+HEAD, T as the protected-path commits in that range oldest first, and
+records recording HEAD as `tool_commit`.
+
+*Bootstrap:*
+
+- C8 is this amendment's sealing commit. It changes only the
+  preregistration file.
+- Between C8 and repair 8, the committed tooling holds the chain through
+  entry 4. The current preregistration differs from that entry, so every
+  command STOPs. No run is possible in that interval.
+
+*Allowed history:*
+
+- T[0] is the Amendment 7 repair `3883dd7bd14877705f61fe44b3b46a2c46a47afc`,
+  meeting every Amendment 7 requirement for it.
+- T[1] is repair 8. It must:
+  - be strictly after C8;
+  - change only files of the tool repair authorization below;
+  - have, in its own tree, a chain whose entries 1–4 are unchanged and
+    whose entry 5 names C8 and C8's preregistration digest;
+  - be committed strictly before G1.
+- T is exactly the two repairs; or the two repairs followed by one
+  interface commit I that meets every Amendment 7 condition (strictly after
+  a sealed passing G5, operation 8, and once G6 is sealed equal to the
+  addendum's `interface_commit`).
+- With a null `interface_commit`, T stays exactly the two repairs.
+- Any other history, including a fourth commit or a commit after G6 that
+  touches a protected path: STOP.
+
+The pilot addendum schema and its verification are unchanged.
+
+### Tool repair authorization (normative)
+
+After this amendment is committed, one tooling commit may make exactly
+these changes:
+
+- `constants.py`: chain entry 5 and the pilot duplicate-rule constants.
+  Existing values unchanged.
+- `points.py`: an optional, keyword-only count argument to
+  `duplicate_point_ids`. Without it, the function's output is unchanged.
+- `pilot_pipeline.py`: the pilot points and sealed-points steps use the
+  pilot duplicate count.
+- `execution.py`, `pilot_addendum.py` and `seal.py`: the tool identity rule
+  above. Existing functions keep their behaviour otherwise.
+- Under `tests/map_ink_reference/`: a new `test_mir_amendment8.py`,
+  synthetic fixtures and helpers. Existing tests change only where the
+  chain or the tool identity rule changes.
+
+The repair's machine-checked file set is exactly these paths under
+`tools/diagnostics/map_ink_reference/` (`constants.py`, `points.py`,
+`pilot_pipeline.py`, `execution.py`, `pilot_addendum.py`, `seal.py`) and
+files under `tests/map_ink_reference/`.
+
+Nothing else may change, including: `src/` and `configs/`; A1 code and
+tests; pinned artifacts, sealed records and this preregistration;
+`gate.py`, `queueing.py`, `session.py`, `pipeline_blind.py`, `records.py`,
+`cli.py`, `plan.py`, `domain.py`, `extraction.py`, `render.py`,
+`server.py`, `annotate.html`, `population.py`, `trigger.py`,
+`intro_latch.py`, `stage_identity.py`, `pins.py` and `pilot.py`; and the
+unblinded modules.
+
+The full map-ink reference test suite, `ruff check` and
+`ruff format --check` must pass before the repair is committed.
+
+### Testing requirements (normative)
+
+Synthetic fixtures only. Neither the five prepared pilot sources nor any
+corpus recording may be used. Tests show that:
+
+1. the pilot duplicate count is `ceil(2 * N / 3)` in exact integer
+   arithmetic over a range of N, including 144 → 96 and 72 → 48;
+2. pilot duplicates equal the frozen selection (same seed text and
+   generator) with that count, and a pilot duplicates record with any other
+   count, including the corpus count, STOPs;
+3. corpus behaviour is unchanged: `duplicate_point_ids` without the new
+   argument gives unchanged output, existing corpus tests pass, and corpus
+   records are byte-identical to the Amendment 7 repair on fixtures;
+4. the tool identity rule accepts the two repairs, and the two repairs plus
+   a valid interface commit after a passing G5. It STOPs on: repair 8
+   outside its file set, without entry 5, with changed entries 1–4, before
+   C8 or after G1; a fourth protected-path commit; a merge commit; and any
+   protected-path commit after G6;
+5. every command STOPs after C8 until repair 8 is committed;
+6. every Amendment 7 testing requirement still holds, with its tool
+   identity cases updated to this rule.
+
+### Superseded sentences (normative)
+
+1. Amendment 3, Point sampling: "The duplicate count is fixed by this rule
+   and must not be increased." This now reads: for the corpus, unchanged;
+   for the Amendment 3 step 3 pilot, the count is the pilot duplicate rule
+   of Amendment 8, fixed by that rule and not to be increased.
+2. Amendment 7, What was frozen, what changes, why, **Unchanged**:
+   "point sampling, seeds and the duplicate rule". This now reads: point
+   sampling, seeds and the duplicate rule, except the pilot duplicate count
+   set by Amendment 8.
+3. Amendment 7, Shared semantics, complete list of pilot–corpus
+   differences: add item 12, "Duplicate count: `ceil(2 * N / 3)` (corpus:
+   `ceil(0.10 * N_points)`), with the same selection, seed and placement
+   (Amendment 8)."
+4. Amendment 7, Tool identity rule, "Allowed history": replaced by the
+   allowed history of this amendment.
+
+### Sealing order additions (normative)
+
+Before Amendment 3 step 3, in this order:
+
+1. this amendment committed as C8, changing only the preregistration file;
+2. repair 8 implemented, tested with synthetic fixtures only, and reviewed;
+3. repair 8 committed alone, with its commit and the Amendment 8 chain
+   entry reported;
+4. `preconditions` passes at repair 8;
+5. STOP for explicit authorization.
+
+Amendment 3 step 3 then follows the Amendment 7 sequence G1–G6 unchanged,
+with this amendment's pilot duplicate rule applied in G2.
+
+### Alternatives considered (informative)
+
+All alternatives use the same arithmetic as above, at N = 144.
+
+- `ceil(N / 2)` (72 pairs): x = 1 can pass if e ≤ 26. Under the
+  combined-population loss model, P(S ≥ 46) ≈ 7.27 × 10^−4. 216 queue
+  items.
+- `ceil(2 * N / 3)` (96 pairs, chosen): 240 queue items.
+- Every point duplicated (144 pairs): up to x = 8 with e = 0. 288 queue
+  items and the largest tail block of repeats.
+- A count of 29: passes only with zero disagreements and zero exclusions.
+  Rejected.
+- Topping up excluded pairs: would change the gate population after
+  annotation, contrary to Amendment 3. Rejected.
+- Changing the cap, the confidence level or the test: not considered; they
+  are frozen.
+
+The frozen rule gives 159 queue items (144 + 15).
+
+### Disclosures
+
+- Drafted after the Amendment 7 repair `3883dd7` was committed and
+  independently reviewed, and before any Amendment 3 step 3 operation.
+  `pilot-select` has not run. No pilot eligibility count, selection, plan,
+  extracted frame, point or label exists or is known.
+- The infeasibility was first seen in a synthetic test fixture of the
+  Amendment 7 repair (two synthetic recordings gave 15 pairs and a failing
+  gate). It was confirmed by arithmetic and independently by the operator's
+  review.
+- The rate (`ceil(2 * N / 3)`) and the pilot-only scope were chosen by the
+  operator from the alternatives above, on the arithmetic above alone,
+  before any pilot information exists.
+- During drafting only this preregistration, tool and test source, git
+  metadata (commit identities and this file's digests at the commits
+  listed) and computations on synthetic inputs were used. No media, vision
+  manifest, analysis output or sealed record content was opened.
+- The one-third exclusion anchor is a design rationale, not a data-based
+  estimate.
+- No tool or test was changed for this amendment. Tracks B and C,
+  Amendments 1–7 and all other Track A criteria are unchanged except for
+  the sentences superseded above.
