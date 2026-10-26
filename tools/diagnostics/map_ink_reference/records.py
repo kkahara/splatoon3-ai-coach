@@ -113,6 +113,7 @@ def export_session_records(
     *,
     tool: Mapping[str, Any],
     allow_incomplete: bool = False,
+    scope: str | None = None,
 ) -> dict[str, str]:
     """Write the stage's session records; return ``{file name: sha256}``."""
     state = read_json(state_dir / STATE_FILENAME)
@@ -123,6 +124,8 @@ def export_session_records(
     )
     stage = int(state["stage"])
     common = {"stage": stage, "tool": dict(tool)}
+    if scope is not None:
+        common["scope"] = scope
     queue = state["queue"] or []
     labels = state["labels"]
     written = {
@@ -163,8 +166,7 @@ def export_session_records(
     }
     if stage == STAGE_1:
         written[SWATCHES] = write_json(
-            out_dir / SWATCHES,
-            {"stage": stage, "tool": dict(tool), "swatches": state["swatches"]},
+            out_dir / SWATCHES, {**common, "swatches": state["swatches"]}
         )
         written[TOKEN_KEY] = write_json(
             out_dir / TOKEN_KEY, {**common, "tokens": state["tokens"]}

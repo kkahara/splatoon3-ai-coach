@@ -33,6 +33,11 @@ PREREGISTRATION_CHAIN = (
         "85d1104c1c969d3c9bdf7b179dda675d9c7748d5",
         "e978e63f4da562f85eb4d7c42ff918df0f769b0e85ff012e2670307d71ee88df",
     ),
+    (
+        "amendment7",
+        "0a62f699894db5296b43102f1e77f7240a6f10de",
+        "26ed135efbfb2127523601447f0edb1f4cef132daff4d1afc1bfb902fe6fb5a8",
+    ),
 )
 
 # Committed records and gitignored working artifacts.
@@ -117,3 +122,18 @@ STAGE_1 = 1
 STAGE_2 = 2
 PURPOSE_EVALUATION = "evaluation"
 PURPOSE_PILOT = "pilot"
+
+# Amendment 7 pilot namespace (P: committed records, W: working output).
+PILOT_RECORDS_DIR = f"{RECORDS_DIR}/pilot"
+PILOT_WORK_DIR = f"{WORK_DIR}/pilot"
+PILOT_SELECTION = "pilot_selection.json"
+PILOT_ADDENDUM = "pilot_addendum.json"
+PILOT_ADDENDUM_SCHEMA = "amendment7-pilot-addendum/v1"
+PILOT_ALLOWED_CHANGES = (
+    "crop_zoom",
+    "marker",
+    "layout",
+    "instructions",
+    "team_cue_wording",
+    "interface_fix",
+)

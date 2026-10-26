@@ -20,6 +20,7 @@ from loguru import logger
 from map_ink_reference.constants import (
     AMENDMENT4_COMMIT,
     CORRECTNESS_APPLICABLE,
+    PILOT_ALLOWED_CHANGES,
     RECORDS_DIR,
     SCOPE_CORPUS,
     SCOPE_PILOT,
@@ -67,16 +68,89 @@ def cmd_blind_inputs(args: argparse.Namespace) -> None:
     logger.info("wrote {}", out)
 
 
+def _pilot_scope(repo: Path):
+    from map_ink_reference.pilot_pipeline import PilotScope
+
+    return PilotScope.from_repo(repo)
+
+
 def cmd_pilot_select(args: argparse.Namespace) -> None:
-    """Step 3 selection over the declared pilot sources (after step 2a)."""
-    from map_ink_reference.io_utils import write_json
-    from map_ink_reference.pilot import select_pilot
+    """G1: step 3 selection over the declared pilot sources (after step 2a)."""
+    from map_ink_reference.pilot_pipeline import write_selection
 
     repo = _repo()
-    records, work = _paths(repo)
-    selection = {**select_pilot(repo, records), "tool": _tool(repo)}
-    write_json(work / "pilot_selection.json", selection)
-    logger.info("pilot sources: {}", selection["chosen"])
+    output, digest = write_selection(_pilot_scope(repo), _tool(repo))
+    logger.info("pilot selection: {} sha256={}", output, digest)
+
+
+def cmd_pilot_plan(args: argparse.Namespace) -> None:
+    """G2: both pilot frame plans (no decode)."""
+    from map_ink_reference.pilot_pipeline import write_plans
+
+    repo = _repo()
+    logger.info("pilot plans: {}", write_plans(_pilot_scope(repo), _tool(repo)))
+
+
+def cmd_pilot_extract(args: argparse.Namespace) -> None:
+    """G2: extract both chosen pilot recordings (nothing is displayed)."""
+    from map_ink_reference.pilot_pipeline import extract_plans
+
+    repo = _repo()
+    extract_plans(_pilot_scope(repo), _tool(repo))
+    logger.info("pilot extraction complete")
+
+
+def cmd_pilot_points(args: argparse.Namespace) -> None:
+    """G2: pilot points and duplicates with the frozen point procedure."""
+    from map_ink_reference.pilot_pipeline import write_points
+
+    repo = _repo()
+    logger.info("pilot points: {}", write_points(_pilot_scope(repo), _tool(repo)))
+
+
+def cmd_pilot_annotate(args: argparse.Namespace) -> None:
+    """Serve the blind pilot annotation UI (after G2)."""
+    from map_ink_reference.pilot_pipeline import session_dir, session_inputs
+    from map_ink_reference.server import serve
+    from map_ink_reference.session import AnnotationSession
+
+    scope = _pilot_scope(_repo())
+    serve(AnnotationSession(session_inputs(scope), session_dir(scope)), args.port)
+
+
+def cmd_pilot_export(args: argparse.Namespace) -> None:
+    """G3/G4: export the completed pilot session (file names only)."""
+    from map_ink_reference.pilot_pipeline import export
+
+    repo = _repo()
+    logger.info("pilot records: {}", sorted(export(_pilot_scope(repo), _tool(repo))))
+
+
+def cmd_pilot_gate(args: argparse.Namespace) -> None:
+    """G5: the frozen Stage 1 duplicate gate over the pilot records."""
+    from map_ink_reference.pilot_pipeline import gate
+
+    repo = _repo()
+    result = gate(_pilot_scope(repo), _tool(repo))
+    logger.info(
+        "pilot gate: numerator={} denominator={} upper_bound={} passed={}",
+        result["numerator"],
+        result["denominator"],
+        result["upper_bound"],
+        result["passed"],
+    )
+
+
+def cmd_pilot_addendum(args: argparse.Namespace) -> None:
+    """Prospective G6: the closed pilot addendum after a sealed passing G5."""
+    from map_ink_reference.pilot_addendum import write_addendum
+
+    output = write_addendum(
+        _pilot_scope(_repo()),
+        changes=args.item or [],
+        interface_commit=args.interface_commit,
+    )
+    logger.info("pilot addendum: {}", output)
 
 
 def cmd_plan(args: argparse.Namespace) -> None:
@@ -184,6 +258,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--scope", required=True, choices=(SCOPE_PILOT, SCOPE_CORPUS))
     p.set_defaults(func=cmd_blind_inputs)
     sub.add_parser("pilot-select").set_defaults(func=cmd_pilot_select)
+    sub.add_parser("pilot-plan").set_defaults(func=cmd_pilot_plan)
+    sub.add_parser("pilot-extract").set_defaults(func=cmd_pilot_extract)
+    sub.add_parser("pilot-points").set_defaults(func=cmd_pilot_points)
+    p = sub.add_parser("pilot-annotate")
+    p.add_argument("--port", type=int, default=8765)
+    p.set_defaults(func=cmd_pilot_annotate)
+    sub.add_parser("pilot-export").set_defaults(func=cmd_pilot_export)
+    sub.add_parser("pilot-gate").set_defaults(func=cmd_pilot_gate)
+    p = sub.add_parser("pilot-addendum")
+    group = p.add_mutually_exclusive_group(required=True)
+    group.add_argument("--none", action="store_true")
+    group.add_argument("--item", action="append", choices=PILOT_ALLOWED_CHANGES)
+    p.add_argument("--interface-commit")
+    p.set_defaults(func=cmd_pilot_addendum)
     for name, func in (("plan", cmd_plan), ("extract", cmd_extract)):
         p = sub.add_parser(name)
         p.add_argument("--recording", required=True, choices=CORRECTNESS_APPLICABLE)
@@ -214,4 +302,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> None:
     """Entry point."""
     args = build_parser().parse_args(argv)
+    from map_ink_reference.execution import guard
+
+    guard(_repo(), args.command)
     args.func(args)

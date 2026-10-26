@@ -12,8 +12,13 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from map_ink_reference.constants import CORRECTNESS_APPLICABLE, STAGE_1, STAGE_2
-from map_ink_reference.errors import MalformedInput
+from map_ink_reference.constants import (
+    CORRECTNESS_APPLICABLE,
+    SCOPE_PILOT,
+    STAGE_1,
+    STAGE_2,
+)
+from map_ink_reference.errors import IsolationViolation, MalformedInput
 from map_ink_reference.extraction import extract_recording
 from map_ink_reference.gate import (
     evaluate_gate,
@@ -75,6 +80,7 @@ def gate_path(records: Path, stage: int) -> Path:
 def write_plan(repo: Path, records: Path, rid: str, tool: Mapping[str, Any]) -> Path:
     """Verify the pinned manifest and write the recording's frame plan (after 2a)."""
     require_step2a_sealed(repo, records)
+    _require_corpus_recordings([rid])
     pins = MEDIA_PINS[rid]
     manifest_path = repo / pins.vision_manifest_path
     digest = verify_pin(manifest_path, pins.vision_manifest_sha256)
@@ -89,7 +95,8 @@ def run_extraction(
 ) -> Path:
     """Extract all planned frames of a recording (pinned video only; after 2a)."""
     require_step2a_sealed(_repo_of(records), records)
-    plan = read_json(plan_path(records, rid))
+    _require_corpus_recordings([rid])
+    plan = _read_record(plan_path(records, rid))
     provenance = extract_recording(
         plan,
         video_path,
@@ -102,7 +109,7 @@ def run_extraction(
 
 
 def _frame_index(records: Path, rid: str) -> dict[str, dict[str, Any]]:
-    provenance = read_json(extraction_path(records, rid))
+    provenance = _read_record(extraction_path(records, rid))
     return {f["frame_id"]: f for f in provenance["frames"]}
 
 
@@ -112,7 +119,7 @@ def stage_frames(
     """Selected frames of a stage with their pinned PNGs."""
     frames: list[StageFrame] = []
     for rid in recordings:
-        plan = read_json(plan_path(records, rid))
+        plan = _read_record(plan_path(records, rid))
         index = _frame_index(records, rid)
         for fid in stage_frame_ids(plan, stage):
             entry = index[fid]
@@ -159,7 +166,7 @@ def write_point_manifest(
     geometry_dir = verify_geometry_pins(repo)
     frames = stage_frames(records, work, stage, recordings)
     identities = {
-        rid: read_json(plan_path(records, rid))["video_identity"] for rid in recordings
+        rid: _read_record(plan_path(records, rid))["video_identity"] for rid in recordings
     }
     points = sample_stage_points(
         frames,
@@ -210,9 +217,10 @@ def session_inputs(records: Path, work: Path, stage: int) -> SessionInputs:
     """Assemble a session from the sealed point manifest (and Stage 1 swatches)."""
     manifest_file = points_path(records, stage)
     require_sealed(_repo_of(records), manifest_file)
-    manifest = read_json(manifest_file)
+    manifest = _read_record(manifest_file)
+    _require_corpus_recordings(manifest["recordings"])
     digest = sha256_file(manifest_file)
-    dups = read_json(records / f"duplicates_stage{stage}.json")
+    dups = _read_record(records / f"duplicates_stage{stage}.json")
     if dups["point_manifest_sha256"] != digest:
         raise MalformedInput("duplicate list does not belong to this point manifest")
     if dups["duplicate_ids"] != duplicate_point_ids(
@@ -241,7 +249,7 @@ def session_inputs(records: Path, work: Path, stage: int) -> SessionInputs:
 
 
 def _recording_assets(records: Path, work: Path, stage: int, rid: str) -> RecordingAssets:
-    plan = read_json(plan_path(records, rid))
+    plan = _read_record(plan_path(records, rid))
     return RecordingAssets(
         selected=_assets(records, work, rid, stage_frame_ids(plan, stage)),
         cues=_assets(records, work, rid, stage_cue_frame_ids(plan, stage)),
@@ -253,8 +261,9 @@ def _attach_stage1_swatches(records: Path, work: Path, inputs: SessionInputs) ->
     swatch_file, key_file = records / SWATCHES, records / TOKEN_KEY
     require_sealed(repo, swatch_file)
     require_sealed(repo, key_file)
+    _read_record(swatch_file)
     swatches = load_sealed_swatches(swatch_file)
-    tokens = read_json(key_file)["tokens"]
+    tokens = _read_record(key_file)["tokens"]
     inputs.tokens = {rid: tokens[rid] for rid in inputs.recordings}
     inputs.swatches = {tokens[rid]: swatches[tokens[rid]] for rid in inputs.recordings}
     for rid, assets in list(inputs.recordings.items()):
@@ -287,10 +296,11 @@ def stage_pairs(records: Path, stage: int) -> dict[str, tuple[str | None, str | 
     require_sealed(repo, records / SWATCHES)
     require_sealed(repo, points_path(records, stage))
     require_sealed(repo, records / f"duplicates_stage{stage}.json")
-    manifest = read_json(points_path(records, stage))
-    dups = read_json(records / f"duplicates_stage{stage}.json")["duplicate_ids"]
-    swatches = read_json(records / SWATCHES)["swatches"]
-    tokens = read_json(records / TOKEN_KEY)["tokens"]
+    manifest = _read_record(points_path(records, stage))
+    _require_corpus_recordings(manifest["recordings"])
+    dups = _read_record(records / f"duplicates_stage{stage}.json")["duplicate_ids"]
+    swatches = _read_record(records / SWATCHES)["swatches"]
+    tokens = _read_record(records / TOKEN_KEY)["tokens"]
     valid = [
         rid
         for rid in manifest["recordings"]
@@ -298,11 +308,26 @@ def stage_pairs(records: Path, stage: int) -> dict[str, tuple[str | None, str | 
     ]
     point_recording = {p["point_id"]: p["recording_id"] for p in manifest["points"]}
     members = population(dups, point_recording, valid)
-    queue = read_json(records / queue_name(stage))["items"]
-    refs = read_json(records / queue_key_name(stage))["point_refs"]
+    queue = _read_record(records / queue_name(stage))["items"]
+    refs = _read_record(records / queue_key_name(stage))["point_refs"]
     verify_queue_duplicates(members, queue, refs)
-    labels = {e["item_id"]: e["label"] for e in read_json(labels_file)["labels"]}
+    labels = {e["item_id"]: e["label"] for e in _read_record(labels_file)["labels"]}
     return pair_labels(members, queue, labels, refs)
+
+
+def _read_record(path: Path) -> Any:
+    """Corpus readers never consume a record carrying the pilot scope."""
+    payload = read_json(path)
+    if isinstance(payload, dict) and payload.get("scope") == SCOPE_PILOT:
+        raise IsolationViolation(f"pilot record supplied to corpus path: {path.name}")
+    return payload
+
+
+def _require_corpus_recordings(recordings: Sequence[str]) -> None:
+    """Corpus operations accept only the correctness-applicable recordings."""
+    outside = [rid for rid in recordings if rid not in CORRECTNESS_APPLICABLE]
+    if outside:
+        raise IsolationViolation(f"recording outside the corpus: {outside}")
 
 
 def run_gate(records: Path, stage: int, tool: Mapping[str, Any]) -> dict[str, Any]:

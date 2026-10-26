@@ -135,3 +135,87 @@ def verify_preconditions(repo: Path, a1_pins: Mapping[str, str]) -> None:
     for rel, digest in a1_pins.items():
         verify_pin(repo / rel, digest)
         require_sealed(repo, repo / rel)
+
+
+# Amendment 7 tool identity rule: history primitives over committed state.
+PROTECTED_ROOTS = (
+    "tools/diagnostics/map_ink_reference/",
+    "tests/map_ink_reference/",
+)
+
+
+def chain_entry(name: str) -> tuple[str, str]:
+    """``(commit, preregistration SHA-256)`` of a named authorized chain entry."""
+    for entry_name, commit, digest in PREREGISTRATION_CHAIN:
+        if entry_name == name:
+            return commit, digest
+    raise SealViolation(f"{name} is not in the authorized execution chain")
+
+
+def preregistration_path() -> str:
+    """Repository-relative path of the preregistration file."""
+    return PREREGISTRATION_PATH
+
+
+def file_at_commit(repo: Path, commit: str, rel: str) -> bytes:
+    """Committed bytes of ``rel`` at ``commit``."""
+    return _file_at_commit(repo, commit, rel)
+
+
+def commit_parents(repo: Path, commit: str) -> list[str]:
+    """Parent commits of ``commit``."""
+    return _git(repo, "rev-list", "--parents", "-n", "1", commit).stdout.split()[1:]
+
+
+def changed_paths(repo: Path, commit: str) -> dict[str, str]:
+    """``{path: status}`` of one commit against its single parent (no renames)."""
+    out = _git(
+        repo,
+        "diff-tree",
+        "--no-commit-id",
+        "--name-status",
+        "-r",
+        "--no-renames",
+        "--root",
+        commit,
+    ).stdout
+    entries = [line.split("\t", 1) for line in out.splitlines() if line]
+    return {path: status for status, path in entries}
+
+
+def strictly_after(repo: Path, earlier: str, later: str) -> bool:
+    """``later`` is a proper descendant of ``earlier``."""
+    if earlier == later:
+        return False
+    proc = _git(repo, "merge-base", "--is-ancestor", earlier, later, check=False)
+    return proc.returncode == 0
+
+
+def adding_commit(repo: Path, path: Path) -> str | None:
+    """The commit in HEAD's history that first added ``path``, if any."""
+    rel = path.resolve().relative_to(repo.resolve()).as_posix()
+    log = _git(repo, "log", "--diff-filter=A", "--format=%H", "--", rel).stdout.split()
+    return log[-1] if log else None
+
+
+def path_commits(repo: Path, path: Path) -> list[str]:
+    """Commits in HEAD's history that touch ``path``, oldest first."""
+    rel = path.resolve().relative_to(repo.resolve()).as_posix()
+    return _git(repo, "log", "--reverse", "--format=%H", "--", rel).stdout.split()
+
+
+def protected_commits(repo: Path, base: str) -> list[str]:
+    """Commits after ``base`` (exclusive) touching a protected path, oldest first.
+
+    The whole range must be a linear history with no merge commits.
+    """
+    require_ancestor(repo, base)
+    out = _git(repo, "rev-list", "--reverse", "--parents", f"{base}..HEAD").stdout
+    touching = []
+    for line in out.splitlines():
+        commit, *parents = line.split()
+        if len(parents) != 1:
+            raise SealViolation(f"merge commit after {base[:7]}: {commit[:7]}")
+        if any(path.startswith(PROTECTED_ROOTS) for path in changed_paths(repo, commit)):
+            touching.append(commit)
+    return touching

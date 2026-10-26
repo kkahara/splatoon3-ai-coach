@@ -21,4 +21,7 @@ Module groups:
   ``criterion_4a``, ``report``.
 - Neutral helpers: ``constants``, ``errors``, ``io_utils``, ``pins``, ``seal``.
 - Entry boundary: ``cli`` (and ``__main__``).
+- Amendment 7 execution: ``execution``, ``pilot_pipeline`` and
+  ``pilot_addendum``. These modules only orchestrate the frozen blind
+  functions and never implement scientific rules.
 """
