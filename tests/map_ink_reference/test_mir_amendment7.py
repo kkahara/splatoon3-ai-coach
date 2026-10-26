@@ -78,7 +78,12 @@ from map_ink_reference.pilot_pipeline import (
 )
 from map_ink_reference.pins import INTRO_LATCH_CODE_PINS
 from map_ink_reference.plan import build_frame_plan, stage_frame_ids
-from map_ink_reference.points import StageFrame, duplicate_point_ids, sample_stage_points
+from map_ink_reference.points import (
+    StageFrame,
+    duplicate_point_ids,
+    pilot_duplicate_count,
+    sample_stage_points,
+)
 from map_ink_reference.records import export_session_records
 from map_ink_reference.stage_identity import StageIdentity, step2a_paths
 from map_ink_reference.unblinded_pins import A1_IMPLEMENTATION_PINS as UNBLINDED_A1
@@ -90,6 +95,7 @@ from mir_amendment7 import (
     TOOL_REL,
     Workspace,
     build_checkpoints,
+    commit_repair8,
     constants_source,
 )
 from mir_helpers import commit, git, init_repo
@@ -224,12 +230,12 @@ def _append(entry: str) -> tuple[str, str]:
 
 
 def test_c7_is_the_fourth_authorized_chain_entry() -> None:
-    assert PREREGISTRATION_CHAIN[-1] == (
+    assert PREREGISTRATION_CHAIN[3] == (
         "amendment7",
         C7,
         "26ed135efbfb2127523601447f0edb1f4cef132daff4d1afc1bfb902fe6fb5a8",
     )
-    assert seal.chain_entry("amendment7") == PREREGISTRATION_CHAIN[-1][1:]
+    assert seal.chain_entry("amendment7") == PREREGISTRATION_CHAIN[3][1:]
 
 
 def test_pilot_commands_have_only_sealed_options() -> None:
@@ -616,7 +622,11 @@ def test_pilot_plans_extraction_and_points_equal_the_shared_functions(
         "stage": STAGE_1,
         "scope": SCOPE_PILOT,
         "point_manifest_sha256": digest,
-        "duplicate_ids": duplicate_point_ids([p["point_id"] for p in points], digest),
+        "duplicate_ids": duplicate_point_ids(
+            [p["point_id"] for p in points],
+            digest,
+            count=pilot_duplicate_count(len(points)),
+        ),
     }
 
 
@@ -1044,9 +1054,7 @@ def test_valid_interface_commit_and_sealed_addendum(at, monkeypatch) -> None:
 
 def test_valid_crop_zoom_interface_commit(at) -> None:
     ws = at("g5_pass")
-    interface = _edit(
-        ws, {CONSTANTS_REL: constants_source(ws.c7, ws.digest, crop=112, zoom=3)}, "crop"
-    )
+    interface = _edit(ws, {CONSTANTS_REL: ws.constants(crop=112, zoom=3)}, "crop")
     with pytest.raises(SealViolation):
         write_addendum(ws.scope, changes=["marker"], interface_commit=interface)
     ws.run_g6(["crop_zoom"], interface)
@@ -1066,19 +1074,11 @@ INVALID_INTERFACE = {
     "modified-test": lambda ws: {f"{TEST_REL}/test_existing.py": "# changed\n"},
     "deleted-test": lambda ws: {f"{TEST_REL}/test_existing.py": None},
     "constants-beyond-values": lambda ws: {
-        CONSTANTS_REL: constants_source(ws.c7, ws.digest).replace(
-            "MIN_CROP_SIZE = 64", "MIN_CROP_SIZE = 32"
-        )
+        CONSTANTS_REL: ws.constants().replace("MIN_CROP_SIZE = 64", "MIN_CROP_SIZE = 32")
     },
-    "crop-out-of-range": lambda ws: {
-        CONSTANTS_REL: constants_source(ws.c7, ws.digest, crop=200)
-    },
-    "zoom-not-integer": lambda ws: {
-        CONSTANTS_REL: constants_source(ws.c7, ws.digest, zoom=4.5)
-    },
-    "zoom-boolean": lambda ws: {
-        CONSTANTS_REL: constants_source(ws.c7, ws.digest, zoom=True)
-    },
+    "crop-out-of-range": lambda ws: {CONSTANTS_REL: ws.constants(crop=200)},
+    "zoom-not-integer": lambda ws: {CONSTANTS_REL: ws.constants(zoom=4.5)},
+    "zoom-boolean": lambda ws: {CONSTANTS_REL: ws.constants(zoom=True)},
     "session-import-removed": _session_edit(("    zoom_nearest,\n)", ")")),
     "session-import-reordered": _session_edit(
         ("    padded_crop,\n    point_view,\n", "    point_view,\n    padded_crop,\n")
@@ -1248,9 +1248,22 @@ def test_display_defaults_must_be_single_assignments(constants_repo) -> None:
 # --------------------------------------------------------------------------
 
 
-def _replay(ws: Workspace, commits: list[str]) -> None:
+def _replay(ws: Workspace, commits: list[str]) -> Workspace:
+    """Cherry-pick ``commits``; repair 8 is recommitted naming the replayed C8."""
     for item in commits:
-        git(ws.repo, "cherry-pick", "--allow-empty", item)
+        if item == ws.repair8:
+            ws = replace(ws, repair8=commit_repair8(ws.repo, ws.c8, ws.digest8))
+        else:
+            git(ws.repo, "cherry-pick", "--allow-empty", item)
+            if item == ws.c8:
+                ws = replace(ws, c8=ws.head())
+    return ws
+
+
+def _repin(ws: Workspace, monkeypatch) -> None:
+    """Pin the rebuilt first protected commit and the replayed C8."""
+    first = seal.protected_commits(ws.repo, ws.c7)[0]
+    replace(ws, repair7=first).patch(monkeypatch)
 
 
 def _after_c7(ws: Workspace) -> list[str]:
@@ -1260,7 +1273,7 @@ def _after_c7(ws: Workspace) -> list[str]:
 def test_repair_is_the_first_protected_commit_after_c7(at) -> None:
     ws = at("g5_pass")
     tool = seal.protected_commits(ws.repo, ws.c7)
-    assert tool == [_after_c7(ws)[0]]
+    assert tool == [_after_c7(ws)[0], ws.repair8] == [ws.repair7, ws.repair8]
     execution.verify_tool_identity(ws.repo)
 
 
@@ -1282,7 +1295,7 @@ def test_merge_commit_after_c7_stops(at) -> None:
         execution.verify_tool_identity(ws.repo)
 
 
-def _rebuild_repair(ws: Workspace, edits: dict[str, str]) -> None:
+def _rebuild_repair(ws: Workspace, edits: dict[str, str], monkeypatch) -> None:
     replay = _after_c7(ws)[1:]
     git(ws.repo, "reset", "-q", "--hard", ws.c7)
     _edit(
@@ -1290,10 +1303,10 @@ def _rebuild_repair(ws: Workspace, edits: dict[str, str]) -> None:
         {f"{TEST_REL}/test_repair.py": '"""Synthetic repair test."""\n', **edits},
         "repair",
     )
-    _replay(ws, replay)
+    _repin(_replay(ws, replay), monkeypatch)
 
 
-def test_repair_outside_its_file_set_stops(at) -> None:
+def test_repair_outside_its_file_set_stops(at, monkeypatch) -> None:
     ws = at("repaired")
     _rebuild_repair(
         ws,
@@ -1301,6 +1314,7 @@ def test_repair_outside_its_file_set_stops(at) -> None:
             CONSTANTS_REL: constants_source(ws.c7, ws.digest),
             f"{TOOL_REL}/plan.py": "# frozen module changed\n",
         },
+        monkeypatch,
     )
     with pytest.raises(SealViolation, match="outside its file set"):
         execution.verify_tool_identity(ws.repo)
@@ -1315,26 +1329,28 @@ def test_repair_outside_its_file_set_stops(at) -> None:
     ],
     ids=["no-entry", "wrong-digest", "wrong-commit"],
 )
-def test_repair_without_the_c7_chain_entry_stops(at, source) -> None:
+def test_repair_without_the_c7_chain_entry_stops(at, monkeypatch, source) -> None:
     ws = at("repaired")
-    _rebuild_repair(ws, {CONSTANTS_REL: source(ws)})
+    _rebuild_repair(ws, {CONSTANTS_REL: source(ws)}, monkeypatch)
     with pytest.raises(SealViolation, match="chain entry"):
         execution.verify_tool_identity(ws.repo)
 
 
-def test_repair_changing_display_defaults_stops(at) -> None:
+def test_repair_changing_display_defaults_stops(at, monkeypatch) -> None:
     ws = at("repaired")
-    _rebuild_repair(ws, {CONSTANTS_REL: constants_source(ws.c7, ws.digest, crop=112)})
+    _rebuild_repair(
+        ws, {CONSTANTS_REL: constants_source(ws.c7, ws.digest, crop=112)}, monkeypatch
+    )
     with pytest.raises(SealViolation, match="display defaults"):
         execution.verify_tool_identity(ws.repo)
 
 
-def test_repair_after_g1_stops(at) -> None:
+def test_repair_after_g1_stops(at, monkeypatch) -> None:
     ws = at("g1")
-    commits = _after_c7(ws)
-    repair, rest = commits[0], commits[1:]
+    repairs = [ws.repair7, ws.repair8]
+    rest = [c for c in _after_c7(ws) if c not in repairs]
     git(ws.repo, "reset", "-q", "--hard", ws.c7)
-    _replay(ws, rest + [repair])
+    _repin(_replay(ws, rest + repairs), monkeypatch)
     with pytest.raises(SealViolation, match="before G1"):
         execution.verify_tool_identity(ws.repo)
 
@@ -1351,7 +1367,7 @@ def test_c7_changing_more_than_the_preregistration_stops(at, monkeypatch) -> Non
     moved = replace(ws, c7=c7)
     moved.patch(monkeypatch)
     _edit(moved, {CONSTANTS_REL: constants_source(c7, ws.digest)}, "repair")
-    _replay(moved, replay)
+    _repin(_replay(moved, replay), monkeypatch)
     with pytest.raises(SealViolation, match="only the preregistration"):
         execution.verify_tool_identity(moved.repo)
 

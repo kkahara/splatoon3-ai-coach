@@ -14,6 +14,8 @@ from map_ink_reference.constants import (
     DUPLICATE_RATE_DENOMINATOR,
     DUPLICATE_SEED_PREFIX,
     MIN_POINT_SPACING_PX,
+    PILOT_DUPLICATE_RATE_DENOMINATOR,
+    PILOT_DUPLICATE_RATE_NUMERATOR,
     POINT_SEED_PREFIX,
     POINTS_PER_FRAME,
 )
@@ -104,13 +106,31 @@ def duplicate_count(n_points: int) -> int:
     return -(-n_points // DUPLICATE_RATE_DENOMINATOR)
 
 
+def pilot_duplicate_count(n_points: int) -> int:
+    """Amendment 8 pilot rule ``ceil(2N / 3)``, computed as ``-(-2N // 3)``."""
+    if n_points < 0:
+        raise MalformedInput("negative point count")
+    return -(
+        -(PILOT_DUPLICATE_RATE_NUMERATOR * n_points) // PILOT_DUPLICATE_RATE_DENOMINATOR
+    )
+
+
 def duplicate_point_ids(
-    point_ids: Sequence[str], point_manifest_sha256: str
+    point_ids: Sequence[str],
+    point_manifest_sha256: str,
+    *,
+    count: int | None = None,
 ) -> list[str]:
-    """Duplicate selection seeded from the point-manifest hash (no replacement)."""
+    """Duplicate selection seeded from the point-manifest hash (no replacement).
+
+    Without ``count`` the frozen corpus rule ``duplicate_count`` applies.
+    """
     if len(set(point_ids)) != len(point_ids):
         raise MalformedInput("point ids must be unique")
-    count = duplicate_count(len(point_ids))
+    if count is None:
+        count = duplicate_count(len(point_ids))
+    elif type(count) is not int or not 0 <= count <= len(point_ids):
+        raise MalformedInput("duplicate count must be an integer within the points")
     seed = seed_from_text(f"{DUPLICATE_SEED_PREFIX}{point_manifest_sha256}")
     rng = np.random.Generator(np.random.PCG64(seed))
     chosen = rng.choice(len(point_ids), size=count, replace=False)

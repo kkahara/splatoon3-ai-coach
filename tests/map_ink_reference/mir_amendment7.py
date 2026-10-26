@@ -1,7 +1,8 @@
 """Synthetic Amendment 7 workspace: no study media, manifests or records.
 
 A temporary repository holds synthetic frozen tooling, a synthetic
-preregistration commit (C7), a synthetic repair commit, synthetic production
+preregistration commit (C7), a synthetic repair commit, a synthetic
+Amendment 8 commit (C8) and its repair 8 commit, synthetic production
 pin files, the synthetic step 2a records and decodable synthetic pilot videos
 (lossless FFV1 written by the test). Checkpoints of the pilot chain are built
 once per module and copied per test.
@@ -80,16 +81,29 @@ TOOL = {"tool_commit": "synthetic"}
 PACKAGE_DIR = Path(map_ink_reference.__file__).parent
 
 
+CHAIN_END = ")\nDEFAULT_CROP_SIZE"
+C8_TEXT = "## synthetic Amendment 8\n"
+REPAIR8_TEST = f"{TEST_REL}/test_repair8.py"
+
+
 def constants_source(
-    c7: str | None, digest: str | None, crop: Any = 96, zoom: Any = 4
+    c7: str | None,
+    digest: str | None,
+    crop: Any = 96,
+    zoom: Any = 4,
+    c8: str | None = None,
+    digest8: str | None = None,
 ) -> str:
-    """Synthetic ``constants.py``; ``c7=None`` is the pre-repair chain."""
+    """Synthetic ``constants.py``; ``c7=None`` is the pre-repair chain.
+
+    ``c8`` adds chain entry 5 (the repair 8 tree).
+    """
     entries = ['    ("amendment6", "' + "6" * 40 + '", "' + "e" * 64 + '"),']
     if c7 is not None:
         entries.append(f'    ("amendment7", "{c7}", "{digest}"),')
     head = ['    ("amendment4", "' + "4" * 40 + '", "' + "f" * 64 + '"),']
     head.append('    ("amendment5", "' + "5" * 40 + '", "' + "d" * 64 + '"),')
-    return "\n".join(
+    source = "\n".join(
         [
             '"""Synthetic constants."""',
             "",
@@ -104,6 +118,14 @@ def constants_source(
             "",
         ]
     )
+    return source if c8 is None else add_entry5(source, c8, digest8)
+
+
+def add_entry5(source: str, c8: str, digest8: str | None) -> str:
+    """Append chain entry 5 to a synthetic ``constants.py`` text."""
+    assert CHAIN_END in source
+    entry = f'    ("amendment8", "{c8}", "{digest8}"),\n'
+    return source.replace(CHAIN_END, entry + CHAIN_END, 1)
 
 
 def write_video(path: Path, count: int, seed: int) -> None:
@@ -157,6 +179,10 @@ class Workspace:
     repo: Path
     c7: str
     digest: str
+    repair7: str
+    c8: str
+    digest8: str
+    repair8: str
     geometry: Path
     media: dict
     coverage: dict
@@ -171,9 +197,21 @@ class Workspace:
     def records(self) -> Path:
         return self.repo / RECORDS_DIR
 
+    def constants(self, crop: Any = 96, zoom: Any = 4) -> str:
+        """The repair 8 ``constants.py`` with these display values."""
+        return constants_source(self.c7, self.digest, crop, zoom, self.c8, self.digest8)
+
     def patch(self, mp: pytest.MonkeyPatch) -> None:
         """Point every pin and identity table at the synthetic repository."""
-        mp.setattr(seal, "PREREGISTRATION_CHAIN", (("amendment7", self.c7, self.digest),))
+        mp.setattr(
+            seal,
+            "PREREGISTRATION_CHAIN",
+            (
+                ("amendment7", self.c7, self.digest),
+                ("amendment8", self.c8, self.digest8),
+            ),
+        )
+        mp.setattr(execution, "AMENDMENT7_REPAIR_COMMIT", self.repair7)
         mp.setattr(execution, "A1_IMPLEMENTATION_PINS", dict(self.a1))
         mp.setattr(execution, "PRODUCTION_PINS", dict(self.production))
         mp.setattr(
@@ -218,8 +256,10 @@ class Workspace:
         write_points(self.scope, TOOL)
         return self.commit(pilot_groups(self.scope, self.chosen())[1], "G2 pilot")
 
-    def annotate(self, label: str = "ink_A") -> AnnotationSession:
+    def annotate(self, labels: Sequence[str] = ("ink_A",)) -> AnnotationSession:
+        """Annotate every task; label items cycle through ``labels``."""
         counter = Counter(500)
+        submitted = 0
         session = AnnotationSession(
             session_inputs(self.scope),
             session_dir(self.scope),
@@ -240,7 +280,8 @@ class Workspace:
                 left = session.state["team"][task["token"]][phase]["left"]
                 session.submit_team(task["token"], "left" if left == "A" else "right")
             else:
-                session.submit_label(task["item_id"], label)
+                session.submit_label(task["item_id"], labels[submitted % len(labels)])
+                submitted += 1
         return session
 
     def run_g3_g4(self) -> tuple[str, str]:
@@ -290,8 +331,17 @@ def _frozen_tooling(repo: Path) -> list[Path]:
     return paths
 
 
+def commit_repair8(repo: Path, c8: str, digest8: str) -> str:
+    """Repair 8 on top of the current tree: chain entry 5 and a test file."""
+    constants = repo / CONSTANTS_REL
+    constants.write_text(add_entry5(constants.read_text(), c8, digest8))
+    test = repo / REPAIR8_TEST
+    test.write_text('"""Synthetic repair 8 test."""\n')
+    return commit(repo, [constants, test], "repair 8")
+
+
 def build_repaired(root: Path, mp: pytest.MonkeyPatch) -> Workspace:
-    """Frozen tooling, pins, C7, the repair and sealed step 2a."""
+    """Frozen tooling, pins, C7, the repair, C8, repair 8 and sealed step 2a."""
     repo = init_repo(root / "repo")
     production, paths = {}, []
     for rel in execution.PRODUCTION_PINS:
@@ -312,13 +362,21 @@ def build_repaired(root: Path, mp: pytest.MonkeyPatch) -> Workspace:
     constants.write_text(constants_source(c7, digest))
     repair_test = repo / TEST_REL / "test_repair.py"
     repair_test.write_text('"""Synthetic repair test."""\n')
-    commit(repo, [constants, repair_test], "repair")
+    repair7 = commit(repo, [constants, repair_test], "repair")
+    prereg.write_text(prereg.read_text() + C8_TEXT)
+    c8 = commit(repo, [prereg], "C8")
+    digest8 = _sha(prereg)
+    repair8 = commit_repair8(repo, c8, digest8)
     geometry = write_geometry(root)
     DecodableStep2a(repo, repo / RECORDS_DIR, mp).seal()
     workspace = Workspace(
         repo=repo,
         c7=c7,
         digest=digest,
+        repair7=repair7,
+        c8=c8,
+        digest8=digest8,
+        repair8=repair8,
         geometry=geometry,
         media={rid: pins.MEDIA_PINS[rid] for rid in CORRECTNESS_APPLICABLE},
         coverage={rid: pins.COVERAGE_MANIFEST_PINS[rid] for rid in COVERAGE_ONLY},
@@ -346,13 +404,15 @@ def build_checkpoints(root: Path) -> dict[str, Workspace]:
         save("g1", ws)
         ws.run_g2()
         save("g2", ws)
+        failing = ws.copy_to(root / "fail_build")
+        failing.annotate(("ink_A", "ink_B"))
+        failing.run_g3_g4()
+        failing.run_g5()
+        save("g5_fail", failing)
         ws.annotate()
         save("annotated", ws)
         ws.run_g3_g4()
         save("g4", ws)
-        failing = ws.copy_to(root / "fail_build")
-        failing.run_g5()
-        save("g5_fail", failing)
         mp.setattr(gate_module, "GATE_CAP", 0.5)
         ws.run_g5()
         save("g5_pass", ws)

@@ -38,7 +38,14 @@ PREREGISTRATION_CHAIN = (
         "0a62f699894db5296b43102f1e77f7240a6f10de",
         "26ed135efbfb2127523601447f0edb1f4cef132daff4d1afc1bfb902fe6fb5a8",
     ),
+    (
+        "amendment8",
+        "04caeda69ccca22941800bd0ff4195df0aae813b",
+        "6959f153dc6a2b51622a4480126e7853534c2abf81a9debdda1092fc9dabcb97",
+    ),
 )
+# Amendment 8 tool identity: the first protected-path commit after C7.
+AMENDMENT7_REPAIR_COMMIT = "3883dd7bd14877705f61fe44b3b46a2c46a47afc"
 
 # Committed records and gitignored working artifacts.
 RECORDS_DIR = "analysis/review_validation/alignment/v4/amendment3"
@@ -69,6 +76,9 @@ POINT_SEED_PREFIX = "amendment3-points|"
 DUPLICATE_SEED_PREFIX = "amendment3-dups|"
 # Duplicate rate 0.10 is applied as an exact integer ceiling: ceil(N / 10).
 DUPLICATE_RATE_DENOMINATOR = 10
+# Amendment 8, pilot only: ceil(2N / 3) in exact integer arithmetic.
+PILOT_DUPLICATE_RATE_NUMERATOR = 2
+PILOT_DUPLICATE_RATE_DENOMINATOR = 3
 DUPLICATE_MIN_GAP = 50
 
 # Production candidate gate for the point domain (literal sealed values).

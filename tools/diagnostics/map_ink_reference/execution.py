@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from map_ink_reference.constants import (
+    AMENDMENT7_REPAIR_COMMIT,
     PILOT_BLIND_INPUT_MANIFEST,
     RECORDS_DIR,
     SCOPE_PILOT,
@@ -101,6 +102,17 @@ REPAIR_FILES = frozenset(
         "pilot_addendum.py",
     )
 )
+REPAIR8_FILES = frozenset(
+    f"{TOOL_DIR}/{name}"
+    for name in (
+        "constants.py",
+        "points.py",
+        "pilot_pipeline.py",
+        "execution.py",
+        "pilot_addendum.py",
+        "seal.py",
+    )
+)
 # Split literals: the blind isolation check forbids these file names verbatim.
 A1_IMPLEMENTATION_PINS = dict(
     (
@@ -166,23 +178,44 @@ def verify_clean_tooling(repo: Path) -> None:
     require_tool_clean(repo, repo / TEST_ROOT)
 
 
-def _repair_chain_entry(repo: Path, repair: str) -> object:
+def _chain_value(node: ast.expr, names: dict[str, str]) -> object:
+    if isinstance(node, ast.Name) and node.id in names:
+        return names[node.id]
+    if isinstance(node, ast.Tuple):
+        return tuple(_chain_value(element, names) for element in node.elts)
+    return ast.literal_eval(node)
+
+
+def repair_chain(repo: Path, repair: str) -> list[object]:
+    """The chain entries in a repair's own ``constants.py`` (string names resolved)."""
     source = file_at_commit(repo, repair, CONSTANTS).decode("utf-8")
+    names: dict[str, str] = {}
     for node in ast.parse(source).body:
-        if (
-            isinstance(node, ast.Assign)
-            and any(
-                isinstance(t, ast.Name) and t.id == "PREREGISTRATION_CHAIN"
-                for t in node.targets
-            )
-            and isinstance(node.value, ast.Tuple)
-            and len(node.value.elts) >= 4
-        ):
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if not isinstance(target, ast.Name):
+            continue
+        if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            names[target.id] = node.value.value
+        elif target.id == "PREREGISTRATION_CHAIN" and isinstance(node.value, ast.Tuple):
             try:
-                return ast.literal_eval(node.value.elts[3])
-            except ValueError:
-                break
-    raise SealViolation("repair has no literal chain entry 4")
+                return [_chain_value(element, names) for element in node.value.elts]
+            except ValueError as exc:
+                raise SealViolation("repair chain is not literal") from exc
+    raise SealViolation("repair has no PREREGISTRATION_CHAIN")
+
+
+def _repair_chain_entry(repo: Path, repair: str, index: int = 3) -> object:
+    entries = repair_chain(repo, repair)
+    if len(entries) <= index:
+        raise SealViolation(f"repair has no chain entry {index + 1}")
+    return entries[index]
+
+
+def _chain_entry_expected(repo: Path, name: str, commit: str) -> tuple[str, str, str]:
+    prereg = file_at_commit(repo, commit, preregistration_path())
+    return (name, commit, hashlib.sha256(prereg).hexdigest())
 
 
 def verify_repair(repo: Path, repair: str, c7: str) -> None:
@@ -190,10 +223,35 @@ def verify_repair(repo: Path, repair: str, c7: str) -> None:
     for path in changed_paths(repo, repair):
         if path not in REPAIR_FILES and not path.startswith(TEST_ROOT):
             raise SealViolation(f"repair changes a path outside its file set: {path}")
-    prereg = file_at_commit(repo, c7, preregistration_path())
-    expected = ("amendment7", c7, hashlib.sha256(prereg).hexdigest())
+    expected = _chain_entry_expected(repo, "amendment7", c7)
     if _repair_chain_entry(repo, repair) != expected:
         raise SealViolation("repair chain entry 4 does not name C7 and its digest")
+
+
+def verify_repair8(repo: Path, repair8: str, repair7: str, c8: str) -> None:
+    """Amendment 8: repair 8 is after C8, in its file set, and adds chain entry 5."""
+    if len(commit_parents(repo, repair8)) != 1:
+        raise SealViolation("repair 8 is a merge commit")
+    if not strictly_after(repo, c8, repair8):
+        raise SealViolation("repair 8 is not committed strictly after C8")
+    for path in changed_paths(repo, repair8):
+        if path not in REPAIR8_FILES and not path.startswith(TEST_ROOT):
+            raise SealViolation(f"repair 8 changes a path outside its file set: {path}")
+    entries = repair_chain(repo, repair8)
+    if len(entries) != 5:
+        raise SealViolation("repair 8 chain must have exactly five entries")
+    if entries[:4] != repair_chain(repo, repair7)[:4]:
+        raise SealViolation("repair 8 changes chain entries 1-4")
+    if entries[4] != _chain_entry_expected(repo, "amendment8", c8):
+        raise SealViolation("repair 8 chain entry 5 does not name C8 and its digest")
+
+
+def _verify_amendment_commit(repo: Path, commit: str, label: str) -> None:
+    if (
+        set(changed_paths(repo, commit)) != {preregistration_path()}
+        or len(commit_parents(repo, commit)) != 1
+    ):
+        raise SealViolation(f"{label} must change only the preregistration file")
 
 
 def _sealed_interface(repo: Path, g6: str, scope: PilotScope) -> object:
@@ -204,34 +262,41 @@ def _sealed_interface(repo: Path, g6: str, scope: PilotScope) -> object:
         raise MalformedInput("sealed pilot addendum is malformed") from exc
 
 
-def verify_tool_identity(repo: Path) -> None:
-    """Amendment 7 tool identity rule from C7 (exclusive) to HEAD."""
+def verify_repairs(repo: Path) -> list[str]:
+    """Amendment 8 history: T[0] is the Amendment 7 repair and T[1] is repair 8."""
     c7, _ = chain_entry("amendment7")
-    if (
-        set(changed_paths(repo, c7)) != {preregistration_path()}
-        or len(commit_parents(repo, c7)) != 1
-    ):
-        raise SealViolation("C7 must change only the preregistration file")
+    c8, _ = chain_entry("amendment8")
+    _verify_amendment_commit(repo, c7, "C7")
+    _verify_amendment_commit(repo, c8, "C8")
     tool = protected_commits(repo, c7)
-    if not tool:
-        raise SealViolation("the Amendment 7 repair is not committed after C7")
+    if not tool or tool[0] != AMENDMENT7_REPAIR_COMMIT:
+        raise SealViolation("the Amendment 7 repair is not committed first after C7")
     verify_repair(repo, tool[0], c7)
+    if len(tool) < 2:
+        raise SealViolation("repair 8 is not committed after C8")
+    verify_repair8(repo, tool[1], tool[0], c8)
+    return tool
+
+
+def verify_tool_identity(repo: Path) -> None:
+    """Amendment 8 tool identity rule from C7 (exclusive) to HEAD."""
+    tool = verify_repairs(repo)
     scope = PilotScope.from_repo(repo)
     g1 = adding_commit(repo, selection_path(scope))
-    if g1 is not None and not strictly_after(repo, tool[0], g1):
-        raise SealViolation("the repair is not committed strictly before G1")
+    if g1 is not None and not all(strictly_after(repo, c, g1) for c in tool[:2]):
+        raise SealViolation("the repairs are not committed strictly before G1")
     g6 = adding_commit(repo, addendum_path(scope))
     if g6 is not None and any(strictly_after(repo, g6, commit) for commit in tool):
         raise SealViolation("a protected-path commit follows G6")
-    if len(tool) > 2:
-        raise SealViolation("more than one protected-path commit after the repair")
-    if len(tool) == 2:
-        verify_interface_commit(repo, tool[1], passing_gate_commit(scope), None)
+    if len(tool) > 3:
+        raise SealViolation("more than one protected-path commit after repair 8")
+    if len(tool) == 3:
+        verify_interface_commit(repo, tool[2], passing_gate_commit(scope), None)
     elif display_defaults(repo, head_commit(repo)) != SEALED_DISPLAY:
         raise SealViolation("display defaults differ without an interface commit")
     if g6 is not None:
         recorded = _sealed_interface(repo, g6, scope)
-        if recorded != (tool[1] if len(tool) == 2 else None):
+        if recorded != (tool[2] if len(tool) == 3 else None):
             raise SealViolation("interface commit differs from the sealed addendum")
 
 

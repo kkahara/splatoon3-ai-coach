@@ -321,9 +321,9 @@ def passing_gate_commit(scope: PilotScope) -> str:
 def _verify_interface_history(
     scope: PilotScope, gate_commit: str, changes: Sequence[str], interface: str | None
 ) -> None:
-    """T is the repair alone, or the repair and exactly this interface commit."""
+    """T is the two repairs, or the two repairs and exactly this interface commit."""
     tool = protected_commits(scope.repo, amendment7_commit())
-    if tool[1:] != ([interface] if interface else []):
+    if len(tool) < 2 or tool[2:] != ([interface] if interface else []):
         raise SealViolation("interface_commit disagrees with the tool history")
     if interface is not None:
         verify_interface_commit(scope.repo, interface, gate_commit, changes)

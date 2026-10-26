@@ -47,7 +47,12 @@ from map_ink_reference.pilot import (
 )
 from map_ink_reference.pins import verify_geometry_pins, verify_pin
 from map_ink_reference.plan import build_frame_plan, stage_cue_frame_ids, stage_frame_ids
-from map_ink_reference.points import StageFrame, duplicate_point_ids, sample_stage_points
+from map_ink_reference.points import (
+    StageFrame,
+    duplicate_point_ids,
+    pilot_duplicate_count,
+    sample_stage_points,
+)
 from map_ink_reference.records import (
     SWATCHES,
     TOKEN_KEY,
@@ -395,7 +400,9 @@ def write_points(scope: PilotScope, tool: Mapping[str, Any]) -> tuple[Path, Path
         "points": points,
     }
     digest = hashlib.sha256(canonical_json(manifest).encode("utf-8")).hexdigest()
-    dups = duplicate_point_ids([p["point_id"] for p in points], digest)
+    dups = duplicate_point_ids(
+        [p["point_id"] for p in points], digest, count=pilot_duplicate_count(len(points))
+    )
     write_json(output, manifest)
     write_json(
         duplicates,
@@ -422,7 +429,10 @@ def _sealed_points(scope: PilotScope, chosen: Sequence[str]) -> tuple[dict, list
     dups = read_pilot_record(scope.records / DUPLICATES)
     if dups.get("point_manifest_sha256") != digest:
         raise MalformedInput("duplicate list does not belong to this point manifest")
-    ids = duplicate_point_ids([p["point_id"] for p in manifest["points"]], digest)
+    points = manifest["points"]
+    ids = duplicate_point_ids(
+        [p["point_id"] for p in points], digest, count=pilot_duplicate_count(len(points))
+    )
     if dups.get("duplicate_ids") != ids:
         raise MalformedInput("duplicate list differs from the frozen duplicate rule")
     return manifest, list(ids), digest
