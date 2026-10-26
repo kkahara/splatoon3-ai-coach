@@ -1,0 +1,13 @@
+{
+  "cap": 0.1,
+  "denominator": 86,
+  "excluded": 10,
+  "numerator": 26,
+  "passed": false,
+  "scope": "pilot",
+  "stage": 1,
+  "tool": {
+    "tool_commit": "93b51c0ff883188fe2f34352554bcfa8bff1a561"
+  },
+  "upper_bound": 0.3939458587192556
+}
