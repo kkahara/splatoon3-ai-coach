@@ -1,0 +1,11 @@
+{
+  "scope": "pilot2",
+  "stage": 1,
+  "tokens": {
+    "amendment5-pilot-REH6-EAV9-NUJ6-C5E6": "45323d593a61ce38",
+    "amendment5-pilot-RYYN-7U9N-1TRB-PEOQ": "27f4b8b8b17617f2"
+  },
+  "tool": {
+    "tool_commit": "952cf7e66a5c5a0ea225035ee341ddb785ae1470"
+  }
+}
