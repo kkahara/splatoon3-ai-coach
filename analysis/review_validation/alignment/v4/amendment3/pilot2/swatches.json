@@ -1,0 +1,49 @@
+{
+  "scope": "pilot2",
+  "stage": 1,
+  "swatches": {
+    "27f4b8b8b17617f2": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 13984962020538634175,
+      "pixels": [
+        {
+          "frame_id": "d0aedba1efc3c72b28254c26f4fe165d896cdaa01d9ddc76b0bbc36bd5fb92a1:frame:17790",
+          "x": 880,
+          "y": 845
+        },
+        {
+          "frame_id": "d0aedba1efc3c72b28254c26f4fe165d896cdaa01d9ddc76b0bbc36bd5fb92a1:frame:17790",
+          "x": 797,
+          "y": 753
+        }
+      ],
+      "status": "valid"
+    },
+    "45323d593a61ce38": {
+      "assignment": {
+        "A": 1,
+        "B": 0
+      },
+      "draw_seed": 7020547084979796034,
+      "pixels": [
+        {
+          "frame_id": "d960c3914cd71e93cd0b716877e6d9548acef77aa0e2c659a3b300a0314aef74:frame:11880",
+          "x": 1135,
+          "y": 354
+        },
+        {
+          "frame_id": "d960c3914cd71e93cd0b716877e6d9548acef77aa0e2c659a3b300a0314aef74:frame:10680",
+          "x": 732,
+          "y": 648
+        }
+      ],
+      "status": "valid"
+    }
+  },
+  "tool": {
+    "tool_commit": "952cf7e66a5c5a0ea225035ee341ddb785ae1470"
+  }
+}

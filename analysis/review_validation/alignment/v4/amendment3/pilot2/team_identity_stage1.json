@@ -1,0 +1,33 @@
+{
+  "scope": "pilot2",
+  "stage": 1,
+  "team": {
+    "27f4b8b8b17617f2": {
+      "end": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 6949956618294942044
+      },
+      "start": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 5171343311844862456
+      }
+    },
+    "45323d593a61ce38": {
+      "end": {
+        "answer": "B",
+        "left": "A",
+        "position_seed": 14064249955633818150
+      },
+      "start": {
+        "answer": "B",
+        "left": "B",
+        "position_seed": 14909380972309809143
+      }
+    }
+  },
+  "tool": {
+    "tool_commit": "952cf7e66a5c5a0ea225035ee341ddb785ae1470"
+  }
+}
