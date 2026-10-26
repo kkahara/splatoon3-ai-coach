@@ -1,0 +1,37 @@
+{
+  "chosen": [
+    "amendment5-pilot-REH6-EAV9-NUJ6-C5E6",
+    "amendment5-pilot-RYYN-7U9N-1TRB-PEOQ"
+  ],
+  "declared": [
+    {
+      "battle_mode_id": "splat_zones",
+      "eligible": true,
+      "eligible_intervals": 13,
+      "recording": "amendment5-pilot-REH6-EAV9-NUJ6-C5E6",
+      "stage_id": "makomart",
+      "video_identity": "a231d86da401d896d2d8559f634f6b639a7f701c47fa80476ca5782e9b83cc23"
+    },
+    {
+      "battle_mode_id": "tower_control",
+      "eligible": true,
+      "eligible_intervals": 26,
+      "recording": "amendment5-pilot-RRTO-V8LC-L095-BUVR",
+      "stage_id": "manta_maria",
+      "video_identity": "b2ab4bd6c2b40cddd55e3f4c39a77511be5d30d3097392164d755a35162f5a23"
+    },
+    {
+      "battle_mode_id": "clam_blitz",
+      "eligible": true,
+      "eligible_intervals": 15,
+      "recording": "amendment5-pilot-RYYN-7U9N-1TRB-PEOQ",
+      "stage_id": "makomart",
+      "video_identity": "a8eece5724b44bec8af9d60ed2c12e9a8893e74cce47ae85a24d5bb2277a73bf"
+    }
+  ],
+  "scope": "pilot2",
+  "supplementary_records": {},
+  "tool": {
+    "tool_commit": "d428730432e01823ce70bf85ab738d7e3cde571d"
+  }
+}
