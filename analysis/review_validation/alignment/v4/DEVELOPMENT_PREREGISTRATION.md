@@ -3179,3 +3179,608 @@ The frozen rule gives 159 queue items (144 + 15).
 - No tool or test was changed for this amendment. Tracks B and C,
   Amendments 1–7 and all other Track A criteria are unchanged except for
   the sentences superseded above.
+
+## Amendment 9 — First-pilot instruction deficiency and replacement pilot (2026-10-26)
+
+### What was frozen, what changes, why
+
+**Frozen:** the preregistration through Amendment 8 as committed at C8,
+`04caeda69ccca22941800bd0ff4195df0aae813b` (file SHA-256
+`6959f153dc6a2b51622a4480126e7853534c2abf81a9debdda1092fc9dabcb97`,
+163,371 bytes). That file is a byte prefix of this one. Each earlier
+amendment keeps its existing sealing identity.
+
+Also frozen:
+
+- Amendment 7 repair
+  `3883dd7bd14877705f61fe44b3b46a2c46a47afc`;
+- repair 8, `0ee675d47abc1361f583362217a02a9922647e24`;
+- every sealed step 2a record named in Amendments 7 and 8;
+- pilot-1 G1,
+  `e4fe3f719f5165cf2a517f9c6645b5692eac7623`;
+- pilot-1 G2,
+  `6f3d18d40f992e69e19449e830ebc65234024636`;
+- pilot-1 G3,
+  `4d763353d4c5466a61e6199afa9eb8685ebfe69b`.
+
+None is modified, replaced, reverted, deleted or regenerated.
+
+**State at drafting:** pilot-1 G3 is sealed. The single `pilot-export` run
+also wrote `token_key.json` and `queue_key_stage1.json`; those two G4 records
+exist uncommitted and have not been opened or hashed for this amendment. G4
+is not sealed, `pilot-gate` has not run, and no G5 value exists or is known.
+
+After G3 and before G4/G5, the annotator disclosed:
+
+1. some team-colour `cant_tell` answers were influenced by expecting blue
+   when the presented colour appeared purple;
+2. the annotator initially lacked a stable operational distinction between
+   `not_ink` and `cant_tell`;
+3. the annotator's interpretation changed during the forward-only session;
+4. earlier answers could not be revised.
+
+A read-only source review found that the annotation page displayed the raw
+label names without operational definitions and displayed the team question
+and cue frames without the frozen cue order.
+
+**Classification:** the first pilot exposed an annotation-instruction /
+interface deficiency: the provided operator guidance did not sufficiently
+operationalize the intended annotation categories and team-identity cue
+procedure for the single blinded annotator to apply one stable
+interpretation throughout the forward-only session.
+
+This amendment does not find that the frozen vocabulary, team-identity
+question, cue material or cue order is intrinsically unworkable. Amendment
+3's unworkable-frozen-element rule remains in force for the replacement
+pilot.
+
+**What changes:** pilot 1's future evidentiary status and delayed exposure;
+one narrow prospective operational ruling for `not_ink` and `cant_tell`;
+exact operator-facing instruction text; the meaning of fresh material for
+this replacement; a replacement pilot in a separate namespace; the closed
+H3-to-H5 firewall; the corpus prerequisite; the authorized execution chain;
+the tool-history rule; one authorized repair; and the sentences superseded
+below.
+
+**Unchanged:** all other Amendments 1–8 provisions, including frame and point
+population, extraction, sampling, duplicate selection and placement, label
+vocabulary identifiers and downstream mapping, swatch semantics and quality
+literals, team question, cue material and cue order, consistency,
+judgeability, gate population and classification, Clopper–Pearson
+calculation, 0.10 cap, blinding, display, non-exposure, corpus procedure,
+comparison, criteria, thresholds and verdicts. The sole semantic change is
+the prospective operational ruling for `not_ink` and `cant_tell` stated
+below.
+
+**Why:** to fix the disposition before any first-pilot gate value exists.
+Nothing in this amendment branches on that value.
+
+### Pilot 1 disposition (normative)
+
+Pilot 1 is the run whose records are in
+`analysis/review_validation/alignment/v4/amendment3/pilot/` (P) and whose
+working output is in `analysis/_amendment3/pilot/` (W).
+
+1. G1, G2 and G3 are permanent historical records. No pilot-1 record or
+   working artifact is edited, regenerated, relabelled or deleted.
+2. Pilot 1 cannot become the successful validation pilot, whether G5
+   passes or fails.
+3. The existing G4 files are committed unchanged, together and alone, only
+   at the sealing point below. They are not regenerated.
+4. `pilot1-close-gate` then invokes the unchanged repair-8
+   `pilot_pipeline.gate()` calculation once. G5 is committed alone whether
+   it passes or fails.
+5. Pilot-1 G5 is descriptive evidence about pilot 1 under the deficient
+   instructions. It is not used to decide or change:
+   - whether the replacement pilot occurs;
+   - replacement eligibility or source selection;
+   - instructions or annotation semantics;
+   - duplicate rate or placement;
+   - gate population, classification, confidence bound or cap;
+   - any corpus comparison, criterion or verdict.
+6. There is no pilot-1 interface commit and no pilot-1 G6. The file
+   `P/pilot_addendum.json` is never written.
+7. A failing G5 is explicitly resolved by this amendment's replacement
+   pilot. A passing G5 has no promotion consequence. After G5 is sealed,
+   every pilot-1 command STOPs until H5; after H5 only the separately
+   authorized descriptive report is permitted.
+8. W, including its 68 PNGs and complete session state, stays untouched.
+   No replacement-pilot command reads W.
+9. Item 4 is performed only by `pilot1-close-gate`, the non-reporting command
+   authorized below. Before H5 is sealed, no person or command may inspect
+   or report G5's PASS/FAIL, numerator, denominator, bound, excluded count,
+   individual pair classifications, disagreements or any other content.
+10. Before H5, replacement guards use only G5's path existence, sealed
+    commit identity and ancestry. They do not parse G5, G3, G4, labels,
+    answers, mappings or queue keys.
+11. After H5 is sealed, and only under separate authorization, the
+    descriptive pilot-1 exposure may report the four fields Amendment 7
+    originally allowed on the console: numerator, denominator, upper bound
+    and PASS/FAIL. Individual duplicate disagreements, per-recording results,
+    labels, team answers, mappings and other subsidiary content remain
+    unreported.
+
+### Operator instructions (normative)
+
+The replacement annotation page displays the following wording verbatim.
+It is static text. It receives no task data and reveals no answer, mapping,
+recording identity or point identity.
+
+> **Apply these definitions to every item, from first to last.**
+>
+> **Point labels**
+>
+> Label only the visible pixel at the centre of the crosshair. The crosshair
+> leaves that pixel uncovered. Use the crop and the two displayed swatches.
+>
+> - `ink_A`: You can determine that the centre pixel depicts map ink in
+>   swatch A's colour.
+> - `ink_B`: You can determine that the centre pixel depicts map ink in
+>   swatch B's colour.
+> - `not_ink`: You can determine that the centre pixel does not depict map
+>   ink in either swatch colour.
+> - `cant_tell`: From the displayed crop and swatches, you cannot determine
+>   which one of `ink_A`, `ink_B` or `not_ink` applies.
+>
+> `not_ink` is a determination that the pixel is not ink of either swatch
+> colour. `cant_tell` is an abstention because you cannot make one of the
+> three determinations. Do not use `cant_tell` merely because a colour is
+> unexpected or because you do not know its colour name. A and B are neutral
+> colour references and have no team meaning.
+>
+> Each submitted label is final and cannot be revised.
+>
+> **Team identity**
+>
+> The question is: “Which swatch is my team's colour?” “My team” means the
+> team of the player whose view was recorded. Use only the frames on this
+> screen and decide in this order:
+>
+> 1. First use the teammate and own-player icons on the selected map frames.
+> 2. Only if those do not decide, use the colour visibly fired in the
+>    available gameplay cue frames.
+> 3. If neither cue decides, choose `cant_tell`.
+>
+> Do not answer from an expected colour or a colour name. The two swatches
+> may exchange left/right positions. Answer each presentation independently;
+> no earlier answer is shown.
+
+The following parts restate sealed semantics without changing them:
+
+- `ink_A` and `ink_B` as ink of the corresponding neutral swatch colour;
+- the centre-pixel display;
+- the team question and frozen cue order.
+
+The following is a **new prospective semantic ruling**, required because the
+sealed text did not uniquely operationalize the boundary:
+
+- for pilot 2 and later corpus annotation, `not_ink` means that the
+  annotator can determine that the centre pixel does not depict map ink in
+  either swatch colour;
+- `cant_tell` means that the displayed evidence is insufficient to
+  determine which of `ink_A`, `ink_B` or `not_ink` applies.
+
+This ruling preserves the four vocabulary identifiers, `not_ink` → `other`
+mapping, `cant_tell` → unjudgeable treatment, duplicate classification and
+all gate rules. It does not apply retrospectively to pilot 1, whose records
+remain evidence under the original underspecified instructions.
+
+No object class is assigned by example. In particular, this amendment makes
+no new rule for icons, markers, outlines, text, edges, walls or terrain.
+Adding such a rule would be a further semantic change and requires a later
+amendment before use.
+
+The instructions do not add a hue, distance, tolerance, confidence or
+majority rule. They do not add cue material, reorder cues, rename a label,
+change mapping, or change judgeability or gate classification.
+
+### Fresh material and selection (normative)
+
+For this replacement, a recording is fresh if it was not one of the two
+whole recording identities selected in pilot-1 G1 and displayed during the
+G3 session. Undisplayed frames or points from either selected recording are
+not fresh.
+
+The base fresh-candidate set is every declared entry in the sealed
+pilot-source manifest whose `video_identity` and `video_sha256` both differ
+from both pilot-1 selected recordings.
+
+`pilot2-select`:
+
+1. reads from P only the sealed G1 `chosen` and `declared` fields;
+2. reads no G2–G5 record and nothing in W;
+3. applies the unchanged Amendment 4 eligibility checks to each base
+   fresh candidate;
+4. requires each recomputed pre-annotation eligibility fact to match the
+   corresponding sealed G1 `declared` entry; any mismatch: STOP;
+5. if at least two are eligible, selects the two with lexicographically
+   smallest `video_identity` values and writes H1;
+6. if fewer than two are eligible, STOPs without H1 and authorizes only the
+   supplementary procedure below.
+
+This rule is fixed without reading the identities now. No recording is
+selected by a G3 answer, label, queue item or G5 value.
+
+### Supplementary fresh-source fallback (normative)
+
+The fallback runs at most once and only after the exact fewer-than-two STOP
+above. It acquires exactly five additional candidates in one batch.
+
+Amendment 5's source-preparation rules apply unchanged, under a new
+supplementary namespace, including acquisition-time facts only, one
+production analysis, the read allowance, one-analysis rule, T1–T3,
+no outcome-dependent removal, and operator-verified consistency.
+
+Additional prohibited entries are:
+
+- every entry in the sealed Amendment 5 candidate pool, whether prepared or
+  excluded;
+- both pilot-1 selected recordings;
+- every corpus, v3 held-out or fresh v4 held-out recording;
+- every capture package;
+- the 2026-10-24 short-match/timeline recording;
+- the 22-20-42 and 18-25-16 media.
+
+Records are committed separately and in order under
+`analysis/review_validation/alignment/v4/amendment3/pilot2/supplementary/`:
+
+1. candidate pool, authored before any candidate is opened;
+2. preparation record;
+3. source manifest;
+4. blind-input manifest.
+
+After those four records are sealed, `pilot2-select` applies the same
+eligibility rule to the union of base and supplementary fresh candidates
+and selects the two eligible candidates with lexicographically smallest
+`video_identity` values. Fewer than two eligible in the union: STOP and a
+new amendment. There is no second batch and no top-up.
+
+### Replacement pilot (normative)
+
+The replacement pilot is “pilot 2”:
+
+- committed records P2:
+  `analysis/review_validation/alignment/v4/amendment3/pilot2/`;
+- working output W2: `analysis/_amendment3/pilot2/`;
+- record scope: `"pilot2"`.
+
+P2/W2 never collide with P/W. Pilot-2 commands never write P/W and read P
+only as allowed by `pilot2-select`.
+
+Pilot 2 uses the full Amendment 3 Stage 1 pilot procedure, Amendment 7
+execution semantics and Amendment 8 pilot duplicate rule, with the operator
+instructions above. The replacement commands are:
+
+- `pilot2-select`;
+- `pilot2-plan`;
+- `pilot2-extract`;
+- `pilot2-points`;
+- `pilot2-annotate [--port]`;
+- `pilot2-export`;
+- `pilot2-gate`;
+- `pilot2-addendum`.
+
+Their inputs, outputs, exposures and STOPs are the corresponding Amendment 7
+pilot operations with P2/W2, scope `pilot2`, and H groups.
+
+Pilot-1 closure adds:
+
+- `pilot1-close-gate`: available only after sealed H3 and sealed pilot-1
+  G4 and before G5 exists; invokes `pilot_pipeline.gate()` once, discards
+  the returned payload without indexing any outcome field, and logs only
+  `pilot gate record written` plus the fixed G5 path;
+- `pilot1-gate-report`: unavailable until both G5 and H5 are sealed; reports
+  only numerator, denominator, upper bound and PASS/FAIL.
+
+The old `pilot-gate` command STOPs under Amendment 9. Neither closure command
+changes `pilot_pipeline.gate()` or `gate.py`.
+
+Commit groups:
+
+- H1: selection;
+- H2: both frame plans, both extraction records, points and duplicates;
+- annotation: W2 only;
+- H3: labels, team identity, queue and swatches;
+- H4: token key and queue key;
+- H5: gate, committed whether it passes or fails;
+- on PASS only: H6 pilot-2 addendum immediately after H5;
+- on FAIL: mandatory STOP after H5.
+
+Each H group is one commit containing only its records, strictly after the
+previous H group. No pilot-2 record is regenerated.
+
+Pilot-2 H5 is the validation gate. A passing H5 is required for H6 and for
+corpus work. A failing H5 invokes the unchanged
+unworkable-frozen-element rule. There is no pilot 3 without a new amendment.
+
+The pilot-2 addendum is
+`P2/pilot_addendum.json`, schema
+`amendment9-pilot2-addendum/v1`, with exactly these keys:
+
+1. `schema`: the schema literal;
+2. `scope`: literal `"pilot2"`;
+3. `amendment9_commit`: C9 as 40 lowercase hex;
+4. `tool_commit`: actual generation HEAD as 40 lowercase hex, preserving
+   the Amendment 7 meaning; because H6 follows H5 directly with no
+   intervening commit, this must equal the H5 commit;
+5. `pilot1_group_commits`: object with exactly `G1`, `G2`, `G3`, `G4` and
+   `G5`, each a 40-hex commit identity;
+6. `supplementary_records`: object from P2-relative supplementary record
+   path to SHA-256, empty if the fallback did not run;
+7. `pilot2_records`: object from P2-relative H1–H5 record path to SHA-256,
+   containing exactly the records required for the sealed pilot-2
+   selection;
+8. `changes`: exactly `[]`;
+9. `interface_commit`: exactly `null`.
+
+The pilot-1 group identities provide provenance only. The addendum contains
+no pilot-1 gate value or pilot-1 record digest. The frozen empty/null fields
+preserve the Amendment 7 representation of “none”; no post-H5 interface
+commit is authorized.
+
+Before every corpus command, the guard verifies a sealed valid pilot-2
+addendum, a passing H5, all group and repair order, and no pilot-1 addendum.
+
+### Outcome-independent timing (normative)
+
+To keep pilot-1 G5 unknown through the replacement decision point, the order
+is:
+
+1. C9 and repair 9 are sealed.
+2. H1 and H2 are sealed.
+3. The annotator completes pilot-2 annotation.
+4. `pilot2-export` runs once and H3 is sealed. H4 remains uncommitted and
+   unopened.
+5. The two existing pilot-1 G4 files are committed unchanged as G4.
+6. `pilot1-close-gate` invokes the unchanged pilot-1 gate calculation once,
+   emits only a generic confirmation that the fixed G5 path was written, and
+   pilot-1 G5 is committed without opening or reporting its content.
+7. Pilot-2 H4 is committed unchanged.
+8. `pilot2-gate` runs once and H5 is sealed.
+9. Only after H5 is sealed may pilot-1 G5 receive its separately authorized
+   descriptive exposure.
+
+No pilot-1 G5 value exists during steps 1–5, and no such value is exposed
+during steps 6–8.
+
+**Closed H3-to-H5 firewall.** From successful H3 sealing through successful
+H5 sealing, all of the following are frozen:
+
+- protected tooling and tests;
+- instructions and configurations;
+- thresholds, duplicate rate and placement;
+- source eligibility, selection rules and selection records;
+- annotation semantics and procedure;
+- gate population, classification, calculation and cap;
+- every other experimental design choice.
+
+No protected-path commit, tool or test edit, configuration change,
+instruction change, rerun, regeneration, substitution, repair, discretionary
+STOP, diagnostic investigation or amendment is permitted in this interval.
+Pilot-1 G5 cannot cause any of them, regardless of PASS or FAIL.
+
+After G5 is sealed, the only normal operations before H5 are:
+
+1. commit the already-written H4 files unchanged, together and alone;
+2. invoke the already-frozen `pilot2-gate` once;
+3. commit H5 alone.
+
+A failed guard, malformed input, hash or integrity mismatch, unexpected
+existing output, write failure or other genuine mechanical failure means
+STOP. Amendment 9 authorizes no adaptive repair, rerun, substitution,
+diagnostic investigation, amendment or continuation. The failure terminates
+the Amendment 9 sequence. A proposed resolution may receive separate
+methodological review while H5 remains unrun, but this amendment authorizes
+no implementation, amendment commit or experimental operation arising from
+that review.
+There is no normal-interruption resume exception within this closed
+H3-to-H5 corridor.
+
+### Authorized execution chain (normative)
+
+This amendment joins the Amendment 6 authorized execution chain as entry 6:
+Amendment 9, its sealing commit C9, and the SHA-256 of this file at C9.
+Entries 1–5 are unchanged.
+
+C9 changes only this preregistration file. Between C9 and repair 9 every
+command STOPs.
+
+### Tool identity and one repair (normative)
+
+The protected paths and linear-history rule remain those of Amendments 7–8.
+Let T be protected-path commits from C7 exclusive to HEAD, oldest first.
+
+- T[0] is the Amendment 7 repair.
+- T[1] is repair 8.
+- T[2] is repair 9. It is after C9, before H1 and before pilot-1 G5.
+- T has exactly these three elements through H6 and the corpus work.
+- No pilot-1 or pilot-2 interface commit is permitted.
+- Any additional protected-path commit STOPs.
+
+After C9, one repair commit may:
+
+- add chain entry 6;
+- replace the tool-history rule with this rule;
+- add P2/W2 constants, scope and schemas;
+- add the replacement commands and parser entries;
+- add `pilot1-close-gate` and `pilot1-gate-report` with the exposure and
+  prerequisites above, and make the old `pilot-gate` command STOP;
+- add new blind pilot-2 orchestration and addendum modules;
+- add the supplementary-source orchestration;
+- add the static instruction block to `annotate.html`;
+- change the common guard to:
+  - permit pilot-1 G4 and `pilot1-close-gate` only at the timing above;
+  - make every other pilot-1 command STOP;
+  - after G5, permit no pilot-1 command before H5 and only
+    `pilot1-gate-report` after H5;
+  - enforce the pilot-2 sequence;
+  - enforce the closed H3-to-H5 firewall using paths, seals and ancestry
+    only, without reading pilot-1 G3–G5 content;
+  - require the pilot-2 addendum for corpus commands;
+- add synthetic tests and update existing tests only where chain, history,
+  command enumeration, scope isolation or addendum verification changes.
+
+The repair may not modify:
+
+- `src/`, `configs/`, pinned artifacts or any sealed/working experimental
+  record;
+- `pilot_pipeline.py`;
+- `gate.py`, `points.py`, `queueing.py`, `session.py`, `server.py`,
+  `render.py`, `records.py`, `plan.py`, `extraction.py`, `domain.py`,
+  `population.py`, `trigger.py`, `stage_identity.py`, `pins.py`, `pilot.py`;
+- any unblinded module;
+- the existing `cmd_pilot_gate` body.
+
+New pilot-2 modules reuse the existing lower-level Stage 1 functions but
+have their own scope reader and path logic. Original pilot-1 gate code and
+scientific functions remain byte-identical to repair 8.
+
+The exact permitted repair paths are:
+
+- `tools/diagnostics/map_ink_reference/constants.py`;
+- `tools/diagnostics/map_ink_reference/cli.py`;
+- `tools/diagnostics/map_ink_reference/execution.py`;
+- `tools/diagnostics/map_ink_reference/seal.py`;
+- `tools/diagnostics/map_ink_reference/annotate.html`;
+- `tools/diagnostics/map_ink_reference/__init__.py`;
+- new `tools/diagnostics/map_ink_reference/pilot2_pipeline.py`;
+- new `tools/diagnostics/map_ink_reference/pilot2_sources.py`;
+- new `tools/diagnostics/map_ink_reference/pilot2_addendum.py`;
+- files under `tests/map_ink_reference/`.
+
+The full map-ink reference suite, `ruff check` and `ruff format --check`
+must pass before repair 9 is committed.
+
+### Testing requirements (normative)
+
+Synthetic fixtures only. No prepared source, supplementary source, corpus
+recording, P/W record or P2/W2 real record is opened.
+
+Tests show:
+
+1. chain entries 1–5 are unchanged and entry 6 names C9; every command
+   STOPs from C9 until repair 9;
+2. repair 9 changes exactly the permitted paths, precedes H1 and pilot-1
+   G5, and is the only additional protected commit before H5;
+3. original `pilot_pipeline.py`, `gate.py`, `points.py`, `queueing.py`,
+   `session.py`, `server.py`, `render.py` and `records.py` equal repair 8
+   byte for byte; the existing `cmd_pilot_gate` function body is
+   byte-for-byte unchanged;
+4. pilot-1 gate output on synthetic fixtures is byte-identical to repair 8
+   apart from the record's `tool` field; `pilot1-close-gate` indexes or logs
+   no outcome field and emits only the generic path message;
+5. the old `pilot-gate` always STOPs; pilot-1 G4 and
+   `pilot1-close-gate` STOP before sealed H3; G4 requires exactly the two
+   existing records; after G5 every pilot-1 command STOPs until H5; after
+   H5 only `pilot1-gate-report` is permitted and no G6 can be written;
+6. pilot-2 selection excludes both pilot-1 `chosen` recording identities
+   and hashes, reads only G1 `chosen` and `declared` from P, reads nothing
+   from W or G2–G5, and follows the two-smallest rule;
+7. a base shortfall writes no H1 and permits exactly one five-candidate
+   supplementary batch; a second shortfall STOPs;
+8. supplementary acquisition enforces the closed exclusions, Amendment 5
+   read allowance, one-analysis rule, T1–T3 and no outcome-dependent
+   removal;
+9. pilot-2 plan, extraction, points, duplicate count, session export and
+   gate equal the shared lower-level functions on identical synthetic
+   inputs;
+10. P/W and P2/W2 cannot collide; scope readers and corpus readers reject
+    the other scopes;
+11. no first-pilot gate value or G3/G4 content reaches any pilot-2 source,
+    selection, instruction, sampling, annotation or gate input;
+12. the instruction block is verbatim and visible on swatch, team and
+    label screens; route and annotation-state non-exposure tests pass;
+13. missing, extra, modified, split or out-of-order G, H or supplementary
+    records STOP;
+14. every corpus command STOPs without a sealed valid pilot-2 addendum and
+    passing H5;
+15. a failing H5 stops every pilot-2 and corpus command;
+16. after a passing H5, H6 follows directly; `changes` is `[]`,
+    `interface_commit` is null, and any additional protected commit STOPs;
+17. from sealed H3 through sealed H5, guard tests permit only the closed
+    sequence, use G5 existence/ancestry rather than content, and STOP on
+    any protected-path commit, amendment, rerun, substitution or attempted
+    diagnostic command;
+    instrumented read-denial tests prove that the common guard and H4/H5
+    execution open no pilot-1 G3, G4 or G5 record after G5 is sealed;
+18. `pilot1-gate-report` STOPs before H5 and after H5 exposes only
+    numerator, denominator, upper bound and PASS/FAIL;
+19. the prospective `not_ink`/`cant_tell` ruling is present verbatim and
+    no object-level example is present;
+20. existing corpus outputs remain byte-identical on fixtures.
+
+### Superseded sentences (normative)
+
+1. Amendment 7's pilot-1 PASS and FAIL consequences are replaced by the
+   pilot-1 disposition above. Pilot 1 ends at G5 in either branch.
+2. Amendment 7 operation 7's pilot-1 console exposure and status as the
+   preregistered decision point are replaced by hidden pilot-1 G5 sealing,
+   the closed firewall and post-H5 descriptive exposure above. Its
+   scientific calculation and persisted payload are unchanged.
+3. Amendment 7's optional interface commit is removed for both pilots.
+   Pilot-2 H6 follows a passing H5 directly with `changes: []` and
+   `interface_commit: null`.
+4. Amendment 7's pilot-addendum schema and verification rules are replaced
+   by the exact pilot-2 addendum schema and verification above.
+5. Amendment 7's corpus addendum prerequisite means the sealed pilot-2
+   addendum.
+6. Amendment 7's pilot-command STOP and effective sequences mean the
+   pilot-1 closure, closed firewall and pilot-2 sequence above.
+7. Amendment 3's post-pilot label-meaning freeze and Amendment 7's
+   prohibition on changing scientific semantics are superseded only by the
+   prospective `not_ink`/`cant_tell` ruling above. Vocabulary identifiers,
+   mapping, judgeability and gate rules remain frozen.
+8. Amendment 8's statement that pilot G5 is a mandatory workability result
+   applies to pilot-2 H5. Pilot-1 G5 is descriptive only in both branches.
+9. Amendment 8's statement that the five prepared sources stay in use
+   unchanged now means they stay sealed; their use for pilot 2 is governed
+   by this amendment's fresh-material rule.
+10. Amendment 8's allowed tool history is replaced by this amendment's tool
+   history.
+
+### Sealing and authorization order (normative)
+
+1. Commit C9 alone, changing only this preregistration file. STOP.
+2. Implement repair 9 using synthetic fixtures only; review it; commit it
+   alone; run `preconditions`; STOP.
+3. With separate authorization, run and seal H1. STOP.
+4. With separate authorization, run and seal H2. STOP.
+5. With separate authorization, complete pilot-2 annotation, export once
+   and seal H3. STOP.
+6. With one separate authorization, execute the closed corridor without an
+   intervening pause: commit the existing pilot-1 G4 files unchanged; run
+   `pilot1-close-gate` once; seal G5 without opening or reporting it; seal
+   pilot-2 H4 unchanged; run `pilot2-gate` once; seal H5; report H5's
+   allowed exposure; STOP.
+7. After H5 is sealed, pilot-1 G5 may receive the separately authorized
+   descriptive exposure above. This report has no experimental
+   consequence. STOP.
+8. On H5 PASS only, separately authorize H6 directly. STOP.
+9. On H5 FAIL, no experimental operation follows. A new amendment is
+   required for any future experiment; the descriptive report in item 7
+   remains permitted.
+
+If the base fresh set has fewer than two eligible recordings, replace steps
+3–4 with separately authorized supplementary records followed by H1/H2.
+
+### Disclosures
+
+- Drafted after G3 `4d763353d4c5466a61e6199afa9eb8685ebfe69b`
+  and before G4/G5. No gate value exists or is known.
+- No G3 record, G4 file, W session content, swatch, label, queue content or
+  PNG was opened or hashed for drafting.
+- The classification uses only the annotator's procedural disclosure and
+  committed interface source.
+- The same human will annotate pilot 2. They played the prepared matches,
+  completed pilot 1 and remember their own actions. Different recordings
+  prevent item-level reuse but do not make the person naïve.
+- Pilot-1 G5 is delayed until replacement H3 so it cannot influence
+  replacement human judgments, and its content is withheld until H5 so it
+  cannot influence any remaining pilot-2 operation.
+- The operational definitions intentionally contain no object-level
+  examples because the sealed history does not classify them.
+- The `not_ink`/`cant_tell` boundary is disclosed as a prospective semantic
+  ruling, not represented as an already-sealed definition.
+- No post-H5 interface commit exists; the interface validated by H5 is the
+  interface used by later corpus annotation.
+- No tool or test was changed for this amendment.
