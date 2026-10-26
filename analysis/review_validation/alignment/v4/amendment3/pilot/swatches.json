@@ -1,0 +1,49 @@
+{
+  "scope": "pilot",
+  "stage": 1,
+  "swatches": {
+    "432738519c832bba": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 1616391723998709287,
+      "pixels": [
+        {
+          "frame_id": "a81c64991f3b6895db65b218b749f2c85f725d53b061938bf56a6553eb382ded:frame:12420",
+          "x": 1122,
+          "y": 594
+        },
+        {
+          "frame_id": "a81c64991f3b6895db65b218b749f2c85f725d53b061938bf56a6553eb382ded:frame:12420",
+          "x": 912,
+          "y": 744
+        }
+      ],
+      "status": "valid"
+    },
+    "d3811fc517ace0d7": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 16182648797849226085,
+      "pixels": [
+        {
+          "frame_id": "e754227fd432099826d322dbfb76ce144df7d224ce375d593aa68776168e27c7:frame:4230",
+          "x": 776,
+          "y": 555
+        },
+        {
+          "frame_id": "e754227fd432099826d322dbfb76ce144df7d224ce375d593aa68776168e27c7:frame:6930",
+          "x": 1116,
+          "y": 473
+        }
+      ],
+      "status": "valid"
+    }
+  },
+  "tool": {
+    "tool_commit": "6f3d18d40f992e69e19449e830ebc65234024636"
+  }
+}
