@@ -48,6 +48,11 @@ PREREGISTRATION_CHAIN = (
         "736b42a19e326de73e4bd418fdb7e4fcd1a4bf8b",
         "18172a384fb0efb973c2696957af57bd28fd24dd1cc30126eb6b0d0605013b71",
     ),
+    (
+        "amendment10",
+        "137e26ac6f4262f45f0ac305c7f5fd015a05760c",
+        "d50ce5e06dfff05fe7ef940c07e389fe0b64a43726bfad30effa5565bdb4c8e2",
+    ),
 )
 # Amendment 8 tool identity: the first protected-path commit after C7.
 AMENDMENT7_REPAIR_COMMIT = "3883dd7bd14877705f61fe44b3b46a2c46a47afc"

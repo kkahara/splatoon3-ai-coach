@@ -170,7 +170,7 @@ def _run_corridor(
 
 def test_chain_entry_6_is_exact() -> None:
     assert PREREGISTRATION_CHAIN[5] == ("amendment9", C9, C9_DIGEST)
-    assert len(PREREGISTRATION_CHAIN) == 6
+    assert len(PREREGISTRATION_CHAIN) == 7
 
 
 def test_c9_before_repair9_stops(at9: Workspace) -> None:
@@ -183,6 +183,7 @@ def test_c9_before_repair9_stops(at9: Workspace) -> None:
 
 def test_repair9_preserves_forbidden_scientific_files() -> None:
     repair8 = "0ee675d47abc1361f583362217a02a9922647e24"
+    repair9 = "d428730432e01823ce70bf85ab738d7e3cde571d"
     paths = (
         "pilot_pipeline.py",
         "gate.py",
@@ -206,7 +207,7 @@ def test_repair9_preserves_forbidden_scientific_files() -> None:
     for name in paths:
         rel = f"tools/diagnostics/map_ink_reference/{name}"
         before = execution.file_at_commit(REAL_REPO, repair8, rel)
-        assert (REAL_REPO / rel).read_bytes() == before
+        assert execution.file_at_commit(REAL_REPO, repair9, rel) == before
 
 
 def test_existing_pilot_gate_body_is_byte_identical() -> None:

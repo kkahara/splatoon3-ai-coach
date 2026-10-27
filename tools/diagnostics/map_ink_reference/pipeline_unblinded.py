@@ -36,6 +36,7 @@ from map_ink_reference.constants import (
     STAGE_1,
     STAGE_2,
 )
+from map_ink_reference.corpus_capacity import stage2_capacity
 from map_ink_reference.domain import point_domain
 from map_ink_reference.errors import MalformedInput, ProcedureOrderError, SealViolation
 from map_ink_reference.intro_latch import reproduce_corpus_blind_input
@@ -412,6 +413,25 @@ def stage1_inconclusive(stage1_records: list[Mapping[str, Any]]) -> list[str]:
     )
 
 
+def capacity_exhausted_ids(
+    records: Path, stage1_records: list[Mapping[str, Any]]
+) -> list[str]:
+    """Stage 1 INCONCLUSIVE recordings with no unselected Stage 2 interval."""
+    return sorted(
+        rid
+        for rid in stage1_inconclusive(stage1_records)
+        if stage2_capacity(read_json(plan_path(records, rid))) == 0
+    )
+
+
+def stage2_trigger_ids(
+    records: Path, stage1_records: list[Mapping[str, Any]]
+) -> list[str]:
+    """Stage 1 INCONCLUSIVE recordings that have Stage 2 capacity."""
+    exhausted = set(capacity_exhausted_ids(records, stage1_records))
+    return [rid for rid in stage1_inconclusive(stage1_records) if rid not in exhausted]
+
+
 def require_trigger_matches(repo: Path, records: Path) -> list[str]:
     """Sealed trigger bound to the sealed Stage 1 results (digest and ids)."""
     stage1_file = results_path(records, STAGE_1)
@@ -419,7 +439,7 @@ def require_trigger_matches(repo: Path, records: Path) -> list[str]:
     trigger = read_sealed_trigger(repo, records)
     if trigger["stage1_comparison_sha256"] != sha256_file(stage1_file):
         raise SealViolation("Stage 2 trigger is bound to another Stage 1 results record")
-    expected = stage1_inconclusive(read_json(stage1_file)["recordings"])
+    expected = stage2_trigger_ids(records, read_json(stage1_file)["recordings"])
     if trigger["recordings"] != expected:
         raise MalformedInput("Stage 2 trigger differs from the Stage 1 INCONCLUSIVE set")
     return expected
@@ -439,8 +459,8 @@ def _stage_recordings(records: Path, stage: int) -> list[str]:
 
 
 def _write_trigger(records: Path, results: list[dict[str, Any]], digest: str) -> None:
-    """Step 6a: only when a Stage 1 recording is INCONCLUSIVE."""
-    ids = stage1_inconclusive(results)
+    """Step 6a: only for INCONCLUSIVE recordings with Stage 2 capacity."""
+    ids = stage2_trigger_ids(records, results)
     if ids:
         write_json(trigger_path(records), trigger_payload(digest, ids))
 

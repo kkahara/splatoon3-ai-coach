@@ -111,11 +111,12 @@ def test_cue_frame_skips_non_alive_lifecycle() -> None:
     assert plan["intervals"][0]["cue_frame_id"] == "f00002"
 
 
-def test_too_few_intervals_fail_closed() -> None:
-    with pytest.raises(MalformedInput):
-        build_frame_plan(
-            "r", manifest_from_specs(interval_specs([1] * 5)), manifest_sha256="x"
-        )
+def test_stage1_caps_at_available_intervals() -> None:
+    plan = build_frame_plan(
+        "r", manifest_from_specs(interval_specs([1] * 5)), manifest_sha256="x"
+    )
+    assert plan["stage1_interval_indices"] == [0, 1, 2, 3, 4]
+    assert plan["stage2_interval_indices"] == []
 
 
 @pytest.mark.parametrize("key", ["team_color_calibration", "map_observations"])

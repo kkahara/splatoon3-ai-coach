@@ -71,6 +71,7 @@ def test_real_chain_preserves_the_amendment4_identity() -> None:
         "amendment7",
         "amendment8",
         "amendment9",
+        "amendment10",
     ]
     assert PREREGISTRATION_CHAIN[0][1:] == (AMENDMENT4_COMMIT, AMENDMENT4_SHA256)
     previous = b""

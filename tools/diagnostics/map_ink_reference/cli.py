@@ -369,6 +369,45 @@ def cmd_report(args: argparse.Namespace) -> None:
     logger.info("4b={} criterion4={}", payload["verdict_4b"], payload["criterion_4"])
 
 
+def cmd_corpus_capacity_precheck(args: argparse.Namespace) -> None:
+    """Outcome-blind, write-free reachability check for all corpus manifests."""
+    from map_ink_reference.corpus_capacity import run_precheck
+    from map_ink_reference.errors import MalformedInput
+
+    repo = _repo()
+    records, _ = _paths(repo)
+    try:
+        rows = run_precheck(repo, records)
+    except MalformedInput as exc:
+        logger.error("{}", exc)
+        raise SystemExit(1) from None
+    for row in rows:
+        logger.info(
+            "recording_id={} interval_count={} k1={} stage2_capacity={} passed={}",
+            row["recording_id"],
+            row["interval_count"],
+            row["k1"],
+            row["stage2_capacity"],
+            row["passed"],
+        )
+
+
+def cmd_stage1_recovery_verify(args: argparse.Namespace) -> None:
+    """Mechanically verify the three stopped-run products without writing."""
+    from map_ink_reference.errors import MalformedInput
+    from map_ink_reference.stage1_recovery import verify_existing_outputs
+
+    repo = _repo()
+    records, work = _paths(repo)
+    try:
+        rows = verify_existing_outputs(repo, records, work)
+    except MalformedInput as exc:
+        logger.error("{}", exc)
+        raise SystemExit(1) from None
+    for row in rows:
+        logger.info("{}", row)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Argument parser (exposed for the parameter isolation test)."""
     parser = argparse.ArgumentParser(prog="map_ink_reference")
@@ -428,6 +467,10 @@ def build_parser() -> argparse.ArgumentParser:
         p.set_defaults(func=func)
     sub.add_parser("criterion-4a").set_defaults(func=cmd_criterion_4a)
     sub.add_parser("report").set_defaults(func=cmd_report)
+    sub.add_parser("corpus-capacity-precheck").set_defaults(
+        func=cmd_corpus_capacity_precheck
+    )
+    sub.add_parser("stage1-recovery-verify").set_defaults(func=cmd_stage1_recovery_verify)
     return parser
 
 

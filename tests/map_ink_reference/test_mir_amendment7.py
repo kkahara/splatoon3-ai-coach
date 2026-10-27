@@ -138,6 +138,8 @@ COMMAND_ARGS = {
     "compare": ["--stage", "1"],
     "criterion-4a": [],
     "report": [],
+    "corpus-capacity-precheck": [],
+    "stage1-recovery-verify": [],
 }
 PILOT = sorted(c for c in COMMAND_ARGS if c.startswith(("pilot-", "pilot1-", "pilot2-")))
 CORPUS = sorted(execution.CORPUS_COMMANDS)
@@ -718,6 +720,8 @@ def test_there_is_no_pilot_comparison_command() -> None:
         "criterion-4a",
         "compare",
         "report",
+        "corpus-capacity-precheck",
+        "stage1-recovery-verify",
     }
     pilot = {c for c in commands if "pilot" in c}
     assert not {c for c in pilot if any(w in c for w in ("compar", "criterion"))}
@@ -1464,6 +1468,7 @@ def test_corpus_records_are_byte_identical_to_c7(tmp_path: Path, monkeypatch) ->
     def same(path: Path, write_old, write_new) -> None:
         write_old()
         old = path.read_bytes()
+        path.unlink()
         write_new()
         assert path.read_bytes() == old, path.name
 
@@ -1473,6 +1478,8 @@ def test_corpus_records_are_byte_identical_to_c7(tmp_path: Path, monkeypatch) ->
             lambda r=rid: old_blind.write_plan(run.repo, run.records, r, TOOL),
             lambda r=rid: blind.write_plan(run.repo, run.records, r, TOOL),
         )
+    for rid in CORRECTNESS_APPLICABLE:
+        blind.plan_path(run.records, rid).unlink()
     run.plan_and_extract()
     for name in _manifest_names(1):
         same(

@@ -77,15 +77,22 @@ def gate_path(records: Path, stage: int) -> Path:
     return records / f"gate_stage{stage}.json"
 
 
+def _require_absent(path: Path, description: str) -> None:
+    """Refuse to overwrite an existing corpus output."""
+    if path.exists():
+        raise MalformedInput(f"{description} already exists")
+
+
 def write_plan(repo: Path, records: Path, rid: str, tool: Mapping[str, Any]) -> Path:
     """Verify the pinned manifest and write the recording's frame plan (after 2a)."""
     require_step2a_sealed(repo, records)
     _require_corpus_recordings([rid])
+    out = plan_path(records, rid)
+    _require_absent(out, f"frame plan for {rid}")
     pins = MEDIA_PINS[rid]
     manifest_path = repo / pins.vision_manifest_path
     digest = verify_pin(manifest_path, pins.vision_manifest_sha256)
     plan = build_frame_plan(rid, read_json(manifest_path), manifest_sha256=digest)
-    out = plan_path(records, rid)
     write_json(out, {**plan, "tool": dict(tool)})
     return out
 
@@ -96,14 +103,17 @@ def run_extraction(
     """Extract all planned frames of a recording (pinned video only; after 2a)."""
     require_step2a_sealed(_repo_of(records), records)
     _require_corpus_recordings([rid])
+    out = extraction_path(records, rid)
+    frame_dir = work / "frames" / rid
+    _require_absent(out, f"extraction record for {rid}")
+    _require_absent(frame_dir, f"frame directory for {rid}")
     plan = _read_record(plan_path(records, rid))
     provenance = extract_recording(
         plan,
         video_path,
-        work / "frames" / rid,
+        frame_dir,
         expected_video_sha256=MEDIA_PINS[rid].video_sha256,
     )
-    out = extraction_path(records, rid)
     write_json(out, {**provenance, "tool": dict(tool)})
     return out
 

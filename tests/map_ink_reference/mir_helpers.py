@@ -138,6 +138,8 @@ def init_repo(path: Path) -> Path:
     git(path, "config", "user.email", "test@example.com")
     git(path, "config", "user.name", "Test")
     git(path, "config", "commit.gpgsign", "false")
+    git(path, "config", "gc.auto", "0")
+    git(path, "config", "maintenance.auto", "false")
     return path
 
 

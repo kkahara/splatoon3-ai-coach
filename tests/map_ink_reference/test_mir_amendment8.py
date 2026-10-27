@@ -390,6 +390,7 @@ def test_corpus_records_are_byte_identical_to_the_amendment7_repair(
     def same(path: Path, write_old, write_new) -> None:
         write_old()
         old = path.read_bytes()
+        path.unlink()
         write_new()
         assert path.read_bytes() == old, path.name
 
@@ -399,6 +400,8 @@ def test_corpus_records_are_byte_identical_to_the_amendment7_repair(
             lambda r=rid: old_blind.write_plan(run.repo, run.records, r, TOOL),
             lambda r=rid: blind.write_plan(run.repo, run.records, r, TOOL),
         )
+    for rid in CORRECTNESS_APPLICABLE:
+        blind.plan_path(run.records, rid).unlink()
     run.plan_and_extract()
     for name in _manifest_names(1):
         same(
@@ -466,7 +469,7 @@ def test_chain_entries_1_to_4_are_unchanged() -> None:
 
 
 def test_chain_entry_5_exactly_identifies_c8() -> None:
-    assert len(PREREGISTRATION_CHAIN) == 6
+    assert len(PREREGISTRATION_CHAIN) == 7
     assert PREREGISTRATION_CHAIN[4] == ("amendment8", C8, C8_SHA256)
     assert seal.chain_entry("amendment8") == (C8, C8_SHA256)
     content = _git_show(C8, PREREGISTRATION_PATH)

@@ -155,6 +155,21 @@ REPAIR9_ALLOWED = frozenset(
         "tools/diagnostics/map_ink_reference/pilot2_addendum.py",
     }
 )
+REPAIR10_ALLOWED = frozenset(
+    {
+        "tools/diagnostics/map_ink_reference/constants.py",
+        "tools/diagnostics/map_ink_reference/cli.py",
+        "tools/diagnostics/map_ink_reference/execution.py",
+        "tools/diagnostics/map_ink_reference/seal.py",
+        "tools/diagnostics/map_ink_reference/population.py",
+        "tools/diagnostics/map_ink_reference/pipeline_blind.py",
+        "tools/diagnostics/map_ink_reference/pipeline_unblinded.py",
+        "tools/diagnostics/map_ink_reference/verdicts.py",
+        "tools/diagnostics/map_ink_reference/report.py",
+        "tools/diagnostics/map_ink_reference/corpus_capacity.py",
+        "tools/diagnostics/map_ink_reference/stage1_recovery.py",
+    }
+)
 
 
 def chain_entry(name: str) -> tuple[str, str]:
@@ -249,3 +264,19 @@ def verify_repair9_paths(repo: Path, commit: str) -> None:
     }
     if any(changed.get(path) != "A" for path in new_modules):
         raise SealViolation("repair 9 must add the three pilot2 modules")
+
+
+def verify_repair10_paths(repo: Path, commit: str) -> None:
+    """Require Repair 10 to contain only its exact authorized paths."""
+    changed = changed_paths(repo, commit)
+    if not changed or any(
+        path not in REPAIR10_ALLOWED and not path.startswith(PROTECTED_ROOTS[1])
+        for path in changed
+    ):
+        raise SealViolation("repair 10 changes a path outside its exact allowlist")
+    new_modules = {
+        "tools/diagnostics/map_ink_reference/corpus_capacity.py",
+        "tools/diagnostics/map_ink_reference/stage1_recovery.py",
+    }
+    if any(changed.get(path) != "A" for path in new_modules):
+        raise SealViolation("repair 10 must add the two corpus recovery modules")

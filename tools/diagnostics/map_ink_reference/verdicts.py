@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Set
 
 from map_ink_reference.constants import (
     ALPHA_IMPROVEMENT_PER_LOOK,
@@ -45,13 +45,18 @@ def verdict_4b(
     stage2: Mapping[str, str] | None = None,
     gate2_passed: bool | None = None,
     n_applicable: int,
+    capacity_exhausted: Set[str] = frozenset(),
 ) -> str:
     """Overall 4b verdict from final per-recording results."""
     if not gate1_passed:
         return NOT_EVALUABLE
-    inconclusive = [rid for rid, v in stage1.items() if v == INCONCLUSIVE]
+    inconclusive = {rid for rid, value in stage1.items() if value == INCONCLUSIVE}
+    exhausted = set(capacity_exhausted)
+    if not exhausted <= inconclusive:
+        raise MalformedInput("capacity-exhausted recordings must be Stage 1 INCONCLUSIVE")
+    triggered = inconclusive - exhausted
     finals = dict(stage1)
-    if inconclusive:
+    if triggered:
         if gate2_passed is None:
             raise ProcedureOrderError("Stage 1 INCONCLUSIVE results require Stage 2")
         if not gate2_passed:
@@ -60,16 +65,22 @@ def verdict_4b(
             raise ProcedureOrderError(
                 "Stage 2 gate passed but Stage 2 results are missing"
             )
-        if set(stage2) != set(inconclusive):
+        if set(stage2) != triggered:
             raise MalformedInput(
-                "Stage 2 must cover exactly the Stage 1 INCONCLUSIVE set"
+                "Stage 2 must cover exactly the triggered INCONCLUSIVE set"
             )
         finals.update(stage2)
+    elif gate2_passed is not None or stage2 is not None:
+        raise MalformedInput("Stage 2 data exists without a triggered recording")
     if len(finals) != n_applicable:
         raise MalformedInput("every correctness-applicable recording needs a result")
     if any(v == REGRESSED for v in finals.values()):
         return FAIL
-    evaluable = [v for v in finals.values() if v != NOT_EVALUABLE]
+    evaluable = [
+        value
+        for rid, value in finals.items()
+        if rid not in exhausted and value != NOT_EVALUABLE
+    ]
     if len(evaluable) >= MIN_EVALUABLE_RECORDINGS and all(
         v in _PRESERVED for v in evaluable
     ):

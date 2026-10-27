@@ -226,9 +226,9 @@ def select_intervals(
 
 
 def select_stage1(intervals: Sequence[Interval]) -> list[Interval]:
-    """Stage 1: K = 8 intervals."""
+    """Stage 1: K1 = min(8, available intervals)."""
     long, single = order_intervals(intervals)
-    return select_intervals(long, single, STAGE_FRAME_COUNT)
+    return select_intervals(long, single, min(STAGE_FRAME_COUNT, len(intervals)))
 
 
 def select_stage2(

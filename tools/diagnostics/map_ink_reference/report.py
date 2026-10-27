@@ -28,9 +28,10 @@ from map_ink_reference.mapping import ALLY, OPPONENT
 from map_ink_reference.pins import corpus_manifest_pins, v3_dir, verify_pin
 from map_ink_reference.pipeline_blind import _repo_of, gate_path
 from map_ink_reference.pipeline_unblinded import (
+    capacity_exhausted_ids,
     require_trigger_matches,
     results_path,
-    stage1_inconclusive,
+    stage2_trigger_ids,
     stage_identity_crosscheck,
     verified_stage_identities,
 )
@@ -68,7 +69,9 @@ def inversion_rate(points: Iterable[Mapping[str, Any]], which: str) -> float | N
     return sum(p[which] != p["reference"] for p in eligible) / len(eligible)
 
 
-def recording_summary(record: Mapping[str, Any]) -> dict[str, Any]:
+def recording_summary(
+    record: Mapping[str, Any], *, capacity_exhausted: bool = False
+) -> dict[str, Any]:
     """Per-recording descriptive row."""
     points = _final_points(record)
     test = record.get("test") or {}
@@ -76,6 +79,7 @@ def recording_summary(record: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "recording_id": record["recording_id"],
         "verdict": record["verdict"],
+        "capacity_exhausted": capacity_exhausted,
         "T": test.get("t_obs"),
         "N": judgeable,
         "q_all": record["identity"]["q_all"],
@@ -139,14 +143,16 @@ def _sealed_results(repo: Path, records: Path) -> dict[str, Any]:
         return out
     out["stage1_payload"] = _sealed_json(repo, results_path(records, STAGE_1))
     out["stage1"] = out["stage1_payload"]["recordings"]
-    if stage1_inconclusive(out["stage1"]):
+    if stage2_trigger_ids(records, out["stage1"]):
         require_trigger_matches(repo, records)
         out["gate2"] = _sealed_json(repo, gate_path(records, STAGE_2))
         if out["gate2"]["passed"]:
             out["stage2_payload"] = _sealed_json(repo, results_path(records, STAGE_2))
             out["stage2"] = out["stage2_payload"]["recordings"]
     elif trigger_path(records).exists():
-        raise MalformedInput("a Stage 2 trigger exists but no recording is INCONCLUSIVE")
+        raise MalformedInput(
+            "a Stage 2 trigger exists but no recording is eligible for Stage 2"
+        )
     return out
 
 
@@ -187,12 +193,14 @@ def build_report(records: Path, tool: Mapping[str, Any]) -> dict[str, Any]:
     verdict_4a = read_sealed_criterion_4a(repo, records)
     sealed = _sealed_results(repo, records)
     gate1, gate2 = sealed["gate1"], sealed["gate2"]
+    exhausted = set(capacity_exhausted_ids(records, sealed["stage1"] or []))
     v4b = verdict_4b(
         _verdicts(sealed["stage1"]) or {},
         gate1_passed=bool(gate1["passed"]),
         stage2=_verdicts(sealed["stage2"]),
         gate2_passed=None if gate2 is None else bool(gate2["passed"]),
         n_applicable=len(CORRECTNESS_APPLICABLE),
+        capacity_exhausted=exhausted,
     )
     finals = _final_rows(sealed)
     points = [p for r in finals for p in _final_points(r)]
@@ -202,12 +210,16 @@ def build_report(records: Path, tool: Mapping[str, Any]) -> dict[str, Any]:
         "verdict_4a": verdict_4a,
         "verdict_4b": v4b,
         "criterion_4": criterion4(verdict_4a, v4b),
+        "capacity_exhausted_recordings": sorted(exhausted),
         "post_seal_stage_identity_discrepancies": discrepancies(crosscheck),
         "gates": {"stage1": gate1, "stage2": gate2},
         "descriptive": {
             "pooled_accuracy_a1": accuracy(points, "a1"),
             "pooled_accuracy_v3": accuracy(points, "v3"),
-            "recordings": [recording_summary(r) for r in finals],
+            "recordings": [
+                recording_summary(r, capacity_exhausted=r["recording_id"] in exhausted)
+                for r in finals
+            ],
             "stage_identity_crosscheck": crosscheck,
             "coverage": coverage(repo),
         },

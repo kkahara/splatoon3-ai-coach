@@ -64,6 +64,7 @@ from map_ink_reference.seal import (
     strictly_after,
     verify_preconditions,
     verify_repair9_paths,
+    verify_repair10_paths,
 )
 
 PRODUCTION_PINS = dict(
@@ -183,6 +184,8 @@ CORPUS_COMMANDS = frozenset(
         "criterion-4a",
         "compare",
         "report",
+        "corpus-capacity-precheck",
+        "stage1-recovery-verify",
     }
 )
 
@@ -280,8 +283,8 @@ def _verify_amendment_commit(repo: Path, commit: str, label: str) -> None:
         raise SealViolation(f"{label} must change only the preregistration file")
 
 
-def verify_repairs(repo: Path) -> list[str]:
-    """Amendment 9: T is exactly repair 7, repair 8 and repair 9."""
+def _verify_repairs_through9(repo: Path, *, exact: bool) -> list[str]:
+    """Verify the preserved Amendment 9 history used by historical fixtures."""
     c7, _ = chain_entry("amendment7")
     c8, _ = chain_entry("amendment8")
     c9, _ = chain_entry("amendment9")
@@ -301,7 +304,7 @@ def verify_repairs(repo: Path) -> list[str]:
     verify_repair8(repo, tool[1], tool[0], c8)
     if len(tool) < 3:
         raise SealViolation("repair 9 is not committed after C9")
-    if len(tool) != 3:
+    if exact and len(tool) != 3:
         raise SealViolation("protected history must contain exactly three repairs")
     repair9 = tool[2]
     if len(commit_parents(repo, repair9)) != 1 or not strictly_after(repo, c9, repair9):
@@ -315,9 +318,34 @@ def verify_repairs(repo: Path) -> list[str]:
     return tool
 
 
-def verify_tool_identity(repo: Path) -> str:
-    """Verify Amendment 9's exact protected history and return repair 9."""
-    tool = verify_repairs(repo)
+def verify_repairs(repo: Path) -> list[str]:
+    """Amendment 10: T is exactly repairs 7, 8, 9 and 10."""
+    try:
+        c10, _ = chain_entry("amendment10")
+    except SealViolation:
+        return _verify_repairs_through9(repo, exact=True)
+    tool = _verify_repairs_through9(repo, exact=False)
+    _verify_amendment_commit(repo, c10, "C10")
+    if len(tool) < 4:
+        raise SealViolation("repair 10 is not committed after C10")
+    if len(tool) != 4:
+        raise SealViolation("protected history must contain exactly four repairs")
+    repair9 = tool[2]
+    repair10 = tool[3]
+    if commit_parents(repo, repair10) != [c10]:
+        raise SealViolation("repair 10 must directly follow C10")
+    verify_repair10_paths(repo, repair10)
+    entries = repair_chain(repo, repair10)
+    if len(entries) != 7 or entries[:6] != repair_chain(repo, repair9)[:6]:
+        raise SealViolation("repair 10 must preserve chain entries 1-6")
+    if entries[6] != _chain_entry_expected(repo, "amendment10", c10):
+        raise SealViolation("repair 10 chain entry 7 does not name C10")
+    return tool
+
+
+def verify_tool_identity(repo: Path, tool: list[str] | None = None) -> str:
+    """Verify exact protected history and return Repair 10."""
+    tool = verify_repairs(repo) if tool is None else tool
     repair9 = tool[2]
     scope = Pilot2Scope.from_repo(repo)
     h1 = adding_commit(repo, pilot2_selection_path(scope))
@@ -330,7 +358,15 @@ def verify_tool_identity(repo: Path) -> str:
     h6 = adding_commit(repo, pilot2_addendum_path(scope))
     if h6 is not None and not strictly_after(repo, repair9, h6):
         raise SealViolation("repair 9 must precede H6")
-    return repair9
+    if len(tool) == 3:
+        return repair9
+    repair10 = tool[3]
+    c10, _ = chain_entry("amendment10")
+    if h6 is None or commit_parents(repo, c10) != [h6]:
+        raise SealViolation("C10 must directly follow H6")
+    if commit_parents(repo, repair10) != [c10]:
+        raise SealViolation("repair 10 must directly follow C10")
+    return repair10
 
 
 def reject_pilot_scoped_records(repo: Path) -> None:
@@ -442,7 +478,9 @@ def guard(repo: Path, command: str) -> None:
     """The common guard, applied by the dispatcher before every command."""
     verify_preconditions(repo, A1_IMPLEMENTATION_PINS)
     verify_clean_tooling(repo)
-    repair9 = verify_tool_identity(repo)
+    repairs = verify_repairs(repo)
+    verify_tool_identity(repo, repairs)
+    repair9 = repairs[2]
     verify_production_pins(repo)
     corridor = _corridor(repo)
     if (

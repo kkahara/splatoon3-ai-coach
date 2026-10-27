@@ -42,6 +42,8 @@ BLIND = (
     "pilot2_sources",
     "pilot2_pipeline",
     "pilot2_addendum",
+    "corpus_capacity",
+    "stage1_recovery",
 )
 NEUTRAL = ("constants", "errors", "io_utils", "pins", "seal")
 # Step 2a derivation: replays stored intro readings through production code.
