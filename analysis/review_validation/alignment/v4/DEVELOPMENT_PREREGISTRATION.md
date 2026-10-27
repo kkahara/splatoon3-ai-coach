@@ -3784,3 +3784,435 @@ If the base fresh set has fewer than two eligible recordings, replace steps
 - No post-H5 interface commit exists; the interface validated by H5 is the
   interface used by later corpus annotation.
 - No tool or test was changed for this amendment.
+
+## Amendment 10 — Corpus interval capacity and Stage 1 recovery (2026-10-26)
+
+### What was frozen, what changes, why
+
+**Frozen:** the preregistration through Amendment 9 as committed at C9,
+`736b42a19e326de73e4bd418fdb7e4fcd1a4bf8b` (file SHA-256
+`18172a384fb0efb973c2696957af57bd28fd24dd1cc30126eb6b0d0605013b71`,
+191,690 bytes). That file is a byte prefix of this one. Each earlier
+amendment keeps its existing sealing identity.
+
+Also frozen, none modified, replaced, reverted, deleted or regenerated:
+
+- the Amendment 7 repair `3883dd7bd14877705f61fe44b3b46a2c46a47afc`;
+- repair 8 `0ee675d47abc1361f583362217a02a9922647e24`;
+- repair 9 `d428730432e01823ce70bf85ab738d7e3cde571d`;
+- pilot-2 H1 to H6, with H6 `aae67dab2cdf7796c86e67111247cdd331f7cef4`;
+- every pilot-1 and pilot-2 record, and every pinned input, threshold, ROI,
+  polygon, classifier setting and configuration.
+
+**State at drafting:** the Stage 1 blind-manifest execution began under
+separate authorization at H6 and stopped in place. Facts:
+
+1. For `18-18-00`, `20-33-31` and `22-31-53`, one successful
+   `plan --recording <id>` and one successful
+   `extract --recording <id> --video <path>` each completed. They wrote three
+   plan records, three extraction-provenance records and three frame
+   directories (gitignored PNGs). None is committed.
+2. `plan --recording 22-37-47` then failed before writing any record, with
+   `MalformedInput: need 3 single-frame intervals, have 2`. No plan,
+   extraction record or frame directory exists for `22-37-47`.
+3. No command ran for `22-57-30`, and `points --stage 1` has not run.
+4. No Stage 1 record is committed, no annotation, label, key or gate exists,
+   criterion 4a has not run, and no comparison, calibration, classifier
+   output, map observation or method result was read or exposed.
+
+**What changes:** the Stage 1 interval count for recordings with fewer than
+eight eligible intervals; the Stage 1 judgeability wording that assumed
+eight frames; the Stage 2 capacity claims; Stage 2 membership and finality
+for a recording with no remaining interval; the 4b treatment of a
+structurally capacity-exhausted final INCONCLUSIVE recording; an
+outcome-blind reachability precheck before further corpus artifact
+production; the recovery policy for
+the stopped partial execution; the authorized execution chain; the
+tool-history rule; one authorized repair; and the sentences superseded below.
+
+**Unchanged:** eligibility, cadence, interval construction, interval
+ordering, long-interval selection, singleton selection, the even-rank rule,
+the middle-frame rule, point domain, seeds, spacing, P = 9, the duplicate
+rule, swatches, team identity, label vocabulary and operator instructions,
+the annotation interface, the point-level judgeability rule, the frame-level
+judgeability rule (at least 6 of 9 points), the duplicate gate, statistical
+clustering, the sign-flip test, `p_reg <= 0.005`, `p_imp <= 0.025`,
+per-recording precedence, the 4b requirements (a minimum of four evaluable
+recordings, every evaluable recording final PRESERVED, any REGRESSED giving
+FAIL) except the one capacity-exhausted treatment stated below, criterion 4
+composition, blinding, sealing order, and every unrelated Track A rule.
+
+**Why:** Amendment 3 froze K = 8 and recorded Stage 2 capacities "known from
+metadata at drafting". One recording cannot supply eight distinct eligible
+intervals, and three of the five recorded Stage 2 capacities disagree with
+the pinned manifests. The condition is deterministic from pinned metadata. It
+was found only when execution reached `22-37-47`, after one run had already
+produced partial artifacts. This amendment fixes the rule and the recovery
+policy before any Stage 1 record is committed and before any annotation.
+
+### Capacity facts (normative record)
+
+Derived outcome-blind from each pinned v3 `vision_manifest.json` with the
+frozen eligibility rule, interval definition and ordering. Nothing else was
+read. Per recording: eligible cadence frames; eligible intervals (long and
+single); Stage 1 interval count K1; remaining unselected intervals; Stage 2
+capacity min(8, remaining); the Stage 2 capacity previously stated at
+Amendment 3.
+
+- `18-18-00`: 25 frames; 11 intervals (7 long, 4 single); K1 = 8; remaining
+  3; Stage 2 capacity 3; previously stated 4.
+- `20-33-31`: 30 frames; 20 intervals (6 long, 14 single); K1 = 8; remaining
+  12; Stage 2 capacity 8; previously stated 8.
+- `22-31-53`: 31 frames; 14 intervals (7 long, 7 single); K1 = 8; remaining
+  6; Stage 2 capacity 6; previously stated 8.
+- `22-37-47`: 22 frames; 7 intervals (5 long with lengths 2, 4, 3, 5, 6 in
+  start order, 2 single); K1 = 7; remaining 0; Stage 2 capacity 0;
+  previously stated 2, which assumed an eight-frame Stage 1 that its seven
+  intervals cannot supply.
+- `22-57-30`: 75 frames; 21 intervals (14 long, 7 single); K1 = 8; remaining
+  13; Stage 2 capacity 8; previously stated 8.
+
+The Amendment 3 statement "Capacity known from metadata at drafting:
+18-18-00 4, 20-33-31 8, 22-31-53 8, 22-37-47 2, 22-57-30 8" was inconsistent
+with the pinned manifests for `18-18-00`, `22-31-53` and `22-37-47`. The
+values for `20-33-31` and `22-57-30` are unchanged after the Stage 2 cap of 8.
+The inconsistency was discovered by outcome-blind manifest characterization,
+not from any image, label, calibration, observation or result.
+
+### Stage 1 selection (normative)
+
+For each correctness-applicable recording, let n be its number of eligible
+intervals and
+
+```text
+K1 = min(8, n)
+```
+
+Stage 1 selection is the Amendment 3 two-list procedure with K replaced by K1:
+K' = min(K1, M_long) long intervals at indices
+`floor((j + 0.5) * M_long / K')`; if K' < K1, K'' = K1 − K' single-frame
+intervals at indices `floor((j + 0.5) * M_single / K'')`; the frame at index
+`floor((len − 1) / 2)` of each selected interval. Eligibility, intervals,
+ordering and all index formulas are unchanged.
+
+Frozen Stage 1 interval counts: `18-18-00` 8, `20-33-31` 8, `22-31-53` 8,
+`22-37-47` 7, `22-57-30` 8.
+
+For every recording with n >= 8 the result is identical to Amendment 3, so
+this changes actual Stage 1 selection only for `22-37-47`. For `22-37-47` the
+procedure selects all seven of its intervals (five long, then both single).
+
+No eighth sample is created for `22-37-47`. No Stage 1 frame is taken from an
+interval merely to reach eight, and no interval contributes more than one
+frame.
+
+### Stage 1 judgeability (normative)
+
+The absolute minimum is unchanged: a Stage 1 recording needs a valid swatch
+pair, consistent team identity (J1 = J2) and **at least 6 judgeable selected
+Stage 1 frames**. This is 6 of 8 for an eight-frame recording and 6 of 7 for
+`22-37-47`; it is not a percentage. Point-level and frame-level
+judgeability are unchanged. `22-37-47` therefore tolerates one unjudgeable
+Stage 1 frame where the others tolerate two.
+
+### Stage 2 capacity, membership and finality (normative)
+
+Stage 2 selection is unchanged: K2 = min(8, remaining unselected eligible
+intervals), by the same two-list procedure, after the amended Stage 1
+selection. Frozen Stage 2 capacities: `18-18-00` 3, `20-33-31` 8,
+`22-31-53` 6, `22-37-47` 0, `22-57-30` 8.
+
+`22-37-47` has no Stage 2 interval capacity. No Stage 2 interval is
+fabricated, repeated or borrowed for it.
+
+- The Stage 2 recording set is the Stage 1 INCONCLUSIVE recordings whose
+  Stage 2 capacity is at least 1. A Stage 1 INCONCLUSIVE recording with
+  capacity 0 is **final INCONCLUSIVE at Stage 1** and is called
+  *capacity-exhausted*; it is not in Stage 2 and is not part of the pooled
+  gate. Capacity is read from the sealed plan record, fixed before any label,
+  and never from any result.
+- `stage2_trigger.json` lists exactly that set, as the sorted ids, with the
+  same digest field and keys as Amendment 4 ruling 1. It is written only when
+  the set is non-empty. Blind tools still require the Stage 2 recording set
+  to equal the sealed trigger exactly.
+- If the set is empty, Stage 2 does not run and Stage 1 results are final. If
+  it is non-empty, Stage 1 results stay provisional until the pooled Stage 2
+  gate passes and become void if it fails, as in Amendment 3.
+- The Stage 2 gate and its consequence for 4b apply only if Stage 2 runs.
+- The existing rule that Stage 2 is usable only if it adds at least 2
+  judgeable frames and that the combined sample needs at least 6 is
+  unchanged.
+
+### Statistical resolution (disclosure; no threshold changes)
+
+Neither significance threshold is changed to compensate for the capacity of
+`22-37-47`. With at most seven distinct interval clusters, `22-37-47` has
+F_nz at most 7. Under the frozen text, `p_reg <= 0.005` requires F_nz >= 8,
+so **`22-37-47` cannot attain the regression threshold through the sign-flip
+test**. This is an accepted resolution limitation, not a reason to modify
+alpha. It can still resolve under the existing precedence: identity gives
+PRESERVED; improvement (`p_imp <= 0.025`, which requires F_nz >= 6) is
+attainable only if at least six judgeable clusters are discordant; otherwise
+it is INCONCLUSIVE, and final INCONCLUSIVE because it has no Stage 2.
+
+The 4b treatment of this limitation is stated in the next section.
+
+### 4b treatment of a capacity-exhausted recording (normative)
+
+This section amends the Amendment 3 4b rule in one respect only. A
+*capacity-exhausted* recording is a recording whose Stage 1 result is
+INCONCLUSIVE and whose sealed plan gives it Stage 2 capacity 0. Such a
+recording cannot be resolved by Stage 2 because no unselected interval exists,
+not because of any result. In the 4b verdict it:
+
+- is not counted as evaluable and does not count toward the minimum of four;
+- does not independently prevent 4b PASS;
+- is never treated as PRESERVED, and its INCONCLUSIVE result is not evidence
+  that its calibration was preserved.
+
+Every other recording is treated exactly as before, including a recording with
+Stage 2 capacity of at least 1 whose result is INCONCLUSIVE after Stage 2, which
+still prevents PASS. The 4b verdict is:
+
+- NOT EVALUABLE if the Stage 1 gate fails or, when Stage 2 runs, the Stage 2
+  gate fails (unchanged);
+- otherwise FAIL if any recording is final REGRESSED (unchanged);
+- otherwise PASS if at least four recordings are evaluable (neither NOT
+  EVALUABLE nor capacity-exhausted) and every evaluable recording is final
+  PRESERVED, including PRESERVED (improved) (unchanged apart from the
+  exclusion above);
+- NOT EVALUABLE otherwise.
+
+The minimum of four evaluable recordings is not reduced. With `22-37-47`
+capacity-exhausted, PASS therefore requires all four other recordings to be
+evaluable and final PRESERVED, and any one of them REGRESSED gives FAIL. A PASS
+in that case rests on four recordings; the final report lists each
+capacity-exhausted recording with its Stage 1 result and states that it was
+excluded from the evaluable set under this section.
+
+The "at most 16 intervals per recording" statement is an upper bound. Actual
+maxima are 11 (`18-18-00`), 16 (`20-33-31`), 14 (`22-31-53`), 7
+(`22-37-47`) and 16 (`22-57-30`). The duplicate rule is unchanged;
+`ceil(0.10 * N_points)` still gives at most 36 Stage 1 duplicate pairs at the
+maximum population (N is now at most 351), and the earlier disclosures remain
+valid bounds.
+
+### Outcome-blind reachability precheck (normative)
+
+Before any resumed artifact-producing corpus command, a read-only precheck
+must pass for **all five** recordings. It reads only the pinned manifests (after
+SHA-256 pin verification) and the sealed corpus blind-input manifest, with the
+frozen reader and the amended selection rule in memory. It writes nothing. It
+opens no video, PNG, calibration, prediction, observation, label, answer or
+outcome. Each recording must satisfy all of:
+
+1. its manifest pin verifies and it reduces under the blind reader;
+2. its Stage 1 selection completes in memory without error;
+3. K1 and Stage 2 capacity equal the frozen values above;
+4. K1 is at least 6, so the Stage 1 judgeability minimum is reachable;
+5. every selected and cue frame has the identifiers extraction requires;
+6. the sealed blind-input manifest covers it with a stage that has pinned
+   geometry.
+
+Any failure: STOP before any further artifact-producing command. The precheck
+exposes only per-recording interval counts, K1, Stage 2 capacity and pass or
+fail. It cannot check point-domain emptiness, which depends on pixels.
+
+### Stopped execution and recovery policy (normative)
+
+1. **Historical record.** The successful invocations in the state at drafting
+   happened and stay recorded as such. No product is silently deleted,
+   overwritten or regenerated.
+2. **Failed versus successful invocations.** An invocation that exits with an
+   error and writes no record (`plan --recording 22-37-47`) is a failed
+   no-output invocation. It is disclosed here and does not consume the
+   command for that recording. A successful artifact-producing invocation
+   consumes it.
+3. **Acceptance of the three existing recordings.** The amended rule is
+   mathematically identical for recordings with n >= 8, so the three existing
+   products may be accepted into the amended execution only if the following
+   deterministic, read-only verification passes for each, under the committed
+   Repair 10 tooling and the full common guard:
+   - the pinned manifest verifies, and the existing plan record, with only the
+     `tool` field removed, equals exactly the plan the amended rule computes
+     from that manifest and pin;
+   - the extraction record names the recording, a `video_sha256` equal to the
+     pin and a `video_identity` equal to the plan's, and its frame list equals
+     the plan's frames by id, `source_pts` and `source_frame_index`;
+   - the frame directory holds exactly the planned PNGs, no more and no fewer;
+   - each PNG's file SHA-256 equals its recorded `png_sha256`, and the decoded
+     array hash equals its recorded `decoded_array_sha256`.
+   The verification neither opens the source video nor re-decodes it, and
+   writes, stages and deletes nothing. It is the existing provenance
+   architecture applied read-only: it recomputes the plan with the committed
+   function and compares recorded hashes.
+
+   **Mechanical PNG verification and pixel non-exposure.** The PNG checks are
+   mechanical digest comparisons computed inside the tool process. No pixel
+   value, crop, thumbnail, histogram, colour statistic, rendered or decoded
+   image, array content, or any other value derived from pixel content is
+   displayed, logged, written, returned or otherwise exposed to any human
+   operator or to any language model, agent or other model. That covers
+   terminal output, logs, test output, tool results, exceptions, tracebacks and
+   reports. No PNG is opened in a viewer, previewed, or passed to any
+   image-capable tool or model. A decoded array exists only in memory for
+   hashing and is then discarded. The only outputs of this check are digests,
+   counts, check identifiers, frame identifiers and pass or fail. A failure
+   reports which check failed and the frame identifier, never pixel content.
+4. **Evidence.** Before acceptance, the verification must report, per
+   recording: the SHA-256 of the plan record, of the recomputed plan and of the
+   extraction record; the planned and verified PNG counts; each check's result;
+   and the `tool.tool_commit` each record names. After the sealing commit these
+   records and their per-frame digests are the committed evidence.
+5. **Failure.** If any check cannot be established, acceptance fails closed:
+   STOP. No cleanup, deletion, regeneration or substitution follows without a
+   separate amendment.
+6. **Resumed production.** Under the amended tooling, each of the following runs
+   exactly once and only after the precheck and verification pass: `plan` and
+   `extract` for `22-37-47`; `plan` and `extract` for `22-57-30`;
+   `points --stage 1`. The three accepted recordings are not re-planned or
+   re-extracted. Corpus `plan` and `extract` must refuse to overwrite an
+   existing output. Today the writer replaces files atomically, so this is an
+   enforced change, not an existing property.
+7. **Provenance.** The accepted records may name an earlier tool commit than
+   the resumed records. That difference is disclosed and permitted; it changes
+   no selection.
+8. **Sealing.** The five plan records, five extraction-provenance records,
+   `points_stage1.json` and `duplicates_stage1.json` are committed together
+   in one commit before any annotation. PNGs stay gitignored.
+
+This amendment authorizes no recovery execution. It only freezes the rule.
+
+### Authorized execution chain (normative)
+
+This amendment joins the Amendment 6 chain as entry 7: Amendment 10, its
+sealing commit C10 and the SHA-256 of this file at C10. Entries 1 to 6 are
+unchanged. C10 changes only this preregistration file. Between C10 and
+repair 10 every command STOPs.
+
+### Tool identity and one repair (normative)
+
+Let T be protected-path commits from C7 exclusive to HEAD, oldest first.
+T[0] to T[2] are the Amendment 7 repair, repair 8 and repair 9. T[3] is
+repair 10, after C10 and before the precheck or any resumed corpus command.
+T has exactly these four elements through the corpus work. No interface
+commit is permitted. Any additional protected-path commit STOPs.
+
+After C10, one repair commit may: add chain entry 7; replace the
+tool-history rule with this one; apply K1 to Stage 1 selection; apply the
+Stage 2 membership, trigger and verdict rules above; add the reachability
+precheck and the read-only verification as guarded commands; make corpus
+`plan` and `extract` refuse to overwrite; and add synthetic tests, updating
+existing tests only where the chain, history, command list or Stage 2
+treatment changes.
+
+The repair may not modify `src/`, `configs/`, pinned artifacts, any
+committed or working experimental record, any pilot module, `gate.py`,
+`points.py`, `plan.py`, `extraction.py`, `queueing.py`, `session.py`,
+`server.py`, `render.py`, `records.py`, `domain.py`, `statistics.py`,
+`mapping.py`, `comparison.py`, `stage_identity.py`, `pins.py`,
+`unblinded_pins.py`, `trigger.py` or `annotate.html`, or any threshold,
+vocabulary or instruction text.
+
+Exact permitted paths under `tools/diagnostics/map_ink_reference/`:
+`constants.py`, `cli.py`, `execution.py`, `seal.py`, `population.py`,
+`pipeline_blind.py`, `pipeline_unblinded.py`, `verdicts.py`, `report.py`,
+new `corpus_capacity.py`, new `stage1_recovery.py`; and files under
+`tests/map_ink_reference/`. If any other path proves necessary: STOP and
+amend. The full suite, `ruff check` and `ruff format --check` must pass
+before repair 10 is committed.
+
+### Testing requirements (normative)
+
+Synthetic fixtures only; no corpus recording, partial output or pilot real
+record is opened. Tests show:
+
+1. chain entries 1 to 6 are unchanged, entry 7 names C10, and every command
+   STOPs from C10 until repair 10; T has exactly four elements and an extra
+   protected commit STOPs;
+2. for manifests with at least eight intervals, plans are byte-identical to
+   repair 9 apart from `tool`; pilot plans are unchanged;
+3. a seven-interval manifest of the `22-37-47` shape selects all seven
+   intervals in the frozen order, one frame each, never eight;
+4. Stage 2 selection is unchanged, yields no frame at capacity 0, and the
+   table of capacities above is reproduced by the precheck function;
+5. the trigger excludes capacity-0 recordings and is absent when empty;
+   capacity-exhausted status is derived from the sealed plan, not the result;
+   and the 4b verdict is correct when: a capacity-exhausted recording is
+   excluded from the evaluable set, so that four PRESERVED recordings give
+   PASS; only three other recordings are evaluable (NOT EVALUABLE); one of the
+   four others is final INCONCLUSIVE after Stage 2 (NOT EVALUABLE); any other
+   recording is REGRESSED (FAIL); a capacity-exhausted recording is combined
+   with Stage 2 recordings and the pooled gate fails (NOT EVALUABLE); a
+   capacity-0 recording is NOT EVALUABLE with four PRESERVED (PASS); and a
+   recording with capacity of at least 1 that is final INCONCLUSIVE still
+   prevents PASS;
+6. the precheck is read-only, STOPs on any failed condition including a
+   recording with K1 below 6, and opens no video, PNG or protected record
+   (instrumented read denial);
+7. the verification accepts exact synthetic partial outputs and rejects each
+   of: an altered or differently selected plan, a missing, extra or modified
+   PNG, a wrong video hash or identity, a wrong frame set and a missing
+   record; it writes nothing; its output, log records, error messages and
+   tracebacks are checked against an allowlist of digests, counts, check
+   identifiers, frame identifiers and pass or fail, and contain no array,
+   pixel or derived image content even when a check fails; and no image is
+   displayed, previewed or passed to a viewer or model (instrumented denial);
+8. corpus `plan` and `extract` refuse to overwrite existing output;
+9. forbidden modules are byte-identical to repair 9 and corpus outputs for
+   existing fixtures are byte-identical.
+
+### Superseded sentences (normative)
+
+1. Amendment 3's "Stage 1: K = 8" selection sentence is replaced by K1.
+2. Amendment 3's "Capacity known from metadata at drafting" sentence is
+   replaced by the capacity facts above.
+3. Amendment 3's "at least 6 of its 8 Stage 1 frames judgeable" means at
+   least 6 judgeable selected Stage 1 frames.
+4. Amendment 3's finality and Stage 2 gate text apply to Stage 2 only when
+   Stage 2 runs, and a capacity-0 INCONCLUSIVE recording is final at Stage 1.
+5. Amendment 4 ruling 1's trigger content is the INCONCLUSIVE recordings with
+   Stage 2 capacity at least 1, and the file is written only if non-empty.
+6. Amendment 9's tool-history rule (exactly three elements) is replaced by
+   the four-element rule above.
+7. Amendment 3's 4b statement "NOT EVALUABLE otherwise (including any final
+   INCONCLUSIVE)" and its PASS condition "every evaluable recording is final
+   PRESERVED" are amended only by the exclusion of a capacity-exhausted
+   recording from the evaluable set, as stated above.
+
+### Sealing and authorization order (normative)
+
+1. Commit C10 alone, changing only this file. STOP.
+2. Implement repair 10 on synthetic fixtures only; review it; commit it alone;
+   run `preconditions`; STOP.
+3. With separate authorization, run the read-only precheck and the read-only
+   verification. STOP.
+4. With separate authorization, run the resumed production in item 6 of the
+   recovery policy, verify the twelve-record set, commit it together. STOP.
+5. Amendment 3 sealing order continues from annotation.
+
+### Disclosures
+
+- Drafted after the Stage 1 blind-manifest execution stopped at
+  `22-37-47`, and after read-only characterization of all five pinned v3
+  manifests, before Stage 1 manifest sealing, annotation, labels or keys,
+  duplicate gates, criterion 4a, any correctness comparison, and exposure of any
+  method result or outcome.
+- Only manifest metadata (raw map-overlay and roster readings, fused phase and
+  lifecycle, `MATCH_END`, frame identifiers) was read, through the frozen
+  reader. No video, PNG, calibration, prediction, observation, label, answer,
+  comparison result, criterion result or outcome was inspected.
+- The three completed extractions decoded video and wrote PNGs; none has been
+  opened or displayed.
+- The same human will annotate the corpus; this amendment changes no
+  instruction or interface.
+- `22-37-47` has seven eligible intervals and no Stage 2 capacity, so its
+  regression threshold is structurally unattainable. Its result is PRESERVED
+  if identity holds or the improvement threshold is met at Stage 1, and
+  otherwise INCONCLUSIVE and capacity-exhausted. This follows from the frozen
+  thresholds and the pinned manifest and is disclosed, not corrected.
+- The capacity-exhausted treatment is a deliberate prospective change to 4b,
+  made before any result exists. It narrows what a 4b PASS rests on to the
+  remaining evaluable recordings, and the final report discloses it.
+- PNG verification is mechanical. No pixel content reaches any human or model.
+- No tool or test was changed for this amendment.
