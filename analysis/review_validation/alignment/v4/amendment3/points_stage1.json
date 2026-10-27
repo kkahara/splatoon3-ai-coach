@@ -1,0 +1,2692 @@
+{
+  "blind_input_manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+  "frames": [
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "png_sha256": "a4b9a34235841bc22dd9c3fc772917f59ae0ca4d0a80ad339e71d3237b6919bf",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "png_sha256": "296700f18dc323af34daaf20643c8013369b5c0b0f5ef26586a3d2816fd42a30",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "png_sha256": "82258c2aa21a648ed8b9297529122fb302a2f119eadf2bd407124b022eae88b4",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "png_sha256": "71a949d5c4fd2299cf777174933dc8f1aef25e576b05959fe54e002e597f4b99",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "png_sha256": "c225b95ccde0ca1774ad617fdff46379cb22f013dfb5a2a14e8397cddca6ab5a",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "png_sha256": "99f6e36804b4a97da6b670ccece66079c292d149dcaedf46bd5e9f667384aef1",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "png_sha256": "31c803f0ab5fed7c08957aef50809518f73070f3611c97434d6cf0f17fcfb04f",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "png_sha256": "80fd62fcf298d9923e4796744e5de4b8b5b35185ef6fbf630e99901089af2c1d",
+      "recording_id": "18-18-00"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "png_sha256": "f315fc860c6aac526cfd5282fc6920dc31499c7a01635c5cae5f6f06bb0924d5",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "png_sha256": "d07616008f14d794c4c43d37fd84968d8abe25450ae6b20a29ba72c6528a1221",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "png_sha256": "0789b1b9c58f25ffa57c23c56d385042e93599720d5652e8bbd6bf832558dd79",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "png_sha256": "06d5e3693ac5caf3d8e1c078643c4c7954dc34850ccae10086c0aa516d03547c",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "png_sha256": "6eba367d11598d95339cf0fd0845cded1533a108f963eb542c4aa26e311a0bdf",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "png_sha256": "da991df65617ffacdcdebc54a7a9b84c653d170dc96258750cc5f63d416e09e4",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "png_sha256": "a13940341e45e36a2fdddc3864d14e671add69f6d6e5884ad5902666ee129be3",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "png_sha256": "435efc88713651b7a70d440a190ef37f8b9f90eecf157c151987108c8e8f89fd",
+      "recording_id": "20-33-31"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "png_sha256": "c38b624185489a8ad1ab6655ac0d854987677f32f9721da253b328acc3284b97",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "png_sha256": "d299e102e37edb4a23c6e81e2f237f4be6f26099a8e16a089fe03da803a26d3d",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "png_sha256": "434c66246b1cfd731245a453935951b21ad51d35ec19975ec62b6aefcc2ec274",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "png_sha256": "c48c6666d2b2003b896ce00941179bf0397fadc278c4e070c3383d3e16963609",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "png_sha256": "0697def9c612d9fa7978917e6f37629b1e88a0abc59c2a6ceceace01e4289a01",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "png_sha256": "746503579d1ed36c698e2db131b3b17fb318b0aead58fdd83e59f9e5bd65b71a",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "png_sha256": "3fa1d1c28e5adc1dd014ed8fdbbc5a4cb5589d62f597691f6fc47a371980441a",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "png_sha256": "8ddaffbb87962b273943a3758ba301e2f1d5614e67d6d116f785b8c8a8049c03",
+      "recording_id": "22-31-53"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "png_sha256": "d0df1a847fd652e93465b675d22358aa8a3c3a0f233bd43e9c814770b8e19649",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "png_sha256": "f4a7c0c658b7ea1171e7933304d511c5c226f99cb0817963beb04cbdf0639259",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "png_sha256": "4d47efd1ede42f8cb53c930c33790a86aebbb15fa5de25f116cd502bf625526f",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "png_sha256": "460c8eb3ac66f7783f9d3934837c6f7044dba92df1ae551c4a8ad110dbe767b2",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "png_sha256": "5f4953f3750dc39410260e1050ec9fc4e1fa70f2806dc8cd5e0c1f9860341fa4",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "png_sha256": "6e1115c10d80ba119df1dc85ea202527fe0a847257c63081f6170964264858e8",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "png_sha256": "5b592c830edbb504bc5a17ef4a9794bafd576515bcff90cc17fb7db1149bab39",
+      "recording_id": "22-37-47"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "png_sha256": "660b0719dc841bd6f8c0372ac9eecbe4954fa53266f6a15a687f80b41131a305",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "png_sha256": "f209091fd511c8fd273a284777723b8044e44cb69758e142ad140110676247c7",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "png_sha256": "2e6e89dcf828d7b05891abd6b2d533e05640198313c05f1c27f1c476c585f658",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "png_sha256": "77df7e319425e4c65f47bc3b713dc3122fb1b8b7553572d3abb238730fe723c0",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "png_sha256": "fd23668135d6e07b0d262d57f785491ac46f4e4609d291f6b5eaa4ba0d9d9c87",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "png_sha256": "bbb463d670233a88241070e68ab9edae34c5adc605bb6c9e13bf1588649ac895",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "png_sha256": "2254c7c4176dcf976dfcee2207e97e2488a318ebe904f328bc458ff4bea3ea31",
+      "recording_id": "22-57-30"
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "png_sha256": "6b14719009272620b4f25dcdcd344a6d50787d7c927accfcc41631dbb3998d26",
+      "recording_id": "22-57-30"
+    }
+  ],
+  "points": [
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|0",
+      "recording_id": "18-18-00",
+      "x": 1020,
+      "y": 516
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|1",
+      "recording_id": "18-18-00",
+      "x": 1037,
+      "y": 570
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|2",
+      "recording_id": "18-18-00",
+      "x": 1162,
+      "y": 437
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|3",
+      "recording_id": "18-18-00",
+      "x": 941,
+      "y": 764
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|4",
+      "recording_id": "18-18-00",
+      "x": 1057,
+      "y": 657
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|5",
+      "recording_id": "18-18-00",
+      "x": 1078,
+      "y": 531
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|6",
+      "recording_id": "18-18-00",
+      "x": 1119,
+      "y": 367
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|7",
+      "recording_id": "18-18-00",
+      "x": 1121,
+      "y": 759
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|8",
+      "recording_id": "18-18-00",
+      "x": 955,
+      "y": 364
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|0",
+      "recording_id": "18-18-00",
+      "x": 811,
+      "y": 548
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|1",
+      "recording_id": "18-18-00",
+      "x": 735,
+      "y": 618
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|2",
+      "recording_id": "18-18-00",
+      "x": 1080,
+      "y": 388
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|3",
+      "recording_id": "18-18-00",
+      "x": 961,
+      "y": 333
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|4",
+      "recording_id": "18-18-00",
+      "x": 1266,
+      "y": 426
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|5",
+      "recording_id": "18-18-00",
+      "x": 841,
+      "y": 460
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|6",
+      "recording_id": "18-18-00",
+      "x": 899,
+      "y": 730
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|7",
+      "recording_id": "18-18-00",
+      "x": 858,
+      "y": 694
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|8",
+      "recording_id": "18-18-00",
+      "x": 945,
+      "y": 554
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|0",
+      "recording_id": "18-18-00",
+      "x": 897,
+      "y": 909
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|1",
+      "recording_id": "18-18-00",
+      "x": 953,
+      "y": 601
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|2",
+      "recording_id": "18-18-00",
+      "x": 771,
+      "y": 616
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|3",
+      "recording_id": "18-18-00",
+      "x": 1060,
+      "y": 205
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|4",
+      "recording_id": "18-18-00",
+      "x": 641,
+      "y": 504
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|5",
+      "recording_id": "18-18-00",
+      "x": 678,
+      "y": 702
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|6",
+      "recording_id": "18-18-00",
+      "x": 705,
+      "y": 365
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|7",
+      "recording_id": "18-18-00",
+      "x": 1016,
+      "y": 434
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|8",
+      "recording_id": "18-18-00",
+      "x": 655,
+      "y": 346
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|0",
+      "recording_id": "18-18-00",
+      "x": 1150,
+      "y": 313
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|1",
+      "recording_id": "18-18-00",
+      "x": 1014,
+      "y": 478
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|2",
+      "recording_id": "18-18-00",
+      "x": 983,
+      "y": 696
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|3",
+      "recording_id": "18-18-00",
+      "x": 639,
+      "y": 557
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|4",
+      "recording_id": "18-18-00",
+      "x": 908,
+      "y": 349
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|5",
+      "recording_id": "18-18-00",
+      "x": 1112,
+      "y": 466
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|6",
+      "recording_id": "18-18-00",
+      "x": 1083,
+      "y": 606
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|7",
+      "recording_id": "18-18-00",
+      "x": 952,
+      "y": 341
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|8",
+      "recording_id": "18-18-00",
+      "x": 785,
+      "y": 808
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|0",
+      "recording_id": "18-18-00",
+      "x": 1046,
+      "y": 580
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|1",
+      "recording_id": "18-18-00",
+      "x": 683,
+      "y": 444
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|2",
+      "recording_id": "18-18-00",
+      "x": 1184,
+      "y": 280
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|3",
+      "recording_id": "18-18-00",
+      "x": 884,
+      "y": 501
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|4",
+      "recording_id": "18-18-00",
+      "x": 914,
+      "y": 351
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|5",
+      "recording_id": "18-18-00",
+      "x": 1237,
+      "y": 494
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|6",
+      "recording_id": "18-18-00",
+      "x": 1231,
+      "y": 645
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|7",
+      "recording_id": "18-18-00",
+      "x": 794,
+      "y": 535
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|8",
+      "recording_id": "18-18-00",
+      "x": 1113,
+      "y": 391
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|0",
+      "recording_id": "18-18-00",
+      "x": 984,
+      "y": 528
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|1",
+      "recording_id": "18-18-00",
+      "x": 1121,
+      "y": 752
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|2",
+      "recording_id": "18-18-00",
+      "x": 932,
+      "y": 640
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|3",
+      "recording_id": "18-18-00",
+      "x": 1106,
+      "y": 641
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|4",
+      "recording_id": "18-18-00",
+      "x": 840,
+      "y": 826
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|5",
+      "recording_id": "18-18-00",
+      "x": 1145,
+      "y": 508
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|6",
+      "recording_id": "18-18-00",
+      "x": 1128,
+      "y": 302
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|7",
+      "recording_id": "18-18-00",
+      "x": 1063,
+      "y": 573
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|8",
+      "recording_id": "18-18-00",
+      "x": 968,
+      "y": 357
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|0",
+      "recording_id": "18-18-00",
+      "x": 1043,
+      "y": 612
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|1",
+      "recording_id": "18-18-00",
+      "x": 1139,
+      "y": 505
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|2",
+      "recording_id": "18-18-00",
+      "x": 1152,
+      "y": 456
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|3",
+      "recording_id": "18-18-00",
+      "x": 1063,
+      "y": 117
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|4",
+      "recording_id": "18-18-00",
+      "x": 965,
+      "y": 515
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|5",
+      "recording_id": "18-18-00",
+      "x": 973,
+      "y": 447
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|6",
+      "recording_id": "18-18-00",
+      "x": 881,
+      "y": 460
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|7",
+      "recording_id": "18-18-00",
+      "x": 939,
+      "y": 700
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|8",
+      "recording_id": "18-18-00",
+      "x": 890,
+      "y": 735
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|0",
+      "recording_id": "18-18-00",
+      "x": 1022,
+      "y": 402
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|1",
+      "recording_id": "18-18-00",
+      "x": 1208,
+      "y": 318
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|2",
+      "recording_id": "18-18-00",
+      "x": 873,
+      "y": 552
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|3",
+      "recording_id": "18-18-00",
+      "x": 1003,
+      "y": 370
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|4",
+      "recording_id": "18-18-00",
+      "x": 1077,
+      "y": 525
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|5",
+      "recording_id": "18-18-00",
+      "x": 1023,
+      "y": 569
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|6",
+      "recording_id": "18-18-00",
+      "x": 963,
+      "y": 544
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|7",
+      "recording_id": "18-18-00",
+      "x": 895,
+      "y": 891
+    },
+    {
+      "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+      "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|8",
+      "recording_id": "18-18-00",
+      "x": 1232,
+      "y": 444
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|0",
+      "recording_id": "20-33-31",
+      "x": 894,
+      "y": 240
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|1",
+      "recording_id": "20-33-31",
+      "x": 1172,
+      "y": 530
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|2",
+      "recording_id": "20-33-31",
+      "x": 697,
+      "y": 342
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|3",
+      "recording_id": "20-33-31",
+      "x": 1035,
+      "y": 499
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|4",
+      "recording_id": "20-33-31",
+      "x": 985,
+      "y": 553
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|5",
+      "recording_id": "20-33-31",
+      "x": 659,
+      "y": 238
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|6",
+      "recording_id": "20-33-31",
+      "x": 756,
+      "y": 220
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|7",
+      "recording_id": "20-33-31",
+      "x": 687,
+      "y": 620
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|8",
+      "recording_id": "20-33-31",
+      "x": 836,
+      "y": 244
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|0",
+      "recording_id": "20-33-31",
+      "x": 982,
+      "y": 569
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|1",
+      "recording_id": "20-33-31",
+      "x": 921,
+      "y": 381
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|2",
+      "recording_id": "20-33-31",
+      "x": 871,
+      "y": 546
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|3",
+      "recording_id": "20-33-31",
+      "x": 799,
+      "y": 401
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|4",
+      "recording_id": "20-33-31",
+      "x": 754,
+      "y": 247
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|5",
+      "recording_id": "20-33-31",
+      "x": 857,
+      "y": 188
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|6",
+      "recording_id": "20-33-31",
+      "x": 963,
+      "y": 734
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|7",
+      "recording_id": "20-33-31",
+      "x": 634,
+      "y": 639
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|8",
+      "recording_id": "20-33-31",
+      "x": 946,
+      "y": 274
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|0",
+      "recording_id": "20-33-31",
+      "x": 901,
+      "y": 268
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|1",
+      "recording_id": "20-33-31",
+      "x": 1118,
+      "y": 507
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|2",
+      "recording_id": "20-33-31",
+      "x": 899,
+      "y": 892
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|3",
+      "recording_id": "20-33-31",
+      "x": 737,
+      "y": 116
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|4",
+      "recording_id": "20-33-31",
+      "x": 801,
+      "y": 317
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|5",
+      "recording_id": "20-33-31",
+      "x": 1095,
+      "y": 531
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|6",
+      "recording_id": "20-33-31",
+      "x": 1194,
+      "y": 363
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|7",
+      "recording_id": "20-33-31",
+      "x": 1037,
+      "y": 470
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|8",
+      "recording_id": "20-33-31",
+      "x": 643,
+      "y": 775
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|0",
+      "recording_id": "20-33-31",
+      "x": 627,
+      "y": 473
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|1",
+      "recording_id": "20-33-31",
+      "x": 665,
+      "y": 652
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|2",
+      "recording_id": "20-33-31",
+      "x": 935,
+      "y": 405
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|3",
+      "recording_id": "20-33-31",
+      "x": 875,
+      "y": 502
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|4",
+      "recording_id": "20-33-31",
+      "x": 877,
+      "y": 808
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|5",
+      "recording_id": "20-33-31",
+      "x": 1059,
+      "y": 805
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|6",
+      "recording_id": "20-33-31",
+      "x": 788,
+      "y": 614
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|7",
+      "recording_id": "20-33-31",
+      "x": 1167,
+      "y": 319
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|8",
+      "recording_id": "20-33-31",
+      "x": 1213,
+      "y": 282
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|0",
+      "recording_id": "20-33-31",
+      "x": 960,
+      "y": 118
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|1",
+      "recording_id": "20-33-31",
+      "x": 1091,
+      "y": 317
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|2",
+      "recording_id": "20-33-31",
+      "x": 881,
+      "y": 397
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|3",
+      "recording_id": "20-33-31",
+      "x": 1071,
+      "y": 110
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|4",
+      "recording_id": "20-33-31",
+      "x": 1221,
+      "y": 646
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|5",
+      "recording_id": "20-33-31",
+      "x": 856,
+      "y": 442
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|6",
+      "recording_id": "20-33-31",
+      "x": 804,
+      "y": 591
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|7",
+      "recording_id": "20-33-31",
+      "x": 1065,
+      "y": 245
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|8",
+      "recording_id": "20-33-31",
+      "x": 1020,
+      "y": 413
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|0",
+      "recording_id": "20-33-31",
+      "x": 692,
+      "y": 693
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|1",
+      "recording_id": "20-33-31",
+      "x": 1064,
+      "y": 525
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|2",
+      "recording_id": "20-33-31",
+      "x": 1270,
+      "y": 272
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|3",
+      "recording_id": "20-33-31",
+      "x": 820,
+      "y": 731
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|4",
+      "recording_id": "20-33-31",
+      "x": 851,
+      "y": 619
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|5",
+      "recording_id": "20-33-31",
+      "x": 905,
+      "y": 418
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|6",
+      "recording_id": "20-33-31",
+      "x": 1071,
+      "y": 591
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|7",
+      "recording_id": "20-33-31",
+      "x": 939,
+      "y": 86
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|8",
+      "recording_id": "20-33-31",
+      "x": 1187,
+      "y": 322
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|0",
+      "recording_id": "20-33-31",
+      "x": 645,
+      "y": 813
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|1",
+      "recording_id": "20-33-31",
+      "x": 643,
+      "y": 647
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|2",
+      "recording_id": "20-33-31",
+      "x": 818,
+      "y": 711
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|3",
+      "recording_id": "20-33-31",
+      "x": 1000,
+      "y": 368
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|4",
+      "recording_id": "20-33-31",
+      "x": 1007,
+      "y": 438
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|5",
+      "recording_id": "20-33-31",
+      "x": 795,
+      "y": 429
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|6",
+      "recording_id": "20-33-31",
+      "x": 734,
+      "y": 181
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|7",
+      "recording_id": "20-33-31",
+      "x": 1166,
+      "y": 494
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|8",
+      "recording_id": "20-33-31",
+      "x": 1060,
+      "y": 126
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|0",
+      "recording_id": "20-33-31",
+      "x": 696,
+      "y": 768
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|1",
+      "recording_id": "20-33-31",
+      "x": 619,
+      "y": 455
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|2",
+      "recording_id": "20-33-31",
+      "x": 1113,
+      "y": 464
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|3",
+      "recording_id": "20-33-31",
+      "x": 630,
+      "y": 496
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|4",
+      "recording_id": "20-33-31",
+      "x": 853,
+      "y": 411
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|5",
+      "recording_id": "20-33-31",
+      "x": 792,
+      "y": 795
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|6",
+      "recording_id": "20-33-31",
+      "x": 733,
+      "y": 186
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|7",
+      "recording_id": "20-33-31",
+      "x": 1131,
+      "y": 436
+    },
+    {
+      "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+      "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|8",
+      "recording_id": "20-33-31",
+      "x": 982,
+      "y": 156
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|0",
+      "recording_id": "22-31-53",
+      "x": 1330,
+      "y": 184
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|1",
+      "recording_id": "22-31-53",
+      "x": 634,
+      "y": 882
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|2",
+      "recording_id": "22-31-53",
+      "x": 1138,
+      "y": 396
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|3",
+      "recording_id": "22-31-53",
+      "x": 1364,
+      "y": 186
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|4",
+      "recording_id": "22-31-53",
+      "x": 1075,
+      "y": 389
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|5",
+      "recording_id": "22-31-53",
+      "x": 1079,
+      "y": 445
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|6",
+      "recording_id": "22-31-53",
+      "x": 1241,
+      "y": 109
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|7",
+      "recording_id": "22-31-53",
+      "x": 1257,
+      "y": 188
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|8",
+      "recording_id": "22-31-53",
+      "x": 969,
+      "y": 311
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|0",
+      "recording_id": "22-31-53",
+      "x": 1061,
+      "y": 227
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|1",
+      "recording_id": "22-31-53",
+      "x": 883,
+      "y": 584
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|2",
+      "recording_id": "22-31-53",
+      "x": 994,
+      "y": 674
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|3",
+      "recording_id": "22-31-53",
+      "x": 1020,
+      "y": 763
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|4",
+      "recording_id": "22-31-53",
+      "x": 914,
+      "y": 779
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|5",
+      "recording_id": "22-31-53",
+      "x": 1300,
+      "y": 198
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|6",
+      "recording_id": "22-31-53",
+      "x": 976,
+      "y": 791
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|7",
+      "recording_id": "22-31-53",
+      "x": 656,
+      "y": 846
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|8",
+      "recording_id": "22-31-53",
+      "x": 887,
+      "y": 451
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|0",
+      "recording_id": "22-31-53",
+      "x": 920,
+      "y": 525
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|1",
+      "recording_id": "22-31-53",
+      "x": 803,
+      "y": 856
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|2",
+      "recording_id": "22-31-53",
+      "x": 725,
+      "y": 830
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|3",
+      "recording_id": "22-31-53",
+      "x": 1299,
+      "y": 310
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|4",
+      "recording_id": "22-31-53",
+      "x": 889,
+      "y": 588
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|5",
+      "recording_id": "22-31-53",
+      "x": 894,
+      "y": 816
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|6",
+      "recording_id": "22-31-53",
+      "x": 823,
+      "y": 770
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|7",
+      "recording_id": "22-31-53",
+      "x": 792,
+      "y": 727
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|8",
+      "recording_id": "22-31-53",
+      "x": 1066,
+      "y": 395
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|0",
+      "recording_id": "22-31-53",
+      "x": 942,
+      "y": 398
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|1",
+      "recording_id": "22-31-53",
+      "x": 1001,
+      "y": 609
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|2",
+      "recording_id": "22-31-53",
+      "x": 877,
+      "y": 442
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|3",
+      "recording_id": "22-31-53",
+      "x": 866,
+      "y": 808
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|4",
+      "recording_id": "22-31-53",
+      "x": 944,
+      "y": 593
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|5",
+      "recording_id": "22-31-53",
+      "x": 760,
+      "y": 808
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|6",
+      "recording_id": "22-31-53",
+      "x": 1180,
+      "y": 260
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|7",
+      "recording_id": "22-31-53",
+      "x": 1265,
+      "y": 427
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|8",
+      "recording_id": "22-31-53",
+      "x": 745,
+      "y": 862
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|0",
+      "recording_id": "22-31-53",
+      "x": 1159,
+      "y": 235
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|1",
+      "recording_id": "22-31-53",
+      "x": 839,
+      "y": 839
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|2",
+      "recording_id": "22-31-53",
+      "x": 648,
+      "y": 896
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|3",
+      "recording_id": "22-31-53",
+      "x": 823,
+      "y": 630
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|4",
+      "recording_id": "22-31-53",
+      "x": 787,
+      "y": 878
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|5",
+      "recording_id": "22-31-53",
+      "x": 783,
+      "y": 749
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|6",
+      "recording_id": "22-31-53",
+      "x": 684,
+      "y": 906
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|7",
+      "recording_id": "22-31-53",
+      "x": 990,
+      "y": 432
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|8",
+      "recording_id": "22-31-53",
+      "x": 847,
+      "y": 437
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|0",
+      "recording_id": "22-31-53",
+      "x": 1078,
+      "y": 445
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|1",
+      "recording_id": "22-31-53",
+      "x": 1318,
+      "y": 101
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|2",
+      "recording_id": "22-31-53",
+      "x": 1208,
+      "y": 385
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|3",
+      "recording_id": "22-31-53",
+      "x": 1010,
+      "y": 765
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|4",
+      "recording_id": "22-31-53",
+      "x": 1024,
+      "y": 459
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|5",
+      "recording_id": "22-31-53",
+      "x": 1354,
+      "y": 287
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|6",
+      "recording_id": "22-31-53",
+      "x": 822,
+      "y": 762
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|7",
+      "recording_id": "22-31-53",
+      "x": 981,
+      "y": 801
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|8",
+      "recording_id": "22-31-53",
+      "x": 830,
+      "y": 819
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|0",
+      "recording_id": "22-31-53",
+      "x": 982,
+      "y": 374
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|1",
+      "recording_id": "22-31-53",
+      "x": 912,
+      "y": 760
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|2",
+      "recording_id": "22-31-53",
+      "x": 597,
+      "y": 793
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|3",
+      "recording_id": "22-31-53",
+      "x": 931,
+      "y": 447
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|4",
+      "recording_id": "22-31-53",
+      "x": 1063,
+      "y": 665
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|5",
+      "recording_id": "22-31-53",
+      "x": 1081,
+      "y": 323
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|6",
+      "recording_id": "22-31-53",
+      "x": 862,
+      "y": 866
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|7",
+      "recording_id": "22-31-53",
+      "x": 804,
+      "y": 785
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|8",
+      "recording_id": "22-31-53",
+      "x": 754,
+      "y": 807
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|0",
+      "recording_id": "22-31-53",
+      "x": 871,
+      "y": 683
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|1",
+      "recording_id": "22-31-53",
+      "x": 1012,
+      "y": 753
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|2",
+      "recording_id": "22-31-53",
+      "x": 1020,
+      "y": 591
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|3",
+      "recording_id": "22-31-53",
+      "x": 1273,
+      "y": 203
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|4",
+      "recording_id": "22-31-53",
+      "x": 841,
+      "y": 818
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|5",
+      "recording_id": "22-31-53",
+      "x": 1121,
+      "y": 614
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|6",
+      "recording_id": "22-31-53",
+      "x": 1244,
+      "y": 140
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|7",
+      "recording_id": "22-31-53",
+      "x": 1188,
+      "y": 455
+    },
+    {
+      "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+      "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|8",
+      "recording_id": "22-31-53",
+      "x": 1023,
+      "y": 257
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|0",
+      "recording_id": "22-37-47",
+      "x": 880,
+      "y": 463
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|1",
+      "recording_id": "22-37-47",
+      "x": 1199,
+      "y": 784
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|2",
+      "recording_id": "22-37-47",
+      "x": 1047,
+      "y": 515
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|3",
+      "recording_id": "22-37-47",
+      "x": 792,
+      "y": 503
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|4",
+      "recording_id": "22-37-47",
+      "x": 1074,
+      "y": 485
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|5",
+      "recording_id": "22-37-47",
+      "x": 1055,
+      "y": 748
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|6",
+      "recording_id": "22-37-47",
+      "x": 1268,
+      "y": 557
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|7",
+      "recording_id": "22-37-47",
+      "x": 866,
+      "y": 650
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|8",
+      "recording_id": "22-37-47",
+      "x": 770,
+      "y": 545
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|0",
+      "recording_id": "22-37-47",
+      "x": 877,
+      "y": 672
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|1",
+      "recording_id": "22-37-47",
+      "x": 1069,
+      "y": 791
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|2",
+      "recording_id": "22-37-47",
+      "x": 787,
+      "y": 739
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|3",
+      "recording_id": "22-37-47",
+      "x": 1168,
+      "y": 405
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|4",
+      "recording_id": "22-37-47",
+      "x": 773,
+      "y": 521
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|5",
+      "recording_id": "22-37-47",
+      "x": 939,
+      "y": 641
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|6",
+      "recording_id": "22-37-47",
+      "x": 1305,
+      "y": 664
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|7",
+      "recording_id": "22-37-47",
+      "x": 1078,
+      "y": 388
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|8",
+      "recording_id": "22-37-47",
+      "x": 794,
+      "y": 260
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|0",
+      "recording_id": "22-37-47",
+      "x": 1058,
+      "y": 291
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|1",
+      "recording_id": "22-37-47",
+      "x": 733,
+      "y": 725
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|2",
+      "recording_id": "22-37-47",
+      "x": 1284,
+      "y": 219
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|3",
+      "recording_id": "22-37-47",
+      "x": 1234,
+      "y": 101
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|4",
+      "recording_id": "22-37-47",
+      "x": 919,
+      "y": 382
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|5",
+      "recording_id": "22-37-47",
+      "x": 886,
+      "y": 128
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|6",
+      "recording_id": "22-37-47",
+      "x": 1111,
+      "y": 393
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|7",
+      "recording_id": "22-37-47",
+      "x": 711,
+      "y": 582
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|8",
+      "recording_id": "22-37-47",
+      "x": 897,
+      "y": 664
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|0",
+      "recording_id": "22-37-47",
+      "x": 1131,
+      "y": 443
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|1",
+      "recording_id": "22-37-47",
+      "x": 795,
+      "y": 517
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|2",
+      "recording_id": "22-37-47",
+      "x": 1068,
+      "y": 403
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|3",
+      "recording_id": "22-37-47",
+      "x": 1188,
+      "y": 446
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|4",
+      "recording_id": "22-37-47",
+      "x": 781,
+      "y": 708
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|5",
+      "recording_id": "22-37-47",
+      "x": 1129,
+      "y": 807
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|6",
+      "recording_id": "22-37-47",
+      "x": 875,
+      "y": 551
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|7",
+      "recording_id": "22-37-47",
+      "x": 1126,
+      "y": 331
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|8",
+      "recording_id": "22-37-47",
+      "x": 888,
+      "y": 302
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|0",
+      "recording_id": "22-37-47",
+      "x": 1301,
+      "y": 252
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|1",
+      "recording_id": "22-37-47",
+      "x": 784,
+      "y": 97
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|2",
+      "recording_id": "22-37-47",
+      "x": 799,
+      "y": 811
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|3",
+      "recording_id": "22-37-47",
+      "x": 910,
+      "y": 625
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|4",
+      "recording_id": "22-37-47",
+      "x": 1288,
+      "y": 555
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|5",
+      "recording_id": "22-37-47",
+      "x": 1164,
+      "y": 124
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|6",
+      "recording_id": "22-37-47",
+      "x": 1234,
+      "y": 365
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|7",
+      "recording_id": "22-37-47",
+      "x": 1129,
+      "y": 248
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|8",
+      "recording_id": "22-37-47",
+      "x": 822,
+      "y": 525
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|0",
+      "recording_id": "22-37-47",
+      "x": 725,
+      "y": 859
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|1",
+      "recording_id": "22-37-47",
+      "x": 999,
+      "y": 493
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|2",
+      "recording_id": "22-37-47",
+      "x": 1165,
+      "y": 378
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|3",
+      "recording_id": "22-37-47",
+      "x": 951,
+      "y": 353
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|4",
+      "recording_id": "22-37-47",
+      "x": 827,
+      "y": 119
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|5",
+      "recording_id": "22-37-47",
+      "x": 935,
+      "y": 771
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|6",
+      "recording_id": "22-37-47",
+      "x": 1271,
+      "y": 249
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|7",
+      "recording_id": "22-37-47",
+      "x": 1018,
+      "y": 646
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|8",
+      "recording_id": "22-37-47",
+      "x": 932,
+      "y": 565
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|0",
+      "recording_id": "22-37-47",
+      "x": 842,
+      "y": 543
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|1",
+      "recording_id": "22-37-47",
+      "x": 798,
+      "y": 809
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|2",
+      "recording_id": "22-37-47",
+      "x": 1145,
+      "y": 412
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|3",
+      "recording_id": "22-37-47",
+      "x": 924,
+      "y": 471
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|4",
+      "recording_id": "22-37-47",
+      "x": 801,
+      "y": 546
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|5",
+      "recording_id": "22-37-47",
+      "x": 920,
+      "y": 529
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|6",
+      "recording_id": "22-37-47",
+      "x": 1130,
+      "y": 456
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|7",
+      "recording_id": "22-37-47",
+      "x": 769,
+      "y": 782
+    },
+    {
+      "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+      "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|8",
+      "recording_id": "22-37-47",
+      "x": 891,
+      "y": 639
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|0",
+      "recording_id": "22-57-30",
+      "x": 978,
+      "y": 566
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|1",
+      "recording_id": "22-57-30",
+      "x": 885,
+      "y": 656
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|2",
+      "recording_id": "22-57-30",
+      "x": 833,
+      "y": 231
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|3",
+      "recording_id": "22-57-30",
+      "x": 1260,
+      "y": 287
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|4",
+      "recording_id": "22-57-30",
+      "x": 1392,
+      "y": 235
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|5",
+      "recording_id": "22-57-30",
+      "x": 916,
+      "y": 691
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|6",
+      "recording_id": "22-57-30",
+      "x": 926,
+      "y": 534
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|7",
+      "recording_id": "22-57-30",
+      "x": 668,
+      "y": 509
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|8",
+      "recording_id": "22-57-30",
+      "x": 778,
+      "y": 761
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|0",
+      "recording_id": "22-57-30",
+      "x": 1071,
+      "y": 816
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|1",
+      "recording_id": "22-57-30",
+      "x": 1045,
+      "y": 782
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|2",
+      "recording_id": "22-57-30",
+      "x": 1155,
+      "y": 444
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|3",
+      "recording_id": "22-57-30",
+      "x": 1181,
+      "y": 793
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|4",
+      "recording_id": "22-57-30",
+      "x": 798,
+      "y": 709
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|5",
+      "recording_id": "22-57-30",
+      "x": 684,
+      "y": 664
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|6",
+      "recording_id": "22-57-30",
+      "x": 789,
+      "y": 501
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|7",
+      "recording_id": "22-57-30",
+      "x": 862,
+      "y": 648
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|8",
+      "recording_id": "22-57-30",
+      "x": 893,
+      "y": 594
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|0",
+      "recording_id": "22-57-30",
+      "x": 1247,
+      "y": 419
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|1",
+      "recording_id": "22-57-30",
+      "x": 1037,
+      "y": 641
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|2",
+      "recording_id": "22-57-30",
+      "x": 702,
+      "y": 487
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|3",
+      "recording_id": "22-57-30",
+      "x": 954,
+      "y": 581
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|4",
+      "recording_id": "22-57-30",
+      "x": 776,
+      "y": 707
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|5",
+      "recording_id": "22-57-30",
+      "x": 819,
+      "y": 916
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|6",
+      "recording_id": "22-57-30",
+      "x": 838,
+      "y": 565
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|7",
+      "recording_id": "22-57-30",
+      "x": 1055,
+      "y": 793
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|8",
+      "recording_id": "22-57-30",
+      "x": 853,
+      "y": 226
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|0",
+      "recording_id": "22-57-30",
+      "x": 1339,
+      "y": 491
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|1",
+      "recording_id": "22-57-30",
+      "x": 1300,
+      "y": 517
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|2",
+      "recording_id": "22-57-30",
+      "x": 718,
+      "y": 601
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|3",
+      "recording_id": "22-57-30",
+      "x": 902,
+      "y": 490
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|4",
+      "recording_id": "22-57-30",
+      "x": 1356,
+      "y": 423
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|5",
+      "recording_id": "22-57-30",
+      "x": 902,
+      "y": 561
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|6",
+      "recording_id": "22-57-30",
+      "x": 800,
+      "y": 549
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|7",
+      "recording_id": "22-57-30",
+      "x": 1168,
+      "y": 426
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|8",
+      "recording_id": "22-57-30",
+      "x": 1256,
+      "y": 534
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|0",
+      "recording_id": "22-57-30",
+      "x": 714,
+      "y": 495
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|1",
+      "recording_id": "22-57-30",
+      "x": 824,
+      "y": 545
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|2",
+      "recording_id": "22-57-30",
+      "x": 959,
+      "y": 483
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|3",
+      "recording_id": "22-57-30",
+      "x": 1190,
+      "y": 322
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|4",
+      "recording_id": "22-57-30",
+      "x": 1071,
+      "y": 741
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|5",
+      "recording_id": "22-57-30",
+      "x": 707,
+      "y": 446
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|6",
+      "recording_id": "22-57-30",
+      "x": 787,
+      "y": 261
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|7",
+      "recording_id": "22-57-30",
+      "x": 679,
+      "y": 816
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|8",
+      "recording_id": "22-57-30",
+      "x": 882,
+      "y": 563
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|0",
+      "recording_id": "22-57-30",
+      "x": 1305,
+      "y": 531
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|1",
+      "recording_id": "22-57-30",
+      "x": 656,
+      "y": 779
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|2",
+      "recording_id": "22-57-30",
+      "x": 1191,
+      "y": 313
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|3",
+      "recording_id": "22-57-30",
+      "x": 683,
+      "y": 667
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|4",
+      "recording_id": "22-57-30",
+      "x": 897,
+      "y": 397
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|5",
+      "recording_id": "22-57-30",
+      "x": 1105,
+      "y": 769
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|6",
+      "recording_id": "22-57-30",
+      "x": 777,
+      "y": 718
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|7",
+      "recording_id": "22-57-30",
+      "x": 1226,
+      "y": 427
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|8",
+      "recording_id": "22-57-30",
+      "x": 1154,
+      "y": 427
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|0",
+      "recording_id": "22-57-30",
+      "x": 1006,
+      "y": 438
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|1",
+      "recording_id": "22-57-30",
+      "x": 715,
+      "y": 250
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|2",
+      "recording_id": "22-57-30",
+      "x": 1070,
+      "y": 322
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|3",
+      "recording_id": "22-57-30",
+      "x": 998,
+      "y": 644
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|4",
+      "recording_id": "22-57-30",
+      "x": 944,
+      "y": 533
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|5",
+      "recording_id": "22-57-30",
+      "x": 1122,
+      "y": 380
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|6",
+      "recording_id": "22-57-30",
+      "x": 745,
+      "y": 269
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|7",
+      "recording_id": "22-57-30",
+      "x": 719,
+      "y": 874
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|8",
+      "recording_id": "22-57-30",
+      "x": 803,
+      "y": 634
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|0",
+      "recording_id": "22-57-30",
+      "x": 1099,
+      "y": 501
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|1",
+      "recording_id": "22-57-30",
+      "x": 759,
+      "y": 471
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|2",
+      "recording_id": "22-57-30",
+      "x": 1105,
+      "y": 758
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|3",
+      "recording_id": "22-57-30",
+      "x": 817,
+      "y": 483
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|4",
+      "recording_id": "22-57-30",
+      "x": 1147,
+      "y": 402
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|5",
+      "recording_id": "22-57-30",
+      "x": 1220,
+      "y": 486
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|6",
+      "recording_id": "22-57-30",
+      "x": 879,
+      "y": 786
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|7",
+      "recording_id": "22-57-30",
+      "x": 1166,
+      "y": 754
+    },
+    {
+      "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+      "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|8",
+      "recording_id": "22-57-30",
+      "x": 724,
+      "y": 254
+    }
+  ],
+  "recordings": [
+    "18-18-00",
+    "20-33-31",
+    "22-31-53",
+    "22-37-47",
+    "22-57-30"
+  ],
+  "stage": 1,
+  "stage_identities": {
+    "18-18-00": {
+      "battle_mode_id": "tower_control",
+      "stage_id": "makomart"
+    },
+    "20-33-31": {
+      "battle_mode_id": "rainmaker",
+      "stage_id": "shipshape_cargo_co"
+    },
+    "22-31-53": {
+      "battle_mode_id": "turf_war",
+      "stage_id": "manta_maria"
+    },
+    "22-37-47": {
+      "battle_mode_id": "splat_zones",
+      "stage_id": "wahoo_world"
+    },
+    "22-57-30": {
+      "battle_mode_id": "splat_zones",
+      "stage_id": "wahoo_world"
+    }
+  },
+  "tool": {
+    "tool_commit": "2a3f9bfb84f4c4f0aad8f724bbd3a552e14b2f5c"
+  }
+}
