@@ -1,0 +1,72 @@
+{
+  "recordings": {
+    "18-18-00": {
+      "calibrated_at": 20.5,
+      "calibration_present": true,
+      "earliest_observation_time": 69.5,
+      "entry_count": 17,
+      "map_observations_sha256": "eb58f65c4fde629682bc382fba3723eb5de7b6049722fde33a079e4233c04045",
+      "match_identity_sha256": "deb3c7dbd65039a48f3b636f29823b019b40b1d59cbcac932705510ec7818193",
+      "pass": true
+    },
+    "18-25-16": {
+      "calibrated_at": 20.0,
+      "calibration_present": true,
+      "earliest_observation_time": null,
+      "entry_count": 0,
+      "map_observations_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "match_identity_sha256": "f3b9a1c15285ddf5d000e7de04d2d835fd01aaea0800d8c0791cb06a48ef157f",
+      "pass": true
+    },
+    "20-33-31": {
+      "calibrated_at": 14.5,
+      "calibration_present": true,
+      "earliest_observation_time": 39.5,
+      "entry_count": 25,
+      "map_observations_sha256": "779dd9f05dfb02e1df3dbcd8aaf8100fd9c627a8faf76a84d7708fe01af37353",
+      "match_identity_sha256": "d13486ec81bcf4b16dfd0e6d986bbbe8c40238f90b3a96a0253e1f88866ee27d",
+      "pass": true
+    },
+    "22-20-42": {
+      "calibrated_at": null,
+      "calibration_present": false,
+      "earliest_observation_time": null,
+      "entry_count": 0,
+      "map_observations_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "match_identity_sha256": "3b2b1ff2b5a5fad77f8c9b9f33cdda6e773659e4125d7607d59cdb68e769da5c",
+      "pass": true
+    },
+    "22-31-53": {
+      "calibrated_at": 42.0,
+      "calibration_present": true,
+      "earliest_observation_time": 45.5,
+      "entry_count": 25,
+      "map_observations_sha256": "bc647070c5ced03afe75e98457e170f87e1d64ce293e20697bc9a837128d39b3",
+      "match_identity_sha256": "6adb291f4b77cdd0770387baeefc230b1d87f47656a446b44e4e8f29c196e8c8",
+      "pass": true
+    },
+    "22-37-47": {
+      "calibrated_at": 43.0,
+      "calibration_present": true,
+      "earliest_observation_time": 44.0,
+      "entry_count": 18,
+      "map_observations_sha256": "add5223303f9beeb94e0f666c856cba569a928748119aacfdadb17477451bb46",
+      "match_identity_sha256": "37a853e9e81bdb7d28563412e5915f2354ff2f97fbc5357cd6863ceab7bb853e",
+      "pass": true
+    },
+    "22-57-30": {
+      "calibrated_at": 18.5,
+      "calibration_present": true,
+      "earliest_observation_time": 33.5,
+      "entry_count": 44,
+      "map_observations_sha256": "4aaffcdc6ece0ebdeb17146f95d10300bd99b0791cf65b3a443b57036c12b363",
+      "match_identity_sha256": "ad47138732baa35df2ec5afa80c47258f4b9e1baa8b04dac686d91efabd6c3d3",
+      "pass": true
+    }
+  },
+  "rule": "amendment4-criterion-4a-v1",
+  "tool": {
+    "tool_commit": "b98146ca079768dcd02b7afd077fb1e1ea312b3b"
+  },
+  "verdict_4a": "PASS"
+}
