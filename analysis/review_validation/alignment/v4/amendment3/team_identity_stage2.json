@@ -1,0 +1,44 @@
+{
+  "stage": 2,
+  "team": {
+    "32866c7842afb6e3": {
+      "end": {
+        "answer": "B",
+        "left": "A",
+        "position_seed": 17124674135064608277
+      },
+      "start": {
+        "answer": "B",
+        "left": "B",
+        "position_seed": 6889892760705339927
+      }
+    },
+    "a9f0ee5502be0fe5": {
+      "end": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 12536492314204420268
+      },
+      "start": {
+        "answer": "A",
+        "left": "B",
+        "position_seed": 12105640903416088330
+      }
+    },
+    "c9c859c6dc05ab50": {
+      "end": {
+        "answer": "A",
+        "left": "B",
+        "position_seed": 2503452333657846576
+      },
+      "start": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 4089925832874232490
+      }
+    }
+  },
+  "tool": {
+    "tool_commit": "fc85c423571f511a9376a7a68e75db3008a21b26"
+  }
+}
