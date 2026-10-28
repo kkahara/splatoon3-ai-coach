@@ -1,0 +1,307 @@
+{
+  "capacity_exhausted_recordings": [],
+  "criterion_4": "NOT_EVALUABLE",
+  "descriptive": {
+    "coverage": {
+      "18-18-00": {
+        "a1_observations": {
+          "count": 17,
+          "sha256": "eb58f65c4fde629682bc382fba3723eb5de7b6049722fde33a079e4233c04045"
+        },
+        "eligible_frames": 25,
+        "eligible_intervals": 11,
+        "v3_observations": {
+          "count": 17,
+          "sha256": "d770b3dc4bf9357a2ce1b9b0ede673e2b3fabbffa5b870f62236077e200a7df2"
+        }
+      },
+      "18-25-16": {
+        "a1_observations": {
+          "count": 0,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        "eligible_frames": 17,
+        "eligible_intervals": 8,
+        "v3_observations": {
+          "count": 0,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        }
+      },
+      "20-33-31": {
+        "a1_observations": {
+          "count": 25,
+          "sha256": "779dd9f05dfb02e1df3dbcd8aaf8100fd9c627a8faf76a84d7708fe01af37353"
+        },
+        "eligible_frames": 30,
+        "eligible_intervals": 20,
+        "v3_observations": {
+          "count": 25,
+          "sha256": "6df10e0e1bacba78db7f495b44c1215c5db620f5284c9a08e7fbe337f7a3f133"
+        }
+      },
+      "22-20-42": {
+        "a1_observations": {
+          "count": 0,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        "eligible_frames": 27,
+        "eligible_intervals": 9,
+        "v3_observations": {
+          "count": 21,
+          "sha256": "0a442f25aff9dd80dc9b85d12d84d683e216bdbbcf3ab4793e61c835a9cf1e32"
+        }
+      },
+      "22-31-53": {
+        "a1_observations": {
+          "count": 25,
+          "sha256": "bc647070c5ced03afe75e98457e170f87e1d64ce293e20697bc9a837128d39b3"
+        },
+        "eligible_frames": 31,
+        "eligible_intervals": 14,
+        "v3_observations": {
+          "count": 25,
+          "sha256": "bc647070c5ced03afe75e98457e170f87e1d64ce293e20697bc9a837128d39b3"
+        }
+      },
+      "22-37-47": {
+        "a1_observations": {
+          "count": 18,
+          "sha256": "add5223303f9beeb94e0f666c856cba569a928748119aacfdadb17477451bb46"
+        },
+        "eligible_frames": 22,
+        "eligible_intervals": 7,
+        "v3_observations": {
+          "count": 1,
+          "sha256": "ccba8e6a40b57641c65015f8ff4d475c04ed8d184d8ca9a6a273b91ddec637aa"
+        }
+      },
+      "22-57-30": {
+        "a1_observations": {
+          "count": 44,
+          "sha256": "4aaffcdc6ece0ebdeb17146f95d10300bd99b0791cf65b3a443b57036c12b363"
+        },
+        "eligible_frames": 75,
+        "eligible_intervals": 21,
+        "v3_observations": {
+          "count": 44,
+          "sha256": "5dd58be6d9df9efc96538d1b96a9d581f63033254c0c600ff0c4792fb2db1698"
+        }
+      }
+    },
+    "pooled_accuracy_a1": 0.7068965517241379,
+    "pooled_accuracy_v3": 0.6264367816091954,
+    "recordings": [
+      {
+        "F_nz": 3,
+        "N": 11,
+        "T": 1,
+        "capacity_exhausted": false,
+        "inversion_rate_a1": 0.029850746268656716,
+        "inversion_rate_v3": 0.03076923076923077,
+        "judgeable_frames": 11,
+        "judgeable_points": 99,
+        "p_imp": 0.5,
+        "p_reg": 0.875,
+        "q_all": 0.04703721609893084,
+        "recording_id": "18-18-00",
+        "verdict": "INCONCLUSIVE"
+      },
+      {
+        "F_nz": 3,
+        "N": 16,
+        "T": 4,
+        "capacity_exhausted": false,
+        "inversion_rate_a1": 0.0,
+        "inversion_rate_v3": 0.0,
+        "judgeable_frames": 16,
+        "judgeable_points": 144,
+        "p_imp": 0.125,
+        "p_reg": 1.0,
+        "q_all": 0.02460742241716887,
+        "recording_id": "20-33-31",
+        "verdict": "INCONCLUSIVE"
+      },
+      {
+        "F_nz": null,
+        "N": 8,
+        "T": null,
+        "capacity_exhausted": false,
+        "inversion_rate_a1": 0.0,
+        "inversion_rate_v3": 0.0,
+        "judgeable_frames": 8,
+        "judgeable_points": 72,
+        "p_imp": null,
+        "p_reg": null,
+        "q_all": 0.0,
+        "recording_id": "22-31-53",
+        "verdict": "PRESERVED"
+      },
+      {
+        "F_nz": 7,
+        "N": 7,
+        "T": 36,
+        "capacity_exhausted": false,
+        "inversion_rate_a1": 0.0,
+        "inversion_rate_v3": 0.0,
+        "judgeable_frames": 7,
+        "judgeable_points": 63,
+        "p_imp": 0.0078125,
+        "p_reg": 1.0,
+        "q_all": 0.9156526508866332,
+        "recording_id": "22-37-47",
+        "verdict": "PRESERVED_IMPROVED"
+      },
+      {
+        "F_nz": 1,
+        "N": 16,
+        "T": 1,
+        "capacity_exhausted": false,
+        "inversion_rate_a1": 0.009615384615384616,
+        "inversion_rate_v3": 0.009615384615384616,
+        "judgeable_frames": 16,
+        "judgeable_points": 144,
+        "p_imp": 0.5,
+        "p_reg": 1.0,
+        "q_all": 0.0044819566561217095,
+        "recording_id": "22-57-30",
+        "verdict": "INCONCLUSIVE"
+      }
+    ],
+    "stage_identity_crosscheck": [
+      {
+        "a1": {
+          "battle_mode_id": "tower_control",
+          "sha256": "deb3c7dbd65039a48f3b636f29823b019b40b1d59cbcac932705510ec7818193",
+          "stage_id": "makomart"
+        },
+        "a1_agrees": true,
+        "blind_input": {
+          "battle_mode_id": "tower_control",
+          "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+          "stage_id": "makomart"
+        },
+        "recording_id": "18-18-00",
+        "v3": {
+          "battle_mode_id": "tower_control",
+          "sha256": "ccb17a920c6bf010def1ede8b64dcb99782d0cc4b9d52b5111a4177c42ee4e57",
+          "stage_id": "makomart"
+        },
+        "v3_agrees": true
+      },
+      {
+        "a1": {
+          "battle_mode_id": "rainmaker",
+          "sha256": "d13486ec81bcf4b16dfd0e6d986bbbe8c40238f90b3a96a0253e1f88866ee27d",
+          "stage_id": "shipshape_cargo_co"
+        },
+        "a1_agrees": true,
+        "blind_input": {
+          "battle_mode_id": "rainmaker",
+          "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+          "stage_id": "shipshape_cargo_co"
+        },
+        "recording_id": "20-33-31",
+        "v3": {
+          "battle_mode_id": "rainmaker",
+          "sha256": "0ed0de2707ee19644d1c684e1e1a75b5a52168da524db349856ab0888eea0323",
+          "stage_id": "shipshape_cargo_co"
+        },
+        "v3_agrees": true
+      },
+      {
+        "a1": {
+          "battle_mode_id": "turf_war",
+          "sha256": "6adb291f4b77cdd0770387baeefc230b1d87f47656a446b44e4e8f29c196e8c8",
+          "stage_id": "manta_maria"
+        },
+        "a1_agrees": true,
+        "blind_input": {
+          "battle_mode_id": "turf_war",
+          "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+          "stage_id": "manta_maria"
+        },
+        "recording_id": "22-31-53",
+        "v3": {
+          "battle_mode_id": "turf_war",
+          "sha256": "fee58b967c0f8e914793c0c7d58cf7979d38bcafd4dc52354544d5bf6acf1bf4",
+          "stage_id": "manta_maria"
+        },
+        "v3_agrees": true
+      },
+      {
+        "a1": {
+          "battle_mode_id": "splat_zones",
+          "sha256": "37a853e9e81bdb7d28563412e5915f2354ff2f97fbc5357cd6863ceab7bb853e",
+          "stage_id": "wahoo_world"
+        },
+        "a1_agrees": true,
+        "blind_input": {
+          "battle_mode_id": "splat_zones",
+          "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+          "stage_id": "wahoo_world"
+        },
+        "recording_id": "22-37-47",
+        "v3": {
+          "battle_mode_id": "splat_zones",
+          "sha256": "9b8fdd4fd963c2ee162f0e383cc1f001fcf867fd7bad214e7b4577c5fb3467f2",
+          "stage_id": "wahoo_world"
+        },
+        "v3_agrees": true
+      },
+      {
+        "a1": {
+          "battle_mode_id": "splat_zones",
+          "sha256": "ad47138732baa35df2ec5afa80c47258f4b9e1baa8b04dac686d91efabd6c3d3",
+          "stage_id": "wahoo_world"
+        },
+        "a1_agrees": true,
+        "blind_input": {
+          "battle_mode_id": "splat_zones",
+          "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+          "stage_id": "wahoo_world"
+        },
+        "recording_id": "22-57-30",
+        "v3": {
+          "battle_mode_id": "splat_zones",
+          "sha256": "a30a6da97053b719ab7e1dc1e220cc9d33f50b60927ba1d50731ab4cb1c0c028",
+          "stage_id": "wahoo_world"
+        },
+        "v3_agrees": true
+      }
+    ]
+  },
+  "gates": {
+    "stage1": {
+      "cap": 0.1,
+      "denominator": 36,
+      "excluded": 0,
+      "numerator": 0,
+      "passed": true,
+      "pooled": false,
+      "stage": 1,
+      "tool": {
+        "tool_commit": "3c645b29e7edf73c9f3167890e77583b873915d3"
+      },
+      "upper_bound": 0.07984650951989443
+    },
+    "stage2": {
+      "cap": 0.1,
+      "denominator": 54,
+      "excluded": 0,
+      "numerator": 0,
+      "passed": true,
+      "pooled": true,
+      "stage": 2,
+      "tool": {
+        "tool_commit": "50db2049eb3efd208f1b3b591c0617b99eb5289c"
+      },
+      "upper_bound": 0.05396576709737627
+    }
+  },
+  "post_seal_stage_identity_discrepancies": [],
+  "tool": {
+    "tool_commit": "2af9a0868a1e1e0f3bab0bfa409f404fe68de505"
+  },
+  "verdict_4a": "PASS",
+  "verdict_4b": "NOT_EVALUABLE"
+}
