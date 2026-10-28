@@ -1,0 +1,108 @@
+{
+  "stage": 1,
+  "swatches": {
+    "099ed9486022c499": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 3666054783077249017,
+      "pixels": [
+        {
+          "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+          "x": 1006,
+          "y": 640
+        },
+        {
+          "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+          "x": 940,
+          "y": 422
+        }
+      ],
+      "status": "valid"
+    },
+    "32866c7842afb6e3": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 14842559796959573303,
+      "pixels": [
+        {
+          "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+          "x": 856,
+          "y": 538
+        },
+        {
+          "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+          "x": 784,
+          "y": 652
+        }
+      ],
+      "status": "valid"
+    },
+    "a69a54757b793f00": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 2597715317982756754,
+      "pixels": [
+        {
+          "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+          "x": 716,
+          "y": 733
+        },
+        {
+          "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+          "x": 1295,
+          "y": 204
+        }
+      ],
+      "status": "valid"
+    },
+    "a9f0ee5502be0fe5": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 14155096495981853167,
+      "pixels": [
+        {
+          "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+          "x": 932,
+          "y": 586
+        },
+        {
+          "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+          "x": 1031,
+          "y": 600
+        }
+      ],
+      "status": "valid"
+    },
+    "c9c859c6dc05ab50": {
+      "assignment": {
+        "A": 0,
+        "B": 1
+      },
+      "draw_seed": 11825839117286505785,
+      "pixels": [
+        {
+          "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+          "x": 888,
+          "y": 546
+        },
+        {
+          "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+          "x": 1109,
+          "y": 315
+        }
+      ],
+      "status": "valid"
+    }
+  },
+  "tool": {
+    "tool_commit": "adafbd8ca597097782e04097473b2cffec1efb72"
+  }
+}

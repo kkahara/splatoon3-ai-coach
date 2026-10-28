@@ -1,0 +1,68 @@
+{
+  "stage": 1,
+  "team": {
+    "099ed9486022c499": {
+      "end": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 12459316690922768699
+      },
+      "start": {
+        "answer": "A",
+        "left": "B",
+        "position_seed": 6575795734865186463
+      }
+    },
+    "32866c7842afb6e3": {
+      "end": {
+        "answer": "B",
+        "left": "A",
+        "position_seed": 13774062527820585983
+      },
+      "start": {
+        "answer": "B",
+        "left": "B",
+        "position_seed": 10215001672926431814
+      }
+    },
+    "a69a54757b793f00": {
+      "end": {
+        "answer": "A",
+        "left": "B",
+        "position_seed": 8488342420398966269
+      },
+      "start": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 15352220873658038113
+      }
+    },
+    "a9f0ee5502be0fe5": {
+      "end": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 14353874288440648076
+      },
+      "start": {
+        "answer": "A",
+        "left": "B",
+        "position_seed": 10385358900664896193
+      }
+    },
+    "c9c859c6dc05ab50": {
+      "end": {
+        "answer": "A",
+        "left": "B",
+        "position_seed": 11663561399049670191
+      },
+      "start": {
+        "answer": "A",
+        "left": "A",
+        "position_seed": 15275362289864791104
+      }
+    }
+  },
+  "tool": {
+    "tool_commit": "adafbd8ca597097782e04097473b2cffec1efb72"
+  }
+}
