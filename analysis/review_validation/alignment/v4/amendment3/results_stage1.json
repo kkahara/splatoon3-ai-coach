@@ -1,0 +1,2932 @@
+{
+  "blind_input_reproduction": {
+    "blind_input_manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+    "current_environment": {
+      "pydantic_version": "2.13.5",
+      "python_version": "3.14.7"
+    },
+    "reproduced": true,
+    "rule": "amendment4-intro-latch-v1",
+    "sealed_environment": {
+      "pydantic_version": "2.13.5",
+      "python_version": "3.14.7"
+    }
+  },
+  "recordings": [
+    {
+      "frames": {
+        "stage1": [
+          {
+            "a1_correct": 6,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|2",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:4350|8",
+                "reference": "other",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 6,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 6,
+            "a1_inverted": 2,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "other",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|0",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|2",
+                "reference": "ally",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|5",
+                "reference": "opponent",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|6",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:6990|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 6,
+            "v3_inverted": 2
+          },
+          {
+            "a1_correct": 3,
+            "a1_inverted": 0,
+            "b": 1,
+            "c": 1,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|0",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|2",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|3",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|4",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|6",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "other",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|7",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7140|8",
+                "reference": "other",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 4,
+            "v3_correct": 3,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7260|8",
+                "reference": "other",
+                "v3": "other"
+              }
+            ],
+            "team_points": 7,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "other",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|6",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12060|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 7,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 1,
+            "d": 1,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|0",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|2",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|6",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12240|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 4,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:12390|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 7,
+            "v3_correct": 7,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "18-18-00|87df0382a98ef49e3cc648ef47826b9c55a752900a4255aa89e85f1dcfcd6d6a:frame:7350|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          }
+        ]
+      },
+      "identity": {
+        "differing": 242353,
+        "holds": false,
+        "hues_equal": false,
+        "q_all": 0.04703721609893084,
+        "total": 5152367
+      },
+      "own_swatch": "A",
+      "recording_id": "18-18-00",
+      "swatch_valid": true,
+      "test": {
+        "f_nz": 1,
+        "p_imp": 0.5,
+        "p_imp_exact": "1/2",
+        "p_reg": 1.0,
+        "p_reg_exact": "1/1",
+        "t_obs": 1
+      },
+      "verdict": "INCONCLUSIVE"
+    },
+    {
+      "frames": {
+        "stage1": [
+          {
+            "a1_correct": 2,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 1,
+            "d": 1,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|2",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|5",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|6",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:2640|8",
+                "reference": "other",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 1,
+            "v3_correct": 1,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 1,
+            "d": 1,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|5",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4530|8",
+                "reference": "other",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 4,
+            "v3_correct": 4,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 2,
+            "d": 2,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "other",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|2",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|4",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4620|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 6,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 6,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|5",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:7530|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 6,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|3",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|7",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9420|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 5,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:11130|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|1",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|5",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|6",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:4320|8",
+                "reference": "other",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 5,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 3,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|1",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|3",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|6",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|7",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "20-33-31|a1a1f012e105a25037bd6415c10a3d035de811eba0a13d30a473bc8953fe00e9:frame:9300|8",
+                "reference": "other",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 3,
+            "v3_correct": 3,
+            "v3_inverted": 0
+          }
+        ]
+      },
+      "identity": {
+        "differing": 186069,
+        "holds": false,
+        "hues_equal": false,
+        "q_all": 0.02460742241716887,
+        "total": 7561499
+      },
+      "own_swatch": "A",
+      "recording_id": "20-33-31",
+      "swatch_valid": true,
+      "test": {
+        "f_nz": 3,
+        "p_imp": 0.125,
+        "p_imp_exact": "1/8",
+        "p_reg": 1.0,
+        "p_reg_exact": "1/1",
+        "t_obs": 4
+      },
+      "verdict": "INCONCLUSIVE"
+    },
+    {
+      "frames": {
+        "stage1": [
+          {
+            "a1_correct": 9,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:8910|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 9,
+            "v3_correct": 9,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|2",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9060|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 9,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|5",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9780|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 9,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|4",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:10980|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 9,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|5",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11250|8",
+                "reference": "opponent",
+                "v3": "other"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 7,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 9,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|1",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:11370|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 9,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|4",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:12930|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 9,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|3",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-31-53|e072eefedcefc6a6540834ef7a4cf014063d71a618384293a461bc2b985e89f4:frame:9690|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 8,
+            "v3_inverted": 0
+          }
+        ]
+      },
+      "identity": {
+        "differing": 0,
+        "holds": true,
+        "hues_equal": true,
+        "q_all": 0.0,
+        "total": 6849475
+      },
+      "own_swatch": "A",
+      "recording_id": "22-31-53",
+      "swatch_valid": true,
+      "test": null,
+      "verdict": "PRESERVED"
+    },
+    {
+      "frames": {
+        "stage1": [
+          {
+            "a1_correct": 6,
+            "a1_inverted": 0,
+            "b": 3,
+            "c": 6,
+            "d": 3,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|0",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|1",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|2",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|3",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|4",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|5",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|6",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|7",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3720|8",
+                "reference": "opponent",
+                "v3": "other"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 3,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 6,
+            "a1_inverted": 0,
+            "b": 3,
+            "c": 6,
+            "d": 3,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|0",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|1",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|2",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|3",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|4",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|5",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|6",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|7",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3840|8",
+                "reference": "other",
+                "v3": "other"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 3,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 9,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 7,
+            "d": 7,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|0",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|1",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|2",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|4",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|5",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|6",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|7",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:12900|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 7,
+            "v3_correct": 2,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 1,
+            "c": 6,
+            "d": 5,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|0",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|1",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|2",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|3",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|4",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|5",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|7",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:13050|8",
+                "reference": "ally",
+                "v3": "other"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 2,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 2,
+            "c": 6,
+            "d": 4,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|0",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|1",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|2",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|3",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|4",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|5",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|6",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|7",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:18450|8",
+                "reference": "ally",
+                "v3": "other"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 3,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 9,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 7,
+            "d": 7,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|0",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|2",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|3",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|5",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|6",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|7",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:3990|8",
+                "reference": "other",
+                "v3": "other"
+              }
+            ],
+            "team_points": 7,
+            "v3_correct": 2,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 8,
+            "a1_inverted": 0,
+            "b": 1,
+            "c": 8,
+            "d": 7,
+            "frame_id": "767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|0",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|1",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|2",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|3",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|4",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|5",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|6",
+                "reference": "opponent",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|7",
+                "reference": "ally",
+                "v3": "other"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-37-47|767a7a411ff62c6fc7c5338fedcd27d8f3071709a16413898be563718ad3cb42:frame:9840|8",
+                "reference": "opponent",
+                "v3": "other"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 1,
+            "v3_inverted": 0
+          }
+        ]
+      },
+      "identity": {
+        "differing": 4134896,
+        "holds": false,
+        "hues_equal": false,
+        "q_all": 0.9156526508866332,
+        "total": 4515791
+      },
+      "own_swatch": "A",
+      "recording_id": "22-37-47",
+      "swatch_valid": true,
+      "test": {
+        "f_nz": 7,
+        "p_imp": 0.0078125,
+        "p_imp_exact": "1/128",
+        "p_reg": 1.0,
+        "p_reg_exact": "1/1",
+        "t_obs": 36
+      },
+      "verdict": "PRESERVED_IMPROVED"
+    },
+    {
+      "frames": {
+        "stage1": [
+          {
+            "a1_correct": 9,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "other",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|4",
+                "reference": "other",
+                "v3": "other"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3270|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 8,
+            "v3_correct": 9,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|3",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:3750|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 5,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|2",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|5",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|6",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|7",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:6750|8",
+                "reference": "other",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 5,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|0",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|6",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:7410|8",
+                "reference": "other",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 5,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|1",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|4",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|5",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|6",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:8910|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 7,
+            "v3_correct": 7,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 1,
+            "d": 1,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "other",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|0",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|5",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|6",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|7",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:10980|8",
+                "reference": "opponent",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 6,
+            "v3_correct": 6,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 7,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|0",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|1",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|2",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|3",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|4",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|6",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|7",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:17040|8",
+                "reference": "ally",
+                "v3": "ally"
+              }
+            ],
+            "team_points": 7,
+            "v3_correct": 7,
+            "v3_inverted": 0
+          },
+          {
+            "a1_correct": 5,
+            "a1_inverted": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "frame_id": "904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690",
+            "judgeable": true,
+            "judgeable_points": 9,
+            "points": [
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|0",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|1",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|2",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|3",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|4",
+                "reference": "ally",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|5",
+                "reference": "opponent",
+                "v3": "opponent"
+              },
+              {
+                "a1": "ally",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|6",
+                "reference": "other",
+                "v3": "ally"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|7",
+                "reference": "other",
+                "v3": "opponent"
+              },
+              {
+                "a1": "opponent",
+                "point_id": "22-57-30|904e6d4023d6f1f5d36fd5db2a6e6895f616fbdce45f83dc95ba8fc4efbc4d75:frame:18690|8",
+                "reference": "other",
+                "v3": "opponent"
+              }
+            ],
+            "team_points": 5,
+            "v3_correct": 5,
+            "v3_inverted": 0
+          }
+        ]
+      },
+      "identity": {
+        "differing": 71526,
+        "holds": false,
+        "hues_equal": false,
+        "q_all": 0.0044819566561217095,
+        "total": 15958655
+      },
+      "own_swatch": "B",
+      "recording_id": "22-57-30",
+      "swatch_valid": true,
+      "test": {
+        "f_nz": 1,
+        "p_imp": 0.5,
+        "p_imp_exact": "1/2",
+        "p_reg": 1.0,
+        "p_reg_exact": "1/1",
+        "t_obs": 1
+      },
+      "verdict": "INCONCLUSIVE"
+    }
+  ],
+  "stage": 1,
+  "stage_identity_crosscheck": [
+    {
+      "a1": {
+        "battle_mode_id": "tower_control",
+        "sha256": "deb3c7dbd65039a48f3b636f29823b019b40b1d59cbcac932705510ec7818193",
+        "stage_id": "makomart"
+      },
+      "a1_agrees": true,
+      "blind_input": {
+        "battle_mode_id": "tower_control",
+        "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+        "stage_id": "makomart"
+      },
+      "recording_id": "18-18-00",
+      "v3": {
+        "battle_mode_id": "tower_control",
+        "sha256": "ccb17a920c6bf010def1ede8b64dcb99782d0cc4b9d52b5111a4177c42ee4e57",
+        "stage_id": "makomart"
+      },
+      "v3_agrees": true
+    },
+    {
+      "a1": {
+        "battle_mode_id": "rainmaker",
+        "sha256": "d13486ec81bcf4b16dfd0e6d986bbbe8c40238f90b3a96a0253e1f88866ee27d",
+        "stage_id": "shipshape_cargo_co"
+      },
+      "a1_agrees": true,
+      "blind_input": {
+        "battle_mode_id": "rainmaker",
+        "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+        "stage_id": "shipshape_cargo_co"
+      },
+      "recording_id": "20-33-31",
+      "v3": {
+        "battle_mode_id": "rainmaker",
+        "sha256": "0ed0de2707ee19644d1c684e1e1a75b5a52168da524db349856ab0888eea0323",
+        "stage_id": "shipshape_cargo_co"
+      },
+      "v3_agrees": true
+    },
+    {
+      "a1": {
+        "battle_mode_id": "turf_war",
+        "sha256": "6adb291f4b77cdd0770387baeefc230b1d87f47656a446b44e4e8f29c196e8c8",
+        "stage_id": "manta_maria"
+      },
+      "a1_agrees": true,
+      "blind_input": {
+        "battle_mode_id": "turf_war",
+        "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+        "stage_id": "manta_maria"
+      },
+      "recording_id": "22-31-53",
+      "v3": {
+        "battle_mode_id": "turf_war",
+        "sha256": "fee58b967c0f8e914793c0c7d58cf7979d38bcafd4dc52354544d5bf6acf1bf4",
+        "stage_id": "manta_maria"
+      },
+      "v3_agrees": true
+    },
+    {
+      "a1": {
+        "battle_mode_id": "splat_zones",
+        "sha256": "37a853e9e81bdb7d28563412e5915f2354ff2f97fbc5357cd6863ceab7bb853e",
+        "stage_id": "wahoo_world"
+      },
+      "a1_agrees": true,
+      "blind_input": {
+        "battle_mode_id": "splat_zones",
+        "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+        "stage_id": "wahoo_world"
+      },
+      "recording_id": "22-37-47",
+      "v3": {
+        "battle_mode_id": "splat_zones",
+        "sha256": "9b8fdd4fd963c2ee162f0e383cc1f001fcf867fd7bad214e7b4577c5fb3467f2",
+        "stage_id": "wahoo_world"
+      },
+      "v3_agrees": true
+    },
+    {
+      "a1": {
+        "battle_mode_id": "splat_zones",
+        "sha256": "ad47138732baa35df2ec5afa80c47258f4b9e1baa8b04dac686d91efabd6c3d3",
+        "stage_id": "wahoo_world"
+      },
+      "a1_agrees": true,
+      "blind_input": {
+        "battle_mode_id": "splat_zones",
+        "manifest_sha256": "1f3410825cfb8e7ec0146bfc9c9bc08b9c436bd8b1cc1c627f43458e30ac5923",
+        "stage_id": "wahoo_world"
+      },
+      "recording_id": "22-57-30",
+      "v3": {
+        "battle_mode_id": "splat_zones",
+        "sha256": "a30a6da97053b719ab7e1dc1e220cc9d33f50b60927ba1d50731ab4cb1c0c028",
+        "stage_id": "wahoo_world"
+      },
+      "v3_agrees": true
+    }
+  ],
+  "tool": {
+    "tool_commit": "6b928e994ecf8ebb928a235d9dd8ca757be0f24d"
+  }
+}
