@@ -1,0 +1,13 @@
+{
+  "cap": 0.1,
+  "denominator": 54,
+  "excluded": 0,
+  "numerator": 0,
+  "passed": true,
+  "pooled": true,
+  "stage": 2,
+  "tool": {
+    "tool_commit": "50db2049eb3efd208f1b3b591c0617b99eb5289c"
+  },
+  "upper_bound": 0.05396576709737627
+}
