@@ -4216,3 +4216,621 @@ record is opened. Tests show:
   remaining evaluable recordings, and the final report discloses it.
 - PNG verification is mechanical. No pixel content reaches any human or model.
 - No tool or test was changed for this amendment.
+
+## Amendment 11 — Map-ink follow-up study F11: preservation and rescue (2026-10-29)
+
+> **Status: candidate text r2 for preregistration-only seal review. Not sealed,
+> not normative until appended to `DEVELOPMENT_PREREGISTRATION.md` and
+> committed alone.** Until then nothing here authorizes any decode,
+> calibration run, extraction, sampling, annotation, comparison or F11
+> execution tooling.
+
+### What was frozen, what changes, why
+
+**Frozen and unchanged:** Amendments 1–10; every Amendment 3 record and its
+seal; the final report `amendment3/report.json` (commit
+`94b6cca9e6c329c9109f481c41bb158b1f30b01b`, SHA-256
+`db26778771a7094905aab41111eef1c8bdc6180670bf466dfad3cc5bcbbd2b27`);
+`verdict_4a` PASS, `verdict_4b` NOT_EVALUABLE and `criterion_4`
+NOT_EVALUABLE; and the Track A consequence that criterion 4 is not met.
+
+**What changes:** this amendment defines a separate follow-up study, F11,
+with its own records, test levels, verdict vocabulary (prefix `F-`) and
+report. It asks two questions that the sealed 4b could not resolve:
+
+1. **Preservation (Arm P):** on the corpus recordings, is A1's pixel-weighted
+   map-ink accuracy no more than the margin `m` below the pinned baseline
+   calibration's?
+2. **Rescue (Arm R):** on development-independent recordings where the two
+   calibrations differ strongly, is A1 favoured over the pinned baseline
+   calibration on the pixels where they disagree?
+
+**Why:** the three 4b INCONCLUSIVE recordings were structurally
+unresolvable (`F_nz` = 3, 3, 1; improvement needs `F_nz >= 6`), because
+uniform point sampling places almost every point where the two calibrations
+must agree (sealed `q_all` = 0.0470, 0.0246, 0.0045). F11 samples where they
+disagree and states exactly which claim each verdict supports.
+
+### Governance (D1)
+
+- F11 is separate development evidence.
+- F11 does not modify the sealed criterion 4 verdict or `verdict_4b`, and
+  does not create a third 4b stage.
+- F11 does not authorize held-out evaluation, fresh v4 held-out acquisition
+  or escalation. The Track A rule "Failure of any criterion stops escalation
+  to fresh held-out work until an amendment selects A2/A3 or revises
+  semantics" is unchanged and not satisfied by F11 results.
+- F11 results may only be cited as support by a later, separately sealed
+  amendment that explicitly revises Track A semantics. Only that amendment
+  can change the Track A state.
+
+### Decision register (normative summary)
+
+| Id | Frozen decision | Section |
+|---|---|---|
+| D1 | Governance above | Governance |
+| D2 | `m = 0.01`; the corpus `q_all` values were known when chosen | Estimand and margin |
+| D3 | One uniformly drawn frame per eligible interval; every eligible interval is a cluster; earlier-selected intervals and frames are not excluded; new points at least 32 px from Amendment 3 points | Arm P; Randomization |
+| D4 | No cap on Arm R recordings or clusters | Arm R |
+| D5 | Baseline calibration: clean commit `b346c2e9e610fd464231af6a52b53350eb6012fe` with `configs/default.yaml`, for both arms; no second comparator | Baseline calibration |
+| D6 | `tau = 0.25` | Label-free outcomes and strata |
+| D7 | No target-to-target minimum spacing | Point sampling |
+| D8 | Up to 6 target and 3 control points per frame | Point sampling |
+| D9 | Acquisition-session-aware study-level summaries | Study-level summary |
+
+### Baseline calibration (D5)
+
+**Terminology.** In F11, **pinned baseline calibration** means the
+calibration produced by the pre-roster-gated team-colour implementation of
+commit `b346c2e9e610fd464231af6a52b53350eb6012fe` with the default
+configuration. Amendment 3 called the same pinned files "v3-replay". That
+label is historical and stays as written in Amendment 3. Provenance shows the
+files were produced by the 2026-10-15 roster data refresh at that commit, not
+by the alignment v3 roster-gated implementation (`D5_PROVENANCE.md` E1–E6).
+F11 never calls this calibration "v3".
+
+**Definition (both arms).** The pinned baseline calibration is the
+`match_identity.json` produced by `s3-coach analyze` at commit
+`b346c2e9e610fd464231af6a52b53350eb6012fe` with
+`configs/default.yaml` (SHA-256
+`e0b96fb6ac4d747a74e33a835ecba1effdf32317428125421c7c68799c01945a`),
+`src/splatoon3_ai_coach/vision/map_ink.py` (SHA-256
+`50f0dba3e0e004dc17096cff6d5825a496cd917d03517de00c08402150070ab3`) and no
+other command-line argument except `--language` (see Arm R).
+
+- **Arm P:** the Amendment 3 pinned baseline files (SHA-256 values in
+  Amendment 3 "Pinned inputs"), which are exactly the 2026-10-15 refresh
+  outputs.
+- **Arm R:** a new run from a clean checkout of that commit (see Arm R).
+- No other comparator is used in F11, as primary or secondary. The alignment
+  v3 implementation (`5e781569e3aa37f917a8edbae4d45d4f37332c27`) is not used.
+
+**Provenance caveat (disclosed, not testable).** The 2026-10-15 producing
+working tree cannot be proven clean: only HEAD was recorded. The commit,
+configuration hash and serialized schema are consistent with a clean tree but
+do not prove byte identity of every imported module or template. An Arm R
+baseline run from a clean checkout is therefore not proven byte-identical in
+method to the Arm P files. F11 does not test this and makes no claim about it.
+
+**A1 calibration.** A1 is the implementation committed as
+`4d32a375eef1b45abef1374287485616dcd2390c` ("Alignment v4: Track A1 bounded
+post-in_match calibration window implementation"). Its files
+`calibration_window.py`, `match_side_effects.py`, `team_color_calibration.py`
+and `cadence_scan.py` are byte-identical to the working-tree digests pinned in
+Amendment 3 (verified against the commit when this text was prepared), as are
+`map_ink.py` and `configs/default.yaml`. No `src/` or `configs/` commit
+follows it. For Arm P, the A1 calibration files are the Amendment 3 pins
+(`analysis/_a1_amendment2_dev/<id>/match_identity.json`).
+
+### Estimand and margin (D2)
+
+All quantities are per recording; recording is the unit and pixels are never
+pooled across recordings.
+
+- **Eligible population:** Amendment 3 "Frame population and selection":
+  frames of the pinned `vision_manifest.json` with raw `map_overlay`
+  `present == true`, raw `player_count` `roster_visible == false`, fused
+  `match_phase == "in_match"` and before `MATCH_END`; **intervals** are
+  maximal runs of eligible frames whose consecutive timestamps differ by
+  exactly one cadence step (0.5 s). `I_1 … I_K` are the intervals and
+  `L_k = |I_k|`.
+- **Domain `Dom_f`:** Amendment 3 "Point sampling" domain (production active
+  sample mask for the pinned `stage_id` / `battle_mode_id`, intersected with
+  OpenCV HSV `S >= 70` and `V >= 40` on the extracted PNG).
+  `N = sum_f |Dom_f|` over all eligible frames.
+- **Classification:** `MapInkClassifier(config.vision.map_ink)` with
+  `apply_calibration(TeamColorCalibrationResult.from_dict(...))`, then
+  `classify_bgr`, exactly as Amendment 3 "Comparison".
+- **Disagreement mask `D_f`:** domain pixels whose A1 class differs from the
+  pinned baseline class. **Agreement mask `C_f = Dom_f \ D_f`.** Both are
+  label-free. `q_all = sum_f |D_f| / N`.
+- **Exclusion set `X_f`:** pixels within 32 px (Euclidean) of any Amendment 3
+  point (Stage 1 or Stage 2) on frame `f`. It is empty for Arm R and for
+  frames never used in Amendment 3. `X = union_f (D_f ∩ X_f)`.
+- **Target population `S_f = D_f \ X_f`.**
+- **Reference class `ref(p)`:** the Amendment 3 reference-label mapping.
+  `a_p`, `h_p` are 1 when the A1, respectively the baseline, class equals
+  `ref(p)`. `x_p = a_p - h_p`; `x_p = 0` off `D_f`.
+- **Estimand:** `Delta = (1/N) × sum_f sum_{p in Dom_f} (a_p - h_p)`, the
+  pixel-weighted accuracy of A1 minus that of the pinned baseline calibration
+  over the recording's eligible population. Exactly
+  `Delta = q_all × (w_A1 - w_base)`, with `w` the pixel-weighted correctness
+  rates on disagreement pixels. The estimand is pixel-weighted and is not
+  replaced by any other.
+- **Margin (D2):** `m = 0.01` (one percentage point of pixel-weighted
+  accuracy), a declared development tolerance with no external consumer.
+  **Disclosure:** the sealed corpus `q_all` values were known when `m` was
+  chosen; `22-57-30` (`q_all = 0.0045 < m`) is therefore preserved by the
+  label-free bound below without annotation.
+- **Non-inferiority null:** `H0: Delta <= -m`.
+
+### Label-free outcomes and strata (D6)
+
+Because `|x_p| <= 1` and `x_p = 0` off `D_f`, `|Delta| <= q_all`. Per
+recording, computed after calibrations and frames are sealed and before any
+point exists, with `tau = 0.25`:
+
+| `q_all` | Outcome / stratum | Annotated |
+|---|---|---|
+| `= 0` | **identity** (`Delta = 0`) | no |
+| `0 < q_all < m` | **F-PRESERVED_BY_BOUND** (`Delta > -m` exactly, because `Delta >= -q_all > -m`) | no |
+| `m <= q_all < tau` | **low stratum** | yes |
+| `q_all >= tau` | **high stratum** | yes |
+
+Strata apply to both arms and are sealed before sampling. Identity and
+F-PRESERVED_BY_BOUND are not statistical claims. A recording whose A1 or
+baseline run produced no calibration has undefined correctness: it is
+**coverage-only**, reported with its observation counts and never counted as
+a correctness result. A recording is **correctness-applicable** iff both
+calibrations exist.
+
+### Arm P — preservation on the corpus
+
+**Recordings and media.** The Amendment 3 corpus recordings and pins:
+`18-18-00`, `20-33-31`, `22-37-47` (expected annotated), `22-57-30` (expected
+F-PRESERVED_BY_BOUND), `22-31-53` (expected identity). The coverage-only
+`22-20-42` and `18-25-16` are not used, and their media are not opened.
+Source videos are the SHA-256-pinned Amendment 3 files; frame-selection
+metadata are the pinned manifests; stage identity is the sealed
+`amendment3/blind_input_manifest.json`.
+
+**Reproduction (STOP on any difference).** Before sampling, the tool
+recomputes `q_all` for all five recordings from the frames extracted at
+sealing step 5 and requires it to equal the sealed `descriptive.recordings[].q_all` of
+`report.json` exactly. For any frame also extracted under Amendment 3, the
+new PNG SHA-256 must equal the Amendment 3 extraction record.
+
+**Clusters (D3).** Every eligible interval is a cluster: `18-18-00` 11,
+`20-33-31` 20, `22-37-47` 7 (`22-57-30` has 21 and `22-31-53` 14, not
+annotated). Intervals and frames selected in Amendment 3 are not excluded.
+
+**Capacity disclosure.** `22-37-47` has 7 clusters, so F-REGRESSED, which
+needs `F_nz >= 8`, is unattainable there, as in Amendment 10. F-IMPROVED
+needs `F_nz >= 6` in every recording. The sealed `q_all` of `22-37-47` is
+0.9157, so it is in the **high stratum** as a corpus (development) recording.
+Arm P recordings never count toward rescue (see Study-level summary).
+
+### Arm R — rescue on development-independent recordings
+
+**Wording.** Arm R uses *development-independent recordings*: recordings that
+the operator affirms were not used to develop, debug, tune, select, visually
+assess, or make design decisions about team-colour calibration, A1, or map-ink
+behavior. This includes viewing relevant map-ink or team-colour output or
+debug overlays. The term does not mean the recordings were newly acquired.
+
+**Operator source manifest** `amendment11-arm-r-sources/v1`, authored by the
+operator and committed before any Arm R media is decoded. No tool searches the
+filesystem for videos or infers any field; tools open only declared paths.
+Each entry:
+
+- `analysis_dir` (repo-relative), `video_path`, `video_sha256` (SHA-256 of the
+  file bytes), `video_identity` (production `media.video_identity`);
+- `vision_manifest_sha256`: SHA-256 of the existing
+  `analysis_dir/vision_manifest.json`, the frame-selection metadata;
+- `language`: `en` or `ja`, which must equal the language recorded in that
+  manifest;
+- `acquisition_session`: an operator-assigned identifier, one per continuous
+  recording session, declared before any calibration run. Two recordings are
+  from distinct sessions iff their identifiers differ;
+- `authorization`, literal: `"development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media"`;
+- `development_independence`, literal: `"This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink."`;
+- `declared_by`.
+
+**Independence rules.**
+
+- A recording enters Arm R only through an entry carrying both literals,
+  written by the operator who can affirm the second. This amendment makes no
+  such declaration. Repository history cannot establish independence, and no
+  tool infers it. The draft inventory and the provenance classification
+  (`ARM_R_INVENTORY.md`, `ARM_R_DEVELOPMENT_INDEPENDENCE.md`) are not a source
+  manifest and promote nothing: every candidate there is
+  `OPERATOR_DECISION_NEEDED`.
+- A recording whose independence cannot be affirmed is not declared and is not
+  used as an Arm R generalization recording.
+- A recording whose required source video is unavailable, or whose file does
+  not match `video_sha256` and `video_identity`, is ineligible regardless of
+  any declaration.
+
+**Prohibited entries** (carried forward from Amendments 4 and 9; operator
+declaration, not tool inspection of held-out records): the seven corpus
+recordings (by `video_sha256` and `video_identity`); every entry of the
+Amendment 5 candidate pool and of any Amendment 9 pilot source (prepared or
+excluded); any v3 held-out or fresh v4 held-out media; pair-009; any capture
+package or platform-linked job; `_`-prefixed directories,
+`alignment-v3-heldout` and `review_validation`; the 2026-10-24 short-match /
+timeline recording; the `22-20-42` and `18-25-16` media.
+
+**Integrity checks before any decode (hashing excepted).** The file at
+`video_path` matches `video_sha256` and `video_identity`; the manifest hash
+matches `vision_manifest_sha256` and its `video_identity` matches; the entry is
+not prohibited; both literals are present. Any failure: STOP, never a silent
+skip.
+
+**Eligibility (applied to declared entries; recorded in a pre-decode
+eligibility record).** An entry is eligible iff:
+
+- every frame of the pinned manifest has `source_pts`;
+- stage identity is latched by `amendment4-intro-latch-v1`, under the code
+  pins of Amendment 4 A3-AMB-1, into an Arm R blind-input manifest of the same
+  schema (scope `f11_arm_r`);
+- production geometry resolves to existing files (`default.yaml`, the
+  battle-mode file where used, and `stage_mask.yaml`), whose SHA-256 values
+  are recorded in the eligibility record and must equal the committed files;
+- there are at least 8 eligible intervals.
+
+An entry failing an eligibility criterion is recorded as ineligible with its
+reason and does not enter. **D4:** every eligible declared entry enters; there
+is no cap on recordings or clusters and no sub-selection.
+
+**Calibration runs.** For each eligible entry, once each, from a clean
+checkout (unmodified `src/` and `configs/`, no untracked source files) and
+with an output directory that is not the entry's `analysis_dir`:
+
+- baseline run: `s3-coach analyze <video_path> --out <dir> --language <language>`
+  at `b346c2e9e610fd464231af6a52b53350eb6012fe`;
+- A1 run: the same command at `4d32a375eef1b45abef1374287485616dcd2390c`.
+
+Each uses the commit's `configs/default.yaml` (the pinned `e0b96fb6…` file,
+identical at both commits). The two runs differ only in the commit.
+Each `match_identity.json` is hashed and sealed before `q_all` is computed.
+No rerun is allowed: a run that exits 0 and writes `match_identity.json` is
+final. A run that did not finish for an environmental reason unrelated to the
+source (process killed, disk full, out of memory) may be repeated with the same
+command after its partial output is deleted; every attempt and its reason are
+recorded. Python, OpenCV and numpy versions are recorded and not pinned.
+Only the `match_identity.json` files are consumed. The eligible population is
+defined by the pinned manifest alone. After the stage's labels are sealed, a
+descriptive report compares the runs' raw `map_overlay` and `player_count`
+readings and latched stage identity with the pinned manifest; differences are
+reported, never a stop condition.
+
+### Randomization (normative)
+
+- **Salt.** At sampling the tool draws 32 bytes from the operating-system
+  random source and writes the hex salt to the sampling record, which is
+  committed before any point is presented. No other source of randomness is
+  used, and the salt is never reused or regenerated.
+- **Seeds.** For a derivation string `s`, seed = the first 8 bytes,
+  big-endian, of SHA-256(`s`); the generator is
+  `numpy.random.Generator(numpy.random.PCG64(seed))`, as in Amendment 3.
+  - Frame: `s = "amendment11-frame|" + salt_hex + "|" + video_identity + "|" + str(first source_pts of the interval)`.
+    The frame is index `Generator.integers(0, L_k)` of the interval's frames in
+    ascending `source_pts`.
+  - Target: `s = "amendment11-target|" + salt_hex + "|" + video_identity + "|" + str(drawn frame source_pts)`.
+  - Control: the same with prefix `"amendment11-control|"`.
+  - Duplicates: Amendment 3 duplicate rule with prefix `"amendment11-dups|"`.
+- **Independence.** One draw per interval, independent across intervals.
+- **Deterministic replay.** Given the sealed salt and the frozen inputs (pinned
+  manifests, PNG hashes, calibration hashes, strata record, Arm R source and
+  eligibility records, the F11 tool commit and the recorded numpy version), the
+  complete randomization must reproduce **exactly** the sealed frames, target
+  points, control points, duplicates and queue order. The replay command is a
+  comparison-stage command: it refuses to run before labels and the gate are
+  sealed. Any difference: STOP.
+
+### Point sampling (D7, D8; normative)
+
+The sampler (including the stratification step) is the only pre-annotation
+tool that loads calibrations. It writes point coordinates and, in a separate
+key, the target/control designation. It writes no class, hue or calibration
+value to any record the annotator can reach.
+
+For every selected frame `f` (one per cluster):
+
+1. **Targets (D7):** with `n_f = min(6, |S_f|)`, the targets are a simple
+   random sample without replacement of `n_f` pixels from `S_f`, taken as the
+   first `n_f` entries of `Generator.permutation` of the row-major flat indices
+   (`numpy.flatnonzero`) of `S_f`. **There is no target-to-target spacing or
+   any other rejection rule.** Target pixels are drawn only from
+   `S_f = D_f \ X_f`, so they are at least 32 px from Amendment 3 points.
+2. **Controls (D8):** in the order of a `Generator.permutation` of the
+   row-major flat indices of `C_f \ X_f`, accept a pixel if it is at least 32 px
+   from every target point and every previously accepted control point; stop at
+   3 or when the list is exhausted. Controls are descriptive only and never
+   enter `Delta`.
+3. Per frame, the sampler records `|S_f|`; per interval,
+   `B_k = L_k × max_{f in I_k} |S_f|` over **every** eligible frame of the
+   interval (so every eligible frame is extracted and its masks computed); and
+   per recording, `|X|`, `N`, `sum_k B_k^2`, `sum_k L_k × |S_{f_k}|`.
+4. A frame with `|S_f| = 0` contributes `Y_k = 0` and is counted. It is never
+   replaced.
+5. **Duplicates:** `ceil(0.10 × N_points)` over all F11 points (targets and
+   controls, both arms), by the Amendment 3 rule (without replacement, each
+   re-presented at least 50 items after its first presentation, at the end of
+   the queue if shorter), using the sampling record's point-manifest SHA-256.
+   The count is fixed and must not be increased.
+6. **Queue:** one shuffled queue across both arms. Recordings are shown only
+   as fresh opaque tokens (key sealed separately). Target and control points
+   are indistinguishable on screen.
+7. **Attainability record (label-free):** per recording,
+   `LB_max = (sum_k L_k × |S_{f_k}| - t - |X|) / N` with `t` as below, the
+   value of `LB_Delta` if every target point had value +1. It is written to the
+   sampling record. If `LB_max <= -m`, F-NONINFERIOR is structurally
+   unattainable for that recording. This is disclosed and never changes
+   inclusion, sampling or annotation.
+
+### Annotation, team identity and gate
+
+- Display, vocabulary (`ink_A`, `ink_B`, `not_ink`, `cant_tell`), blinding,
+  judgeability and swatch-quality constants are those of Amendment 3
+  ("Swatches, team identity and consistency", "Reference labels, blinding and
+  display", "Judgeability"). The interface is Amendment 3's, with display
+  parameters as fixed by `amendment3/pilot2/pilot_addendum.json` (absent
+  `crop_zoom` entry means 96 and 4). The annotator is the operator, as the
+  single blinded annotator.
+- **Judgeable point:** a recorded label other than `cant_tell`; a duplicated
+  point counts only if both copies carry the same non-`cant_tell` label, and
+  then counts once; otherwise, including a missing label, it is unjudgeable.
+- **Arm P:** the sealed Amendment 3 swatches are reused (A/B identity is
+  immutable). The team-identity question is asked at the F11 session start
+  (J5) and end (J6), with positions re-randomized and recorded. A recording is
+  **consistent** iff every answer recorded for it independently selects the
+  same swatch: J1 and J2, J3 and J4 where Amendment 3 Stage 2 ran for it, and
+  J5 and J6.
+- **Arm R:** new neutral swatches and team identity as in the Amendment 3
+  Stage 1 procedure, on the recording's F11 frames: swatch selection and
+  A/B draw at session start, then team identity at the F11 session start (J5)
+  and end (J6), with positions re-randomized and recorded. Consistent iff
+  J5 and J6 select the same swatch. A recording without a valid swatch pair or
+  consistent identity is F-NOT_EVALUABLE, and its points are not presented if
+  swatches are invalid.
+- No team-identity question or labelling screen displays any earlier answer or
+  the A/B to ally/opponent mapping. The annotator does not consult the
+  committed records holding them. The mapping is applied only by the
+  comparison tool after labels, team-identity answers and the gate are sealed.
+- **Duplicate gate (single, overall).** Population: every duplicate pair
+  produced from the F11 point manifest, excluding only pairs of recordings
+  without a valid swatch pair (fixed when swatches are recorded, before any
+  label exists). Classification per pair: as the Amendment 3 table (same
+  non-`cant_tell` label: denominator only; both `cant_tell`: excluded; one
+  `cant_tell` and one other label, two different non-`cant_tell` labels, or a
+  missing copy: numerator and denominator). The upper one-sided 95%
+  Clopper–Pearson bound must be at most **0.10** over all F11 pairs, not
+  pooled with Amendment 3; a zero denominator fails. A failed gate is sealed,
+  no comparison is computed, and every annotated recording is
+  F-NOT_EVALUABLE. Identity and F-PRESERVED_BY_BOUND still stand. The gate is
+  never repaired.
+- **Mandatory per-arm reporting (descriptive; no gate):** for Arm P and for
+  Arm R separately, the duplicate-pair numerator, denominator, excluded count
+  and Clopper–Pearson upper bound, and the list of disagreeing pairs by token
+  class. There is no arm-specific pass/fail threshold.
+
+### Statistics (single look; derivation in `NI_DERIVATION.md`)
+
+**Point value for the non-inferiority bound.** For a target point, with
+correctness against the mapped reference class:
+
+- +1 if judgeable, A1 correct and baseline wrong;
+- -1 if judgeable, baseline correct and A1 wrong;
+- 0 if judgeable and both wrong or both correct (the latter cannot occur on
+  `D_f`);
+- -1 if unjudgeable.
+
+**Non-inferiority lower bound** (Hoeffding's inequality over the independent
+cluster values; derivation and proof in `NI_DERIVATION.md` §3). `Y_k = L_k × |S_{f_k}| × (mean point value
+over the frame's n_f target points)`, `Y_k = 0` if `|S_{f_k}| = 0`;
+`t = sqrt(2 × sum_k B_k^2 × ln(1/0.025))`;
+
+    LB_Delta = ( sum_k Y_k - t - |X| ) / N.
+
+Assumptions: **R1** the frame and point draws are uniform and independent as
+specified in Randomization; **R2** reference validity of judgeable labels
+(Amendment 3); **R3** the population (eligible frames, domains, both
+calibrations) is as pinned. All clusters enter, including those with fewer
+than 3 judgeable target points (their unjudgeable points count -1).
+
+**Sign-flip tests (Amendment 3 method).** Over judgeable target points only,
+unweighted, per cluster `b_k` = points where the baseline is correct and A1
+wrong, `c_k` = points where A1 is correct and the baseline wrong,
+`d_k = c_k - b_k`. Over the `F_nz` clusters with `d_k != 0`, `T = sum d_k`,
+enumerate all `2^F_nz` sign vectors `e`, `T* = sum e_k d_k`;
+`p_reg = Pr(T* <= T)`, `p_imp = Pr(T* >= T)`, ties included; with
+`F_nz = 0`, `p_reg = p_imp = 1`. These test the Amendment 3 within-cluster
+exchangeability null on disagreement pixels.
+
+**Per-recording verdict, in precedence order** (annotated recordings):
+
+1. **F-NOT_EVALUABLE:** invalid swatches, inconsistent team identity, failed
+   overall gate, or fewer than 6 clusters with at least 3 judgeable target
+   points.
+2. **F-REGRESSED:** `p_reg <= 0.005`. Supports: the exchangeability null is
+   rejected in the baseline's favour on disagreement pixels.
+3. **F-IMPROVED:** `p_imp <= 0.025`. Supports: the exchangeability null is
+   rejected in A1's favour on disagreement pixels. It is not a claim about the
+   size or sign of `Delta`.
+4. **F-NONINFERIOR:** `LB_Delta > -m`, rejecting `H0: Delta <= -m` at
+   one-sided `alpha = 0.025` under R1–R3.
+5. **F-INCONCLUSIVE:** otherwise.
+
+Label-free outcomes (identity, F-PRESERVED_BY_BOUND) are decided before
+annotation.
+
+**Descriptive (never part of a verdict):** `LB_Delta` and `UB_Delta` (the
+mirror bound, with unjudgeable points valued +1, `+t` and `+|X|`) and whether
+`LB_Delta > -m`, for every annotated recording regardless of its verdict
+label; `p_reg`, `p_imp`, `F_nz`; absolute accuracy of both calibrations on
+control points and on all judgeable points; inversion rates; counts per
+stratum, arm and session; coverage-only recordings with observation counts;
+per-arm duplicate statistics.
+
+### Study-level summary (D9; fixed now)
+
+Summaries consume per-recording verdicts. They are defined combination rules,
+not additional statistical tests, and no multiplicity adjustment or
+familywise error rate is claimed for them. F-INCONCLUSIVE and F-NOT_EVALUABLE
+are never successes under any summary.
+
+- **Preservation supported** iff no F11 recording is F-REGRESSED, and every
+  Arm P recording and every Arm R low-stratum recording is identity,
+  F-PRESERVED_BY_BOUND, F-NONINFERIOR or F-IMPROVED. This is a preregistered
+  study-level decision rule. It does not mean that every included recording
+  individually demonstrated `Delta > -m`: F-IMPROVED counts as Amendment 3's
+  "PRESERVED (improved)" did, and is directional evidence on disagreement
+  pixels only, while only F-NONINFERIOR and the label-free outcomes are
+  statements about `Delta`. No additional requirement is placed on an
+  F-IMPROVED recording. Any Arm P or low-stratum F-INCONCLUSIVE or
+  F-NOT_EVALUABLE recording means preservation is not supported.
+- **Rescue** concerns **Arm R high-stratum, correctness-applicable
+  recordings only**. Arm P recordings never count toward rescue, including any
+  with `q_all >= tau`.
+- **Rescue replicated** iff all hold:
+  1. at least 2 Arm R high-stratum recordings are F-IMPROVED;
+  2. those F-IMPROVED recordings come from at least 2 distinct
+     `acquisition_session` values (several from one session count as one
+     session);
+  3. zero Arm R high-stratum recordings are F-REGRESSED.
+- **Rescue consistently supported** iff all hold:
+  1. every evaluable (not F-NOT_EVALUABLE) Arm R high-stratum recording is
+     F-IMPROVED;
+  2. at least 2 such recordings exist;
+  3. they come from at least 2 distinct `acquisition_session` values;
+  4. zero Arm R high-stratum recordings are F-REGRESSED.
+- **Rescue not evaluable** iff fewer than 2 distinct sessions contribute an
+  evaluable Arm R high-stratum recording.
+- **Mandatory explicit reporting, always:** the counts, and the list with
+  session, of Arm R high-stratum recordings that are F-INCONCLUSIVE and that
+  are F-NOT_EVALUABLE (and the same counts for every stratum and arm).
+- **Any F-REGRESSED recording**, in any arm or stratum, is reported as a
+  regression finding regardless of every summary.
+
+### Scope and limitations (disclosure)
+
+- Arm P concerns the corpus recordings and is not generalization. Only Arm R
+  bears on generalization, within the declared development-independent media.
+  Same-session recordings are distinct recordings but not independent
+  sessions; the report discloses stage and session overlap.
+- F-IMPROVED and F-REGRESSED are directional statements on disagreement
+  pixels. Only F-NONINFERIOR and the label-free outcomes are statements about
+  `Delta`.
+- The F-NONINFERIOR bound is conservative (Hoeffding over clusters), and many
+  recordings may end F-INCONCLUSIVE. No design change to raise power
+  (including additional frames per interval or tighter bounds) is adopted.
+- Points on frames annotated before are a new sample of the same frames, not
+  independent media.
+- The annotator has read `report.json` and this amendment and knows that
+  points concentrate where the calibrations disagree. The annotator never sees
+  which points are targets or what either calibration outputs. The committed
+  salt would let someone replay the draw with the tools; the replay command
+  refuses to run before labels and the gate are sealed.
+- Reference validity (Amendment 3) is assumed and unverified.
+- The overall duplicate gate is strict: a denominator of at least 29 with zero
+  disagreements is needed even to pass.
+- Annotation load is disclosed for planning: Arm P 38 clusters, Arm R at
+  least 8 clusters per eligible recording, 9 points per cluster plus 10%
+  duplicates.
+
+### Authorized execution chain and tool boundaries (normative)
+
+- This amendment joins the Amendment 6 authorized execution chain as entry 8:
+  Amendment 11, its sealing commit C11 and the SHA-256 of the preregistration
+  file at C11. Entries 1 to 7 are unchanged. C11 changes only the
+  preregistration file. Every command STOPs between C11 and the tooling commit
+  that records entry 8.
+- F11 tooling is new code only, with tests; it must not modify `src/`,
+  `configs/`, A1 code or tests, any pinned artifact, any committed or working
+  record, or any Amendment 3–10 tool module. It may call production functions
+  read-only. The execution guard, tool-identity rule and production dependency
+  pins of Amendments 6 and 7 apply to F11 commands, extended to F11 tool paths
+  and entry 8 and weakening none of their checks.
+- **F11 protected-tool path set.** The F11 tooling commit must declare the
+  complete set of F11 protected-tool paths (all F11 tool and test paths, as
+  files or directories) before any F11 command executes. The declaration is
+  committed in that tooling commit, in a form the execution guard verifies at
+  every F11 command, and the declared set serves as the protected paths of the
+  Amendment 7 tool-identity rule for F11. No F11 command executes before the
+  tooling commit that holds the declaration and entry 8 is committed. Once that
+  commit is sealed, the declared set is immutable for F11 except through a
+  further sealed amendment: it cannot be expanded, reduced, renamed or
+  otherwise changed, and F11 tool or test code outside the set is not
+  permitted. Any F11 command that finds the set changed, or finds F11 tool or
+  test code outside it, STOPs. The paths are declared by that commit and are
+  not named in this amendment. Running the test suite on synthetic fixtures
+  while implementing the tooling is not an F11 command.
+- Extraction and annotation tools must neither load nor accept as input any
+  calibration value, `match_identity.json`, map-ink observation, classifier
+  label or comparison outcome, checked by a static import/AST test and by their
+  command-line and public parameters. Only the stratify, sample and (after
+  sealing) comparison and replay commands load calibrations.
+- Tests use synthetic fixtures only and must include the counterexamples of
+  `NI_DERIVATION.md` (interval-length imbalance; target spacing; unjudgeable
+  and excluded pixels), and must show exact deterministic replay from a salt.
+
+### Sealing and authorization order
+
+No F11 execution tooling is authorized until step 1 is complete. Each step
+needs separate authorization, and each STOP is a hard stop.
+
+1. Operator reviews and approves this text. It is appended to
+   `DEVELOPMENT_PREREGISTRATION.md` and committed alone (C11). STOP.
+2. Implement F11 tooling on synthetic fixtures with tests, including the
+   entry 8 chain extension and the complete F11 protected-tool path set
+   declaration. Review it, commit it alone and only then run
+   `preconditions`. STOP.
+3. **Operator checkpoint.** The operator authors and commits the Arm R source
+   manifest, with the per-entry independence and session declarations. STOP.
+4. Pre-decode integrity checks and the Arm R eligibility record, including the
+   Arm R blind-input manifest and geometry pins; committed. STOP.
+5. Frame plans and extraction of every eligible frame of both arms; no
+   calibration is loaded; extraction provenance committed. STOP.
+6. Arm R baseline and A1 calibration runs; their `match_identity.json`
+   hashes and run provenance committed. STOP.
+7. Stratification: reproduce Arm P `q_all`; compute Arm R `q_all`; seal
+   `q_all`, strata and label-free outcomes. STOP.
+8. Sampling: salt, frames, points, duplicates, queue and attainability. The
+   sampling record and point manifest are committed before annotation. The
+   target/control key is committed after labels are sealed. STOP.
+9. Human annotation session (Arm R swatches first; J5 and J6 for both arms). Export;
+   seal labels; then seal queue and token keys in a later commit. STOP.
+10. Duplicate gate over all F11 pairs; seal it (a failed gate is sealed, then
+    STOP). STOP.
+11. Comparison, replay verification, per-arm duplicate reporting and the F11
+    report; seal. Disclose from the report only.
+
+### Stop conditions
+
+STOP on any of the following: a pin or digest mismatch; an unexpected file; an
+out-of-order seal; a change to, or code outside, the declared F11
+protected-tool path set; a reproduction difference (`q_all`, stage identity, frame
+plan, replay); a failed integrity check on a declared entry; tool failure; any
+need for a rerun; a tool defect found after sealing. No repair, retry or
+substitution follows without a further amendment.
+
+### Disclosures
+
+- Drafted after the Amendment 3 step 8 report was disclosed. Inputs were the
+  sealed `report.json`, the preregistration, repository provenance (git
+  history, manifest provenance blocks, the refresh record) and manifest
+  metadata. `results_stage1.json`, `results_stage2.json`,
+  `criterion_4a.json` and every label or point-outcome record were not opened.
+- From pinned calibration files, only key names and the `source` string were
+  read. No hue values were read.
+- The corpus `q_all` values are known. `m` and `tau` were chosen with that
+  knowledge.
+- A non-inferiority statistic proposed in an earlier draft was found invalid
+  by design analysis before any F11 data existed, and was replaced by the
+  design-based bound above (`NI_DERIVATION.md`).
+- The baseline calibration was mislabelled "v3-replay" in Amendment 3; that
+  text is unchanged and its verdicts are unaffected because the files were
+  pinned by hash. Roster-slot names such as "A1 +16" in the 2026-10-15 refresh
+  are unrelated to Track A candidate A1.
+- No tool, test or configuration was changed for this amendment.
