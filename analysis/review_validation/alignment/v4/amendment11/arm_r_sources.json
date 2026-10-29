@@ -1,0 +1,77 @@
+{
+  "schema": "amendment11-arm-r-sources/v1",
+  "entries": [
+    {
+      "analysis_dir": "analysis/en-2026-09-23 21-13-04",
+      "video_path": "/Users/kenjikahara/Movies/en-2026-09-23 21-13-04.mov",
+      "video_sha256": "77deebfd8ac607c3dc9e63b321d04e2b67d623bc4428cb5b882d915cfad461ad",
+      "video_identity": "afbf62ae3d51fbb2e8d0f7043af9c617e4d2a46a270a6194e9c6a503ead4772d",
+      "vision_manifest_sha256": "ebd236dafb1fa35b6132eb5aac5addd5c12d12ab0701ae9c2c0b4c5a2050169e",
+      "language": "en",
+      "acquisition_session": "arm-r-session-c1",
+      "authorization": "development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media",
+      "development_independence": "This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink.",
+      "declared_by": "kenjikahara"
+    },
+    {
+      "analysis_dir": "analysis/en-live-playerview-2026-10-12 20-17-32",
+      "video_path": "/Users/kenjikahara/Movies/en-live-playerview-2026-10-12 20-17-32.mov",
+      "video_sha256": "e829eba1e065c25cd78464d9b57aac2b3795f20aaa5aaa002bbdb0a01ea38e1b",
+      "video_identity": "c9559489333603169e33e4dac1974711b15f4d599b4662d23e09d8501f297feb",
+      "vision_manifest_sha256": "0f9fbfcc5481ba51d12d5a3ad0f1e7226e2952fed6a793e9054089633b56d9d3",
+      "language": "en",
+      "acquisition_session": "arm-r-session-c4",
+      "authorization": "development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media",
+      "development_independence": "This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink.",
+      "declared_by": "kenjikahara"
+    },
+    {
+      "analysis_dir": "analysis/ja-2026-09-20 20-02-59",
+      "video_path": "/Users/kenjikahara/Movies/ja-2026-09-20 20-02-59.mov",
+      "video_sha256": "62d0d0bd803678f34380216b1202b350fa1dea9f87048179c3af194a695924c0",
+      "video_identity": "808589504d0bcdd5822e6f809a5a8b29ac5960b3d382edaccd897faf98fe767a",
+      "vision_manifest_sha256": "d22f3f83a76492e023bf8f924c03922e9504bbdeec522913981a274b22a96f27",
+      "language": "ja",
+      "acquisition_session": "arm-r-session-c6",
+      "authorization": "development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media",
+      "development_independence": "This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink.",
+      "declared_by": "kenjikahara"
+    },
+    {
+      "analysis_dir": "analysis/ja_brinewater_springs_crab_tank_2026-09-16 19-49-36",
+      "video_path": "/Users/kenjikahara/Movies/ja_brinewater_springs_crab_tank_2026-09-16 19-49-36.mp4",
+      "video_sha256": "f48924071a56112cbade3f043de747f8ace60e939cc49dab665d255f119a0304",
+      "video_identity": "a2e9dcede1b4fa44d0879c8da4cf07550c7ec631fbbbb917855a6f74241d8543",
+      "vision_manifest_sha256": "b0cbbf3346de6756b5a5ec3883510e5eef98e5a67912e1a9bef28e0fecd7c11d",
+      "language": "ja",
+      "acquisition_session": "arm-r-session-c7",
+      "authorization": "development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media",
+      "development_independence": "This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink.",
+      "declared_by": "kenjikahara"
+    },
+    {
+      "analysis_dir": "analysis/ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16",
+      "video_path": "/Users/kenjikahara/Movies/ja_hammerhead_bridge_bouya_bomb_2026-09-16 19-19-16.mov",
+      "video_sha256": "a2560e7fc902e113f4cd3120298e6ac6c7a6ed764f038eabfc6ef058559a682d",
+      "video_identity": "d48928a0ded4c7ea4da011d2186fdfab1590c5f63b4b52062e79d9305a65bbab",
+      "vision_manifest_sha256": "e0ad45ff2f6a61c2ed33bb45f20c01ef5c43f9422618bd4c7bfea1c455f4d76f",
+      "language": "ja",
+      "acquisition_session": "arm-r-session-c9",
+      "authorization": "development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media",
+      "development_independence": "This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink.",
+      "declared_by": "kenjikahara"
+    },
+    {
+      "analysis_dir": "analysis/ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39",
+      "video_path": "/Users/kenjikahara/Movies/ja_hammerhead_bridge_tenta_missle_2026-09-16 19-12-39.mov",
+      "video_sha256": "8cdc6e33513f21a75e15da05dbdb88b95f91b1046155fa20c078f1fbcdb480d7",
+      "video_identity": "c53faf5db727c29e511a61491aeb948fb13e21807a7db3fd7ced86b240f153d8",
+      "vision_manifest_sha256": "4be4d2c755069a22e8579c0bdf3da7d64073341439874638ca05bc07d3c946fc",
+      "language": "ja",
+      "acquisition_session": "arm-r-session-c10",
+      "authorization": "development-independent media for Amendment 11 Arm R; not corpus, pilot or held-out media",
+      "development_independence": "This recording was not used to develop, debug, tune, select, visually assess, or make design decisions about team-colour calibration, A1, or map ink.",
+      "declared_by": "kenjikahara"
+    }
+  ]
+}
