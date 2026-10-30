@@ -4834,3 +4834,479 @@ substitution follows without a further amendment.
   pinned by hash. Roster-slot names such as "A1 +16" in the 2026-10-15 refresh
   are unrelated to Track A candidate A1.
 - No tool, test or configuration was changed for this amendment.
+
+## Amendment 12 — F11 Step 4 producer repair and record representation (2026-10-29)
+
+### Purpose and scope
+
+Amendment 11 Step 4 requires pre-decode integrity checks and a committed Arm R
+eligibility record, including an Arm R blind-input manifest and geometry pins.
+The sealed F11 tooling commit contains declaration and hash-check helpers but
+does not contain a producer that performs the complete frozen Step 4 operation
+or writes and validates its artifacts.
+
+This is an implementation and representation repair only. It introduces no new
+scientific eligibility criterion and changes no Arm R declaration, source
+inclusion rule, prohibited-source category, source population, intro-latch
+algorithm, geometry requirement, interval rule, threshold, calibration,
+sampling rule, statistic, verdict or stopping rule.
+
+The following Amendment 11 interpretations were already uniquely determined by
+the frozen text and are recorded here only to make the repaired producer and
+its persisted representation deterministic:
+
+1. "Every frame of the pinned manifest has `source_pts`" means every entry of
+   the declared recording's pinned `vision_manifest.json` `frame_results`
+   array has a usable, non-null `source_pts`. This does not add a time-base,
+   cadence or other eligibility criterion. Separately frozen requirements
+   used by interval construction remain unchanged.
+2. Every entry of the sealed Step 3 Arm R source manifest appears in the Arm R
+   blind-input manifest, in the source manifest's declaration order.
+3. Inability to latch `stage_id` is an entry-level eligibility failure.
+4. Missing production geometry required for a latched stage is an entry-level
+   eligibility failure.
+5. Integrity failures and required pin or digest mismatches retain their
+   Amendment 11 STOP semantics. They are not converted to ineligibility.
+6. No failed or ineligible entry is silently omitted.
+7. Amendment 4's `amendment4-intro-latch-v1` derivation is unchanged.
+
+### Step 4 artifact paths
+
+The Arm R blind-input manifest path is exactly:
+
+`analysis/review_validation/alignment/v4/amendment11/blind_input_arm_r.json`
+
+The Arm R eligibility-record path is exactly:
+
+`analysis/review_validation/alignment/v4/amendment11/eligibility.json`
+
+The Step 4 producer refuses to overwrite either path. It completes all required
+integrity checks and derives and structurally validates both payloads in memory
+before writing either artifact. A failure before both payloads validate writes
+neither artifact. This does not promise transactional rollback if an I/O
+failure occurs after writing begins.
+
+Both artifacts are committed together in the Step 4 commit. Step 4 then STOPs.
+
+### Arm R blind-input manifest representation
+
+`blind_input_arm_r.json` reuses the existing frozen
+`amendment3-blind-input/v1` schema without scientific modification:
+
+- `schema`: `"amendment3-blind-input/v1"`
+- `rule`: `"amendment4-intro-latch-v1"`
+- `scope`: `"f11_arm_r"`
+
+All other top-level and per-recording fields retain the exact Amendment 4
+A3-AMB-1 schema and meanings. The corpus/pilot-only
+`pilot_source_manifest_sha256` field is absent.
+
+The `recordings` array contains exactly one entry for every entry of the sealed
+Step 3 `amendment11-arm-r-sources/v1` manifest, in the same order.
+`recording` is the final path component of that entry's `analysis_dir`.
+
+A recording that latches no `stage_id` remains in the array with `stage_id`
+and `stage_latched_at` null. Its other intro-latch fields retain the values
+produced by `amendment4-intro-latch-v1`.
+
+The manifest contains no eligibility decision, interval count, calibration
+value, map-ink observation, classifier output, label, outcome or decoded-media
+fact.
+
+### Arm R eligibility-record representation
+
+`eligibility.json` has schema identifier:
+
+`"amendment11-arm-r-eligibility/v1"`
+
+Its top-level object has exactly these keys:
+
+- `schema`
+- `arm_r_source_manifest`
+- `blind_input`
+- `entries`
+
+`arm_r_source_manifest` has exactly:
+
+- `path`: the repo-relative Step 3 source-manifest path;
+- `sha256`: SHA-256 of its committed file bytes;
+- `schema`: `"amendment11-arm-r-sources/v1"`.
+
+`blind_input` has exactly:
+
+- `path`: the repo-relative Arm R blind-input path;
+- `sha256`: SHA-256 of the validated `blind_input_arm_r.json` bytes;
+- `schema`: `"amendment3-blind-input/v1"`;
+- `rule`: `"amendment4-intro-latch-v1"`;
+- `scope`: `"f11_arm_r"`.
+
+`entries` is an array containing exactly one determination for every Step 3
+source-manifest entry, in the source manifest's declaration order. It has no
+additional or omitted entries.
+
+Each entry has exactly:
+
+- `analysis_dir`
+- `video_sha256`
+- `video_identity`
+- `vision_manifest_sha256`
+- `integrity`
+- `source_pts`
+- `intro_latch`
+- `geometry`
+- `eligible_interval_count`
+- `eligible`
+- `ineligibility_reasons`
+
+The four source-identity fields equal the corresponding sealed Step 3
+declaration.
+
+`integrity` has exactly these keys:
+
+- `declaration`
+- `source_file`
+- `vision_manifest`
+- `language`
+- `prohibited_source`
+
+Every value is the literal `"pass"`. The record is not written if any integrity
+check fails. These fields mean respectively:
+
+- the Step 3 envelope, entry fields and two declaration literals validate;
+- the declared source exists and its byte SHA-256 and production
+  `video_identity` match;
+- the declared manifest exists, its byte SHA-256 matches and its
+  `video_identity` equals the declaration;
+- the manifest language equals the declared language;
+- the entry is not in any Amendment 11 prohibited category, applying the
+  existing operator-declaration boundary for held-out status without opening
+  held-out records.
+
+`source_pts` has exactly:
+
+- `frame_count`: number of entries in the pinned manifest's `frame_results`;
+- `usable_source_pts_count`: number of those entries with a usable, non-null
+  `source_pts`;
+- `complete`: true exactly when the two counts are equal.
+
+Both counts are non-negative integers and
+`usable_source_pts_count <= frame_count`.
+
+`intro_latch` has exactly:
+
+- `blind_input_recording`
+- `stage_id`
+- `battle_mode_id`
+- `stage_latched_at`
+- `battle_mode_latched_at`
+- `intro_reading_count`
+
+These values equal the corresponding entry in `blind_input_arm_r.json`.
+`blind_input_recording` is its `recording` value. The remaining field types and
+nullability are those of `amendment3-blind-input/v1`.
+
+`geometry` has exactly:
+
+- `status`
+- `stage_id`
+- `battle_mode_id`
+- `files`
+
+`status` is exactly one of:
+
+- `"resolved"`
+- `"missing"`
+- `"not_applicable_no_stage"`
+
+`stage_id` and `battle_mode_id` equal the intro-latch values.
+
+`files` is an array of objects having exactly:
+
+- `role`
+- `path`
+- `sha256`
+
+`role` is one of `"default"`, `"battle_mode"` or `"stage_mask"`. Entries occur
+in that fixed order with absent roles omitted. `path` is repo-relative.
+`sha256` is a 64-character lowercase hexadecimal digest, except that a required
+missing path has null `sha256`.
+
+For `"resolved"`, `stage_id` is non-null, every listed digest is non-null, the
+production geometry resolves, and the paths and digests equal the committed
+pins. The list records the default geometry and each battle-mode or stage-mask
+file actually selected or applied by the frozen production resolution rules.
+
+For `"missing"`, `stage_id` is non-null and at least one geometry path required
+by production resolution is missing; that path is recorded with null
+`sha256`. An existing file with the wrong digest, an unpinned file that
+production would use, or any other required pin mismatch is a STOP and is not
+represented as `"missing"`.
+
+For `"not_applicable_no_stage"`, `stage_id` is null and `files` is empty.
+
+### Eligibility evaluation order and interval count
+
+After all integrity checks pass, the Step 4 producer evaluates every
+eligibility criterion whose already-frozen inputs remain available, even when
+another entry-level eligibility criterion has already failed. Failure of one
+criterion does not prevent evaluation of a later criterion when the later
+criterion is independently computable. The producer must not substitute,
+infer, repair or manufacture an unavailable input.
+
+`eligible_interval_count` is a non-negative integer whenever the unchanged
+frozen Amendment 3 interval computation successfully completes. This remains
+true when stage identity was not latched or required production geometry is
+missing, because stage identity and geometry are not inputs to the frozen
+interval computation. Interval computation is not suppressed merely because
+another independently evaluated eligibility criterion failed.
+
+`eligible_interval_count` may be null only when the unchanged frozen interval
+computation cannot complete because a frame required by that computation lacks
+required source timing (`source_pts` or the applicable frozen time-base input).
+Failure of the all-frame `source_pts` completeness criterion does not
+automatically make the interval count null. If a frame lacking `source_pts` is
+removed by the frozen eligibility predicates before exact-time adjacency is
+needed, interval computation may still complete and must then produce its
+integer count.
+
+No substitute timestamp, inferred PTS, cadence index or other replacement is
+permitted. An unrelated malformed-manifest, time-base, integrity or tool
+failure is not converted to this null case; the existing STOP and failure rules
+remain controlling.
+
+### Ineligibility reasons and final determination
+
+`ineligibility_reasons` is an array drawn only from this closed vocabulary, in
+this fixed order:
+
+1. `"missing_source_pts"`
+2. `"stage_identity_not_latched"`
+3. `"required_geometry_missing"`
+4. `"fewer_than_8_eligible_intervals"`
+
+Every deterministically established eligibility failure is recorded once in
+that order. A criterion that cannot be evaluated from its frozen inputs
+contributes no inferred reason. Failure of one criterion does not prevent
+evaluation of a later criterion when that criterion is independently
+computable.
+
+A value is present exactly under these conditions:
+
+- `missing_source_pts`: `source_pts.complete` is false;
+- `stage_identity_not_latched`: `intro_latch.stage_id` is null;
+- `required_geometry_missing`: `geometry.status` is `"missing"`;
+- `fewer_than_8_eligible_intervals`: `eligible_interval_count` is an integer
+  less than 8.
+
+`required_geometry_missing` is not added when geometry is
+`"not_applicable_no_stage"`; that entry already carries
+`stage_identity_not_latched`.
+
+When `eligible_interval_count` is null under the permitted missing-timing
+condition, `fewer_than_8_eligible_intervals` is not added. No interval-count
+failure is inferred from an unavailable count. The independently established
+`missing_source_pts` reason remains as applicable.
+
+Thus an entry with null `stage_id`, geometry status
+`"not_applicable_no_stage"` and an independently computed interval count of 6
+has, in fixed order, `stage_identity_not_latched` and
+`fewer_than_8_eligible_intervals`. This is intentional because stage identity
+and geometry are not inputs to frozen interval construction.
+
+`eligible` is true exactly when:
+
+- every integrity field is `"pass"`;
+- `source_pts.complete` is true;
+- `intro_latch.stage_id` is non-null;
+- `geometry.status` is `"resolved"`;
+- `eligible_interval_count` is an integer at least 8; and
+- `ineligibility_reasons` is empty.
+
+Otherwise `eligible` is false and `ineligibility_reasons` contains every
+deterministically established applicable reason. No free-form reason, note,
+warning, score or explanation field is permitted. No calibration, `q_all`,
+stratum, extracted-frame, sample, label, classifier or comparison value is
+permitted.
+
+### Prohibited-source enforcement
+
+The repaired producer enforces the Amendment 11 prohibited population without
+changing it:
+
+- the seven corpus recordings by both `video_sha256` and `video_identity`;
+- every Amendment 5 candidate-pool entry;
+- every Amendment 9 pilot source, prepared or excluded;
+- v3 held-out and fresh v4 held-out media;
+- pair-009;
+- capture packages and platform-linked jobs;
+- `_`-prefixed analysis directories;
+- `alignment-v3-heldout`;
+- `review_validation`;
+- the 2026-10-24 short-match/timeline recording;
+- the `22-20-42` and `18-25-16` media.
+
+Mechanically sealed identities are checked mechanically. Held-out and other
+operator-only status is checked only through the already-sealed Step 3
+declaration boundary; the repair must not open held-out records or infer
+held-out status from media.
+
+A prohibited entry is an integrity failure and STOPs. It is not written as an
+ineligible entry.
+
+### Authorized execution chain
+
+This amendment joins the authorized execution chain as entry 9: Amendment 12,
+its sealing commit C12, and the SHA-256 of the preregistration file at C12.
+Entries 1 through 8 remain byte-for-byte and semantically unchanged.
+
+C12 changes only `DEVELOPMENT_PREREGISTRATION.md`.
+
+After C12 and before the authorized repair commit, every F11 command STOPs.
+The repair extends `f11/chain.py` with entry 9 while preserving entries 1
+through 8 and the additive-prefix checks.
+
+### One tooling-repair authorization
+
+After C12 is sealed and after a separate operator authorization, exactly one
+tooling-repair commit may change exactly these five paths:
+
+- `tools/diagnostics/map_ink_reference/f11/chain.py`
+- `tools/diagnostics/map_ink_reference/f11/commands.py`
+- `tools/diagnostics/map_ink_reference/f11/eligibility.py`
+- `tests/map_ink_reference/f11/test_f11_guard.py`
+- `tests/map_ink_reference/f11/test_f11_eligibility.py`
+
+No other path may change in that repair. If another path proves necessary:
+STOP and amend.
+
+The existing 18-file `F11_PROTECTED_PATHS` tuple remains unchanged. The repair
+does not add, remove, rename or relocate any F11 protected path.
+
+The repair may only:
+
+1. add chain entry 9 and its checks;
+2. implement the Step 4 producer and orchestration described above;
+3. validate both exact artifact representations;
+4. reuse frozen production and Amendment 3/4 functions read-only;
+5. enforce existing integrity, prohibition, eligibility and STOP rules;
+6. refuse overwrite and partial artifact creation; and
+7. add synthetic tests for those behaviors.
+
+The repair must not change:
+
+- the Step 3 source manifest or any declaration in it;
+- acquisition-session declarations;
+- inclusion or prohibited-source rules;
+- the `source_pts` population;
+- `amendment4-intro-latch-v1`;
+- production geometry resolution or pin requirements;
+- Amendment 3 frame eligibility or interval construction;
+- the threshold of 8 eligible intervals;
+- D4;
+- `m` or `tau`;
+- calibration identities or execution;
+- extraction, stratification, sampling, annotation, statistics, summaries,
+  duplicate handling, comparison, replay or reporting;
+- stopping rules;
+- `src/`, `configs/`, any pinned artifact or scientific record; or
+- any Amendment 3–10 tool or test module.
+
+### Repair testing requirements
+
+Repair tests use synthetic fixtures only. They must not open any real Arm R,
+corpus, pilot or held-out media or derive any real recording's Step 4 facts.
+
+Tests must show:
+
+1. chain entries 1 through 8 are unchanged, entry 9 identifies C12 and its
+   preregistration digest, every F11 command STOPs between C12 and the repair,
+   and the chain verifies after the repair;
+2. the repair changes exactly the five authorized paths and leaves the
+   18-file protected set unchanged;
+3. both artifact paths and exact schemas are enforced;
+4. the blind-input manifest contains every declared synthetic source in
+   declaration order, including entries with null `stage_id`;
+5. every `frame_results` entry participates in the `source_pts` completeness
+   check, including ineligible frames;
+6. source, manifest, language, declaration or prohibited-source integrity
+   failure STOPs and writes neither artifact;
+7. required pin or digest mismatch STOPs and writes neither artifact;
+8. an unlatchable stage produces `stage_identity_not_latched`, does not
+   prevent independently computable interval counting and is not omitted;
+9. missing required geometry produces `required_geometry_missing`, does not
+   prevent independently computable interval counting, while a geometry pin
+   mismatch STOPs;
+10. fewer than 8 computed intervals produces
+    `fewer_than_8_eligible_intervals`;
+11. an all-frame `source_pts` failure still records an integer interval count
+    when the frozen interval computation succeeds;
+12. interval count is null only when a frame required by the frozen interval
+    computation lacks required source timing, with no substituted input;
+13. a null interval count does not produce
+    `fewer_than_8_eligible_intervals`;
+14. multiple independently established reasons appear once each in the fixed
+    order, while an unavailable criterion contributes no inferred reason;
+15. an entry with null stage, geometry `not_applicable_no_stage` and computed
+    interval count 6 records `stage_identity_not_latched` followed by
+    `fewer_than_8_eligible_intervals`;
+16. an eligible entry has an empty reason array and satisfies the exact
+    eligibility equivalence;
+17. output entry order equals source declaration order;
+18. all duplicated source, latch, geometry and digest references are
+    cross-checked;
+19. free-form or unknown reason values and additional keys are rejected;
+20. either existing artifact causes refusal without overwrite; and
+21. a derivation or validation failure before writing begins leaves neither
+    artifact.
+
+Before the repair is committed:
+
+- the full map-ink-reference test suite passes;
+- `ruff check` passes; and
+- `ruff format --check` passes.
+
+### Sealing and authorization order
+
+1. The operator reviews and approves this amendment text.
+2. It is appended byte-for-byte to
+   `DEVELOPMENT_PREREGISTRATION.md` and committed alone as C12. STOP.
+3. In a separately authorized turn, implement and validate the one repair
+   above using synthetic fixtures only.
+4. Commit exactly the five authorized repair paths in one repair commit.
+5. Run F11 `preconditions` after the repair commit. STOP.
+6. Step 4 remains unauthorized until a further, separate operator
+   authorization.
+7. Under that later authorization only, run the repaired Step 4 producer,
+   validate its two artifacts, commit them together and STOP.
+
+No source media is opened, hashed for Step 4, decoded, displayed or inspected
+during the amendment-seal or repair turns. No eligibility fact is computed
+during either turn.
+
+### Stop conditions
+
+In addition to all existing F11 stop conditions, STOP on:
+
+- any change outside the amendment-only path during C12 sealing;
+- any repair path outside the exact five-path allowlist;
+- any change to the 18-file protected set;
+- any change to an Amendment 3–10 module;
+- any scientific semantic change;
+- any real-media access during amendment or repair;
+- any attempt to compute a real Step 4 fact during amendment or repair;
+- any schema, ordering, binding or reason-vocabulary discrepancy;
+- any partial or overwrite attempt;
+- any failed required test or formatting check; or
+- any need for an additional repair path or second repair commit.
+
+No repair, retry, substitution or Step 4 execution follows without the
+required separate authorization.
+
+### Disclosures
+
+This amendment was drafted after Step 3 was sealed and after a read-only audit
+of the sealed preregistration and committed F11 tooling. No Arm R source video
+was opened, hashed for Step 4, decoded or inspected; no frame was displayed;
+no `source_pts` completeness, latch, geometry, interval count or eligibility
+fact was computed. The amendment freezes representation and authorizes repair
+of missing producer code only. It does not revise F11's scientific design.
