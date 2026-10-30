@@ -90,6 +90,39 @@ test("payment terms do not promise an administrator refund", () => {
   assert.doesNotMatch(japanese, /管理者が返金/);
 });
 
+test("voucher preview success copy is concise in English and Japanese", () => {
+  const keys = ["submit.voucher_confirmed", "submit.voucher_no_payment"];
+  assert.deepEqual(keys, ["submit.voucher_confirmed", "submit.voucher_no_payment"]);
+  assert.equal(resources.ja["submit.voucher_confirmed"], "✓ クーポンを確認しました");
+  assert.equal(resources.ja["submit.voucher_no_payment"], "お支払いは不要です。");
+  assert.equal(resources.en["submit.voucher_confirmed"], "✓ Voucher confirmed");
+  assert.equal(resources.en["submit.voucher_no_payment"], "No payment is required.");
+  for (const locale of ["en", "ja"]) {
+    for (const key of keys) {
+      const text = translate(resources, locale, key);
+      assert.doesNotMatch(text, /\$0\.00/);
+      assert.doesNotMatch(text, /Stripe/i);
+      assert.doesNotMatch(text, /checked again when the video is submitted/i);
+      assert.doesNotMatch(text, /動画の送信時にもう一度確認/);
+      assert.doesNotMatch(text, /分析はまだ開始されていません/);
+      assert.doesNotMatch(text, /Payment was already made through the seller/i);
+      assert.doesNotMatch(text, /代金は販売元で支払い済み/);
+    }
+  }
+  assert.equal("submit.voucher_accepted" in resources.en, false);
+  assert.equal("submit.voucher_prepaid" in resources.en, false);
+  assert.equal("submit.voucher_payment" in resources.en, false);
+});
+
+test("voucher validation error messages are unchanged", () => {
+  for (const reason of ["invalid", "expired", "exhausted", "revoked", "inactive", "wrong_service"]) {
+    const key = `submit.voucher.${reason}`;
+    assert.notEqual(translate(resources, "en", key), key);
+    assert.notEqual(translate(resources, "ja", key), key);
+    assert.notEqual(translate(resources, "en", key), translate(resources, "ja", key));
+  }
+});
+
 test("the pre-checkout price makes applicable tax clear", () => {
   const price = { price: "$2.00" };
   assert.equal(

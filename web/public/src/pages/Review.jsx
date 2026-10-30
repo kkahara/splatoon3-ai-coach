@@ -403,13 +403,14 @@ function ProgressSteps({ reached, spinning }) {
             className={`progress-step ${state}`}
             aria-current={state === "current" ? "step" : undefined}
           >
-            <span className="progress-mark" aria-hidden="true">
-              {state === "done" ? "✓" : ""}
-            </span>
-            <span>{t(`review.step.${step}`)}</span>
             {state === "current" ? (
               <span className="spinner" role="status" aria-label={t("review.in_progress")} />
-            ) : null}
+            ) : (
+              <span className="progress-mark" aria-hidden="true">
+                {state === "done" ? "✓" : ""}
+              </span>
+            )}
+            <span>{t(`review.step.${step}`)}</span>
           </li>
         );
       })}

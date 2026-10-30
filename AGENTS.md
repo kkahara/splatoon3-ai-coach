@@ -37,6 +37,64 @@ Extension path without rewriting the pipeline contract:
   is not an `enabled_detectors` entry.
 - Training assets stay under `training/` at the repo root.
 
+## Execution environment boundary
+
+Analysis and detector code must not infer execution behavior from machine
+identity, operating system, CPU architecture, hosting provider, or deployment
+environment. A detector or analysis stage never asks whether it is running on
+Runpod, Hetzner, a Mac, x86, or ARM.
+
+**Provider identity and compute capability are different concepts.** Where a
+job runs (Runpod, Hetzner, a laptop) is infrastructure knowledge and stays at
+the infrastructure boundary (`tools/public_site/`, deployment, the CLI entry).
+What hardware can do (CPU, Apple MPS, NVIDIA CUDA) is a capability. Hardware
+acceleration is capability-based and injected from an execution boundary.
+
+```text
+BAD:
+detector -> "am I on Runpod?"
+detector -> platform.machine()
+detector -> sys.platform
+detector -> torch.cuda.is_available()
+
+GOOD:
+runtime boundary
+      |
+compute/backend resolution
+      |
+analysis component receives required capability/backend
+```
+
+- Today every detector is CPU OpenCV and nothing selects a device. There is
+  deliberately **no** compute abstraction yet.
+- When the first accelerated backend is proposed, stop and design the compute
+  boundary from that implementation's actual requirements (context object,
+  injected backend, detector-specific execution provider, capability object, or
+  another design). Hardware discovery and backend resolution then live behind
+  that one dedicated boundary, never inside detectors.
+- **CPU must remain a supported execution path** (Linux x86, Linux ARM, macOS
+  ARM) for CI and correctness/reference testing. Accelerators (Apple MPS, NVIDIA
+  CUDA, where supported) are additive.
+- Accelerator libraries (torch, onnxruntime, …) and accelerator-specific
+  implementations are allowed. Backend selection and capability discovery
+  happen above the detector/analysis implementation and are injected downward;
+  an implementation never probes hardware availability itself.
+- Input/output locations reach analysis through configuration or job inputs,
+  never inferred from machine identity. Storage is a separate concern from
+  compute.
+- Environment variables are read only at the settings boundary
+  (`config/settings.py`), not in pipeline stages.
+
+Enforced by `tests/test_architecture_execution_boundary.py` (AST-based) over
+`media/`, `extraction/`, `vision/`, `analysis/`, `coach/`, `review/` and
+`alignment/`. It forbids importing `platform`; `sys.platform`, `os.uname`,
+`os.name` and environment reads; accelerator availability probes
+(`torch.cuda.is_available`, `torch.backends.mps.is_available`,
+`onnxruntime.get_available_providers`, `cv2.ocl.haveOpenCL`, …); and
+Runpod/Hetzner in identifiers or string comparisons. Out of scope by design:
+`config/` (settings boundary), `cli/` (entry boundary), `capture/` (acquisition
+boundary), `inspect_frame.py` (developer viewer that opens the OS image app).
+
 ## Scenario / evidence freeze
 
 The Scenario **ownership** layer (`analysis/scenarios.py`, `Scenario.event_ids`,

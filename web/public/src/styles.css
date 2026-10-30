@@ -247,6 +247,15 @@ button:disabled {
   cursor: pointer;
 }
 
+.voucher .voucher-ok {
+  color: var(--s3-success);
+  margin: 0.35rem 0 0.5rem;
+}
+
+.voucher .voucher-ok p {
+  margin: 0.15rem 0;
+}
+
 .error {
   color: #f0a8a8;
 }
@@ -1054,7 +1063,11 @@ button,
 }
 
 .progress-step .spinner {
-  margin-left: 0.1rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-left: 0;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .progress-done {

@@ -115,6 +115,21 @@ export function formatUsd(cents) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+/** True while the operator can apply or re-apply a code that is not yet accepted. */
+export function showVoucherApplyButton(voucherPreview) {
+  return !voucherPreview?.accepted;
+}
+
+/** i18n keys shown after a successful voucher preview. */
+export function voucherPreviewSuccessKeys() {
+  return ["submit.voucher_confirmed", "submit.voucher_no_payment"];
+}
+
+/** Reset preview validation when the code field is edited. */
+export function voucherStateAfterCodeChange() {
+  return { voucherPreview: null, voucherError: "" };
+}
+
 /** Button label. A priced analysis shows the amount before any upload starts. */
 export function submitButtonLabel(t, config, voucher = null) {
   if (voucher?.accepted) {

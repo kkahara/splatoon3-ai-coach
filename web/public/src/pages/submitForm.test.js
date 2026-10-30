@@ -10,10 +10,13 @@ import {
   rememberGameLanguage,
   reviewCodeComplete,
   submissionBody,
+  showVoucherApplyButton,
   submitButtonLabel,
   submitError,
   submitReady,
   videoProblem,
+  voucherPreviewSuccessKeys,
+  voucherStateAfterCodeChange,
 } from "./submitForm.js";
 
 const file = { name: "match.mov", size: 10, type: "video/quicktime" };
@@ -186,6 +189,23 @@ test("file sizes read in KB or MB", () => {
   assert.equal(formatFileSize(10), "1 KB");
   assert.equal(formatFileSize(512 * 1024), "512 KB");
   assert.equal(formatFileSize(1.5 * 1024 * 1024), "1.5 MB");
+});
+
+test("voucher preview success hides Apply until the code changes", () => {
+  assert.equal(showVoucherApplyButton(null), true);
+  assert.equal(showVoucherApplyButton({ accepted: false }), true);
+  assert.equal(showVoucherApplyButton({ accepted: true }), false);
+  const reset = voucherStateAfterCodeChange();
+  assert.equal(reset.voucherPreview, null);
+  assert.equal(reset.voucherError, "");
+  assert.equal(showVoucherApplyButton(reset.voucherPreview), true);
+});
+
+test("voucher preview success uses only the concise confirmation keys", () => {
+  assert.deepEqual(voucherPreviewSuccessKeys(), [
+    "submit.voucher_confirmed",
+    "submit.voucher_no_payment",
+  ]);
 });
 
 test("a priced submit button shows the amount before upload", () => {

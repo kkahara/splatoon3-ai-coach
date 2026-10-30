@@ -15,14 +15,16 @@ import heroBanner from "../assets/splatoon3-ai-coach-banner.jpg";
 import { useT } from "../i18n/LocaleContext.jsx";
 import {
   formatFileSize,
-  formatUsd,
   rememberedGameLanguage,
   rememberGameLanguage,
+  showVoucherApplyButton,
   submissionBody,
   submitButtonLabel,
   submitError,
   submitReady,
   videoProblem,
+  voucherPreviewSuccessKeys,
+  voucherStateAfterCodeChange,
 } from "./submitForm.js";
 
 const REGULAR_MAX_BYTES = 750 * 1024 * 1024;
@@ -295,8 +297,9 @@ export function SubmitPage() {
 
   function changeVoucher(value) {
     setVoucherCode(value);
-    setVoucherPreview(null);
-    setVoucherError("");
+    const reset = voucherStateAfterCodeChange();
+    setVoucherPreview(reset.voucherPreview);
+    setVoucherError(reset.voucherError);
   }
 
   async function applyVoucher() {
@@ -378,18 +381,18 @@ export function SubmitPage() {
                 onChange={(event) => changeVoucher(event.target.value)}
               />
             </label>
-            <button type="button" onClick={applyVoucher} disabled={busy || !voucherCode.trim()}>
-              {t("submit.voucher_apply")}
-            </button>
+            {showVoucherApplyButton(voucherPreview) ? (
+              <button type="button" onClick={applyVoucher} disabled={busy || !voucherCode.trim()}>
+                {t("submit.voucher_apply")}
+              </button>
+            ) : null}
             {voucherError ? <p className="error">{voucherError}</p> : null}
             {voucherPreview?.accepted ? (
-              <>
-                <p className="note">{t("submit.voucher_accepted")}</p>
-                {voucherPreview.benefit_type === "externally_prepaid" ? (
-                  <p className="note">{t("submit.voucher_prepaid")}</p>
-                ) : null}
-                <p className="note">{t("submit.voucher_payment", { price: formatUsd(0) })}</p>
-              </>
+              <div className="voucher-ok" aria-live="polite">
+                {voucherPreviewSuccessKeys().map((key) => (
+                  <p key={key}>{t(key)}</p>
+                ))}
+              </div>
             ) : null}
           </details>
           <button
