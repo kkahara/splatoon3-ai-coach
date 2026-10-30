@@ -87,6 +87,7 @@ class FakeCheckout:
             url=f"https://pay.example/{idempotency_key}",
             status="open",
             payment_status="unpaid",
+            amount_subtotal=price_cents,
             amount_total=price_cents,
             currency=currency,
             payment_intent_id=None,
@@ -187,6 +188,7 @@ def _event(
     session: CheckoutSession,
     *,
     payment_status: str = "paid",
+    amount_subtotal: int | None = None,
     amount_total: int | None = None,
     client_reference_id: str | None = None,
     session_id: str | None = None,
@@ -198,6 +200,9 @@ def _event(
             "url": session.url,
             "status": "complete",
             "payment_status": payment_status,
+            "amount_subtotal": (
+                session.amount_subtotal if amount_subtotal is None else amount_subtotal
+            ),
             "amount_total": (
                 session.amount_total if amount_total is None else amount_total
             ),
@@ -322,10 +327,13 @@ def test_snapshot_survives_a_later_price_change(
     assert checkout.expires_at == payments.get(submission.id).expires_at
     assert checkout.success_url == f"http://coach.example/review/{token}"
 
-    mismatch = _webhook(client, _event(checkout.created[0], amount_total=199))
-    assert mismatch.status_code == 400
-    assert mismatch.json()["detail"] == "amount"
-    assert payments.get(submission.id).payment_state == "checkout_created"
+    session = checkout.created[0]
+    for subtotal, total in ((199, 199), (99, 89), (89, 99)):
+        event = _event(session, amount_subtotal=subtotal, amount_total=total)
+        mismatch = _webhook(client, event)
+        assert mismatch.status_code == 400
+        assert mismatch.json()["detail"] == "amount"
+        assert payments.get(submission.id).payment_state == "checkout_created"
 
     paid = _webhook(client, _event(checkout.created[0]))
     assert paid.status_code == 200
@@ -364,6 +372,7 @@ def test_checkout_reuses_an_open_session_and_replaces_an_expired_one(
     stale = payments.apply_paid(
         submission_id=submission.id,
         session_id=checkout.created[0].id,
+        amount_subtotal=199,
         amount_total=199,
         currency="usd",
         payment_intent_id="pi_old",
@@ -421,6 +430,25 @@ def test_repeat_paid_webhook_does_not_queue_twice(
     assert client.app.state.store.count_status("queued") == 1
 
 
+def test_tax_added_by_stripe_still_counts_as_paid(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(200)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.post(f"/api/submissions/{token}/checkout")
+    event = _event(checkout.created[0], amount_subtotal=200, amount_total=213)
+    taxed = _webhook(client, event)
+    assert taxed.status_code == 200, taxed.text
+    assert taxed.json()["result"] == "paid"
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "paid"
+    assert client.app.state.store.get(submission.id).status == "queued"
+
+
 def test_upload_and_payment_queue_exactly_once(payments: PaymentStore) -> None:
     payments.set_price(199)
     quote = payments.quote(admin=False)
@@ -442,6 +470,7 @@ def test_upload_and_payment_queue_exactly_once(payments: PaymentStore) -> None:
         payments.apply_paid(
             submission_id=submission_id,
             session_id="cs_race",
+            amount_subtotal=199,
             amount_total=199,
             currency="usd",
             payment_intent_id="pi_race",
@@ -480,6 +509,7 @@ def test_confirmed_payment_wins_over_unpaid_cleanup(
         payments.apply_paid(
             submission_id=submission_id,
             session_id="cs_tie",
+            amount_subtotal=199,
             amount_total=199,
             currency="usd",
             payment_intent_id="pi_tie",

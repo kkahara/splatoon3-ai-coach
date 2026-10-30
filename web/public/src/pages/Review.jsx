@@ -23,6 +23,7 @@ import {
   shownObservation,
   splitMoments,
 } from "./reviewMoments.js";
+import { awaitingPayment, voucherFallbackKey } from "./reviewPayment.js";
 
 export function ReviewPage() {
   const { token, id } = useParams();
@@ -123,6 +124,9 @@ export function ReviewPage() {
       {error ? <p className="error">{error}</p> : null}
       {payError ? <p className="error">{payError}</p> : null}
       {view?.error ? <p className="error">{view.error}</p> : null}
+      {voucherFallbackKey(view) ? (
+        <p className="error">{t(voucherFallbackKey(view))}</p>
+      ) : null}
       {token && awaitingPayment(view) ? (
         <p>
           <button type="button" onClick={pay}>{t("review.pay")}</button>
@@ -782,10 +786,6 @@ function copyWithSelection(link) {
 
 function noDeaths(view) {
   return view?.status === "complete" && view.outcome === "no_deaths";
-}
-
-function awaitingPayment(view) {
-  return view?.payment_state === "unpaid" || view?.payment_state === "checkout_created";
 }
 
 function headingKey(view) {

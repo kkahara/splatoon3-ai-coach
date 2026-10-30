@@ -51,12 +51,22 @@ CONTACT_VERIFY = "Complete the check before sending."
 CONTACT_RATE_LIMIT = "Too many messages from this network. Try again later."
 CONTACT_UNAVAILABLE = "The contact form is unavailable right now."
 CONTACT_MAIL_FAILED = "The message could not be sent. Try again later."
+VOUCHER_INVALID = "That voucher code was not recognized."
+VOUCHER_EXPIRED = "This voucher has expired."
+VOUCHER_EXHAUSTED = "This voucher has already been used."
+VOUCHER_REVOKED = "This voucher has been revoked."
+VOUCHER_INACTIVE = "This voucher is not active."
+VOUCHER_WRONG_SERVICE = "This voucher is not valid for this service."
+VOUCHER_UNAVAILABLE = "Vouchers are not available right now."
+VOUCHER_PENDING = "This submission is still checking a voucher code."
+VOUCHER_CONFLICT = "This submission could not be authorized."
 
 
 class RequestRejected(Exception):
     """A public request that must not create or queue a submission."""
 
-    def __init__(self, status_code: int, detail: str) -> None:
+    def __init__(self, status_code: int, detail: str, reason: str | None = None) -> None:
         self.status_code = status_code
         self.detail = detail
+        self.reason = reason
         super().__init__(detail)

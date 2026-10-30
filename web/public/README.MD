@@ -33,6 +33,8 @@ Yes. Production has its own file at /srv/www/s3-coaching/.env on the server. The
 
 That file does not have PUBLIC_STRIPE_SECRET_KEY or PUBLIC_STRIPE_WEBHOOK_SECRET yet. Add both lines there:
 
+Voucher redemption also needs `PUBLIC_VOUCHER_HMAC_SECRET` in that same file. It is an HMAC key, not a voucher code. Leave it unset only when no voucher will be entered: submissions without a code keep working, and a request that includes a code fails closed. Do not commit the value. See `docs/public_site/VOUCHERS.md`.
+
 
 ssh Hetzner
 cd /srv/www/s3-coaching

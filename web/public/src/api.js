@@ -8,6 +8,15 @@ export async function loadConfig() {
   return response.json();
 }
 
+export async function validateVoucher(code) {
+  const response = await fetch("/api/vouchers/validate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+  return read(response, "That voucher code was not recognized.");
+}
+
 export async function createSubmission(body) {
   const response = await fetch("/api/submissions", {
     method: "POST",
@@ -66,7 +75,9 @@ async function read(response, fallback) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const detail = payload.detail;
-    throw new Error(typeof detail === "string" ? detail : fallback);
+    const error = new Error(typeof detail === "string" ? detail : fallback);
+    error.reason = typeof payload.reason === "string" ? payload.reason : "";
+    throw error;
   }
   return payload;
 }

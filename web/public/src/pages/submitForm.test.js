@@ -61,8 +61,32 @@ for (const [siteLocale, gameLanguage] of [
     assert.equal(body.language, gameLanguage);
     assert.equal(body.display_name, null);
     assert.equal("locale" in body, false);
+    assert.equal("voucher_code" in body, false);
   });
 }
+
+test("a voucher code is posted with the submission and a blank one is omitted", () => {
+  const body = submissionBody({
+    token: "ok",
+    file,
+    language: "en",
+    account: null,
+    notify: false,
+    email: "",
+    voucherCode: " squidlab50 ",
+  });
+  assert.equal(body.voucher_code, "squidlab50");
+  const blank = submissionBody({
+    token: "ok",
+    file,
+    language: "en",
+    account: null,
+    notify: false,
+    email: "",
+    voucherCode: "   ",
+  });
+  assert.equal("voucher_code" in blank, false);
+});
 
 test("a chosen game language is remembered", () => {
   const stored = new Map();
@@ -177,6 +201,10 @@ test("a priced submit button shows the amount before upload", () => {
     "submit.price_button:$1.99",
   );
   assert.equal(submitButtonLabel(t, { payment_required: false, price_cents: 199 }), "submit.submit");
+  assert.equal(
+    submitButtonLabel(t, { payment_required: true, price_cents: 199 }, { accepted: true }),
+    "submit.submit",
+  );
   assert.equal(centsFromDollars("1.99"), 199);
   assert.equal(centsFromDollars("1.999"), null);
 });

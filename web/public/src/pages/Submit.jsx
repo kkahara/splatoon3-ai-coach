@@ -9,11 +9,13 @@ import {
   openCheckout,
   recordPageView,
   uploadVideo,
+  validateVoucher,
 } from "../api.js";
 import heroBanner from "../assets/splatoon3-ai-coach-banner.jpg";
 import { useT } from "../i18n/LocaleContext.jsx";
 import {
   formatFileSize,
+  formatUsd,
   rememberedGameLanguage,
   rememberGameLanguage,
   submissionBody,
@@ -170,6 +172,9 @@ export function SubmitPage() {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherPreview, setVoucherPreview] = useState(null);
+  const [voucherError, setVoucherError] = useState("");
 
   const sessionKey = account ? `${account.role}:${account.email}` : "";
 
@@ -266,10 +271,14 @@ export function SubmitPage() {
     setBusy(true);
     try {
       const created = await createSubmission(
-        submissionBody({ token, file, language, account, notify, email }),
+        submissionBody({ token, file, language, account, notify, email, voucherCode }),
       );
       await uploadVideo(created.upload, file);
       await markUploaded(created.token);
+      if (created.voucher_state === "pending") {
+        navigate(created.review_path);
+        return;
+      }
       if (created.payment_required) {
         const checkout = await openCheckout(created.token);
         if (checkout.url) {
@@ -279,8 +288,25 @@ export function SubmitPage() {
       }
       navigate(created.review_path);
     } catch (exc) {
-      setError(exc.message);
+      setError(exc.reason ? t(`submit.voucher.${exc.reason}`) : exc.message);
       setBusy(false);
+    }
+  }
+
+  function changeVoucher(value) {
+    setVoucherCode(value);
+    setVoucherPreview(null);
+    setVoucherError("");
+  }
+
+  async function applyVoucher() {
+    setVoucherError("");
+    setError("");
+    try {
+      setVoucherPreview(await validateVoucher(voucherCode));
+    } catch (exc) {
+      setVoucherPreview(null);
+      setVoucherError(exc.reason ? t(`submit.voucher.${exc.reason}`) : exc.message);
     }
   }
 
@@ -341,6 +367,31 @@ export function SubmitPage() {
               <p className="note">{t("submit.terms")}</p>
             </>
           ) : null}
+          <details className="voucher">
+            <summary>{t("submit.voucher_prompt")}</summary>
+            <label>
+              {t("submit.voucher_code")}
+              <input
+                value={voucherCode}
+                autoComplete="off"
+                spellCheck="false"
+                onChange={(event) => changeVoucher(event.target.value)}
+              />
+            </label>
+            <button type="button" onClick={applyVoucher} disabled={busy || !voucherCode.trim()}>
+              {t("submit.voucher_apply")}
+            </button>
+            {voucherError ? <p className="error">{voucherError}</p> : null}
+            {voucherPreview?.accepted ? (
+              <>
+                <p className="note">{t("submit.voucher_accepted")}</p>
+                {voucherPreview.benefit_type === "externally_prepaid" ? (
+                  <p className="note">{t("submit.voucher_prepaid")}</p>
+                ) : null}
+                <p className="note">{t("submit.voucher_payment", { price: formatUsd(0) })}</p>
+              </>
+            ) : null}
+          </details>
           <button
             type="submit"
             disabled={
@@ -349,7 +400,7 @@ export function SubmitPage() {
               || !submitReady({ file, language })
             }
           >
-            {busy ? t("submit.submitting") : submitButtonLabel(t, config)}
+            {busy ? t("submit.submitting") : submitButtonLabel(t, config, voucherPreview)}
           </button>
           <UploadFacts config={config} />
         </form>

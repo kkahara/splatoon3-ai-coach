@@ -239,6 +239,14 @@ button:disabled {
   color: #b7b3ac;
 }
 
+.voucher {
+  margin: 0.75rem 0;
+}
+
+.voucher summary {
+  cursor: pointer;
+}
+
 .error {
   color: #f0a8a8;
 }

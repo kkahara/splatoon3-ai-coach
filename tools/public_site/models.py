@@ -112,6 +112,8 @@ class CreateSubmissionResponse(BaseModel):
     upload: PresignedUpload
     price_cents: int | None = None
     payment_required: bool = False
+    # Pending means a code is attached and unpaid. It is not payment authorization.
+    voucher_state: Literal["pending", "redeemed", "failed"] | None = None
     notice_pending: bool = False
 
 
@@ -184,6 +186,10 @@ class PublicSubmissionResponse(BaseModel):
     locale: DisplayLocale = "en"
     result: PublicSubmissionResult | None = None
     payment_state: Literal["not_required", "unpaid", "checkout_created", "paid"] | None = None
+    voucher_state: Literal["pending", "redeemed", "failed"] | None = None
+    voucher_failure_reason: (
+        Literal["expired", "revoked", "exhausted", "inactive", "wrong_service"] | None
+    ) = None
     notice_pending: bool = False
 
 

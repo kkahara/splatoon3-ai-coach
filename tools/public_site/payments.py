@@ -100,6 +100,74 @@ _SCHEMA = (
     VALUES (true, 5)
     ON CONFLICT (id) DO NOTHING
     """,
+    """
+    ALTER TABLE submission_gates ADD COLUMN IF NOT EXISTS voucher_id uuid
+    """,
+    """
+    ALTER TABLE submission_gates ADD COLUMN IF NOT EXISTS voucher_state text
+    """,
+    """
+    ALTER TABLE submission_gates ADD COLUMN IF NOT EXISTS voucher_failure_reason text
+    """,
+    """
+    DO $$
+    BEGIN
+        ALTER TABLE submission_gates
+            ADD CONSTRAINT submission_gates_voucher_state
+            CHECK (
+                voucher_state IS NULL
+                OR voucher_state IN ('pending', 'redeemed', 'failed')
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END $$
+    """,
+    """
+    DO $$
+    BEGIN
+        ALTER TABLE submission_gates
+            ADD CONSTRAINT submission_gates_voucher_reason
+            CHECK (
+                voucher_failure_reason IS NULL
+                OR voucher_failure_reason IN (
+                    'expired', 'revoked', 'exhausted', 'inactive', 'wrong_service'
+                )
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END $$
+    """,
+    """
+    DO $$
+    BEGIN
+        ALTER TABLE submission_gates
+            ADD CONSTRAINT submission_gates_voucher_shape
+            CHECK (
+                (
+                    voucher_id IS NULL
+                    AND voucher_state IS NULL
+                    AND voucher_failure_reason IS NULL
+                )
+                OR (
+                    voucher_id IS NOT NULL
+                    AND voucher_state = 'pending'
+                    AND voucher_failure_reason IS NULL
+                )
+                OR (
+                    voucher_id IS NOT NULL
+                    AND voucher_state = 'redeemed'
+                    AND voucher_failure_reason IS NULL
+                )
+                OR (
+                    voucher_id IS NOT NULL
+                    AND voucher_state = 'failed'
+                    AND voucher_failure_reason IS NOT NULL
+                )
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END $$
+    """,
 )
 _QUEUE = """
     UPDATE submission_gates
@@ -147,6 +215,9 @@ class SubmissionGate:
     currency: str
     pricing_version: int
     expires_at: datetime
+    voucher_id: str | None = None
+    voucher_state: Literal["pending", "redeemed", "failed"] | None = None
+    voucher_failure_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -272,16 +343,28 @@ class PaymentStore:
         state: PaymentState = "not_required" if price.price_cents == 0 else "unpaid"
         return PriceQuote(price.price_cents, price.currency, price.pricing_version, state)
 
-    def open_gate(self, submission_id: str, quote: PriceQuote, expires_at: datetime) -> None:
-        """Insert the gate for a submission that was just created."""
+    def open_gate(
+        self,
+        submission_id: str,
+        quote: PriceQuote,
+        expires_at: datetime,
+        voucher_id: str | None = None,
+    ) -> None:
+        """Insert the gate for a submission that was just created.
+
+        A voucher id marks the code as attached. Payment stays on ``quote`` and
+        is not authorized by that attachment.
+        """
+        voucher_state = None if voucher_id is None else "pending"
         with self._conn() as conn:
             conn.execute(
                 """
                 INSERT INTO submission_gates (
                     submission_id, status, uploaded, payment_state, checkout_attempt,
-                    price_cents, currency, pricing_version, expires_at
+                    price_cents, currency, pricing_version, expires_at,
+                    voucher_id, voucher_state
                 )
-                VALUES (%s, 'received', false, %s, 0, %s, %s, %s, %s)
+                VALUES (%s, 'received', false, %s, 0, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     submission_id,
@@ -290,6 +373,8 @@ class PaymentStore:
                     quote.currency,
                     quote.pricing_version,
                     expires_at,
+                    voucher_id,
+                    voucher_state,
                 ),
             )
 
@@ -337,12 +422,15 @@ class PaymentStore:
         *,
         submission_id: str,
         session_id: str,
+        amount_subtotal: int | None,
         amount_total: int | None,
         currency: str | None,
         payment_intent_id: str | None,
     ) -> PaidResult:
         """Mark the current attempt paid when the amount matches the snapshot.
 
+        The snapshot is pre-tax: Stripe may add tax on top, so the subtotal must
+        equal the snapshot and the total may not be lower than it (no discount).
         Payment only moves forward. A session id from an earlier attempt updates
         nothing. Queueing stays a separate conditional update so a probe can run
         between the two without holding this row lock.
@@ -358,7 +446,7 @@ class PaymentStore:
                 return "expired"
             if row["checkout_session_id"] != session_id:
                 return "stale"
-            if not _amount_matches(row, amount_total, currency):
+            if not _amount_matches(row, amount_subtotal, amount_total, currency):
                 return "amount"
             if row["payment_state"] == "paid":
                 return "paid"
@@ -401,6 +489,8 @@ class PaymentStore:
                 (submission_id,),
             ).fetchone()
             if row is None or row["status"] != "received":
+                return None
+            if row["voucher_state"] == "pending":
                 return None
             if row["payment_state"] in {"paid", "not_required"}:
                 return None
@@ -664,12 +754,16 @@ def _replace_attempt(conn: psycopg.Connection, row: dict, session_id: str) -> in
     return attempt
 
 
-def _amount_matches(row: dict, amount_total: int | None, currency: str | None) -> bool:
+def _amount_matches(
+    row: dict, amount_subtotal: int | None, amount_total: int | None, currency: str | None
+) -> bool:
     return (
         row["currency"] == "usd"
         and currency == "usd"
+        and amount_subtotal is not None
         and amount_total is not None
-        and int(amount_total) == int(row["price_cents"])
+        and int(amount_subtotal) == int(row["price_cents"])
+        and int(amount_total) >= int(amount_subtotal)
     )
 
 
@@ -708,4 +802,7 @@ def _gate(row: dict) -> SubmissionGate:
         currency=str(row["currency"]),
         pricing_version=int(row["pricing_version"]),
         expires_at=row["expires_at"],
+        voucher_id=None if row.get("voucher_id") is None else str(row["voucher_id"]),
+        voucher_state=row.get("voucher_state"),
+        voucher_failure_reason=row.get("voucher_failure_reason"),
     )

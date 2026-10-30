@@ -5,8 +5,10 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import NoReturn
 
 from loguru import logger
 
@@ -28,6 +30,9 @@ from public_site.errors import (
     UPLOAD_MISSING,
     UPLOAD_UNFINISHED,
     VERIFY,
+    VOUCHER_CONFLICT,
+    VOUCHER_PENDING,
+    VOUCHER_UNAVAILABLE,
     RequestRejected,
 )
 from public_site.frames import extract_frames, frame_path, missing_frames, ranked_entries
@@ -56,6 +61,11 @@ from public_site.stripe_checkout import (
 )
 from public_site.telemetry import TelemetryStore, best_effort, classify_error
 from public_site.tokens import hash_ip, hash_token, new_token
+from public_site.vouchers import (
+    VOUCHER_ATTEMPTS_PER_HOUR,
+    VoucherPreview,
+    VoucherStore,
+)
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _CLAIM_STALE = timedelta(minutes=2)
@@ -84,6 +94,7 @@ class SubmissionService:
         telemetry: TelemetryStore | None = None,
         payments: PaymentStore | None = None,
         checkout: CheckoutGateway | None = None,
+        vouchers: VoucherStore | None = None,
     ) -> None:
         self.settings = settings
         self.store = store
@@ -96,10 +107,16 @@ class SubmissionService:
         self.telemetry = telemetry
         self.payments = payments
         self.checkout = checkout
+        self.vouchers = vouchers
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
             store,
             limit=settings.submissions_per_hour,
+            window_seconds=settings.submission_window_seconds,
+        )
+        self.voucher_limiter = RateLimiter(
+            store,
+            limit=VOUCHER_ATTEMPTS_PER_HOUR,
             window_seconds=settings.submission_window_seconds,
         )
 
@@ -119,12 +136,17 @@ class SubmissionService:
         now: datetime | None = None,
         user_id: str | None = None,
         retention_days: int | None = None,
+        voucher_code: str | None = None,
     ) -> CreateSubmissionResponse:
         """Verify, limit, then create. A failed Turnstile check writes nothing."""
         if not verifier(turnstile_token):
             raise RequestRejected(400, VERIFY)
         moment = now or datetime.now(UTC)
+        code = _blank_to_none(voucher_code)
+        voucher_id = self._attach_voucher(code, ip, moment)
         quote = self._quote(user_id)
+        if voucher_id is not None and quote is not None:
+            quote = replace(quote, payment_state="unpaid")
         privileged = self._privileged(user_id)
         if not privileged:
             self._check_limits(ip, user_id, moment)
@@ -147,7 +169,7 @@ class SubmissionService:
             user_id=user_id,
             retention_days=retention_days,
         )
-        created = self._open_payment(created, submission, quote, moment)
+        created = self._open_payment(created, submission, quote, moment, voucher_id)
         if self.telemetry is not None:
             best_effort(
                 "open_initial_run",
@@ -235,6 +257,7 @@ class SubmissionService:
             analysis = Path(submission.analysis_dir)
             result = localize_result(load_result(analysis), locale, analysis, self.translator)
         error = submission.error if submission.status in {"failed", "expired"} else None
+        gate = None if self.payments is None else self.payments.get(submission.id)
         return PublicSubmissionResponse(
             status=submission.status,
             step=submission.step,
@@ -246,7 +269,9 @@ class SubmissionService:
             match_seconds=_match_seconds(self.store.get_video(submission.id)),
             locale=locale,
             result=result,
-            payment_state=self._payment_state(submission.id),
+            payment_state=None if gate is None else gate.payment_state,
+            voucher_state=None if gate is None else gate.voucher_state,
+            voucher_failure_reason=None if gate is None else gate.voucher_failure_reason,
             notice_pending=self._notice_pending(submission),
         )
 
@@ -760,16 +785,18 @@ class SubmissionService:
         submission: Submission,
         quote: PriceQuote | None,
         now: datetime,
+        voucher_id: str | None = None,
     ) -> CreateSubmissionResponse:
         if self.payments is None or quote is None:
             return created
         expires = now + timedelta(seconds=self.settings.payment_hold_seconds)
-        self.payments.open_gate(submission.id, quote, expires)
+        self.payments.open_gate(submission.id, quote, expires, voucher_id)
         self._price_event(submission.id, "upload_started")
         return created.model_copy(
             update={
                 "price_cents": quote.price_cents,
                 "payment_required": quote.payment_state == "unpaid",
+                "voucher_state": None if voucher_id is None else "pending",
             }
         )
 
@@ -788,6 +815,8 @@ class SubmissionService:
         if self.payments is None or current.status != "received":
             return self.project(current)
         gate = self.payments.get(current.id)
+        if gate is not None and gate.voucher_state == "pending":
+            return self._finish_voucher(current, token)
         if gate is None or not _ready(gate):
             return self.project(current)
         video = self.store.get_video(current.id)
@@ -801,6 +830,54 @@ class SubmissionService:
             self._queue(current, video, facts, sealed)
         return self.project(self.store.get(current.id) or current)
 
+    def preview_voucher(self, code: str, ip: str, now: datetime | None = None) -> VoucherPreview:
+        """Validate a code for the form. Does not attach it or redeem it."""
+        moment = now or datetime.now(UTC)
+        self._watch_voucher(ip, moment)
+        if self.vouchers is None:
+            raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
+        return self.vouchers.preview(code, moment)
+
+    def _finish_voucher(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+        """Probe, then redeem and queue in one database transaction."""
+        if self.vouchers is None or self.payments is None:
+            raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
+        video = self.store.get_video(submission.id)
+        if video is None:
+            raise RequestRejected(400, UPLOAD_MISSING)
+        facts = self._probe_facts(submission, video)
+        current = self.store.get(submission.id) or submission
+        if facts is None:
+            return self.project(current)
+        decision = self.vouchers.finalize(submission.id, datetime.now(UTC))
+        if decision.outcome == "failed":
+            return self.project(current)
+        if decision.outcome != "redeemed":
+            raise RequestRejected(409, VOUCHER_CONFLICT, reason="conflict")
+        sealed = token or self.notices.read_sealed(submission.id) or ""
+        self._queue(submission, video, facts, sealed)
+        return self.project(self.store.get(submission.id) or submission)
+
+    def _attach_voucher(self, code: str | None, ip: str, now: datetime) -> str | None:
+        """Revalidate before any submission is written. Still not a redemption."""
+        if code is None:
+            return None
+        self._watch_voucher(ip, now)
+        if self.vouchers is None or self.payments is None:
+            raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
+        return self.vouchers.attached_id(code, now)
+
+    def _watch_voucher(self, ip: str, now: datetime) -> None:
+        if self.voucher_limiter.allow("voucher:" + hash_ip(ip), now):
+            return
+        raise RequestRejected(429, RATE_LIMIT)
+
+    def _raise_unclaimed(self, submission_id: str) -> NoReturn:
+        gate = None if self.payments is None else self.payments.get(submission_id)
+        if gate is not None and gate.voucher_state == "pending":
+            raise RequestRejected(409, VOUCHER_PENDING, reason="pending")
+        raise RequestRejected(409, PAYMENT_WINDOW)
+
     def start_checkout(self, token: str) -> dict[str, str | bool | None]:
         """Return the current card session, or open the next attempt."""
         if self.payments is None or self.checkout is None:
@@ -813,6 +890,8 @@ class SubmissionService:
             return {"url": None, "paid": True, "pending": False}
         if gate.payment_state == "not_required":
             raise RequestRejected(400, PAYMENT_NOT_REQUIRED)
+        if gate.voucher_state == "pending":
+            raise RequestRejected(409, VOUCHER_PENDING, reason="pending")
         self._require_open_window(gate)
         reusable = self._reusable_session(gate)
         if reusable == "pending":
@@ -834,6 +913,7 @@ class SubmissionService:
         result = self.payments.apply_paid(
             submission_id=gate.submission_id,
             session_id=session.id,
+            amount_subtotal=session.amount_subtotal,
             amount_total=session.amount_total,
             currency=(session.currency or "").lower(),
             payment_intent_id=session.payment_intent_id,
@@ -891,7 +971,7 @@ class SubmissionService:
         replace = gate.checkout_session_id if gate.payment_state == "checkout_created" else None
         attempt = self.payments.claim_checkout(submission.id, replace)
         if attempt is None:
-            raise RequestRejected(409, PAYMENT_WINDOW)
+            self._raise_unclaimed(submission.id)
         self._require_stripe_lifetime(gate)
         try:
             created = self._create_checkout_session(submission, token, gate, attempt)
@@ -1014,6 +1094,14 @@ class SubmissionService:
                 submission.created_at,
                 submission.expires_at,
             )
+
+
+def _blank_to_none(value: str | None) -> str | None:
+    """Treat a missing or whitespace-only code as no voucher."""
+    if value is None:
+        return None
+    stripped = value.strip()
+    return stripped or None
 
 
 def _declared_file(

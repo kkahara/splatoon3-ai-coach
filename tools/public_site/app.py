@@ -39,6 +39,7 @@ from public_site.stripe_checkout import (
 from public_site.telemetry import TelemetryStore
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
+from public_site.vouchers import VoucherStore
 from public_site.worker import Command, PublicWorker, subprocess_run
 from public_site.worker_capacity import MAX_CAPACITY, MIN_CAPACITY, WorkerCapacityStore
 
@@ -62,6 +63,15 @@ class CreateBody(BaseModel):
     email: str | None = None
     notify: bool = False
     display_name: str | None = None
+    voucher_code: str | None = None
+
+
+class VoucherBody(BaseModel):
+    """A voucher code. It is not accepted in a query string."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    code: str = ""
 
 
 class RegisterBody(BaseModel):
@@ -201,6 +211,10 @@ def create_app(
     if payments is None and settings.database_url:
         payments = PaymentStore(settings.database_url)
         payments.ensure_schema()
+    vouchers = None
+    if payments is not None:
+        vouchers = VoucherStore(payments.database_url, settings.voucher_hmac_secret)
+        vouchers.ensure_schema()
     if capacities is None and settings.database_url:
         capacities = WorkerCapacityStore(settings.database_url)
         capacities.ensure_schema()
@@ -219,6 +233,7 @@ def create_app(
         telemetry=telemetry,
         payments=payments,
         checkout=checkout,
+        vouchers=vouchers,
     )
     if verifier is None:
         verifier = build_verifier(settings)
@@ -372,6 +387,7 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
                 verifier=verifier,
                 user_id=user_id,
                 retention_days=retention,
+                voucher_code=body.voucher_code,
             )
             browser_token = None
             if guest_email is not None:
@@ -381,7 +397,7 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
                     request.cookies.get(NOTICE_COOKIE, ""),
                 )
         except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+            return _rejected(exc)
         response = JSONResponse(created.model_dump())
         if browser_token:
             _notice_cookie(response, browser_token, settings)
@@ -395,12 +411,25 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
 
     _auth_routes(app, settings, service, accounts, notices)
 
+    @app.post("/api/vouchers/validate")
+    def post_voucher(body: VoucherBody, request: Request) -> dict:
+        try:
+            preview = service.preview_voucher(body.code, _client_ip(request, settings))
+        except RequestRejected as exc:
+            return _rejected(exc)
+        return {
+            "accepted": True,
+            "benefit_type": preview.benefit_type,
+            "amount_due_cents": preview.amount_due_cents,
+            "currency": preview.currency,
+        }
+
     @app.post("/api/submissions/{token}/uploaded")
     def post_uploaded(token: str) -> dict:
         try:
             view = service.confirm(token)
         except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+            return _rejected(exc)
         worker.wake()
         return view.model_dump()
 
@@ -409,7 +438,7 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         try:
             started = service.start_checkout(token)
         except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+            return _rejected(exc)
         return started
 
     @app.post("/api/stripe/webhook")
@@ -778,6 +807,14 @@ def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> 
             ).model_dump()
         )
     return items
+
+
+def _rejected(exc: RequestRejected) -> JSONResponse:
+    """Public error. ``reason`` is a stable code; the detail never includes the voucher."""
+    body = {"detail": exc.detail}
+    if exc.reason:
+        body["reason"] = exc.reason
+    return JSONResponse(status_code=exc.status_code, content=body)
 
 
 def _client_ip(request: Request, settings: PublicSettings) -> str:

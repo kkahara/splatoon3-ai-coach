@@ -31,6 +31,7 @@ class CheckoutSession:
     url: str | None
     status: str
     payment_status: str
+    amount_subtotal: int | None
     amount_total: int | None
     currency: str | None
     payment_intent_id: str | None
@@ -140,12 +141,14 @@ def _session(data: object) -> CheckoutSession:
     raw = _mapping(data)
     intent = raw.get("payment_intent")
     intent_id = intent if isinstance(intent, str) else None
+    subtotal = raw.get("amount_subtotal")
     amount = raw.get("amount_total")
     return CheckoutSession(
         id=str(raw.get("id") or ""),
         url=_text(raw.get("url")),
         status=str(raw.get("status") or ""),
         payment_status=str(raw.get("payment_status") or ""),
+        amount_subtotal=subtotal if isinstance(subtotal, int) else None,
         amount_total=amount if isinstance(amount, int) else None,
         currency=_text(raw.get("currency")),
         payment_intent_id=intent_id,

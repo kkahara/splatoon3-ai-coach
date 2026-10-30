@@ -116,7 +116,10 @@ export function formatUsd(cents) {
 }
 
 /** Button label. A priced analysis shows the amount before any upload starts. */
-export function submitButtonLabel(t, config) {
+export function submitButtonLabel(t, config, voucher = null) {
+  if (voucher?.accepted) {
+    return t("submit.submit");
+  }
   if (!config?.payment_required) {
     return t("submit.submit");
   }
@@ -137,8 +140,8 @@ export function centsFromDollars(text) {
 }
 
 /** POST /api/submissions body. Takes no site locale on purpose. */
-export function submissionBody({ token, file, language, account, notify, email }) {
-  return {
+export function submissionBody({ token, file, language, account, notify, email, voucherCode }) {
+  const body = {
     turnstile_token: token,
     filename: file.name,
     size_bytes: file.size,
@@ -148,4 +151,9 @@ export function submissionBody({ token, file, language, account, notify, email }
     notify: Boolean(notify),
     display_name: null,
   };
+  const code = String(voucherCode || "").trim();
+  if (code) {
+    body.voucher_code = code;
+  }
+  return body;
 }

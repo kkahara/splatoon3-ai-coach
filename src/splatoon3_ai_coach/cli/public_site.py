@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import webbrowser
+from datetime import UTC, datetime
 
 import typer
 from loguru import logger
@@ -10,6 +11,8 @@ from loguru import logger
 from splatoon3_ai_coach.cli.repo_tools import require_repo_tools
 
 public_admin_app = typer.Typer(no_args_is_help=True, help="Manage public-site admins.")
+voucher_app = typer.Typer(no_args_is_help=True, help="Issue and revoke vouchers.")
+public_admin_app.add_typer(voucher_app, name="voucher")
 
 
 def public_site(
@@ -106,3 +109,108 @@ def backfill_telemetry() -> None:
         "updated={updated} skipped_expired={skipped_expired} "
         "skipped_missing={skipped_missing}".format(**counts)
     )
+
+
+@voucher_app.command("issue")
+def issue_voucher(
+    source: str = typer.Option(..., "--source", help="skilltown or youtube."),
+    campaign: str = typer.Option(..., "--campaign", help="Reporting id, not the code."),
+    expires_at: str = typer.Option(..., "--expires-at", help="Timezone-aware expiry."),
+    service: str = typer.Option("match_analysis", "--service"),
+    max_redemptions: int | None = typer.Option(None, "--max-redemptions"),
+    code: str | None = typer.Option(None, "--code", help="Public YouTube code."),
+    benefit: str | None = typer.Option(None, "--benefit"),
+    starts_at: str | None = typer.Option(None, "--starts-at"),
+    note: str | None = typer.Option(None, "--note"),
+) -> None:
+    """Create one voucher and print its plaintext code once."""
+    require_repo_tools("public-admin")
+    from public_site.errors import RequestRejected
+    from public_site.vouchers import VoucherIssue, default_benefit
+
+    store = _vouchers()
+    try:
+        chosen = benefit or default_benefit(source)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    limit = 1 if max_redemptions is None and source == "skilltown" else max_redemptions
+    if limit is None:
+        raise typer.BadParameter("YouTube vouchers need --max-redemptions")
+    spec = VoucherIssue(
+        source=source,
+        campaign=campaign,
+        eligible_service_id=service,
+        benefit_type=chosen,
+        max_redemptions=limit,
+        expires_at=_aware(expires_at, "expiration"),
+        code=code,
+        starts_at=None if starts_at is None else _aware(starts_at, "start"),
+        note=note,
+    )
+    try:
+        issued = store.issue(spec, datetime.now(UTC))
+    except (ValueError, RequestRejected) as exc:
+        detail = exc.detail if isinstance(exc, RequestRejected) else str(exc)
+        raise typer.BadParameter(detail) from exc
+    typer.echo(f"voucher_id={issued.voucher_id}")
+    typer.echo(f"source={spec.source} campaign={spec.campaign}")
+    typer.echo(f"service={spec.eligible_service_id} benefit={spec.benefit_type}")
+    typer.echo(f"max_redemptions={spec.max_redemptions}")
+    typer.echo(f"expires_at={spec.expires_at.isoformat()}")
+    typer.echo("The next line is the only copy of this code. It is not stored.")
+    typer.echo(f"code={issued.code}")
+
+
+@voucher_app.command("revoke")
+def revoke_voucher(voucher_id: str = typer.Argument(...)) -> None:
+    """Revoke one voucher by id. Queued jobs are left as they are."""
+    if not _vouchers().revoke(voucher_id):
+        raise typer.BadParameter("voucher was not active")
+    typer.echo(f"revoked {voucher_id}")
+
+
+@voucher_app.command("status")
+def voucher_status(voucher_id: str = typer.Argument(...)) -> None:
+    """Show redemptions for one voucher. The code itself cannot be shown."""
+    found = _vouchers().status(voucher_id)
+    if found is None:
+        raise typer.BadParameter("voucher was not found")
+    typer.echo(f"voucher_id={found.voucher_id} status={found.status}")
+    typer.echo(f"source={found.source} campaign={found.campaign}")
+    typer.echo(f"service={found.eligible_service_id} benefit={found.benefit_type}")
+    typer.echo(
+        f"redemptions={found.redemption_count}/{found.max_redemptions} "
+        f"expires_at={found.expires_at.isoformat()}"
+    )
+    if found.note:
+        typer.echo(f"note={found.note}")
+    for item in found.redemptions:
+        redeemed = item.redeemed_at.isoformat()
+        typer.echo(f"submission={item.submission_id} redeemed_at={redeemed}")
+
+
+def _vouchers():
+    """Open the voucher store. A missing HMAC secret fails here."""
+    require_repo_tools("public-admin")
+    from public_site.settings import PublicSettings
+    from public_site.vouchers import VoucherStore
+
+    settings = PublicSettings.from_env()
+    if not settings.database_url:
+        raise typer.BadParameter("PUBLIC_DATABASE_URL is required")
+    if not settings.voucher_hmac_secret:
+        raise typer.BadParameter("PUBLIC_VOUCHER_HMAC_SECRET is required")
+    store = VoucherStore(settings.database_url, settings.voucher_hmac_secret)
+    store.ensure_schema()
+    return store
+
+
+def _aware(value: str, label: str) -> datetime:
+    """Parse one timezone-aware timestamp. Naive values are rejected."""
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise typer.BadParameter(f"{label} must be an ISO-8601 timestamp") from exc
+    if parsed.tzinfo is None:
+        raise typer.BadParameter(f"{label} must include a time zone")
+    return parsed

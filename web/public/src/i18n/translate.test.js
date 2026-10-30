@@ -90,6 +90,17 @@ test("payment terms do not promise an administrator refund", () => {
   assert.doesNotMatch(japanese, /管理者が返金/);
 });
 
+test("the pre-checkout price makes applicable tax clear", () => {
+  const price = { price: "$2.00" };
+  assert.equal(
+    translate(resources, "en", "submit.price_button", price),
+    "Start analysis — $2.00 + applicable tax",
+  );
+  assert.equal(translate(resources, "ja", "submit.price_button", price), "分析を開始 — $2.00（税別）");
+  assert.match(translate(resources, "en", "submit.one_time"), /applicable tax/);
+  assert.match(translate(resources, "ja", "submit.one_time"), /税/);
+});
+
 test("the about page keeps the supplied Japanese story", () => {
   const japanese = translate(resources, "ja", "about.p3");
   const english = translate(resources, "en", "about.p1");
