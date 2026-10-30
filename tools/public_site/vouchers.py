@@ -51,6 +51,7 @@ _DETAILS = {
     "conflict": VOUCHER_CONFLICT,
 }
 _FAILURES = frozenset({"expired", "revoked", "exhausted", "inactive", "wrong_service"})
+_STATE_LABELS = {"exhausted": "fully_used"}
 _SCHEMA = (
     """
     CREATE TABLE IF NOT EXISTS vouchers (
@@ -150,6 +151,7 @@ class VoucherStatus:
     starts_at: datetime | None
     expires_at: datetime
     note: str | None
+    created_at: datetime
     redemptions: tuple[VoucherRedemption, ...]
 
 
@@ -230,24 +232,54 @@ class VoucherStore:
         return updated.rowcount == 1
 
     def status(self, voucher_id: str) -> VoucherStatus | None:
-        """Load one voucher and the submissions that redeemed it."""
-        with self._conn() as conn:
+        """Load one voucher and the submissions that redeemed it. Read-only."""
+        with self._reader() as conn:
             row = conn.execute(
                 "SELECT * FROM vouchers WHERE id = %s",
                 (voucher_id,),
             ).fetchone()
             if row is None:
                 return None
+            uses = _uses(conn, str(row["id"]))
+        return _status(row, uses)
+
+    def status_for_code(self, raw: str) -> VoucherStatus | None:
+        """Operator lookup by plaintext code. Read-only; nothing is redeemed.
+
+        A code that cannot be normalized is reported as not found.
+        """
+        try:
+            normalized = normalize_voucher_code(raw)
+        except ValueError:
+            return None
+        digest = code_hash(normalized, self._require_secret())
+        with self._reader() as conn:
+            row = conn.execute(
+                "SELECT * FROM vouchers WHERE code_hash = %s",
+                (digest,),
+            ).fetchone()
+            if row is None:
+                return None
+            uses = _uses(conn, str(row["id"]))
+        return _status(row, uses)
+
+    def overview(self) -> list[VoucherStatus]:
+        """Every voucher, newest first, with its redemptions. Read-only."""
+        with self._reader() as conn:
+            rows = conn.execute(
+                "SELECT * FROM vouchers ORDER BY created_at DESC, id"
+            ).fetchall()
             uses = conn.execute(
                 """
-                SELECT submission_id, redeemed_at
+                SELECT voucher_id, submission_id, redeemed_at
                 FROM voucher_redemptions
-                WHERE voucher_id = %s
                 ORDER BY redeemed_at, submission_id
-                """,
-                (voucher_id,),
+                """
             ).fetchall()
-        return _status(row, uses)
+        grouped: dict[str, list[dict]] = {}
+        for item in uses:
+            grouped.setdefault(str(item["voucher_id"]), []).append(item)
+        return [_status(row, grouped.get(str(row["id"]), [])) for row in rows]
 
     def attached_id(self, raw: str, now: datetime) -> str:
         """Revalidate a code and return its id. This does not redeem it."""
@@ -309,6 +341,12 @@ class VoucherStore:
     def _conn(self) -> psycopg.Connection:
         return psycopg.connect(self.database_url, row_factory=dict_row)
 
+    def _reader(self) -> psycopg.Connection:
+        """A connection whose transactions Postgres runs as READ ONLY."""
+        conn = self._conn()
+        conn.read_only = True
+        return conn
+
 
 def normalize_voucher_code(raw: str) -> str:
     """NFKC, strip, and Unicode-uppercase. Internal whitespace is rejected.
@@ -334,6 +372,25 @@ def code_hash(normalized: str, secret: str) -> str:
 def generate_skilltown_code() -> str:
     """A random ``SKT-XXXX-XXXX`` code. Not derived from a sequence or name."""
     return f"SKT-{_block()}-{_block()}"
+
+
+def voucher_state(found: VoucherStatus, now: datetime) -> str:
+    """Operator label from the same rules redemption applies.
+
+    ``active`` means a redemption at ``now`` would pass. Otherwise the
+    rejection reason, with ``exhausted`` shown as ``fully_used``.
+    """
+    row = {
+        "eligible_service_id": found.eligible_service_id,
+        "status": found.status,
+        "starts_at": found.starts_at,
+        "expires_at": found.expires_at,
+        "max_redemptions": found.max_redemptions,
+    }
+    reason = _rejection(row, now, found.redemption_count)
+    if reason is None:
+        return "active"
+    return _STATE_LABELS.get(reason, reason)
 
 
 def default_benefit(source: str) -> str:
@@ -559,10 +616,23 @@ def _status(row: dict, uses: list[dict]) -> VoucherStatus:
         starts_at=row["starts_at"],
         expires_at=row["expires_at"],
         note=row["note"],
+        created_at=row["created_at"],
         redemptions=tuple(
             VoucherRedemption(str(item["submission_id"]), item["redeemed_at"]) for item in uses
         ),
     )
+
+
+def _uses(conn: psycopg.Connection, voucher_id: str) -> list[dict]:
+    return conn.execute(
+        """
+        SELECT submission_id, redeemed_at
+        FROM voucher_redemptions
+        WHERE voucher_id = %s
+        ORDER BY redeemed_at, submission_id
+        """,
+        (voucher_id,),
+    ).fetchall()
 
 
 def _voucher_foreign_key(conn: psycopg.Connection) -> None:

@@ -90,17 +90,84 @@ s3-coach public-admin voucher issue \
 
 `youtube_outreach_2026` is the campaign, not the code viewers type.
 
-## Revoke and inspect
+## Operator commands
+
+All voucher commands read `PUBLIC_DATABASE_URL` and `PUBLIC_VOUCHER_HMAC_SECRET`
+from the environment (the repo `.env` locally). Each environment has its own
+secret: a local or test secret never hashes a production code, and the
+production secret is only in `/srv/www/s3-coaching/.env` on the server. Never
+commit it, paste it into documentation or chat, or pass it on a command line.
+
+In production, run the commands inside the app container, which already has
+the production environment:
+
+```bash
+ssh Hetzner
+cd /srv/www/s3-coaching
+docker compose exec app s3-coach public-admin voucher list
+```
+
+The examples below use fake values.
+
+### Issue
+
+`issue` (above) is the only command that ever shows a plaintext code, once,
+at creation. The database keeps only the HMAC, so a lost code cannot be
+recovered by `status --id` or `list`; issue a new one and revoke the old id.
+
+### Status
+
+```bash
+s3-coach public-admin voucher status                # prompts; input is hidden
+s3-coach public-admin voucher status SKT-AAAA-BBBB  # code as an argument
+s3-coach public-admin voucher status --id 00000000-0000-4000-8000-000000000000
+```
+
+Use the prompt form for a real code. A code given as an argument can stay in
+shell history. Code lookups use the same normalization and HMAC as the site
+and need the secret; `--id` does not. A code and `--id` together are refused.
+An unknown code or id prints `voucher was not found` and exits non-zero.
+
+Status is read-only. It never validates through the public endpoint, attaches,
+or redeems. It prints:
+
+```
+voucher_id=00000000-0000-4000-8000-000000000000 state=fully_used
+source=skilltown campaign=skilltown_example
+service=match_analysis benefit=externally_prepaid
+uses=1/1 expires_at=2026-12-31T23:59:59+00:00
+redeemed_at=2026-11-02T10:15:00+00:00
+```
+
+`state` uses the redemption rules: `active` (a redemption now would pass),
+`fully_used`, `expired`, `revoked`, `inactive` (before `starts_at`), or
+`wrong_service`. `uses` counts committed `voucher_redemptions` rows; there is
+one `redeemed_at` line per row. `starts_at` and the operator note appear when
+set. Status never prints the code, its HMAC, submission ids, or customer data.
+
+### List
+
+```bash
+s3-coach public-admin voucher list
+```
+
+```
+CREATED            CAMPAIGN           SOURCE     SERVICE         STATE       USED  LIMIT  EXPIRES            ID
+2026-11-01T09:00Z  skilltown_example  skilltown  match_analysis  active      0     1      2026-12-31T23:59Z  00000000-0000-4000-8000-000000000001
+2026-10-20T12:30Z  youtube_example    youtube    match_analysis  fully_used  20    20     2026-12-31T23:59Z  00000000-0000-4000-8000-000000000002
+```
+
+Every voucher, newest first, times in UTC. Read-only, and it does not need the
+HMAC secret. It shows no codes, HMACs, notes, submission ids, or customer data.
+Use the id with `status --id` or `revoke`.
+
+### Revoke
 
 Revoke stops a later redemption. It does not cancel a job that already queued.
 
 ```bash
 s3-coach public-admin voucher revoke 00000000-0000-4000-8000-000000000000
-s3-coach public-admin voucher status 00000000-0000-4000-8000-000000000000
 ```
-
-Status prints the campaign, expiry, redemption count, and submission ids.
-It cannot print the code.
 
 ## Not production-ready from code review alone
 

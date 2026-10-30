@@ -35,6 +35,8 @@ That file does not have PUBLIC_STRIPE_SECRET_KEY or PUBLIC_STRIPE_WEBHOOK_SECRET
 
 Voucher redemption also needs `PUBLIC_VOUCHER_HMAC_SECRET` in that same file. It is an HMAC key, not a voucher code. Leave it unset only when no voucher will be entered: submissions without a code keep working, and a request that includes a code fails closed. Do not commit the value. See `docs/public_site/VOUCHERS.md`.
 
+To issue or check vouchers in production, run `docker compose exec app s3-coach public-admin voucher issue|status|list` from that directory; `docs/public_site/VOUCHERS.md` has the exact commands.
+
 
 ssh Hetzner
 cd /srv/www/s3-coaching

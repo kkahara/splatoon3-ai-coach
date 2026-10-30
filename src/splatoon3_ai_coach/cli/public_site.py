@@ -11,8 +11,13 @@ from loguru import logger
 from splatoon3_ai_coach.cli.repo_tools import require_repo_tools
 
 public_admin_app = typer.Typer(no_args_is_help=True, help="Manage public-site admins.")
-voucher_app = typer.Typer(no_args_is_help=True, help="Issue and revoke vouchers.")
+voucher_app = typer.Typer(
+    no_args_is_help=True, help="Issue, inspect, list and revoke vouchers."
+)
 public_admin_app.add_typer(voucher_app, name="voucher")
+_LIST_HEADER = (
+    "CREATED", "CAMPAIGN", "SOURCE", "SERVICE", "STATE", "USED", "LIMIT", "EXPIRES", "ID",
+)
 
 
 def public_site(
@@ -170,27 +175,92 @@ def revoke_voucher(voucher_id: str = typer.Argument(...)) -> None:
 
 
 @voucher_app.command("status")
-def voucher_status(voucher_id: str = typer.Argument(...)) -> None:
-    """Show redemptions for one voucher. The code itself cannot be shown."""
-    found = _vouchers().status(voucher_id)
+def voucher_status(
+    code: str | None = typer.Argument(
+        None,
+        help="Plaintext code. It may land in shell history; omit it to be prompted.",
+    ),
+    voucher_id: str | None = typer.Option(
+        None, "--id", help="Look up by voucher id. Needs no HMAC secret."
+    ),
+) -> None:
+    """Show one voucher's state and redemption times. Read-only.
+
+    With no CODE and no --id, the code is read from a hidden prompt.
+    """
+    if code is not None and voucher_id is not None:
+        raise typer.BadParameter("give a code or --id, not both")
+    if voucher_id is not None:
+        store = _vouchers(need_secret=False, ensure=False)
+        found = _read(lambda: store.status(voucher_id)) if _is_uuid(voucher_id) else None
+    else:
+        store = _vouchers(ensure=False)
+        if code is None:
+            code = typer.prompt("Voucher code", hide_input=True)
+        found = _read(lambda: store.status_for_code(code))
     if found is None:
         raise typer.BadParameter("voucher was not found")
-    typer.echo(f"voucher_id={found.voucher_id} status={found.status}")
+    _echo_status(found)
+
+
+@voucher_app.command("list")
+def list_vouchers() -> None:
+    """List every voucher, newest first. Codes are never shown. Read-only."""
+    store = _vouchers(need_secret=False, ensure=False)
+    from public_site.vouchers import voucher_state
+
+    found = _read(store.overview)
+    if not found:
+        typer.echo("no vouchers")
+        return
+    now = datetime.now(UTC)
+    rows = [_LIST_HEADER] + [
+        (
+            _minute(item.created_at),
+            item.campaign,
+            item.source,
+            item.eligible_service_id,
+            voucher_state(item, now),
+            str(item.redemption_count),
+            str(item.max_redemptions),
+            _minute(item.expires_at),
+            item.voucher_id,
+        )
+        for item in found
+    ]
+    widths = [max(len(row[index]) for row in rows) for index in range(len(_LIST_HEADER))]
+    for row in rows:
+        cells = (cell.ljust(width) for cell, width in zip(row, widths, strict=True))
+        typer.echo("  ".join(cells).rstrip())
+
+
+def _echo_status(found) -> None:
+    """Print one voucher. No code, hash, submission id, or customer data."""
+    from public_site.vouchers import voucher_state
+
+    state = voucher_state(found, datetime.now(UTC))
+    typer.echo(f"voucher_id={found.voucher_id} state={state}")
     typer.echo(f"source={found.source} campaign={found.campaign}")
     typer.echo(f"service={found.eligible_service_id} benefit={found.benefit_type}")
     typer.echo(
-        f"redemptions={found.redemption_count}/{found.max_redemptions} "
-        f"expires_at={found.expires_at.isoformat()}"
+        f"uses={found.redemption_count}/{found.max_redemptions} "
+        f"expires_at={_utc(found.expires_at)}"
     )
+    if found.starts_at is not None:
+        typer.echo(f"starts_at={_utc(found.starts_at)}")
     if found.note:
         typer.echo(f"note={found.note}")
     for item in found.redemptions:
-        redeemed = item.redeemed_at.isoformat()
-        typer.echo(f"submission={item.submission_id} redeemed_at={redeemed}")
+        typer.echo(f"redeemed_at={_utc(item.redeemed_at)}")
 
 
-def _vouchers():
-    """Open the voucher store. A missing HMAC secret fails here."""
+def _vouchers(*, need_secret: bool = True, ensure: bool = True):
+    """Open the voucher store.
+
+    Args:
+        need_secret: Fail here when ``PUBLIC_VOUCHER_HMAC_SECRET`` is missing.
+        ensure: Run the additive schema setup. Read-only commands pass False.
+    """
     require_repo_tools("public-admin")
     from public_site.settings import PublicSettings
     from public_site.vouchers import VoucherStore
@@ -198,11 +268,43 @@ def _vouchers():
     settings = PublicSettings.from_env()
     if not settings.database_url:
         raise typer.BadParameter("PUBLIC_DATABASE_URL is required")
-    if not settings.voucher_hmac_secret:
+    if need_secret and not settings.voucher_hmac_secret:
         raise typer.BadParameter("PUBLIC_VOUCHER_HMAC_SECRET is required")
     store = VoucherStore(settings.database_url, settings.voucher_hmac_secret)
-    store.ensure_schema()
+    if ensure:
+        store.ensure_schema()
     return store
+
+
+def _read(load):
+    """Run one read-only voucher query; a database without voucher tables is clear."""
+    from psycopg.errors import UndefinedTable
+
+    try:
+        return load()
+    except UndefinedTable as exc:
+        raise typer.BadParameter("voucher tables do not exist in this database") from exc
+
+
+def _is_uuid(value: str) -> bool:
+    """True for a value Postgres can compare with a uuid column."""
+    import uuid
+
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _utc(value: datetime) -> str:
+    """ISO-8601 in UTC."""
+    return value.astimezone(UTC).isoformat()
+
+
+def _minute(value: datetime) -> str:
+    """Compact UTC timestamp for the list table."""
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%MZ")
 
 
 def _aware(value: str, label: str) -> datetime:
