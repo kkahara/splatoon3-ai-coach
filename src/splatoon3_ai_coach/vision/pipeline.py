@@ -205,11 +205,15 @@ def _interpret_observations(
     )
     if decision is None:
         return snapshots, infer_events(snapshots, config.vision.events)
-    logger.info(
-        "Match end at {:.1f}s ({})", decision.time, decision.reason.value
-    )
+    logger.info("Match end at {:.1f}s ({})", decision.time, decision.reason.value)
     snapshots = [
-        item.model_copy(update={"match_phase": "post_match"})
+        item.model_copy(
+            update={
+                "match_phase": "post_match",
+                "basket_state": "unknown",
+                "basket_state_evidence_ids": [],
+            }
+        )
         if item.timestamp >= decision.time
         else item
         for item in snapshots

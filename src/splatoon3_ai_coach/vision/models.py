@@ -16,9 +16,7 @@ ScoreQuality = Literal["observed", "held", "rejected_implausible", "unknown"]
 # Fused SZ penalty: ``not_shown`` = main counter visible, no ``+N`` on screen.
 # Not zero — a missed or animating ``+N`` looks the same.
 PenaltyQuality = Literal["observed", "held", "not_shown", "unknown"]
-ZoneControlState = Literal[
-    "neutral", "ally_control", "opponent_control", "unknown"
-]
+ZoneControlState = Literal["neutral", "ally_control", "opponent_control", "unknown"]
 ZoneControlQuality = Literal["observed", "held", "unknown"]
 
 
@@ -298,7 +296,7 @@ class ScoreSideReading(BaseModel):
 
 
 class ScoreReading(BaseModel):
-    """Splat Zones dual remaining counters. Screen geometry only.
+    """Dual remaining counters. Screen geometry only.
 
     ``left`` / ``right`` are observation positions. Ally/opponent mapping is a
     fusion concern and must not appear here. Penalty fields are optional
@@ -306,7 +304,8 @@ class ScoreReading(BaseModel):
     glyph followed by digits was seen. ``penalty_evaluated`` says the penalty
     regions were configured and inspected on this frame, so ``None`` there
     means "no ``+N`` visible" rather than "not looked at". Penalty never
-    contributes to ``confidence``.
+    contributes to ``confidence``. ``battle_mode_id`` records the intended
+    reader configuration, not independent evidence of the actual match mode.
     """
 
     kind: Literal["score"] = "score"
@@ -319,6 +318,20 @@ class ScoreReading(BaseModel):
     right_penalty_scores: list[float] = Field(default_factory=list)
     penalty_evaluated: bool = False
     confidence: float = Field(default=0.0, ge=0, le=1)
+
+
+class ClamBasketStateReading(BaseModel):
+    """Visual state and independent color measurements, not gameplay duration.
+
+    Hue is the circular mean of sampled saturated pixels (OpenCV 0–180);
+    concentration measures hue consistency, not classification confidence.
+    """
+
+    kind: Literal["clam_basket_state"] = "clam_basket_state"
+    visual_state: Literal["open", "closed", "unknown"] = "unknown"
+    hue: float | None = Field(default=None, ge=0, lt=180)
+    hue_concentration: float = Field(default=0, ge=0, le=1)
+    timestamp: float | None = None
 
 
 class ZoneControlReading(BaseModel):
@@ -352,6 +365,7 @@ Reading = Annotated[
     | PlayerCountReading
     | SpecialGaugeReading
     | ScoreReading
+    | ClamBasketStateReading
     | ZoneControlReading,
     Field(discriminator="kind"),
 ]
@@ -379,6 +393,15 @@ class DetectorResult(BaseModel):
     reading: Reading
 
 
+class BasketTeamObservation(BaseModel):
+    """Team association derived from a state reading and color calibration."""
+
+    state_result_id: str
+    scoring_team: Literal["ally", "opponent", "unknown"] = "unknown"
+    color_distance: float | None = Field(default=None, ge=0)
+    calibration_time: float | None = None
+
+
 class VisionFrameResult(BaseModel):
     """Generic per-frame vision output."""
 
@@ -391,6 +414,7 @@ class VisionFrameResult(BaseModel):
     source_time_base_den: int | None = None
     frame_path: str | None = None
     detections: list[DetectorResult] = Field(default_factory=list)
+    basket_team: BasketTeamObservation | None = None
 
 
 class GameStateSnapshot(BaseModel):
@@ -432,6 +456,8 @@ class GameStateSnapshot(BaseModel):
     # Fused SZ ownership state; absent outside Splat Zones or without evidence.
     zone_control_state: ZoneControlState = "unknown"
     zone_control_quality: ZoneControlQuality = "unknown"
+    basket_state: Literal["open", "closed", "unknown"] = "unknown"
+    basket_state_evidence_ids: list[str] = Field(default_factory=list)
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None

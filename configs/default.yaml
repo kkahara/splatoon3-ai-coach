@@ -298,6 +298,14 @@ vision:
     score_max_drop_per_second: 2.0
     score_drop_slack: 2
     score_confirm_readings: 3
+  # Experimental: add "clam_score" and "clam_basket_state" to enabled_detectors
+  # for observe-only Clam Blitz studies. Score and penalty crops reuse score ROIs.
+  # Basket box: approximately [912, 122, 1009, 215] on a 1920x1080 frame.
+  clam_blitz:
+    basket_state:
+      roi: [0.475, 0.112963, 0.525521, 0.199074]
+      sector_count: 36
+      min_colored_sectors: 3
   # Splat Zones ownership cue: the highlighted/team-coloured scoreboard pod.
   # This remains an observe-only reading; mode gating belongs to fusion.
   # Thresholds and fusion settings are measured in

@@ -19,6 +19,7 @@ from splatoon3_ai_coach.config.models import (
     TimerDetectorConfig,
     ZoneControlDetectorConfig,
 )
+from splatoon3_ai_coach.vision.clam_basket_fusion import fuse_basket_state
 from splatoon3_ai_coach.vision.lifecycle import (
     LifecycleFuser,
     extract_lifecycle_observation,
@@ -124,7 +125,8 @@ def fuse_game_state(
     last_splatted: bool | None = None
     last_splatted_at: float | None = None
     last_splatted_ids: list[str] = []
-    score_fuser = ScoreFrameFuser(score_cfg, resolve_battle_mode(frame_results))
+    battle_mode_id = resolve_battle_mode(frame_results)
+    score_fuser = ScoreFrameFuser(score_cfg, battle_mode_id)
     score_fusions: list[ScoreFrameFusion] = []
     zone_fuser = ZoneControlFuser(zone_cfg, resolve_battle_mode(frame_results))
     ally_roster_mem = _RosterSideMemory()
@@ -175,6 +177,12 @@ def fuse_game_state(
         score = score_fuser.step(frame, life.match_phase)
         score_fusions.append(score)
         zone = zone_fuser.step(frame, life.match_phase)
+        basket_state, basket_ids = fuse_basket_state(
+            frame,
+            battle_mode_id,
+            life.match_phase,
+            map_overlay_present=life.map_overlay_present,
+        )
         snapshots.append(
             GameStateSnapshot(
                 timestamp=frame.timestamp,
@@ -207,6 +215,8 @@ def fuse_game_state(
                 opponent_penalty_quality=score.opponent_penalty_quality,
                 zone_control_state=zone.state,
                 zone_control_quality=zone.quality,
+                basket_state=basket_state,
+                basket_state_evidence_ids=basket_ids,
                 quality=quality,
                 evidence_ids=_combined_evidence(
                     remaining,

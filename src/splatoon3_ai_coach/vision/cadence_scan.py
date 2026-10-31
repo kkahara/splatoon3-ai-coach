@@ -14,6 +14,7 @@ from splatoon3_ai_coach.extraction.sampler import FrameSampler
 from splatoon3_ai_coach.media.video import VideoFrame, VideoLoader, VideoMetadata
 from splatoon3_ai_coach.paths import portable_path
 from splatoon3_ai_coach.vision.base import BaseDetector
+from splatoon3_ai_coach.vision.basket_team import resolve_basket_team
 from splatoon3_ai_coach.vision.detector_schedule import (
     DetectorSchedule,
     build_detector_schedule,
@@ -169,6 +170,16 @@ def _observe_cadence_frame(
         )
         maybe_calibrate_team_colors(map_ctx, video_frame, detections)
         maybe_sample_map_ink(map_ctx, video_frame, detections)
+    basket_team = None
+    if map_ctx is not None:
+        for detection in detections:
+            if detection.detector_name == "clam_basket_state":
+                basket_team = resolve_basket_team(
+                    detection,
+                    map_ctx.calibration,
+                    map_ctx.identity.identity.battle_mode_id,
+                )
+                break
     frame_path = optional_debug_snapshot(video_frame, debug_dir, output_dir)
     return VisionFrameResult(
         frame_id=make_frame_id(
@@ -178,6 +189,7 @@ def _observe_cadence_frame(
         ),
         timestamp=video_frame.timestamp,
         source="cadence",
+        basket_team=basket_team,
         source_frame_index=video_frame.frame_index,
         source_pts=video_frame.source_pts,
         source_time_base_num=video_frame.source_time_base_num,

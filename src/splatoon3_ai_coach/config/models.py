@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from splatoon3_ai_coach.config.paths import PROJECT_ROOT
 from splatoon3_ai_coach.media.video_source import VideoSource
 from splatoon3_ai_coach.types import NormalizedBox
 
@@ -581,6 +582,23 @@ class ScoreDetectorConfig(BaseModel):
     score_confirm_readings: int = Field(default=3, ge=1)
 
 
+class ClamBasketStateDetectorConfig(BaseModel):
+    """Experimental central Clam Blitz visual-state observation."""
+
+    roi: NormalizedBox = (0.475, 0.112963, 0.525521, 0.199074)
+    sector_count: int = Field(default=36, ge=8, le=360)
+    min_colored_sectors: int = Field(default=3, ge=1)
+    template_dir: Path = PROJECT_ROOT / "calibration/templates/clam_basket_state"
+
+
+class ClamBlitzConfig(BaseModel):
+    """Experimental Clam Blitz settings; score uses the shared score crops."""
+
+    basket_state: ClamBasketStateDetectorConfig = Field(
+        default_factory=ClamBasketStateDetectorConfig
+    )
+
+
 class ZoneControlDetectorConfig(BaseModel):
     """Observe the highlighted Splat Zones scoreboard pod.
 
@@ -774,6 +792,7 @@ class VisionConfig(BaseModel):
         default_factory=SpecialGaugeDetectorConfig
     )
     score: ScoreDetectorConfig = Field(default_factory=ScoreDetectorConfig)
+    clam_blitz: ClamBlitzConfig = Field(default_factory=ClamBlitzConfig)
     zone_control: ZoneControlDetectorConfig = Field(
         default_factory=ZoneControlDetectorConfig
     )

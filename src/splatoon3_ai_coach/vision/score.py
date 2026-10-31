@@ -81,13 +81,20 @@ def read_score_side(
     templates: dict[str, list[np.ndarray]],
     *,
     match_threshold: float,
+    white_on_color: bool = False,
 ) -> ScoreSideReading:
     """Read one remaining counter (normal then inverted polarity)."""
     crop = crop_roi(image, roi_box)
     digit_templates = {k: v for k, v in templates.items() if k in "0123456789"}
     best: ScoreSideReading | None = None
-    for invert in (False, True):
-        seg = _segment_score_roi(crop, invert=invert)
+    segments = [_segment_score_roi(crop, invert=invert) for invert in (False, True)]
+    if white_on_color:
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, (0, 0, 170), (180, 90, 255))
+        segments.append(
+            segment_timer_roi(cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR), min_area=25)
+        )
+    for seg in segments:
         pairs = _digit_pairs_from_seg(
             seg, digit_templates, match_threshold=match_threshold
         )
@@ -241,10 +248,23 @@ def read_score_frame(
     right_penalty_roi: NormalizedBox | None = None,
     battle_mode_id: str | None = "splat_zones",
     penalty_max_value: int = 99,
+    white_on_color: bool = False,
 ) -> ScoreReading:
     """Produce a dual-counter score reading for one full frame."""
-    left = read_score_side(image, left_roi, templates, match_threshold=match_threshold)
-    right = read_score_side(image, right_roi, templates, match_threshold=match_threshold)
+    left = read_score_side(
+        image,
+        left_roi,
+        templates,
+        match_threshold=match_threshold,
+        white_on_color=white_on_color,
+    )
+    right = read_score_side(
+        image,
+        right_roi,
+        templates,
+        match_threshold=match_threshold,
+        white_on_color=white_on_color,
+    )
     left_pen = read_penalty_side(
         image,
         left_penalty_roi,
@@ -313,6 +333,7 @@ class ScoreDetector:
             right_penalty_roi=self.config.right_penalty_roi,
             battle_mode_id=self.config.battle_mode_id,
             penalty_max_value=self.config.penalty_max_value,
+            white_on_color=self.config.battle_mode_id == "clam_blitz",
         )
         main_seen = reading.left.visible or reading.right.visible
         penalty_seen = (
@@ -321,3 +342,9 @@ class ScoreDetector:
         if not main_seen and not penalty_seen:
             return None, 0.0
         return reading, reading.confidence
+
+
+class ClamScoreDetector(ScoreDetector):
+    """Observe Clam Blitz scores independently of Splat Zones fusion."""
+
+    name = "clam_score"

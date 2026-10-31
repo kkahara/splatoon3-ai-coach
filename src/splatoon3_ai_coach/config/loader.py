@@ -66,6 +66,12 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
                     path = Path(template_dir)
                     if not path.is_absolute():
                         section[field] = str((config_dir / path).resolve())
+        clam = vision.get("clam_blitz")
+        basket = clam.get("basket_state") if isinstance(clam, dict) else None
+        if isinstance(basket, dict) and basket.get("template_dir") is not None:
+            template_dir = Path(basket["template_dir"])
+            if not template_dir.is_absolute():
+                basket["template_dir"] = str((config_dir / template_dir).resolve())
 
     review = raw.get("review")
     if isinstance(review, dict):
