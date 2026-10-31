@@ -414,6 +414,8 @@ class VisionFrameResult(BaseModel):
     source_time_base_den: int | None = None
     frame_path: str | None = None
     detections: list[DetectorResult] = Field(default_factory=list)
+    # None means legacy or otherwise unavailable scheduling provenance.
+    basket_observation_scheduled: bool | None = None
     basket_team: BasketTeamObservation | None = None
 
 

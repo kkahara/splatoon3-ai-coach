@@ -189,6 +189,9 @@ def _observe_cadence_frame(
         ),
         timestamp=video_frame.timestamp,
         source="cadence",
+        basket_observation_scheduled=any(
+            detector.name == "clam_basket_state" for detector in active
+        ),
         basket_team=basket_team,
         source_frame_index=video_frame.frame_index,
         source_pts=video_frame.source_pts,
