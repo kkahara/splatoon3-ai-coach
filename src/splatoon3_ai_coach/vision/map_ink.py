@@ -5,10 +5,9 @@
 map is visible. Ink fractions are classified pixel ratios — not continuous
 state, not interpolated, and not an ``INK_COVERAGE_CHANGED`` event.
 
-Sample geometry: when a stage ``stage_mask.yaml`` is provided, aggregates use
-the filled playable-stage polygon. Otherwise aggregates use the **union** of
-overlapping sampling rectangles from the stage pack. The classifier still
-decides which sampled pixels are ally/opponent/other.
+Production measures visible ink coverage within the registered gameplay
+polygon, not coverage of paintable terrain. The rectangle-union path remains
+only for explicit historical/offline callers; production supplies no rectangles.
 """
 
 from __future__ import annotations
@@ -20,18 +19,22 @@ from typing import Literal
 import cv2
 import numpy as np
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 from splatoon3_ai_coach.config.models import MapInkAnalyzerConfig
 from splatoon3_ai_coach.types import NormalizedBox
+from splatoon3_ai_coach.vision.overlay_map_polygon import (
+    OverlayMapPolygonConfig,
+    overlay_polygon_sha256,
+    overlay_polygon_to_bool,
+)
 from splatoon3_ai_coach.vision.stage_maps import StageMapGeometry, StageMapRegion
-from splatoon3_ai_coach.vision.stage_mask import StageMaskConfig, stage_mask_to_bool
 from splatoon3_ai_coach.vision.team_color_calibration import (
     ColorProfile,
     TeamColorCalibrationResult,
 )
 
-SampleMaskSource = Literal["stage_mask", "roi_union"]
+SampleMaskSource = Literal["registered_polygon", "roi_union"]
 
 MAP_OBSERVATIONS_FILENAME = "map_observations.json"
 
@@ -48,36 +51,73 @@ class MapRegionObservation(BaseModel):
     classified_pixels: int = Field(ge=0)
     ally_ink_pixels: int = Field(ge=0)
     opponent_ink_pixels: int = Field(ge=0)
-    unclassified_pixels: int = Field(ge=0)
-    ally_classified_fraction: float | None = None
-    opponent_classified_fraction: float | None = None
-    confidence: float = Field(default=0.0, ge=0, le=1)
+    neither_team_pixels: int = Field(
+        ge=0, validation_alias=AliasChoices("neither_team_pixels", "unclassified_pixels")
+    )
+    ally_share_of_detected_ink: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "ally_share_of_detected_ink", "ally_classified_fraction"
+        ),
+    )
+    opponent_share_of_detected_ink: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "opponent_share_of_detected_ink", "opponent_classified_fraction"
+        ),
+    )
 
 
 class MapObservation(BaseModel):
     """Sampled 2D map ink state at one video time.
 
     Not a ``GameEvent``. Does not imply ink state at other times.
-    Aggregate fractions use the active sample mask (stage polygon or ROI union).
+    Production coverage uses the registered gameplay polygon as denominator.
+    Legacy field names are accepted on input only; paint fraction is not confidence.
     """
 
     video_time: float = Field(ge=0)
     stage_id: str
     battle_mode_id: str | None = None
-    ally_classified_fraction: float | None = None
-    opponent_classified_fraction: float | None = None
-    classified_fraction: float | None = None
-    confidence: float = Field(default=0.0, ge=0, le=1)
+    ally_share_of_detected_ink: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "ally_share_of_detected_ink", "ally_classified_fraction"
+        ),
+    )
+    opponent_share_of_detected_ink: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "opponent_share_of_detected_ink", "opponent_classified_fraction"
+        ),
+    )
+    visible_ink_fraction: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices("visible_ink_fraction", "classified_fraction"),
+    )
     # Sample-mask pixel totals (overlaps counted once for ROI union).
     total_sample_pixels: int = Field(default=0, ge=0)
     classified_pixels: int = Field(default=0, ge=0)
     ally_ink_pixels: int = Field(default=0, ge=0)
     opponent_ink_pixels: int = Field(default=0, ge=0)
-    unclassified_pixels: int = Field(default=0, ge=0)
+    neither_team_pixels: int = Field(
+        default=0,
+        ge=0,
+        validation_alias=AliasChoices("neither_team_pixels", "unclassified_pixels"),
+    )
     regions: list[MapRegionObservation] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
     geometry_battle_mode_id: str | None = None
     sample_mask_source: SampleMaskSource = "roi_union"
+    sample_polygon_sha256: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("sample_polygon_sha256", "polygon_sha256"),
+    )
+
+    @field_validator("sample_mask_source", mode="before")
+    @classmethod
+    def _legacy_polygon_source(cls, value: str) -> str:
+        return "registered_polygon" if value == "stage_mask" else value
 
 
 class MapInkClassifier:
@@ -189,22 +229,44 @@ def _hsv_in_ranges(hsv: np.ndarray, ranges: list[list[int]]) -> np.ndarray:
     return mask
 
 
-def analyze_map_ink(
+def analyze_overlay_map_ink(
     image: np.ndarray,
-    geometry: StageMapGeometry,
+    polygon: OverlayMapPolygonConfig,
     classifier: MapInkClassifier,
     *,
     video_time: float,
     battle_mode_id: str | None,
     evidence_ids: list[str] | None = None,
-    stage_mask: StageMaskConfig | None = None,
 ) -> MapObservation:
-    """Measure classified ink fractions over the active sample mask.
+    """Measure visible ink using an authoritative registered overlay-map polygon."""
+    return analyze_map_ink(
+        image,
+        None,
+        classifier,
+        video_time=video_time,
+        battle_mode_id=battle_mode_id,
+        evidence_ids=evidence_ids,
+        stage_mask=polygon,
+    )
 
-    When ``stage_mask`` is set, the sample is the playable-stage polygon.
-    Otherwise the sample is the union of sampling rectangles (fallback).
+
+def analyze_map_ink(
+    image: np.ndarray,
+    geometry: StageMapGeometry | None,
+    classifier: MapInkClassifier,
+    *,
+    video_time: float,
+    battle_mode_id: str | None,
+    evidence_ids: list[str] | None = None,
+    stage_mask: OverlayMapPolygonConfig | None = None,
+) -> MapObservation:
+    """Measure visible ink coverage inside the registered gameplay polygon.
+
+    Explicit legacy callers may supply rectangles without a polygon.
     Classification is unchanged; only which pixels enter the denominator.
     """
+    if stage_mask is None and geometry is None:
+        raise ValueError("Map ink requires a registered polygon or legacy geometry")
     height, width = image.shape[:2]
     sample, source = _sample_mask(height, width, geometry, stage_mask)
     ally_full, opponent_full, other_full = classifier.classify_bgr(image)
@@ -219,41 +281,46 @@ def analyze_map_ink(
     ally_frac, opponent_frac = _fractions(ally_n, opponent_n, classified)
     classified_frac = None if total <= 0 else classified / float(total)
     region_obs = [
-        _analyze_region_slice(ally_full, opponent_full, other_full, height, width, region)
-        for region in geometry.regions
+        _analyze_region_slice(ally_u, opponent_u, other_u, height, width, region)
+        for region in (geometry.regions if geometry is not None else [])
     ]
-    confidence = (
-        0.0 if classified_frac is None else float(min(1.0, max(0.0, classified_frac)))
-    )
     return MapObservation(
         video_time=float(video_time),
-        stage_id=geometry.stage_id,
+        stage_id=stage_mask.stage_id if stage_mask is not None else geometry.stage_id,
         battle_mode_id=battle_mode_id,
-        ally_classified_fraction=ally_frac,
-        opponent_classified_fraction=opponent_frac,
-        classified_fraction=classified_frac,
-        confidence=confidence,
+        ally_share_of_detected_ink=ally_frac,
+        opponent_share_of_detected_ink=opponent_frac,
+        visible_ink_fraction=classified_frac,
         total_sample_pixels=total,
         classified_pixels=classified,
         ally_ink_pixels=ally_n,
         opponent_ink_pixels=opponent_n,
-        unclassified_pixels=other_n,
+        neither_team_pixels=other_n,
         regions=region_obs,
         evidence_ids=list(evidence_ids or []),
-        geometry_battle_mode_id=geometry.battle_mode_id,
+        geometry_battle_mode_id=geometry.battle_mode_id if geometry is not None else None,
         sample_mask_source=source,
+        sample_polygon_sha256=(
+            overlay_polygon_sha256(stage_mask) if stage_mask is not None else None
+        ),
     )
 
 
 def _sample_mask(
     height: int,
     width: int,
-    geometry: StageMapGeometry,
-    stage_mask: StageMaskConfig | None,
+    geometry: StageMapGeometry | None,
+    stage_mask: OverlayMapPolygonConfig | None,
 ) -> tuple[np.ndarray, SampleMaskSource]:
-    """Prefer stage polygon mask; fall back to ROI-region union."""
+    """Build the sampling mask from the registered polygon.
+
+    Legacy callers may supply ROI geometry when no polygon is available.
+    Production overlay-map sampling must use a registered polygon.
+    """
     if stage_mask is not None:
-        return stage_mask_to_bool(stage_mask, height, width), "stage_mask"
+        return overlay_polygon_to_bool(stage_mask, height, width), "registered_polygon"
+    if geometry is None:
+        raise ValueError("No registered polygon or legacy sampling geometry")
     return _union_region_mask(height, width, geometry.regions), "roi_union"
 
 
@@ -303,25 +370,23 @@ def _analyze_region_slice(
             classified_pixels=0,
             ally_ink_pixels=0,
             opponent_ink_pixels=0,
-            unclassified_pixels=0,
-            confidence=0.0,
+            neither_team_pixels=0,
         )
     ally_n = int(np.count_nonzero(ally_full[top:bottom, left:right]))
     opponent_n = int(np.count_nonzero(opponent_full[top:bottom, left:right]))
     other_n = int(np.count_nonzero(other_full[top:bottom, left:right]))
+    total = ally_n + opponent_n + other_n
     classified = ally_n + opponent_n
     ally_frac, opponent_frac = _fractions(ally_n, opponent_n, classified)
-    conf = 0.0 if classified == 0 else min(1.0, classified / float(total))
     return MapRegionObservation(
         region_id=region.id,
         total_pixels=total,
         classified_pixels=classified,
         ally_ink_pixels=ally_n,
         opponent_ink_pixels=opponent_n,
-        unclassified_pixels=other_n,
-        ally_classified_fraction=ally_frac,
-        opponent_classified_fraction=opponent_frac,
-        confidence=conf,
+        neither_team_pixels=other_n,
+        ally_share_of_detected_ink=ally_frac,
+        opponent_share_of_detected_ink=opponent_frac,
     )
 
 
@@ -350,10 +415,10 @@ def write_map_ink_diagnostic(
     *,
     image: np.ndarray,
     observation: MapObservation,
-    geometry: StageMapGeometry,
+    geometry: StageMapGeometry | None,
     classifier: MapInkClassifier,
     stem: str | None = None,
-    stage_mask: StageMaskConfig | None = None,
+    stage_mask: OverlayMapPolygonConfig | None = None,
 ) -> Path:
     """Save geometry + classification overlay for one map observation.
 
@@ -385,12 +450,12 @@ def write_map_ink_diagnostic(
     ).astype(np.uint8)
 
     # Sample boundary (thick cyan) — polygon or ROI union.
-    sample_u8 = (sample.astype(np.uint8) * 255)
+    sample_u8 = sample.astype(np.uint8) * 255
     contours, _ = cv2.findContours(sample_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(canvas, contours, -1, (255, 220, 0), 2)
 
     # Individual sampling rectangles (thin white) + region ids (reference).
-    for region in geometry.regions:
+    for region in geometry.regions if geometry is not None else []:
         left, top, right, bottom = _pixel_box(region.roi, width, height)
         cv2.rectangle(canvas, (left, top), (right, bottom), (255, 255, 255), 1)
         cv2.putText(
@@ -415,7 +480,7 @@ def _draw_map_ink_legend(canvas: np.ndarray, observation: MapObservation) -> Non
     """HUD legend for diagnostic colors and key fractions."""
     mask_label = (
         "cyan outline = stage polygon"
-        if observation.sample_mask_source == "stage_mask"
+        if observation.sample_mask_source == "registered_polygon"
         else "cyan outline = ROI union"
     )
     lines = [
@@ -426,9 +491,8 @@ def _draw_map_ink_legend(canvas: np.ndarray, observation: MapObservation) -> Non
         "red = opponent class",
         "dim = unclassified in sample",
         (
-            f"classified_frac="
-            f"{observation.classified_fraction:.3f}"
-            if observation.classified_fraction is not None
+            f"classified_frac={observation.visible_ink_fraction:.3f}"
+            if observation.visible_ink_fraction is not None
             else "classified_frac=n/a"
         ),
         f"sample={observation.total_sample_pixels} cls={observation.classified_pixels}",

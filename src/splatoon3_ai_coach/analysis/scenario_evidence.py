@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Literal, TypeVar
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import AliasChoices, BaseModel, Field, computed_field
 
 from splatoon3_ai_coach.analysis.map_coverage import MapOverlaySample
 from splatoon3_ai_coach.analysis.player_count_series import (
@@ -43,10 +43,22 @@ class MapInkSample(BaseModel):
     """Pass-through map ink sample for ScenarioContext (not recomputed)."""
 
     video_time: float = Field(ge=0)
-    ally_classified_fraction: float | None = None
-    opponent_classified_fraction: float | None = None
-    classified_fraction: float | None = None
-    confidence: float = Field(default=0.0, ge=0, le=1)
+    ally_share_of_detected_ink: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "ally_share_of_detected_ink", "ally_classified_fraction"
+        ),
+    )
+    opponent_share_of_detected_ink: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "opponent_share_of_detected_ink", "opponent_classified_fraction"
+        ),
+    )
+    visible_ink_fraction: float | None = Field(
+        default=None,
+        validation_alias=AliasChoices("visible_ink_fraction", "classified_fraction"),
+    )
 
 
 class MapInkEvidence(BaseModel):
@@ -201,9 +213,7 @@ def scenario_window(
     return start, end
 
 
-def scenario_anchor_time(
-    scenario: Scenario, *, death_time: float | None = None
-) -> float:
+def scenario_anchor_time(scenario: Scenario, *, death_time: float | None = None) -> float:
     """Anchor already used by ScenarioContext semantics (no new ownership)."""
     if scenario.scenario_type is ScenarioType.DEATH_EPISODE:
         if death_time is not None:
@@ -327,12 +337,8 @@ def build_special_evidence(
             ordered, snapshots, ring_fill_threshold=ring_fill_threshold
         )
     valid = [r for r in ordered if r.coaching_valid is not False]
-    in_window = [
-        r for r in ordered if window_start <= float(r.video_time) <= window_end
-    ]
-    valid_window = [
-        r for r in valid if window_start <= float(r.video_time) <= window_end
-    ]
+    in_window = [r for r in ordered if window_start <= float(r.video_time) <= window_end]
+    valid_window = [r for r in valid if window_start <= float(r.video_time) <= window_end]
     onsets = [
         SpecialReadyOnset(video_time=m.video_time, observation_id=m.observation_id)
         for m in derive_special_ready_onsets(
@@ -528,10 +534,9 @@ special_reading_from_persisted = _special_reading
 def _map_ink_sample(obs: MapObservation) -> MapInkSample:
     return MapInkSample(
         video_time=float(obs.video_time),
-        ally_classified_fraction=obs.ally_classified_fraction,
-        opponent_classified_fraction=obs.opponent_classified_fraction,
-        classified_fraction=obs.classified_fraction,
-        confidence=float(obs.confidence),
+        ally_share_of_detected_ink=obs.ally_share_of_detected_ink,
+        opponent_share_of_detected_ink=obs.opponent_share_of_detected_ink,
+        visible_ink_fraction=obs.visible_ink_fraction,
     )
 
 

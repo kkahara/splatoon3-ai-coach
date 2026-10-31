@@ -496,9 +496,9 @@ def _feature_vector(obs: MapObservation) -> np.ndarray:
 
     return np.array(
         [
-            _v(obs.ally_classified_fraction),
-            _v(obs.opponent_classified_fraction),
-            _v(obs.classified_fraction),
+            _v(obs.ally_share_of_detected_ink),
+            _v(obs.opponent_share_of_detected_ink),
+            _v(obs.visible_ink_fraction),
         ],
         dtype=np.float64,
     )
@@ -648,7 +648,7 @@ def _geometry_auto_notes(
     soft = (dens < 5) & (gray > 60)
     soft_frac = float(np.count_nonzero(union & soft)) / max(1, int(union.sum()))
     notes.append(f"soft_bg_in_union≈{soft_frac:.2f}")
-    notes.append(f"classified_fraction={obs.classified_fraction}")
+    notes.append(f"visible_ink_fraction={obs.visible_ink_fraction}")
 
     if stage == "manta_maria":
         r01 = next((r for r in geometry.regions if r.id == "R01"), None)
@@ -717,10 +717,10 @@ def _stage_metrics_block(
                 "best_score": c.best_score,
                 "total_union_pixels": o.total_sample_pixels,
                 "classified_pixels": o.classified_pixels,
-                "unclassified_pixels": o.unclassified_pixels,
-                "classified_fraction": o.classified_fraction,
-                "ally_classified_fraction": o.ally_classified_fraction,
-                "opponent_classified_fraction": o.opponent_classified_fraction,
+                "neither_team_pixels": o.neither_team_pixels,
+                "visible_ink_fraction": o.visible_ink_fraction,
+                "ally_share_of_detected_ink": o.ally_share_of_detected_ink,
+                "opponent_share_of_detected_ink": o.opponent_share_of_detected_ink,
                 "ally_ink_pixels": o.ally_ink_pixels,
                 "opponent_ink_pixels": o.opponent_ink_pixels,
                 "diagnostic_path": item.diagnostic_path,
@@ -763,7 +763,7 @@ def _render_report(
     )
     lines.append(
         "Classifier/HSV unchanged. Geometry edits only if visual review shows "
-        "a **repeatable** spatial defect. Low `classified_fraction` with "
+        "a **repeatable** spatial defect. Low `visible_ink_fraction` with "
         "grill/grey unclassified is acceptable.\n"
     )
 
@@ -802,9 +802,9 @@ def _render_report(
                 else "manual"
             )
             attr = f"{c.best_score:.3f}" if c.source_type == "video" else "manual"
-            cls = _fmt(o.classified_fraction)
-            ally = _fmt(o.ally_classified_fraction)
-            opp = _fmt(o.opponent_classified_fraction)
+            cls = _fmt(o.visible_ink_fraction)
+            ally = _fmt(o.ally_share_of_detected_ink)
+            opp = _fmt(o.opponent_share_of_detected_ink)
             note = "; ".join(item.geometry_notes[:3])
             lines.append(
                 f"| {src} | {t} | {interval} | {attr} | {cls} | {ally} | {opp} | {note} |"
@@ -919,9 +919,9 @@ def _draft_verdict(results: list[SelectedResult], video_n: int) -> str:
         return "INSUFFICIENT_FRAMES"
     # Trends sanity: do ally/opponent fractions vary across frames?
     allies = [
-        r.observation.ally_classified_fraction
+        r.observation.ally_share_of_detected_ink
         for r in results
-        if r.observation.ally_classified_fraction is not None
+        if r.observation.ally_share_of_detected_ink is not None
     ]
     if len(allies) >= 2 and (max(allies) - min(allies)) < 0.02:
         # Not inconsistent by itself — may be similar paint states.

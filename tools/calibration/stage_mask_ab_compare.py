@@ -138,9 +138,9 @@ def main(argv: list[str] | None = None) -> int:
         for label, obs in (("stage_mask", obs_mask), ("roi_union", obs_roi)):
             print(
                 f"{label:<12} {obs.total_sample_pixels:10d} {obs.classified_pixels:8d} "
-                f"{_fmt_frac(obs.classified_fraction):>10} "
-                f"{_fmt_frac(obs.ally_classified_fraction):>10} "
-                f"{_fmt_frac(obs.opponent_classified_fraction):>10}"
+                f"{_fmt_frac(obs.visible_ink_fraction):>10} "
+                f"{_fmt_frac(obs.ally_share_of_detected_ink):>10} "
+                f"{_fmt_frac(obs.opponent_share_of_detected_ink):>10}"
             )
         print("")
         print(f"Diagnostics: {out_dir / (args.stage + '_mask.jpg')}")

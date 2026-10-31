@@ -335,6 +335,8 @@ class MapInkAnalyzerConfig(BaseModel):
     geometry_dir: Path | None = None
     # Minimum seconds between MapObservations while the map stays open.
     sample_interval_seconds: float = Field(default=1.0, ge=0)
+    # DEPRECATED / IGNORED by production polygon sampling. Config compatibility
+    # only: painted fraction is not confidence or observation quality.
     min_usable_confidence: float = Field(default=0.15, ge=0, le=1)
     write_diagnostics: bool = False
     # Sticky HUD roster-slot hue binding (not a detector enable flag).

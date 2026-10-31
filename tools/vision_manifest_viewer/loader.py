@@ -172,9 +172,7 @@ def _load_scenario_evidence(analysis_dir: Path) -> list[ScenarioEvidenceView]:
             continue
         sid = str(ctx["scenario_id"])
         cards.append(
-            _join_scenario_card(
-                sid, ctx, scenarios, coaching=coaching_by_id.get(sid)
-            )
+            _join_scenario_card(sid, ctx, scenarios, coaching=coaching_by_id.get(sid))
         )
     return cards
 
@@ -504,7 +502,12 @@ def _parse_team_color_calibration(raw: object) -> TeamColorCalibrationView | Non
     opponent_h = _as_float(raw.get("opponent_h"))
     separation = _as_float(raw.get("separation_degrees"))
     calibrated_at = _as_float(raw.get("calibrated_at"))
-    if ally_h is None or opponent_h is None or separation is None or calibrated_at is None:
+    if (
+        ally_h is None
+        or opponent_h is None
+        or separation is None
+        or calibrated_at is None
+    ):
         return None
     source = raw.get("source")
     return TeamColorCalibrationView(
@@ -549,14 +552,24 @@ def _load_map_ink_timeline(analysis_dir: Path) -> list[MapInkSampleView]:
                     classified_pixels=int(region.get("classified_pixels") or 0),
                     ally_ink_pixels=int(region.get("ally_ink_pixels") or 0),
                     opponent_ink_pixels=int(region.get("opponent_ink_pixels") or 0),
-                    unclassified_pixels=int(region.get("unclassified_pixels") or 0),
-                    ally_classified_fraction=_as_float(
-                        region.get("ally_classified_fraction")
+                    neither_team_pixels=int(
+                        region.get(
+                            "neither_team_pixels", region.get("unclassified_pixels")
+                        )
+                        or 0
                     ),
-                    opponent_classified_fraction=_as_float(
-                        region.get("opponent_classified_fraction")
+                    ally_share_of_detected_ink=_as_float(
+                        region.get(
+                            "ally_share_of_detected_ink",
+                            region.get("ally_classified_fraction"),
+                        )
                     ),
-                    confidence=float(region.get("confidence") or 0.0),
+                    opponent_share_of_detected_ink=_as_float(
+                        region.get(
+                            "opponent_share_of_detected_ink",
+                            region.get("opponent_classified_fraction"),
+                        )
+                    ),
                 )
             )
         samples.append(
@@ -568,20 +581,36 @@ def _load_map_ink_timeline(analysis_dir: Path) -> list[MapInkSampleView]:
                     if item.get("battle_mode_id") is not None
                     else None
                 ),
-                ally_classified_fraction=_as_float(
-                    item.get("ally_classified_fraction")
+                ally_share_of_detected_ink=_as_float(
+                    item.get(
+                        "ally_share_of_detected_ink", item.get("ally_classified_fraction")
+                    )
                 ),
-                opponent_classified_fraction=_as_float(
-                    item.get("opponent_classified_fraction")
+                opponent_share_of_detected_ink=_as_float(
+                    item.get(
+                        "opponent_share_of_detected_ink",
+                        item.get("opponent_classified_fraction"),
+                    )
                 ),
-                classified_fraction=_as_float(item.get("classified_fraction")),
-                confidence=float(item.get("confidence") or 0.0),
+                visible_ink_fraction=_as_float(
+                    item.get("visible_ink_fraction", item.get("classified_fraction"))
+                ),
                 total_sample_pixels=int(item.get("total_sample_pixels") or 0),
                 classified_pixels=int(item.get("classified_pixels") or 0),
                 ally_ink_pixels=int(item.get("ally_ink_pixels") or 0),
                 opponent_ink_pixels=int(item.get("opponent_ink_pixels") or 0),
-                unclassified_pixels=int(item.get("unclassified_pixels") or 0),
+                neither_team_pixels=int(
+                    item.get("neither_team_pixels", item.get("unclassified_pixels")) or 0
+                ),
                 regions=regions,
+                sample_mask_source=(
+                    "registered_polygon"
+                    if item.get("sample_mask_source") == "stage_mask"
+                    else item.get("sample_mask_source")
+                ),
+                sample_polygon_sha256=item.get(
+                    "sample_polygon_sha256", item.get("polygon_sha256")
+                ),
                 geometry_battle_mode_id=(
                     str(item["geometry_battle_mode_id"])
                     if item.get("geometry_battle_mode_id") is not None
@@ -593,11 +622,15 @@ def _load_map_ink_timeline(analysis_dir: Path) -> list[MapInkSampleView]:
     return samples
 
 
-
 def _score_fields(snap: dict[str, Any]) -> dict[str, Any]:
     """Fused SZ remaining + penalty values and per-side qualities."""
     fields: dict[str, Any] = {}
-    for key in ("ally_remaining", "opponent_remaining", "ally_penalty", "opponent_penalty"):
+    for key in (
+        "ally_remaining",
+        "opponent_remaining",
+        "ally_penalty",
+        "opponent_penalty",
+    ):
         fields[key] = _as_int_or_none(snap.get(key))
     for key in (
         "ally_score_quality",
@@ -608,6 +641,7 @@ def _score_fields(snap: dict[str, Any]) -> dict[str, Any]:
         value = snap.get(key)
         fields[key] = str(value) if value else None
     return fields
+
 
 def _as_int_or_none(value: Any) -> int | None:
     """Parse an optional integer field."""
@@ -817,9 +851,7 @@ def _build_summary(
 
     diagnostics = death_diagnostics or []
     det_pos_event_neg = sum(
-        1
-        for d in diagnostics
-        if "detector_positive_event_negative" in d.flags
+        1 for d in diagnostics if "detector_positive_event_negative" in d.flags
     )
     confirmed = sum(1 for d in diagnostics if d.decision == "confirmed")
     rejected = sum(1 for d in diagnostics if d.decision == "rejected")

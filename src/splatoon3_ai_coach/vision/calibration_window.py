@@ -16,8 +16,8 @@ from typing import Literal
 
 from splatoon3_ai_coach.vision.models import MatchPhase
 
-# Fixed by alignment v4 development preregistration Amendment 2; not a knob.
-POST_IN_MATCH_WINDOW_SECONDS = 3.0
+# Extended from the original A1 3 seconds to allow more live-play samples.
+POST_IN_MATCH_WINDOW_SECONDS = 5.0
 
 WindowCloseReason = Literal["latched", "expired"]
 

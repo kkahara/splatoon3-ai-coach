@@ -101,9 +101,9 @@ def _ink(t: float, ally: float, opp: float) -> MapObservation:
     return MapObservation(
         video_time=t,
         stage_id="mahi_mahi_resort",
-        ally_classified_fraction=ally,
-        opponent_classified_fraction=opp,
-        classified_fraction=ally + opp,
+        ally_share_of_detected_ink=ally,
+        opponent_share_of_detected_ink=opp,
+        visible_ink_fraction=ally + opp,
         confidence=0.9,
     )
 
@@ -623,15 +623,15 @@ def test_vmv_scenario_card_smoke() -> None:
                 "observations": [
                     {
                         "video_time": 68.0,
-                        "ally_classified_fraction": 0.62,
-                        "opponent_classified_fraction": 0.38,
+                        "ally_share_of_detected_ink": 0.62,
+                        "opponent_share_of_detected_ink": 0.38,
                         "confidence": 0.9,
                     }
                 ],
                 "nearest_before_anchor": {
                     "video_time": 68.0,
-                    "ally_classified_fraction": 0.62,
-                    "opponent_classified_fraction": 0.38,
+                    "ally_share_of_detected_ink": 0.62,
+                    "opponent_share_of_detected_ink": 0.38,
                     "confidence": 0.9,
                 },
             },

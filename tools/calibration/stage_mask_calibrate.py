@@ -30,12 +30,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from roi_calibrate import load_frame, pick_input_path  # noqa: E402
 
 from splatoon3_ai_coach.config import default_config_path, load_config
-from splatoon3_ai_coach.vision.stage_mask import (
+from splatoon3_ai_coach.vision.overlay_map_polygon import (
     STAGE_MASK_FILENAME,
-    StageMaskConfig,
-    load_stage_mask,
-    render_stage_mask_overlay,
-    write_stage_mask,
+    OverlayMapPolygonConfig,
+    load_overlay_map_polygon,
+    render_overlay_map_polygon,
+    write_overlay_map_polygon,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -137,14 +137,12 @@ def calibrate_polygon(image: np.ndarray, window: str) -> list[tuple[float, float
             closed = bool(state["closed"])
             canvas = _draw_in_progress(image, pixels, closed=closed)
             if closed and len(pixels) >= 3:
-                config = StageMaskConfig(
+                config = OverlayMapPolygonConfig(
                     stage_id="preview",
-                    polygon=[
-                        (x / float(width), y / float(height)) for x, y in pixels
-                    ],
+                    polygon=[(x / float(width), y / float(height)) for x, y in pixels],
                     erosion_pixels=0,
                 )
-                canvas, inside, outside = render_stage_mask_overlay(image, config)
+                canvas, inside, outside = render_overlay_map_polygon(image, config)
                 cv2.putText(
                     canvas,
                     f"preview inside={inside} outside={outside}",
@@ -274,8 +272,8 @@ def main(argv: list[str] | None = None) -> int:
         height, width = image.shape[:2]
 
         if args.view is not None:
-            config = load_stage_mask(args.view)
-            overlay, inside, outside = render_stage_mask_overlay(image, config)
+            config = load_overlay_map_polygon(args.view)
+            overlay, inside, outside = render_overlay_map_polygon(image, config)
             print(f"Stage: {config.stage_id}")
             print(f"Vertices: {len(config.polygon)}")
             print(f"Frame: {width}x{height}")
@@ -295,14 +293,14 @@ def main(argv: list[str] | None = None) -> int:
 
         window = f"Stage mask calibrate — {path.name}"
         polygon = calibrate_polygon(image, window)
-        config = StageMaskConfig(
+        config = OverlayMapPolygonConfig(
             stage_id=args.stage,
             polygon=polygon,
             erosion_pixels=int(args.erosion_pixels),
         )
         out_yaml = args.output or _default_yaml_path(args.stage, args.config)
-        write_stage_mask(out_yaml, config)
-        overlay, inside, outside = render_stage_mask_overlay(image, config)
+        write_overlay_map_polygon(out_yaml, config)
+        overlay, inside, outside = render_overlay_map_polygon(image, config)
         print(f"Stage: {config.stage_id}")
         print(f"Vertices: {len(config.polygon)}")
         print(f"Frame: {width}x{height}")

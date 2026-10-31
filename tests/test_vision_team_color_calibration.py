@@ -28,6 +28,7 @@ from splatoon3_ai_coach.vision.team_color_calibration import (
     TeamColorCalibrationResult,
     TeamColorCalibrator,
     circular_hue_distance,
+    circular_hue_median,
 )
 
 
@@ -140,6 +141,48 @@ def test_c_wraparound_distance_small() -> None:
     assert circular_hue_distance(11.0, 119.0) == pytest.approx(72.0)
 
 
+@pytest.mark.parametrize(
+    ("hues", "expected"),
+    [([179, 0, 1], 0), ([179, 1], 0), ([30, 32], 31), ([70, 71, 72], 71)],
+)
+def test_circular_median_respects_hue_wrap(hues: list[int], expected: float) -> None:
+    """Hue centers stay on the short arc and retain normal medians away from red."""
+    assert circular_hue_median(np.array(hues)) == pytest.approx(expected)
+
+
+def test_opponent_hud_hue_straddling_wrap_classifies_red_ink() -> None:
+    """A red HUD ROI spanning 179/0 keeps red map ink inside the ±15 band."""
+    frame = _synthetic_hud(78, 1)
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    _, opponent_slots = _timer_adjacent_slots()
+    x1, y1, x2, y2 = opponent_slots[0]
+    height, width = hsv.shape[:2]
+    left, right = int(x1 * width), int(x2 * width)
+    top, bottom = int(y1 * height), int(y2 * height)
+    hsv[top:bottom, left : (left + right) // 2] = (179, 200, 200)
+    hsv[top:bottom, (left + right) // 2 : right] = (1, 200, 200)
+    frame = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    cal = _calibrator()
+    for timestamp in (1.0, 1.5, 2.0):
+        cal.observe(frame, timestamp, roster_visible=True)
+    assert cal.result is not None
+    assert circular_hue_distance(cal.result.opponent_h, 0) <= 1
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    classifier.apply_calibration(cal.result)
+    ink = cv2.cvtColor(np.uint8([[[179, 200, 200], [0, 200, 200]]]), cv2.COLOR_HSV2BGR)
+    _, opponent, _ = classifier.classify_bgr(ink)
+    assert opponent.all()
+
+
+def test_latched_hue_uses_circular_median_across_frames() -> None:
+    """Accepted centers on either side of zero combine near zero."""
+    cal = _calibrator()
+    for timestamp, hue in zip((1.0, 1.5, 2.0), (179, 0, 1), strict=True):
+        cal.observe(_synthetic_hud(78, hue), timestamp, roster_visible=True)
+    assert cal.result is not None
+    assert circular_hue_distance(cal.result.opponent_h, 0) <= 1
+
+
 def test_d_calibrated_classify_orange_ally_blue_opponent() -> None:
     """Case D: calibrated profiles map orange→ally, blue→opponent."""
     cfg = MapInkAnalyzerConfig(h_tolerance=15, s_min=70, v_min=40)
@@ -159,6 +202,34 @@ def test_d_calibrated_classify_orange_ally_blue_opponent() -> None:
     assert bool(a[0, 0]) and not bool(o[0, 0])
     a, o, _ = clf.classify_bgr(blue)
     assert bool(o[0, 0]) and not bool(a[0, 0])
+
+
+@pytest.mark.parametrize(
+    ("h", "s", "v", "expected"),
+    [
+        (26, 220, 220, True),  # +15 H units is included.
+        (27, 220, 220, False),  # Beyond the fixed hue band.
+        (11, 220, 60, True),  # Darker visible shade still qualifies.
+        (11, 220, 30, False),  # Very dark contributes to neither team.
+        (11, 40, 220, False),  # Washed-out contributes to neither team.
+        (11, 0, 180, False),  # Grey contributes to neither team.
+    ],
+)
+def test_overlay_shades_use_fixed_hue_and_sv_gates(
+    h: int, s: int, v: int, expected: bool
+) -> None:
+    """Visible-ink policy tolerates brightness variation without color correction."""
+    classifier = MapInkClassifier(MapInkAnalyzerConfig())
+    classifier.apply_calibration(
+        TeamColorCalibrationResult(
+            ally_h=11.0, opponent_h=119.0, separation_degrees=72.0, calibrated_at=1.0
+        )
+    )
+    image = cv2.cvtColor(np.uint8([[[h, s, v]]]), cv2.COLOR_HSV2BGR)
+    ally, opponent, other = classifier.classify_bgr(image)
+    assert bool(ally[0, 0]) is expected
+    assert not bool(opponent[0, 0])
+    assert bool(other[0, 0]) is (not expected)
 
 
 def test_e_overlap_tiebreak_nearer_center() -> None:

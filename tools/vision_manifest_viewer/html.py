@@ -1489,13 +1489,13 @@ function scenarioMapInkRows(ink) {
   if (nearest) {
     rows.push([
       `Nearest before anchor @ ${fmtMmSs(nearest.video_time, 1)}`,
-      `ally ${num(nearest.ally_classified_fraction)} · opp ${num(nearest.opponent_classified_fraction)} · conf ${num(nearest.confidence)}`,
+      `ally ${num(nearest.ally_share_of_detected_ink)} · opp ${num(nearest.opponent_share_of_detected_ink)} · visible ink ${num(nearest.visible_ink_fraction)}`,
     ]);
   }
   for (const s of ink.observations || []) {
     rows.push([
       fmtMmSs(s.video_time, 1),
-      `ally ${num(s.ally_classified_fraction)} · opp ${num(s.opponent_classified_fraction)} · conf ${num(s.confidence)}`,
+      `ally ${num(s.ally_share_of_detected_ink)} · opp ${num(s.opponent_share_of_detected_ink)} · visible ink ${num(s.visible_ink_fraction)}`,
     ]);
   }
   return rows;
@@ -1782,7 +1782,7 @@ function renderMapInkLane(duration) {
   }
   const ticks = samples.map(s=>{
     const left=(s.video_time/duration)*100;
-    const tip = `${fmtTime(s.video_time, 2)} · A=${fmtFracPct(s.ally_classified_fraction)} O=${fmtFracPct(s.opponent_classified_fraction)} C=${fmtFracPct(s.classified_fraction)}`;
+    const tip = `${fmtTime(s.video_time, 2)} · A=${fmtFracPct(s.ally_share_of_detected_ink)} O=${fmtFracPct(s.opponent_share_of_detected_ink)} C=${fmtFracPct(s.visible_ink_fraction)}`;
     const nearSel = state.selectedId && Math.abs((selectedObs()?.timestamp??-1e9) - s.video_time) < 0.6;
     return `<button type="button" class="map-ink-tick ${nearSel?"selected":""}" style="left:${left}%" title="${esc(tip)}" data-ts="${s.video_time}" data-prefer="map_overlay"></button>`;
   }).join("");
@@ -1885,15 +1885,16 @@ function renderMapInkPanel(timestamp) {
     <span>video_time</span><strong>${fmtTime(s.video_time, 3)}</strong>
     <span>stage_id</span><strong>${esc(s.stage_id||"—")}</strong>
     <span>battle_mode_id</span><strong>${esc(s.battle_mode_id||"—")}</strong>
-    <span>ally_classified_fraction</span><strong>${num(s.ally_classified_fraction)}</strong>
-    <span>opponent_classified_fraction</span><strong>${num(s.opponent_classified_fraction)}</strong>
-    <span>classified_fraction</span><strong>${num(s.classified_fraction)}</strong>
-    <span>confidence</span><strong>${num(s.confidence)}</strong>
+    <span>ally_share_of_detected_ink</span><strong>${num(s.ally_share_of_detected_ink)}</strong>
+    <span>opponent_share_of_detected_ink</span><strong>${num(s.opponent_share_of_detected_ink)}</strong>
+    <span>visible_ink_fraction</span><strong>${num(s.visible_ink_fraction)}</strong>
     <span>ally_ink_pixels</span><strong>${s.ally_ink_pixels??"—"}</strong>
     <span>opponent_ink_pixels</span><strong>${s.opponent_ink_pixels??"—"}</strong>
     <span>classified_pixels</span><strong>${s.classified_pixels??"—"}</strong>
     <span>total_sample_pixels</span><strong>${s.total_sample_pixels??"—"}</strong>
-    <span>unclassified_pixels</span><strong>${s.unclassified_pixels??"—"}</strong>
+    <span>neither_team_pixels</span><strong>${s.neither_team_pixels??"—"}</strong>
+    <span>sample_mask_source</span><strong>${esc(s.sample_mask_source||"—")}</strong>
+    <span>sample_polygon_sha256</span><strong>${esc(s.sample_polygon_sha256||"—")}</strong>
   </div></div>`;
 }
 

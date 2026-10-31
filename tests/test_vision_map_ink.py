@@ -17,6 +17,7 @@ from splatoon3_ai_coach.vision.map_ink import (
     MapInkClassifier,
     MapObservation,
     analyze_map_ink,
+    analyze_overlay_map_ink,
     write_map_ink_diagnostic,
 )
 from splatoon3_ai_coach.vision.match_intro import (
@@ -68,9 +69,7 @@ def intro_templates(tmp_path: Path) -> Path:
         ("eg-humpback_pump_track", "humpback_pump_track"),
     ],
 )
-def test_template_id_from_stem_strips_language_prefix(
-    stem: str, expected: str
-) -> None:
+def test_template_id_from_stem_strips_language_prefix(stem: str, expected: str) -> None:
     assert _template_id_from_stem(stem) == expected
 
 
@@ -200,7 +199,7 @@ def test_classifier_ally_opponent_neutral() -> None:
     assert int(np.count_nonzero(other)) > 0
 
 
-def test_analyze_map_ink_uses_classified_fraction_not_total() -> None:
+def test_analyze_map_ink_uses_visible_ink_fraction_not_total() -> None:
     geometry = StageMapGeometry(
         stage_id="scorch_gorge",
         regions=[StageMapRegion(id="R01", roi=(0.0, 0.0, 1.0, 1.0))],
@@ -217,11 +216,11 @@ def test_analyze_map_ink_uses_classified_fraction_not_total() -> None:
         battle_mode_id="turf_war",
         evidence_ids=["map_overlay:1"],
     )
-    assert obs.ally_classified_fraction is not None
-    assert obs.ally_classified_fraction == pytest.approx(1.0)
-    assert obs.opponent_classified_fraction == pytest.approx(0.0)
-    assert obs.classified_fraction is not None
-    assert obs.classified_fraction < 1.0
+    assert obs.ally_share_of_detected_ink is not None
+    assert obs.ally_share_of_detected_ink == pytest.approx(1.0)
+    assert obs.opponent_share_of_detected_ink == pytest.approx(0.0)
+    assert obs.visible_ink_fraction is not None
+    assert obs.visible_ink_fraction < 1.0
     assert obs.total_sample_pixels == 100 * 100
     assert "death_location" not in MapObservation.model_fields
 
@@ -289,9 +288,52 @@ def test_zero_classified_yields_none_fractions() -> None:
     obs = analyze_map_ink(
         image, geometry, classifier, video_time=1.0, battle_mode_id=None
     )
-    assert obs.ally_classified_fraction is None
-    assert obs.opponent_classified_fraction is None
-    assert obs.confidence == 0.0
+    assert obs.ally_share_of_detected_ink is None
+    assert obs.opponent_share_of_detected_ink is None
+    assert "confidence" not in obs.model_dump()
+
+
+def test_legacy_observation_loads_but_only_explicit_names_are_emitted() -> None:
+    """Old artifacts remain readable without retaining a false confidence API."""
+    old = {
+        "video_time": 12.0,
+        "stage_id": "makomart",
+        "ally_classified_fraction": 0.6,
+        "opponent_classified_fraction": 0.4,
+        "classified_fraction": 0.2,
+        "unclassified_pixels": 80,
+        "confidence": 0.2,
+        "polygon_sha256": "a" * 64,
+        "sample_mask_source": "stage_mask",
+    }
+    observation = MapObservation.model_validate(old)
+    emitted = observation.model_dump(mode="json")
+    assert emitted["visible_ink_fraction"] == 0.2
+    assert emitted["ally_share_of_detected_ink"] == 0.6
+    assert emitted["opponent_share_of_detected_ink"] == 0.4
+    assert emitted["neither_team_pixels"] == 80
+    assert emitted["sample_polygon_sha256"] == "a" * 64
+    assert emitted["sample_mask_source"] == "registered_polygon"
+    for legacy in old.keys() - {"video_time", "stage_id", "sample_mask_source"}:
+        assert legacy not in emitted
+    assert not hasattr(observation, "confidence")
+    assert MapObservation.model_validate(emitted) == observation
+
+
+def test_polygon_entry_point_writes_zero_coverage_without_confidence() -> None:
+    """The production API requires a polygon and emits only canonical fields."""
+    observation = analyze_overlay_map_ink(
+        np.full((100, 100, 3), 80, dtype=np.uint8),
+        _center_square_mask(),
+        MapInkClassifier(MapInkAnalyzerConfig()),
+        video_time=1.0,
+        battle_mode_id=None,
+    )
+    assert observation.visible_ink_fraction == 0.0
+    assert observation.neither_team_pixels == observation.total_sample_pixels
+    assert observation.sample_mask_source == "registered_polygon"
+    assert observation.sample_polygon_sha256 is not None
+    assert "confidence" not in observation.model_dump_json()
 
 
 def test_no_ink_coverage_game_event() -> None:
@@ -362,11 +404,14 @@ def test_analyze_with_mask_ignores_outside_team_color() -> None:
         battle_mode_id=None,
         stage_mask=mask,
     )
-    assert obs.sample_mask_source == "stage_mask"
+    assert obs.sample_mask_source == "registered_polygon"
     assert obs.total_sample_pixels == int(np.count_nonzero(inside))
     assert obs.classified_pixels == 0
-    assert obs.ally_classified_fraction is None
-    assert obs.classified_fraction == pytest.approx(0.0)
+    assert obs.ally_share_of_detected_ink is None
+    assert obs.visible_ink_fraction == pytest.approx(0.0)
+    assert all(region.ally_ink_pixels == 0 for region in obs.regions)
+    assert all(region.opponent_ink_pixels == 0 for region in obs.regions)
+    assert sum(region.total_pixels for region in obs.regions) == obs.total_sample_pixels
 
 
 def test_analyze_mask_half_painted_inside() -> None:
@@ -388,8 +433,8 @@ def test_analyze_mask_half_painted_inside() -> None:
         battle_mode_id=None,
         stage_mask=mask,
     )
-    assert obs.classified_fraction == pytest.approx(0.5, abs=0.05)
-    assert obs.ally_classified_fraction == pytest.approx(1.0)
+    assert obs.visible_ink_fraction == pytest.approx(0.5, abs=0.05)
+    assert obs.ally_share_of_detected_ink == pytest.approx(1.0)
 
 
 def test_analyze_mask_fully_painted_inside() -> None:
@@ -408,8 +453,8 @@ def test_analyze_mask_fully_painted_inside() -> None:
         battle_mode_id=None,
         stage_mask=mask,
     )
-    assert obs.classified_fraction == pytest.approx(1.0)
-    assert obs.ally_classified_fraction == pytest.approx(1.0)
+    assert obs.visible_ink_fraction == pytest.approx(1.0)
+    assert obs.ally_share_of_detected_ink == pytest.approx(1.0)
 
 
 def test_analyze_mask_unpainted_inside() -> None:
@@ -427,7 +472,7 @@ def test_analyze_mask_unpainted_inside() -> None:
         stage_mask=mask,
     )
     assert obs.classified_pixels == 0
-    assert obs.classified_fraction == pytest.approx(0.0)
+    assert obs.visible_ink_fraction == pytest.approx(0.0)
 
 
 def test_analyze_mask_boundary_adjacent_paint() -> None:

@@ -381,10 +381,9 @@ class MapInkRegionSampleView(BaseModel):
     classified_pixels: int = 0
     ally_ink_pixels: int = 0
     opponent_ink_pixels: int = 0
-    unclassified_pixels: int = 0
-    ally_classified_fraction: float | None = None
-    opponent_classified_fraction: float | None = None
-    confidence: float = 0.0
+    neither_team_pixels: int = 0
+    ally_share_of_detected_ink: float | None = None
+    opponent_share_of_detected_ink: float | None = None
 
 
 class MapInkSampleView(BaseModel):
@@ -396,15 +395,16 @@ class MapInkSampleView(BaseModel):
     video_time: float
     stage_id: str = ""
     battle_mode_id: str | None = None
-    ally_classified_fraction: float | None = None
-    opponent_classified_fraction: float | None = None
-    classified_fraction: float | None = None
-    confidence: float = 0.0
+    ally_share_of_detected_ink: float | None = None
+    opponent_share_of_detected_ink: float | None = None
+    visible_ink_fraction: float | None = None
     total_sample_pixels: int = 0
     classified_pixels: int = 0
     ally_ink_pixels: int = 0
     opponent_ink_pixels: int = 0
-    unclassified_pixels: int = 0
+    neither_team_pixels: int = 0
+    sample_mask_source: str | None = None
+    sample_polygon_sha256: str | None = None
     regions: list[MapInkRegionSampleView] = Field(default_factory=list)
     geometry_battle_mode_id: str | None = None
 

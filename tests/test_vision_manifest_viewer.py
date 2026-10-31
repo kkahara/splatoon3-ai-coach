@@ -35,7 +35,7 @@ def _write_manifest(tmp_path: Path) -> Path:
         b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
         b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
         b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
-        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342"
         b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
         b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"
@@ -220,8 +220,7 @@ def test_load_manifest_view_builds_episodes_and_rois(tmp_path: Path) -> None:
     assert view.default_rois["map_overlay"].y1 == pytest.approx(0.0324)
     assert len(view.transitions) >= 1
     assert any(
-        t.event_type == "respawn" or t.to_phase == "respawned"
-        for t in view.transitions
+        t.event_type == "respawn" or t.to_phase == "respawned" for t in view.transitions
     )
     assert len(view.detector_lanes) == 4
     assert {lane.detector for lane in view.detector_lanes} == {
@@ -388,13 +387,13 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
         in html
     )
     assert "function frameKey(" in html
-    assert "detector===\"death\") || tile.readings[0]" not in html
-    assert "o.detector === \"timer\"" in html
+    assert 'detector==="death") || tile.readings[0]' not in html
+    assert 'o.detector === "timer"' in html
     assert "box-shadow:0 0 0 2px var(--accent)" in html
     assert "o.frame_id" in html
     assert "function groupTiles(" in html
     assert "function renderPager(" in html
-    assert "id=\"gallery-window\"" in html
+    assert 'id="gallery-window"' in html
     assert "function fmtTime(" in html
     assert "function parseTime(" in html
     assert "function fmtMmSs(" in html
@@ -416,12 +415,12 @@ def test_render_html_embeds_payload_and_write(tmp_path: Path) -> None:
     text = out.read_text(encoding="utf-8")
     assert "countdown_confirmed_this_death_episode" in text
     assert "death_diagnostics" in text
-    assert "id=\"filter-fp\"" not in text
-    assert "id=\"filter-miss\"" not in text
-    assert "id=\"gt-verdict\"" in text
-    assert "id=\"gt-panel\"" in text
+    assert 'id="filter-fp"' not in text
+    assert 'id="filter-miss"' not in text
+    assert 'id="gt-verdict"' in text
+    assert 'id="gt-panel"' in text
     # Verdict sits above the marking UI in the middle column.
-    assert text.index("id=\"gt-verdict\"") < text.index("id=\"gt-panel\"")
+    assert text.index('id="gt-verdict"') < text.index('id="gt-panel"')
     # Three-column detail: frame, GT evaluation, compacted readings.
     assert "minmax(360px,1.6fr)" in text
     assert "max-height:450px" in text
@@ -437,7 +436,7 @@ def test_map_overlay_present_is_positive(tmp_path: Path) -> None:
         b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
         b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
         b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
-        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342"
         b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
         b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"
@@ -509,7 +508,7 @@ def test_score_fused_remainings_surface_in_viewer(tmp_path: Path) -> None:
         b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
         b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
         b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
-        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342"
         b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
         b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"
@@ -597,7 +596,7 @@ def test_detector_positive_event_negative_flag(tmp_path: Path) -> None:
         b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
         b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
         b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
-        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342"
         b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
         b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"
@@ -687,9 +686,7 @@ def test_detector_positive_event_negative_flag(tmp_path: Path) -> None:
     view = load_manifest_view(path)
     suppressed = [d for d in view.death_diagnostics if d.decision == "suppressed"]
     assert suppressed
-    assert any(
-        "detector_positive_event_negative" in d.flags for d in suppressed
-    )
+    assert any("detector_positive_event_negative" in d.flags for d in suppressed)
     assert view.summary.detector_positive_event_negative >= 1
 
 
@@ -1370,15 +1367,15 @@ def test_map_ink_sidecar_loaded_pass_through(tmp_path: Path) -> None:
             "video_time": 12.5,
             "stage_id": "scorch_gorge",
             "battle_mode_id": "turf_war",
-            "ally_classified_fraction": 0.42,
-            "opponent_classified_fraction": 0.31,
-            "classified_fraction": 0.73,
+            "ally_share_of_detected_ink": 0.42,
+            "opponent_share_of_detected_ink": 0.31,
+            "visible_ink_fraction": 0.73,
             "confidence": 0.8,
             "total_sample_pixels": 1000,
             "classified_pixels": 730,
             "ally_ink_pixels": 420,
             "opponent_ink_pixels": 310,
-            "unclassified_pixels": 270,
+            "neither_team_pixels": 270,
             "regions": [
                 {
                     "region_id": "R01",
@@ -1386,30 +1383,57 @@ def test_map_ink_sidecar_loaded_pass_through(tmp_path: Path) -> None:
                     "classified_pixels": 70,
                     "ally_ink_pixels": 40,
                     "opponent_ink_pixels": 30,
-                    "unclassified_pixels": 30,
-                    "ally_classified_fraction": 0.4,
-                    "opponent_classified_fraction": 0.3,
+                    "neither_team_pixels": 30,
+                    "ally_share_of_detected_ink": 0.4,
+                    "opponent_share_of_detected_ink": 0.3,
                     "confidence": 0.7,
                 }
             ],
         }
     ]
-    (tmp_path / "map_observations.json").write_text(
-        json.dumps(sidecar), encoding="utf-8"
-    )
+    (tmp_path / "map_observations.json").write_text(json.dumps(sidecar), encoding="utf-8")
     view = load_manifest_view(path)
     assert len(view.map_ink_timeline) == 1
     sample = view.map_ink_timeline[0]
     assert sample.video_time == 12.5
     assert sample.stage_id == "scorch_gorge"
-    assert sample.ally_classified_fraction == 0.42
-    assert sample.opponent_classified_fraction == 0.31
-    assert sample.classified_fraction == 0.73
+    assert sample.ally_share_of_detected_ink == 0.42
+    assert sample.opponent_share_of_detected_ink == 0.31
+    assert sample.visible_ink_fraction == 0.73
     assert sample.ally_ink_pixels == 420
     assert sample.regions[0].region_id == "R01"
     html = render_html(view)
     assert "map-ink" in html
     assert "renderMapInkLane" in html
+
+
+def test_legacy_map_ink_viewer_does_not_call_coverage_confidence(tmp_path: Path) -> None:
+    """Old names are normalized before viewer serialization and rendering."""
+    path = tmp_path / "vision_manifest.json"
+    path.write_text(json.dumps(_minimal_manifest_shell()))
+    (tmp_path / "map_observations.json").write_text(
+        json.dumps(
+            [
+                {
+                    "video_time": 1.0,
+                    "stage_id": "makomart",
+                    "classified_fraction": 0.25,
+                    "ally_classified_fraction": 0.6,
+                    "opponent_classified_fraction": 0.4,
+                    "unclassified_pixels": 75,
+                    "confidence": 0.25,
+                }
+            ]
+        )
+    )
+    view = load_manifest_view(path)
+    sample = view.map_ink_timeline[0]
+    assert sample.visible_ink_fraction == 0.25
+    assert sample.ally_share_of_detected_ink == 0.6
+    assert sample.neither_team_pixels == 75
+    assert "confidence" not in sample.model_dump()
+    rendered = render_html(view)
+    assert "nearest.confidence" not in rendered
 
 
 def test_map_ink_missing_sidecar_is_empty(tmp_path: Path) -> None:
@@ -1626,7 +1650,7 @@ def test_special_gauge_visibility_and_timeline_html(tmp_path: Path) -> None:
         b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
         b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t"
         b"\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a"
-        b"\x1f\x1e\x1d\x1a\x1c\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342"
+        b"\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342"
         b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14"
         b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xaa\xff\xd9"

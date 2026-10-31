@@ -1,12 +1,10 @@
-"""Stage map geometry: multi-rectangle sampling regions for 2D map ink.
+"""Legacy rectangle geometry for explicit offline/historical map-ink callers.
 
 Geometry is separate from ink classification. Packs are keyed by ``stage_id``
 default YAML, with optional ``battle_mode_id`` overrides.
 
-Rectangles are overlapping **sampling** regions used when no
-``stage_mask.yaml`` is present. When a playable-stage polygon mask exists,
-``analyze_map_ink`` measures over that mask instead; ROI packs remain as
-fallback / reference and must not be deleted.
+Production map-ink sampling does not load these packs or use their fallback.
+They remain readable for historical diagnostics and compatibility only.
 """
 
 from __future__ import annotations

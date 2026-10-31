@@ -198,6 +198,7 @@ vision:
     enabled: true
     geometry_dir: "../configs/stage_maps"
     sample_interval_seconds: 1.0
+    # DEPRECATED / IGNORED in production; retained for old config compatibility.
     min_usable_confidence: 0.15
     write_diagnostics: false
     # Sticky HUD roster-slot binding; YAML HSV is fallback until latch.

@@ -17,7 +17,7 @@ from splatoon3_ai_coach.vision.map_ink import (
     MAP_OBSERVATIONS_FILENAME,
     MapInkClassifier,
     MapObservation,
-    analyze_map_ink,
+    analyze_overlay_map_ink,
     write_map_ink_diagnostic,
     write_map_observations,
 )
@@ -32,11 +32,10 @@ from splatoon3_ai_coach.vision.models import (
     ReadyReading,
     TimerReading,
 )
+from splatoon3_ai_coach.vision.overlay_map_polygon import resolve_overlay_map_polygon
 from splatoon3_ai_coach.vision.stage_maps import (
     MATCH_IDENTITY_FILENAME,
-    resolve_stage_map_geometry,
 )
-from splatoon3_ai_coach.vision.stage_mask import resolve_stage_mask
 from splatoon3_ai_coach.vision.team_color_calibration import (
     TeamColorCalibrationResult,
     TeamColorCalibrator,
@@ -247,7 +246,7 @@ def maybe_calibrate_team_colors(
     """Sample timer-adjacent HUD hues inside the A1 post-``in_match`` window.
 
     Requires Ready?, positive roster evidence, and a frame time inside the
-    one-shot ``[t0, t0 + 3.0]`` window opened by the scan fuser.
+    one-shot post-``in_match`` window opened by the scan fuser.
     ``opening_clock_ticked`` does not end eligibility.
     """
     cfg = map_ctx.config
@@ -306,8 +305,7 @@ def maybe_sample_map_ink(
 ) -> None:
     """Emit a MapObservation only after Ready? + colors, while map is open.
 
-    Battle mode is optional: missing mode uses
-    ``configs/stage_maps/<stage>/default.yaml``.
+    Battle mode is provenance only; all modes use the registered stage polygon.
     Does not interpolate. Does not create GameEvents. Skipped entirely when Ready?
     was never detected for the match.
     """
@@ -322,7 +320,10 @@ def maybe_sample_map_ink(
         return
     if map_ctx.classifier is None:
         return
-    overlay = map_overlay_present(detections)
+    overlay = map_overlay_present(
+        detections,
+        min_usable_confidence=cfg.vision.map_overlay.min_usable_confidence,
+    )
     if not overlay:
         return
     interval = cfg.vision.map_ink.sample_interval_seconds
@@ -333,29 +334,21 @@ def maybe_sample_map_ink(
     mode_id = map_ctx.identity.identity.battle_mode_id
     if stage_id is None:
         return
-    geometry = resolve_stage_map_geometry(
+    overlay_polygon = resolve_overlay_map_polygon(
         cfg.vision.map_ink.geometry_dir,
         stage_id=stage_id,
-        battle_mode_id=mode_id,
     )
-    if geometry is None:
+    if overlay_polygon is None:
         return
-    stage_mask = resolve_stage_mask(
-        cfg.vision.map_ink.geometry_dir,
-        stage_id=stage_id,
-    )
     evidence_ids = [d.id for d in detections if d.detector_name == "map_overlay"]
-    observation = analyze_map_ink(
+    observation = analyze_overlay_map_ink(
         video_frame.image,
-        geometry,
+        overlay_polygon,
         map_ctx.classifier,
         video_time=t,
         battle_mode_id=mode_id,
         evidence_ids=evidence_ids,
-        stage_mask=stage_mask,
     )
-    if observation.confidence < cfg.vision.map_ink.min_usable_confidence:
-        return
     map_ctx.observations.append(observation)
     map_ctx.last_sample_at = t
     if map_ctx.diagnostics_dir is not None:
@@ -363,16 +356,18 @@ def maybe_sample_map_ink(
             map_ctx.diagnostics_dir,
             image=video_frame.image,
             observation=observation,
-            geometry=geometry,
+            geometry=None,
             classifier=map_ctx.classifier,
-            stage_mask=stage_mask,
+            stage_mask=overlay_polygon,
         )
 
 
-def map_overlay_present(detections: list[DetectorResult]) -> bool:
-    """True when this frame's map_overlay reading asserts present."""
+def map_overlay_present(
+    detections: list[DetectorResult], *, min_usable_confidence: float = 0.0
+) -> bool:
+    """True when a usable map-overlay reading asserts presence on this frame."""
     for det in detections:
-        if det.detector_name != "map_overlay":
+        if det.detector_name != "map_overlay" or det.confidence < min_usable_confidence:
             continue
         reading = det.reading
         if isinstance(reading, MapOverlayReading) and reading.present:
@@ -425,6 +420,13 @@ def persist_map_artifacts(map_ctx: MapInkScanContext, output_dir: Path) -> None:
         and map_ctx.ready_seen
         and map_ctx.calibration is not None
         and not map_ctx.map_ink_dropped
+        and map_ctx.config is not None
+        and identity.stage_id is not None
+        and resolve_overlay_map_polygon(
+            map_ctx.config.vision.map_ink.geometry_dir,
+            stage_id=identity.stage_id,
+        )
+        is not None
     )
     payload = {
         "stage_id": identity.stage_id,

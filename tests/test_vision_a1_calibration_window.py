@@ -39,6 +39,10 @@ from splatoon3_ai_coach.vision.models import (
     TimerReading,
     VisionFrameResult,
 )
+from splatoon3_ai_coach.vision.overlay_map_polygon import (
+    OverlayMapPolygonConfig,
+    write_overlay_map_polygon,
+)
 from splatoon3_ai_coach.vision.state import fuse_game_state
 
 _NAMES = ("timer", "ready", "player_count", "map_overlay")
@@ -73,6 +77,7 @@ class Frame:
     ready: bool = False
     roster: bool = False
     overlay: bool = False
+    overlay_conf: float = 0.9
     image: np.ndarray | None = None
 
 
@@ -100,7 +105,7 @@ class _Scripted:
         if self.name == "player_count" and spec.roster:
             return PlayerCountReading(roster_visible=True), 0.9
         if self.name == "map_overlay" and spec.overlay:
-            return MapOverlayReading(present=True, template_score=0.9), 0.9
+            return MapOverlayReading(present=True, template_score=0.9), spec.overlay_conf
         return None, 0.0
 
 
@@ -219,25 +224,25 @@ def test_first_qualifying_non_opening_read_enters_in_match(tmp_path: Path) -> No
 
 
 def test_window_end_is_inclusive(tmp_path: Path) -> None:
-    """A frame at exactly t0 + 3.0 is still eligible."""
+    """A frame at exactly t0 + 5.0 is still eligible."""
     _, map_ctx = _context(tmp_path)
     _scan(map_ctx, _pre_match(roster=False))
-    _scan(map_ctx, _match(15.0, 16.5, roster=False) + _match(17.0, 18.0))
+    _scan(map_ctx, _match(15.0, 18.5, roster=False) + _match(19.0, 20.0))
     cal = map_ctx.calibration
     assert cal is not None
-    assert cal.accepted_frame_times == (17.0, 17.5, 18.0)
+    assert cal.accepted_frame_times == (19.0, 19.5, 20.0)
     assert _window(map_ctx).close_reason == "latched"
 
 
 def test_frame_after_window_cannot_latch(tmp_path: Path) -> None:
-    """The first frame after t0 + 3.0 expires the window and is rejected."""
+    """The first frame after t0 + 5.0 expires the window and is rejected."""
     _, map_ctx = _context(tmp_path)
     _scan(map_ctx, _pre_match(roster=False))
-    frames = _match(15.0, 16.5, roster=False) + _match(17.0, 17.5) + _match(18.5, 18.5)
+    frames = _match(15.0, 18.5, roster=False) + _match(19.0, 19.5) + _match(20.5, 20.5)
     _scan(map_ctx, frames)
     assert map_ctx.calibration is None
     window = _window(map_ctx)
-    assert (window.close_reason, window.closed_at) == ("expired", 18.5)
+    assert (window.close_reason, window.closed_at) == ("expired", 20.5)
     assert window.rejections["outside_window:expired"].count == 1
 
 
@@ -245,11 +250,11 @@ def test_expired_window_never_reopens(tmp_path: Path) -> None:
     """Later non-opening reads, gaps and a fuser return to in_match: no reopen."""
     app, map_ctx = _context(tmp_path)
     _scan(map_ctx, _pre_match(roster=False))
-    _scan(map_ctx, _match(15.0, 18.5, roster=False))
+    _scan(map_ctx, _match(15.0, 20.5, roster=False))
     assert _window(map_ctx).close_reason == "expired"
 
     # Later qualifying non-opening reads with good roster frames.
-    _scan(map_ctx, _match(19.0, 22.0))
+    _scan(map_ctx, _match(21.0, 22.0))
     # A timer gap shorter than the hold keeps in_match.
     _scan(map_ctx, [Frame(t, roster=True) for t in _ts(22.5, 26.0)])
     assert map_ctx.match_phase == "in_match"
@@ -265,7 +270,7 @@ def test_expired_window_never_reopens(tmp_path: Path) -> None:
     window = _window(map_ctx)
     assert map_ctx.calibration is None
     assert window.t0 == pytest.approx(15.0)
-    assert (window.close_reason, window.closed_at) == ("expired", 18.5)
+    assert (window.close_reason, window.closed_at) == ("expired", 20.5)
     assert window.rejections["outside_window:expired"].count > 0
 
 
@@ -335,7 +340,7 @@ def test_no_latch_in_window_keeps_map_ink_fail_closed(tmp_path: Path) -> None:
     """Expired without latch: no calibration, no map-ink observations."""
     _, map_ctx = _context(tmp_path)
     _scan(map_ctx, _pre_match(roster=False))
-    _scan(map_ctx, _match(15.0, 18.5, roster=False) + _match(19.0, 22.0, overlay=True))
+    _scan(map_ctx, _match(15.0, 20.5, roster=False) + _match(21.0, 22.0, overlay=True))
     assert map_ctx.calibration is None
     assert map_ctx.observations == []
     persist_map_artifacts(map_ctx, tmp_path)
@@ -358,6 +363,72 @@ def test_successful_calibration_is_immutable(tmp_path: Path) -> None:
     assert abs(first.ally_h - 11.0) <= 2.0
 
 
+def test_overlay_sampling_requires_drawn_polygon(tmp_path: Path) -> None:
+    """Valid live-play colors cannot authorize a rectangle-only map sample."""
+    app, map_ctx = _context(tmp_path)
+    source = app.vision.map_ink.geometry_dir / "mahi_mahi_resort" / "default.yaml"
+    stage_dir = tmp_path / "geometry" / "mahi_mahi_resort"
+    stage_dir.mkdir(parents=True)
+    (stage_dir / "default.yaml").write_text(source.read_text())
+    app.vision.map_ink.geometry_dir = stage_dir.parent
+    _scan(map_ctx, _pre_match(roster=False))
+    _scan(map_ctx, _match(15.0, 17.0, overlay=True))
+    assert map_ctx.calibration is not None
+    assert map_ctx.observations == []
+    persist_map_artifacts(map_ctx, tmp_path)
+    payload = json.loads((tmp_path / "match_identity.json").read_text())
+    assert payload["map_ink_enabled"] is False
+    write_overlay_map_polygon(
+        stage_dir / "stage_mask.yaml",
+        OverlayMapPolygonConfig(
+            stage_id="mahi_mahi_resort",
+            polygon=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)],
+        ),
+    )
+    _scan(map_ctx, _match(17.5, 17.5, overlay=True))
+    assert len(map_ctx.observations) == 1
+    assert map_ctx.observations[0].sample_mask_source == "registered_polygon"
+    persist_map_artifacts(map_ctx, tmp_path)
+    payload = json.loads((tmp_path / "match_identity.json").read_text())
+    assert payload["map_ink_enabled"] is True
+
+
+@pytest.mark.parametrize("painted", [False, True])
+def test_valid_polygon_keeps_zero_and_low_coverage(tmp_path: Path, painted: bool) -> None:
+    """A calibrated map frame remains valid even below the old coverage floor."""
+    app, map_ctx = _context(tmp_path)
+    stage_dir = tmp_path / "mahi_mahi_resort"
+    write_overlay_map_polygon(
+        stage_dir / "stage_mask.yaml",
+        OverlayMapPolygonConfig(
+            stage_id="mahi_mahi_resort",
+            polygon=[(0.2, 0.2), (0.8, 0.2), (0.8, 0.8), (0.2, 0.8)],
+        ),
+    )
+    app.vision.map_ink.geometry_dir = tmp_path
+    app.vision.map_ink.min_usable_confidence = 0.99
+    _scan(map_ctx, _pre_match(roster=False))
+    _scan(map_ctx, _match(15.0, 16.0))
+    image = np.full_like(_GOOD, 80)
+    if painted:
+        image[500:510, 900:910] = cv2.cvtColor(
+            np.uint8([[[11, 200, 200]]]), cv2.COLOR_HSV2BGR
+        )[0, 0]
+    _scan(map_ctx, [Frame(17.0, timer=297.0, overlay=True, image=image)])
+    assert len(map_ctx.observations) == 1
+    obs = map_ctx.observations[0]
+    assert obs.classified_pixels == (100 if painted else 0)
+    assert obs.visible_ink_fraction == pytest.approx(
+        obs.classified_pixels / obs.total_sample_pixels
+    )
+    assert obs.regions == []
+    assert obs.sample_polygon_sha256 is not None
+    _scan(map_ctx, [Frame(18.0, timer=296.0, overlay=False, image=image)])
+    assert len(map_ctx.observations) == 1
+    _scan(map_ctx, [Frame(19.0, timer=295.0, overlay=True, overlay_conf=0.25)])
+    assert len(map_ctx.observations) == 1
+
+
 def test_window_provenance_is_persisted(tmp_path: Path) -> None:
     """t0, bounds, close reason and both rejection kinds reach match_identity."""
     _, map_ctx = _context(tmp_path)
@@ -368,8 +439,8 @@ def test_window_provenance_is_persisted(tmp_path: Path) -> None:
     window = payload["team_color_calibration_window"]
     assert window["t0"] == pytest.approx(15.0)
     assert window["start"] == pytest.approx(15.0)
-    assert window["end"] == pytest.approx(18.0)
-    assert window["duration_seconds"] == pytest.approx(3.0)
+    assert window["end"] == pytest.approx(20.0)
+    assert window["duration_seconds"] == pytest.approx(5.0)
     assert (window["close_reason"], window["closed_at"]) == ("latched", 16.0)
     assert window["rejections"] == {
         "phase_ineligible:opening_countdown": {
@@ -383,15 +454,15 @@ def test_window_provenance_is_persisted(tmp_path: Path) -> None:
 
     _, expired_ctx = _context(tmp_path)
     _scan(expired_ctx, _pre_match(roster=False))
-    _scan(expired_ctx, _match(15.0, 18.0, roster=False) + _match(18.5, 19.0))
+    _scan(expired_ctx, _match(15.0, 20.0, roster=False) + _match(20.5, 21.0))
     persist_map_artifacts(expired_ctx, tmp_path)
     payload = json.loads((tmp_path / "match_identity.json").read_text("utf-8"))
     window = payload["team_color_calibration_window"]
-    assert (window["close_reason"], window["closed_at"]) == ("expired", 18.5)
+    assert (window["close_reason"], window["closed_at"]) == ("expired", 20.5)
     assert window["rejections"]["outside_window:expired"] == {
         "count": 2,
-        "first_at": 18.5,
-        "last_at": 19.0,
+        "first_at": 20.5,
+        "last_at": 21.0,
     }
 
 
@@ -405,10 +476,10 @@ def test_window_unit_open_once_close_once() -> None:
     assert window.admit(1.0, "opening_countdown") == "phase_ineligible:opening_countdown"
     window.advance(2.0, "in_match")
     assert window.admit(2.0, "in_match") is None
-    window.advance(5.0, "in_match")
-    assert window.admit(5.0, "in_match") is None
-    window.advance(5.5, "in_match")
+    window.advance(7.0, "in_match")
+    assert window.admit(7.0, "in_match") is None
+    window.advance(7.5, "in_match")
     assert window.close_reason == "expired"
     window.advance(9.0, "in_match")
-    assert (window.t0, window.closed_at) == (2.0, 5.5)
+    assert (window.t0, window.closed_at) == (2.0, 7.5)
     assert window.admit(9.0, "in_match") == "outside_window:expired"

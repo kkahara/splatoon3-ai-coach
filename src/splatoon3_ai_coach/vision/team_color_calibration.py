@@ -134,6 +134,29 @@ def circular_hue_in_band(h: float, center: float, tolerance: float) -> bool:
     return circular_hue_distance(h, center) <= tolerance
 
 
+def circular_hue_median(hues: np.ndarray | list[float]) -> float:
+    """Minimize total circular hue distance, returning a center in [0, 180).
+
+    Pixel hue values have at most 180 distinct values, so evaluating their
+    weighted distances by distinct value avoids a pixel-by-pixel matrix.
+    Midpoints of tied medians preserve ordinary median behavior where possible.
+    """
+    values = np.asarray(hues, dtype=np.float64).reshape(-1) % 180.0
+    if values.size == 0 or not np.all(np.isfinite(values)):
+        raise ValueError("circular hue median requires finite, nonempty hues")
+    unique, counts = np.unique(values, return_counts=True)
+    distances = np.abs(unique[:, None] - unique[None, :])
+    costs = np.minimum(distances, 180.0 - distances) @ counts
+    anchor = float(unique[int(np.argmin(costs))])
+    unwrapped = anchor + (values - anchor + 90.0) % 180.0 - 90.0
+    median = float(np.median(unwrapped) % 180.0)
+    delta = np.abs(unique - median)
+    median_cost = float(np.minimum(delta, 180.0 - delta) @ counts)
+    if np.isclose(median_cost, float(np.min(costs)), rtol=0, atol=1e-7):
+        return median
+    return anchor
+
+
 @dataclass
 class _FrameSideSample:
     """Per-frame side aggregate from usable slots."""
@@ -240,8 +263,8 @@ class TeamColorCalibrator:
         if len(self._accepted_times) < self.min_accepted_frames:
             return None
 
-        ally_h = float(np.median(np.asarray(self._ally_frame_h, dtype=np.float64)))
-        opp_h = float(np.median(np.asarray(self._opp_frame_h, dtype=np.float64)))
+        ally_h = circular_hue_median(self._ally_frame_h)
+        opp_h = circular_hue_median(self._opp_frame_h)
         calibrated_at = float(self._accepted_times[-1])
         self._result = TeamColorCalibrationResult(
             ally_h=ally_h,
@@ -285,7 +308,7 @@ class TeamColorCalibrator:
         if not hues or usable_total < _MIN_PIXELS_SIDE:
             return None
         return _FrameSideSample(
-            h_median=float(np.median(np.asarray(hues, dtype=np.float64))),
+            h_median=circular_hue_median(hues),
             slot_hues=hues,
         )
 
@@ -303,15 +326,14 @@ class TeamColorCalibrator:
         usable = int(np.count_nonzero(mask))
         if usable < _MIN_PIXELS_PER_SLOT:
             return None
-        h_med = float(np.median(hsv[:, :, 0][mask].astype(np.float64)))
+        h_med = circular_hue_median(hsv[:, :, 0][mask])
         return h_med, usable
 
     def _slots_agree(self, hues: list[float]) -> bool:
         """Reject frames where usable slots on one side disagree too much."""
         if len(hues) < 2:
             return True
-        arr = np.asarray(hues, dtype=np.float64)
-        med = float(np.median(arr))
+        med = circular_hue_median(hues)
         return all(
             circular_hue_distance(float(h), med) <= self.max_within_side_spread
             for h in hues
