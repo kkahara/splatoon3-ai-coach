@@ -247,6 +247,22 @@ button:disabled {
   cursor: pointer;
 }
 
+.voucher-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.voucher-controls input {
+  flex: 1;
+  min-width: 0;
+}
+
+.voucher-controls button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .voucher .voucher-ok {
   color: var(--s3-success);
   margin: 0.35rem 0 0.5rem;

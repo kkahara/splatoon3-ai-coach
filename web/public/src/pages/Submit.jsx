@@ -372,20 +372,23 @@ export function SubmitPage() {
           ) : null}
           <details className="voucher">
             <summary>{t("submit.voucher_prompt")}</summary>
-            <label>
+            <label htmlFor="voucher-code">
               {t("submit.voucher_code")}
+            </label>
+            <div className="voucher-controls">
               <input
+                id="voucher-code"
                 value={voucherCode}
                 autoComplete="off"
                 spellCheck="false"
                 onChange={(event) => changeVoucher(event.target.value)}
               />
-            </label>
-            {showVoucherApplyButton(voucherPreview) ? (
-              <button type="button" onClick={applyVoucher} disabled={busy || !voucherCode.trim()}>
-                {t("submit.voucher_apply")}
-              </button>
-            ) : null}
+              {showVoucherApplyButton(voucherPreview) ? (
+                <button type="button" onClick={applyVoucher} disabled={busy || !voucherCode.trim()}>
+                  {t("submit.voucher_apply")}
+                </button>
+              ) : null}
+            </div>
             {voucherError ? <p className="error">{voucherError}</p> : null}
             {voucherPreview?.accepted ? (
               <div className="voucher-ok" aria-live="polite">
