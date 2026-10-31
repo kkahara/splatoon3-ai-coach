@@ -1006,13 +1006,12 @@ class CoachConfig(BaseModel):
     cursor_model: str = "gpt-5.6-luna"
     max_llm_units: int = Field(default=3, ge=0)
     roster_evidence: bool = Field(
+        default=True,
+        description="Expose reliable roster observations and factual claims to coaching.",
+    )
+    roster_scoring: bool = Field(
         default=False,
-        description=(
-            "Capability boundary for roster (ally/opponent alive) evidence in "
-            "coaching. False: no roster factors, view block, public lines, "
-            "prompt guidance or claims, and roster assertions are rejected. "
-            "Enable only after roster reliability has been demonstrated."
-        ),
+        description="Allow roster importance factors to contribute to match ranking.",
     )
     # Only candidates scoring above zero may fill the top N; otherwise ties
     # among zero-score deaths are settled by video time alone.

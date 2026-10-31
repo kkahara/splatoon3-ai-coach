@@ -261,7 +261,8 @@ def test_view_smaller_than_full_coach_input() -> None:
     full = json.dumps(coach_input.model_dump(mode="json"), separators=(",", ":"))
     compact = json.dumps(view.model_dump(mode="json"), separators=(",", ":"))
     # Synthetic fixture is moderately large; require absolute cap + real drop.
-    assert len(compact) < 8000
+    # v4 includes one optional timestamped roster fact and its claim basis.
+    assert len(compact) < 9000
     assert len(compact) < len(full)
     assert "observations" not in compact
 

@@ -18,14 +18,27 @@ HAVE_DATA = (xh.REFRESHED_ROOT / MATCH).is_dir() and (
 DESIGN = xh.OUT_DIR / "design.json"
 
 
+@pytest.fixture
+def historical_config_path(tmp_path: Path) -> Path:
+    """Pin Experiment H's original policy independently of production defaults."""
+    text = default_config_path().read_text(encoding="utf-8")
+    text = text.replace("roster_evidence: true", "roster_evidence: false")
+    text = text.replace("roster_scoring: false", "roster_scoring: true")
+    path = tmp_path / "historical.yaml"
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def _dump_without_switch(config) -> dict:
     data = config.model_dump(mode="json")
     data["coach"].pop("roster_evidence")
     return data
 
 
-def test_arm_configs_differ_only_in_the_production_switch() -> None:
-    base = load_config(default_config_path())
+def test_arm_configs_differ_only_in_the_production_switch(
+    historical_config_path: Path,
+) -> None:
+    base = load_config(historical_config_path)
     assert base.coach.roster_evidence is False
     assert xh.arm_config(base, "A").model_dump() == base.model_dump()
     for arm in ("B", "C"):
@@ -41,8 +54,11 @@ def test_arm_system_prompts_are_the_production_prompts() -> None:
     assert xh.arm_system_prompt("C") == load_system_prompt(roster_evidence=True)
 
 
-def test_switched_config_text_changes_only_the_switch(tmp_path: Path) -> None:
-    text = default_config_path().read_text(encoding="utf-8")
+def test_switched_config_text_changes_only_the_switch(
+    tmp_path: Path,
+    historical_config_path: Path,
+) -> None:
+    text = historical_config_path.read_text(encoding="utf-8")
     on = xh.switched_config_text(text, True)
     assert on.replace("roster_evidence: true", "roster_evidence: false") == text
     path = tmp_path / "on.yaml"
@@ -221,21 +237,27 @@ def test_roster_summary() -> None:
 
 
 @pytest.mark.skipif(not (HAVE_DATA and DESIGN.is_file()), reason="data or design missing")
-def test_build_and_plan_from_frozen_design(tmp_path: Path) -> None:
+def test_build_and_plan_from_frozen_design(
+    tmp_path: Path,
+    historical_config_path: Path,
+) -> None:
     (tmp_path / "design.json").write_text(DESIGN.read_text(encoding="utf-8"), "utf-8")
-    assert xi.build(tmp_path, default_config_path()) == 0
+    assert xi.build(tmp_path, historical_config_path) == 0
     manifest = xi.load_manifest(tmp_path / "inputs")
     assert len(manifest["calls"]) == 66 and manifest["repeats"] == 2
-    assert xi.plan(tmp_path, default_config_path()) == 0
+    assert xi.plan(tmp_path, historical_config_path) == 0
     with pytest.raises(SystemExit):
-        xi.build(tmp_path, default_config_path())
+        xi.build(tmp_path, historical_config_path)
 
 
 @pytest.mark.skipif(
     not HAVE_DATA, reason="refreshed and pre-refresh analyses not present"
 )
-def test_arm_views_match_production_cli_and_isolate_roster(tmp_path: Path) -> None:
-    base_path = default_config_path()
+def test_arm_views_match_production_cli_and_isolate_roster(
+    tmp_path: Path,
+    historical_config_path: Path,
+) -> None:
+    base_path = historical_config_path
     base = load_config(base_path)
     views = {arm: xh.arm_views(base, arm, (MATCH,)) for arm in xh.ARMS}
     for arm, (root, roster) in xh.ARMS.items():

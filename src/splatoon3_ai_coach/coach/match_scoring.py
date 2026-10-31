@@ -72,6 +72,7 @@ def score_match(
                 thresholds=coach.death_factor_thresholds,
                 modifier_factors=coach.death_modifier_factors,
                 ranking_excluded_factors=coach.death_ranking_excluded_factors,
+                roster_scoring=coach.roster_scoring,
             )
         )
         inputs[scenario_id] = coach_input

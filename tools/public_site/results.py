@@ -25,6 +25,10 @@ from splatoon3_ai_coach.coach.claim_validation import ValidationStatus
 from splatoon3_ai_coach.coach.coach import annotate_claim_flags
 from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
+from splatoon3_ai_coach.coach.observation_facts import (
+    OBSERVATION_FRAMES,
+    render_observation_fact,
+)
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
     PlaybackClockInfo,
@@ -144,7 +148,9 @@ def _projected(
         gaps=[],
         until_active_again=_recovery(coach_input),
         recovery_context=_recovery_map_line(coach_input),
-        context=_context(coach_input, factors),
+        context=_context(
+            coach_input, factors, read_document(inputs, entry.llm_view_json) or {}
+        ),
         recording_times=[],
     )
 
@@ -419,7 +425,7 @@ def _seconds(raw: object) -> float | None:
         return None
 
 
-def _context(coach_input: dict, factors: object) -> list[str]:
+def _context(coach_input: dict, factors: object, view: dict | None = None) -> list[str]:
     lines: list[str] = []
     special = _special_line(coach_input, _active_ids(factors))
     mapped = _map_line(coach_input)
@@ -428,8 +434,31 @@ def _context(coach_input: dict, factors: object) -> list[str]:
     if mapped:
         lines.append(mapped)
     lines.extend(_factor_lines(factors))
-    if coach_input.get("roster_evidence") is not False:
+    facts = _observation_lines(
+        view or {}, coach_input.get("roster_evidence") is not False
+    )
+    if (
+        coach_input.get("roster_evidence") is not False
+        and "observed_roster_counts" not in facts
+    ):
         lines.append(_roster_line(coach_input))
+    lines.extend(facts.values())
+    return lines
+
+
+def _observation_lines(view: dict, roster_enabled: bool) -> dict[str, str]:
+    """Render saved authorized observation claims; never reselect old evidence."""
+    lines: dict[str, str] = {}
+    for entry in view.get("claim_basis") or []:
+        claim_id = entry.get("claim_id") if isinstance(entry, dict) else None
+        if claim_id not in OBSERVATION_FRAMES:
+            continue
+        if claim_id == "observed_roster_counts" and not roster_enabled:
+            continue
+        try:
+            lines[claim_id] = render_observation_fact(claim_id, entry["values"])
+        except (KeyError, TypeError, ValueError):
+            continue
     return lines
 
 

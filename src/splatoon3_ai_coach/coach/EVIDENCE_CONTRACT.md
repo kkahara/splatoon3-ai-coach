@@ -60,11 +60,38 @@ a coaching claim; it words claims that are already authorized
 
 ### Roster capability boundary
 
-`coach.roster_evidence` (default `false`) is one switch. While false there are
-no roster ranking factors, no `roster` block or roster-derived `death.*`
-fields in the view, no public roster lines, no roster prompt guidance, no
-roster claim in `claim_basis` (`roster` is undetermined), and the validator
-rejects roster assertions (R2). The roster code stays in place.
+`coach.roster_evidence` defaults to `true`: reliable roster observations may
+reach CoachInput, the model-facing roster block, factual claims and presentation.
+The existing plausibility checks and unreliable intervals still suppress selected
+samples. Turning this capability off strips those surfaces and rejects roster
+assertions (R2).
+
+`coach.roster_scoring` is independent and defaults to `false`. Roster factors
+retain their two-player-gap eligibility threshold, but do not contribute to
+importance scores or qualify modifier factors while scoring is off. Enabling
+facts therefore preserves existing production ranking and top-three selection.
+
+`observed_roster_counts` is an optional level-A factual claim from the reliable
+pre-death sample already selected by the unit. Its model-facing home is
+`roster.observed_counts`. Counts, actual observation video time, signed offset
+and timing description are exposed. A reliable 3v4 sample qualifies without
+activating the two-player-gap importance factor. Counts describe the roster,
+never nearby players or fight participation.
+
+`observed_map_ink` is an optional level-A factual claim projected at
+`map.observed_ink`. Selection minimizes absolute distance to the anchor over
+observations already admitted by the ScenarioContext window; equal distances
+prefer the pre-anchor observation. It does not require the one-second
+`nearest_before_anchor` summary. The actual timestamp and signed video-time
+offset remain explicit. Post-death observations are labeled post-death and
+never described as measurements at death; no continuous ink state is inferred.
+
+Visible ink coverage within the registered polygon uses the polygon denominator.
+Ally share of detected ink and opponent share of detected ink use detected ink
+as denominator; they are never whole-map percentages or map control. Values
+are percentages in the compact projection; missing shares remain unavailable,
+including zero-ink observations. Both new claims have `coachable=false`: they
+are authorized context, not mandatory statements or new ranking factors.
 
 ### Validation rules
 
@@ -155,9 +182,10 @@ MAP_OVERLAY facts (`map.map_check_*`) stay distinct from map **ink**
 | `score.at_anchor` / `score.pre_death` / `score.lookback` | at/before target only | Latest fused snapshot in `[target − max gap, target]` that observed any score field (prefers both main counters observed); `pre_death` target = `death_time − score_pre_death_offset_seconds`; `lookback` target = pre-death target − `score_lookback_seconds` |
 
 Roster nearest-in-gap is intentional: alive counts are held state sampled on a
-cadence, not one-shot UI flashes. Ink/special “nearest before” stay
-pre-anchor-only so coaching does not pull a sample that appears only after the
-scenario anchor. Do not “unify” these without an explicit contract change.
+cadence, not one-shot UI flashes. Ink/special “nearest before” summaries stay
+pre-anchor-only. The general
+`observed_map_ink` claim separately selects the nearest admitted observation
+and labels its real timing, including post-death observations.
 
 Canonical sparse roster compression is
 `analysis.player_count_series.compress_player_count_observations` (shared by

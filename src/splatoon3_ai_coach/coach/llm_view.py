@@ -37,6 +37,10 @@ from splatoon3_ai_coach.coach.death_importance import (
     factor_threshold_entries,
     same_life_last_ready,
 )
+from splatoon3_ai_coach.coach.observation_facts import (
+    observed_map_ink,
+    observed_roster_counts,
+)
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
     PlaybackClockInfo,
@@ -46,8 +50,10 @@ from splatoon3_ai_coach.coach.score_facts import ScoreFacts
 from splatoon3_ai_coach.coach.zone_control_facts import ZoneControlFacts
 from splatoon3_ai_coach.config.models import DeathFactorThresholds
 
-LLM_VIEW_SCHEMA_VERSION = 3
-"""v3: ``claim_basis`` / ``undetermined`` and the roster capability flag.
+LLM_VIEW_SCHEMA_VERSION = 4
+"""v4: timestamped optional roster-count and sparse polygon-ink facts.
+
+v3: ``claim_basis`` / ``undetermined`` and the roster capability flag.
 
 v2: clocked durations, map-check status/coverage, factor thresholds."""
 
@@ -174,6 +180,12 @@ def build_death_llm_view(
     )
     special_block = _project_special(coach_input)
     map_block = _project_map(ctx.map)
+    if map_block is not None:
+        map_block["observed_ink"] = observed_map_ink(coach_input)
+    if roster_block is not None:
+        roster_block["observed_counts"] = observed_roster_counts(
+            coach_input, unit.roster_before_death
+        )
     related_blocks = [
         _project_related(index, item) for index, item in enumerate(coach_input.related)
     ]
@@ -188,6 +200,7 @@ def build_death_llm_view(
             source_path=item.path or "supporting_evidence",
         )
         for item in unit.supporting_evidence
+        if item.label not in {"Observed roster", "Observed map ink"}
     ]
 
     basis = build_claim_basis(coach_input, unit)

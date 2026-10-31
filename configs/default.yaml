@@ -408,11 +408,10 @@ coach:
   cursor_model: gpt-5.6-luna
   # Type-agnostic top-N across coaching candidates (death is first domain).
   max_llm_units: 3
-  # Roster (alive-count) evidence has not passed the reliability bar, so it is
-  # off for coaching as one capability boundary: no roster ranking factors,
-  # view block, public lines, prompt guidance or claims. Turning it on is a
-  # deliberate product decision after reliability is demonstrated.
-  roster_evidence: false
+  # Factual roster observations retain existing reliability/plausibility checks.
+  roster_evidence: true
+  # Independent ranking policy: preserve production scores while exposing facts.
+  roster_scoring: false
   # Leave top-N slots empty rather than fill them with zero-score deaths.
   llm_units_require_positive_score: true
   # Context factors: they add weight only to a death another factor supports.

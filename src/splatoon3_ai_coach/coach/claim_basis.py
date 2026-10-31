@@ -37,6 +37,12 @@ from splatoon3_ai_coach.coach.death_importance import (
     own_splat_gap,
     previous_death_gap,
 )
+from splatoon3_ai_coach.coach.observation_facts import (
+    MAP_INK_FRAME,
+    ROSTER_FRAME,
+    observed_map_ink,
+    observed_roster_counts,
+)
 
 Values = dict[str, Any]
 Eligibility = Callable[[CoachInput, CoachingUnitResult], Values | None]
@@ -264,6 +270,28 @@ _ROSTER_PATHS = (
 )
 _LOW_INK_PATHS = ("low_ink.at_death", "death.death_time_video")
 
+
+def _observation_values(values: Values | None) -> Values | None:
+    return (
+        None
+        if values is None
+        else {key: value for key, value in values.items() if key != "source_path"}
+    )
+
+
+def _observation_paths(block: str, fields: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(f"{block}.{field}" for field in fields)
+
+
+_TIMING_FIELDS = (
+    "video_time",
+    "anchor_video_time",
+    "offset_from_anchor_seconds",
+    "temporal_relationship",
+    "timing_description",
+)
+
+
 CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
     ClaimDefinition(
         claim_id=_F.DEATH_QUICK_REDEATH.value,
@@ -449,6 +477,39 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         eligible=_requires(_F.DEATH_MAP_OVERLAY_BEFORE_FALSE.value),
         coachable=True,
         rec_template_ids=("rec_map_after_respawn",),
+    ),
+    ClaimDefinition(
+        claim_id="observed_roster_counts",
+        level=ClaimLevel.A,
+        frame=ROSTER_FRAME,
+        evidence_paths=_observation_paths(
+            "roster.observed_counts",
+            (*_TIMING_FIELDS, "ally_alive_count", "opponent_alive_count"),
+        ),
+        eligible=lambda coach_input, unit: _observation_values(
+            observed_roster_counts(coach_input, unit.roster_before_death)
+        ),
+        coachable=False,
+    ),
+    ClaimDefinition(
+        claim_id="observed_map_ink",
+        level=ClaimLevel.A,
+        frame=MAP_INK_FRAME,
+        evidence_paths=_observation_paths(
+            "map.observed_ink",
+            (
+                *_TIMING_FIELDS,
+                "visible_ink_coverage_percent",
+                "ally_share_of_detected_ink_percent",
+                "opponent_share_of_detected_ink_percent",
+                "ally_share_of_detected_ink_display",
+                "opponent_share_of_detected_ink_display",
+            ),
+        ),
+        eligible=lambda coach_input, _unit: _observation_values(
+            observed_map_ink(coach_input)
+        ),
+        coachable=False,
     ),
 )
 

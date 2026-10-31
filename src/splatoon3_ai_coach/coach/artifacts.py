@@ -63,7 +63,8 @@ COACHING_INDEX_SCHEMA_VERSION = 3
 # Bump when deterministic evidence semantics change (coaching.json / llm_view).
 # v4: roster capability off, same-life special, claim_basis / undetermined.
 # v5: claim_basis evidence_paths are literal scalar CoachLlmView leaves.
-COACH_EVIDENCE_VERSION = 5
+# v6: timestamped roster/ink factual claims; roster facts independent of ranking.
+COACH_EVIDENCE_VERSION = 6
 VISION_MANIFEST_FILENAME = "vision_manifest.json"
 PROTOTYPE_INDEX_SCHEMA_VERSION = 3
 

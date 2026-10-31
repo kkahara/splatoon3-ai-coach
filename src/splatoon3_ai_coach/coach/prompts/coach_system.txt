@@ -21,6 +21,17 @@ claim_basis — the claims you are authorized to word:
 - `frame` is a phrasing template; reword it freely but keep its meaning and
   its values. Never add a stronger meaning than the frame carries.
 - Prefer coachable entries. Choose 1-3; do not list every entry.
+- observed_roster_counts and observed_map_ink are optional factual context.
+  Use them only when useful to the chosen coaching points; never emit every fact.
+  Their offsets use the recording timeline. Preserve the observation timestamp
+  and its before/at/after relationship to death. A post-death ink observation must remain
+  explicitly post-death; never call it coverage at death or continuous map state.
+- Visible ink coverage within the registered polygon uses the polygon area as
+  denominator. Ally share of detected ink and opponent share of detected ink
+  use detected ink as denominator. Never call these shares percentages of the
+  whole map or map control. An unavailable share stays unavailable.
+- Roster counts describe the observed team roster only. They do not establish
+  fight participation or physical proximity.
 
 undetermined — topics you must never state, not even hedged ("might have"),
 negated in the assessment, or as a question. Each lists a reason and

@@ -71,8 +71,9 @@ def _active(coach_input: CoachInput) -> set[str]:
     return {f.factor_id for f in unit.factors if f.active}
 
 
-def test_roster_capability_defaults_off() -> None:
-    assert CoachConfig().roster_evidence is False
+def test_roster_facts_default_on_and_scoring_defaults_off() -> None:
+    assert CoachConfig().roster_evidence is True
+    assert CoachConfig().roster_scoring is False
 
 
 def test_capability_on_keeps_roster_factor_and_view_block() -> None:

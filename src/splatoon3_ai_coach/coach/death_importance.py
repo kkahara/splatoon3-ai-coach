@@ -35,6 +35,11 @@ from splatoon3_ai_coach.coach.coaching_candidates import (
     ImportanceFactorContribution,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClock
+from splatoon3_ai_coach.coach.observation_facts import (
+    observed_map_ink,
+    observed_roster_counts,
+    render_observation_fact,
+)
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
     PlaybackClockInfo,
@@ -327,11 +332,14 @@ def score_death_candidate(
     thresholds: DeathFactorThresholds | None = None,
     modifier_factors: Collection[str] | None = None,
     ranking_excluded_factors: Collection[str] | None = None,
+    roster_scoring: bool = True,
 ) -> CoachingUnitResult:
     """Build a scored death-episode coaching unit (not yet match-ranked).
 
     A modifier factor stays active as a fact but contributes its weight only
-    when some non-modifier factor is active too.
+    when some non-modifier factor is active too. Production passes the independent
+    ``roster_scoring`` policy; False leaves roster eligibility intact but excludes
+    it from score contributions and modifier support.
     """
     scenario = coach_input.primary_scenario
     if scenario.scenario_type is not ScenarioType.DEATH_EPISODE:
@@ -356,16 +364,23 @@ def score_death_candidate(
         if ranking_excluded_factors is None
         else ranking_excluded_factors
     )
+    roster_factors = {
+        DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED,
+        DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS,
+    }
+    scoring_enabled = {
+        f: f.value not in excluded and (roster_scoring or f not in roster_factors)
+        for f in flags
+    }
     supported = any(
-        on and f.value not in modifiers and f.value not in excluded
-        for f, on in flags.items()
+        on and f.value not in modifiers and scoring_enabled[f] for f, on in flags.items()
     )
     factors = [
         _factor_contribution(
             factor_id,
             active=bool(flags[factor_id]),
             counts=(
-                factor_id.value not in excluded
+                scoring_enabled[factor_id]
                 and (supported or factor_id.value not in modifiers)
             ),
             weight=float(weight_map.get(factor_id.value, 0.0)),
@@ -508,6 +523,20 @@ def build_supporting_evidence(
 ) -> list[SupportingEvidenceItem]:
     """Compact facts for VMV 'why' — not coaching cards."""
     items: list[SupportingEvidenceItem] = []
+    for claim_id, values in (
+        ("observed_roster_counts", observed_roster_counts(coach_input, roster)),
+        ("observed_map_ink", observed_map_ink(coach_input)),
+    ):
+        if values is not None:
+            items.append(
+                SupportingEvidenceItem(
+                    label="Observed roster"
+                    if claim_id == "observed_roster_counts"
+                    else "Observed map ink",
+                    value=render_observation_fact(claim_id, values),
+                    path=values["source_path"],
+                )
+            )
     ctx = coach_input.primary_context
     death_time = (
         ctx.death_episode.death_time
