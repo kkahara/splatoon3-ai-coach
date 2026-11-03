@@ -6,7 +6,7 @@ training
 tests
 web/vmv
 web/public/node_modules
-web/public/src
+web/public/dist
 calibration/reference
 **/__pycache__
 **/*.pyc

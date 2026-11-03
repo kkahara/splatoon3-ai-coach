@@ -19,7 +19,10 @@ services:
     networks: [default]
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-}
     container_name: s3-coaching-web
     restart: unless-stopped
     env_file: [.env]
