@@ -221,7 +221,7 @@ export function RunPage() {
       <section className="header-card">
         <h1>{summary.video_label}</h1>
         <div className="meta-chips">
-          <span>Language {summary.language ? summary.language.toUpperCase() : "—"}</span>
+          <span>Game language {summary.language ? summary.language.toUpperCase() : "—"}</span>
           <span>Stage {identity?.stage_id || "—"}</span>
           <span>Mode {identity?.battle_mode_id || "—"}</span>
           <span>{formatTime(summary.duration_seconds)}</span>

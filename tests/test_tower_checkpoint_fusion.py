@@ -41,7 +41,7 @@ def development_frame(time: float) -> VisionFrameResult:
         message = cv2.imread(str(DEVELOPMENT / "en" / filename))
         assert message is not None
         image[250:380, 300:1600] = message
-    reading, confidence = TowerControlDetector(CONFIG).detect(image, time)
+    reading, confidence = TowerControlDetector(CONFIG, language="en").detect(image, time)
     assert reading is not None
     result = DetectorResult(
         id=f"det-{time}",
@@ -115,9 +115,11 @@ def test_checkpoint_cues_do_not_change_tower_score_observations() -> None:
     image = np.zeros((1080, 1920, 3), dtype=np.uint8)
     image[95:315, 450:1470] = crop
     image[250:380, 300:1600] = message
-    enabled, _ = TowerControlDetector(CONFIG).detect(image, 167.5)
+    enabled, _ = TowerControlDetector(CONFIG, language="en").detect(image, 167.5)
     disabled_config = CONFIG.model_copy(update={"checkpoint_cue_template_dir": None})
-    disabled, _ = TowerControlDetector(disabled_config).detect(image, 167.5)
+    disabled, _ = TowerControlDetector(disabled_config, language="en").detect(
+        image, 167.5
+    )
     assert enabled is not None and disabled is not None
     assert enabled.checkpoint_at_cue_score is not None
     assert enabled.score_pods == disabled.score_pods

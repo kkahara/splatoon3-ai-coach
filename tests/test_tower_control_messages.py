@@ -118,8 +118,8 @@ def test_score_observation_is_independent_of_message_detection() -> None:
     enabled = base.model_copy(
         update={"checkpoint_cue_template_dir": CONTROL_DIR.parent.parent}
     )
-    before, _ = TowerControlDetector(base).detect(image, 167.5)
-    after, _ = TowerControlDetector(enabled).detect(image, 167.5)
+    before, _ = TowerControlDetector(base, language="en").detect(image, 167.5)
+    after, _ = TowerControlDetector(enabled, language="en").detect(image, 167.5)
     assert before is not None and after is not None
     assert before.score_pods and before.score_pods == after.score_pods
 
@@ -145,7 +145,8 @@ def test_development_message_examples(image_name: str, cue_type: str) -> None:
         TowerControlDetectorConfig(
             template_dir=PROJECT_ROOT / "calibration/templates",
             checkpoint_cue_template_dir=PROJECT_ROOT / "calibration/tower_control",
-        )
+        ),
+        language="en",
     )
     reading, _ = tower.detect(image, 12)
     assert reading is not None and reading.control_cue is not None

@@ -825,7 +825,7 @@ def _as_float(value: Any) -> float | None:
 
 
 def _analysis_language(raw: dict[str, Any]) -> str | None:
-    """Return the analyze ``--language`` stored on the manifest.
+    """Return the game language the analysis ran with (detected, or supplied before Phase 2).
 
     Only an explicit ``en`` or ``ja`` on ``analysis.language`` counts.
     Filenames, config YAML, and a missing field do not imply a language.

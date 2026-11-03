@@ -6,6 +6,7 @@ associators (and splat-style fusers) are constructed separately — they are not
 """
 
 from splatoon3_ai_coach.config.models import VisionConfig
+from splatoon3_ai_coach.exceptions import VisionError
 from splatoon3_ai_coach.vision.active_gameplay import ActiveGameplayDetector
 from splatoon3_ai_coach.vision.base import BaseDetector
 from splatoon3_ai_coach.vision.clam_basket_state import ClamBasketStateDetector
@@ -28,7 +29,15 @@ from splatoon3_ai_coach.vision.zone_control import ZoneControlDetector
 
 
 def build_detectors(config: VisionConfig) -> list[BaseDetector]:
-    """Construct configured detectors for an analysis run."""
+    """Construct configured detectors for an analysis run.
+
+    Raises:
+        VisionError: When ``config.language`` is unset (no detected game language).
+    """
+    if config.language is None:
+        raise VisionError(
+            "vision.language is unset: detectors require the detected game language"
+        )
     detectors: list[BaseDetector] = []
     if "rainmaker_checkpoint" in config.enabled_detectors:
         detectors.append(RainmakerCheckpointDetector(

@@ -18,7 +18,12 @@ _CUE_TYPES: tuple[CueType, ...] = (
 
 
 class TowerControlMessageDetector:
-    """Match only supplied language-specific whole-message templates."""
+    """Match whole-message templates from one language's template directory.
+
+    The caller selects ``template_dir`` for the detected game language;
+    ``language`` only labels emitted cues and is never a fallback (an unknown
+    value leaves the label ``None``).
+    """
 
     def __init__(
         self, template_dir: Path, threshold: float = 0.93, language: str | None = None

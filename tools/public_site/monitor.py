@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from datetime import UTC, datetime
+from pathlib import Path
 
 from public_site.app import open_storage
 from public_site.models import Submission, VideoInput
 from public_site.settings import PublicSettings
 from public_site.store import PublicStore, parse_utc
+from splatoon3_ai_coach.media.vision_manifest import VISION_MANIFEST_FILENAME
 
 _GIB = 1024**3
 _STATUSES = (
@@ -24,7 +27,7 @@ _HEADERS = (
     "id",
     "status",
     "step",
-    "language",
+    "game_language",
     "filename",
     "size",
     "duration",
@@ -79,19 +82,37 @@ def _table(submissions, store, storage, now: datetime) -> str:
     rows = [_HEADERS]
     for submission in submissions:
         video = store.get_video(submission.id)
-        rows.append(_row(submission, video, storage, now))
+        rows.append(_row(submission, video, storage, now, _game_language(submission)))
     widths = [max(len(row[index]) for row in rows) for index in range(len(_HEADERS))]
     return "\n".join(
         "  ".join(cell.ljust(widths[index]) for index, cell in enumerate(row)) for row in rows
     )
 
 
-def _row(submission: Submission, video: VideoInput | None, storage, now: datetime) -> tuple[str, ...]:
+def _game_language(submission: Submission) -> str:
+    """Detected game language from a finished analysis manifest, else a dash."""
+    if not submission.analysis_dir:
+        return "—"
+    path = Path(submission.analysis_dir) / VISION_MANIFEST_FILENAME
+    try:
+        language = json.loads(path.read_text(encoding="utf-8"))["analysis"]["language"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return "—"
+    return language if language in {"en", "ja"} else "—"
+
+
+def _row(
+    submission: Submission,
+    video: VideoInput | None,
+    storage,
+    now: datetime,
+    game_language: str,
+) -> tuple[str, ...]:
     return (
         submission.id,
         submission.status,
         submission.step,
-        submission.language,
+        game_language,
         _filename(video),
         _size(video.size_bytes) if video else "—",
         _clock(video.duration_seconds if video else None),

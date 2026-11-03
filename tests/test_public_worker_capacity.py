@@ -15,6 +15,7 @@ from urllib.parse import urlsplit, urlunsplit
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from game_language_helpers import FAKE_DETECTED_LANGUAGE, analyze_detects
 from public_site import settings as settings_module
 from public_site.accounts import AccountStore
 from public_site.app import SESSION_COOKIE, create_app
@@ -91,7 +92,7 @@ def _client(
         store=PublicStore(settings.root),
         verifier=lambda token: token == "ok",
         probe=lambda _path: ProbeFacts(12.0, 1920, 1080, "mp4"),
-        run_command=run_command,
+        run_command=analyze_detects(run_command, language=FAKE_DETECTED_LANGUAGE),
         start_worker=False,
         accounts=accounts,
         capacities=capacities,
@@ -139,7 +140,7 @@ def _worker(
         app.state.settings,
         app.state.store,
         app.state.service,
-        run_command=gate,
+        run_command=analyze_detects(gate, language=FAKE_DETECTED_LANGUAGE),
         start_thread=False,
         capacity=capacity,
     )

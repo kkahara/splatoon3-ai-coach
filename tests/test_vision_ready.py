@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from splatoon3_ai_coach.config import default_config_path, load_config
+from splatoon3_ai_coach.vision.game_language_result import with_detected_language
 from splatoon3_ai_coach.vision.match_intro import MatchIdentityTracker
 from splatoon3_ai_coach.vision.models import ReadyReading, TimerReading
 from splatoon3_ai_coach.vision.pipeline import (
@@ -126,7 +127,7 @@ def test_detectors_for_frame_skips_ready_outside_window() -> None:
     """Ready detector is omitted before stage / after clock tick."""
     app = load_config(default_config_path())
     app.vision.enabled_detectors = ["timer", "ready"]
-    detectors = build_detectors(app.vision)
+    detectors = build_detectors(with_detected_language(app, "en").vision)
     names = {d.name for d in detectors}
     assert names == {"timer", "ready"}
 

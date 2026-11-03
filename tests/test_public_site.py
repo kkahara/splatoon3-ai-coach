@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 from coach_artifact_helpers import index_entry, video_durations, write_prototype_unit
 from fastapi.testclient import TestClient
+from game_language_helpers import FAKE_DETECTED_LANGUAGE, analyze_detects
 from loguru import logger
 from public_site.app import create_app
 from public_site.errors import (
@@ -76,6 +77,9 @@ def _probe_ok(_path: Path) -> ProbeFacts:
 def _client(tmp_path: Path, **kwargs) -> TestClient:
     probe = kwargs.pop("probe", _probe_ok)
     run_command = kwargs.pop("run_command", lambda _argv: 0)
+    game_language = kwargs.pop("game_language", FAKE_DETECTED_LANGUAGE)
+    if game_language is not None:
+        run_command = analyze_detects(run_command, language=game_language)
     storage = kwargs.pop("storage", None)
     telemetry = kwargs.pop("telemetry", None)
     settings = _settings(tmp_path, **kwargs)
@@ -101,7 +105,6 @@ def _create(client: TestClient, **extra) -> dict:
         "filename": "match.mp4",
         "size_bytes": 8,
         "content_type": "video/mp4",
-        "language": "en",
     }
     body.update(extra)
     response = client.post("/api/submissions", json=body)
@@ -125,8 +128,7 @@ def test_turnstile_failure_writes_nothing(tmp_path: Path) -> None:
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
-            "language": "en",
-        },
+            },
     )
     assert response.status_code == 400
     root = client.app.state.settings.root
@@ -134,41 +136,50 @@ def test_turnstile_failure_writes_nothing(tmp_path: Path) -> None:
     assert not (root / "rate_limits.json").is_file()
 
 
-def test_missing_game_language_is_rejected(tmp_path: Path) -> None:
+def test_submission_needs_no_game_language_and_ignores_a_legacy_one(
+    tmp_path: Path,
+) -> None:
     client = _client(tmp_path)
-    response = client.post(
-        "/api/submissions",
-        json={
-            "turnstile_token": "ok",
-            "filename": "match.mp4",
-            "size_bytes": 8,
-            "content_type": "video/mp4",
-        },
-    )
-    assert response.status_code == 422
+    plain = _create(client)
+    legacy = _create(client, language="ja")
     root = client.app.state.settings.root
-    assert list((root / "submissions").glob("*.json")) == []
+    for path in (root / "submissions").glob("*.json"):
+        assert "language" not in json.loads(path.read_text(encoding="utf-8"))
+    assert plain["token"] and legacy["token"]
+
+
+def test_old_submission_json_with_language_still_loads(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    _create(client)
+    path = next((client.app.state.settings.root / "submissions").glob("*.json"))
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["language"] = "ja"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.id == raw["id"]
+    assert "language" not in stored.model_dump()
 
 
 @pytest.mark.parametrize(
-    ("game_language", "site_locale"),
-    [("en", "ja"), ("ja", "en")],
+    ("submitted", "site_locale"),
+    [(None, "ja"), ("ja", "en"), ("en", "ja")],
 )
-def test_site_locale_never_selects_the_vision_language(
-    tmp_path: Path, game_language: str, site_locale: str
+def test_analyze_never_receives_a_submitted_or_site_language(
+    tmp_path: Path, submitted: str | None, site_locale: str
 ) -> None:
     calls: list[list[str]] = []
     client = _client(
         tmp_path, run_command=lambda argv: calls.append(argv) or 0
     )
-    created = _create(client, language=game_language)
+    created = _create(client, **({"language": submitted} if submitted else {}))
     token = _put(client, created)
     client.post(f"/api/submissions/{token}/uploaded")
     assert client.get(f"/api/submissions/{token}?locale={site_locale}").status_code == 200
     client.app.state.worker.pump()
     client.app.state.worker.join()
     analyze = next(argv for argv in calls if "analyze" in argv)
-    assert analyze[analyze.index("--language") + 1] == game_language
+    assert "--language" not in analyze
+    assert not {"en", "ja"} & set(analyze)
 
 
 def test_token_is_hashed_and_absent_from_json(tmp_path: Path) -> None:
@@ -209,8 +220,7 @@ def test_rate_limit_and_queue_cap(tmp_path: Path) -> None:
             "filename": "match.mp4",
             "size_bytes": 8,
             "content_type": "video/mp4",
-            "language": "en",
-        },
+            },
     )
     assert limited.status_code == 429
     assert limited.json()["detail"] == RATE_LIMIT
@@ -226,7 +236,6 @@ def test_rate_limit_and_queue_cap(tmp_path: Path) -> None:
             "filename": "other.mov",
             "size_bytes": 4,
             "content_type": "video/quicktime",
-            "language": "ja",
         },
     )
     assert again.status_code == 429
@@ -403,9 +412,85 @@ def test_undetermined_game_language_has_its_own_failure_message(tmp_path: Path) 
     assert stored.status == "failed"
     assert stored.error == GAME_LANGUAGE_UNDETERMINED
     assert calls == ["analyze"]
-    assert client.get(f"/api/submissions/{token}").json()["error"] == (
-        "Game language could not be determined from the recording."
+    view = client.get(f"/api/submissions/{token}").json()
+    assert view["error"] == "Game language could not be determined from the recording."
+    assert view["error_key"] == "game_language_undetermined"
+
+
+_LANGUAGE_EVENTS = ("game_language:", "completed")
+
+
+def _language_run(tmp_path: Path, run, **kwargs) -> tuple[TestClient, _TelemetryRecorder]:
+    telemetry = _TelemetryRecorder()
+    body = kwargs.pop("body", {})
+    client = _client(tmp_path, run_command=run, telemetry=telemetry, **kwargs)
+    created = _create(client, **body)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
+    return client, telemetry
+
+
+def test_undetermined_language_is_a_failed_run_without_coaching(tmp_path: Path) -> None:
+    stages: list[str] = []
+
+    def run(argv: list[str]) -> int:
+        stages.append(argv[argv.index("analyze")] if "analyze" in argv else argv[1])
+        return GAME_LANGUAGE_UNDETERMINED_EXIT_CODE if "analyze" in argv else 0
+
+    client, telemetry = _language_run(tmp_path, run, game_language=None)
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed" and stored.outcome is None
+    assert stages == ["analyze"]
+    analysis = Path(stored.analysis_dir)
+    assert not (analysis / "coach_inputs").exists()
+    assert not (analysis / "coach_prototype").exists()
+    worker_events = telemetry.events[telemetry.events.index("started") :]
+    assert worker_events == [
+        "started",
+        "analyze:started",
+        "analyze:finished",
+        "failed:game_language_undetermined",
+    ]
+    assert not [e for e in telemetry.events if e.startswith(_LANGUAGE_EVENTS)]
+
+
+def test_analyze_success_without_a_detected_language_never_reaches_coaching(
+    tmp_path: Path,
+) -> None:
+    stages: list[str] = []
+
+    def run(argv: list[str]) -> int:
+        stages.append("analyze" if "analyze" in argv else argv[1])
+        return 0
+
+    client, telemetry = _language_run(tmp_path, run, game_language=None)
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed"
+    assert stored.error == ANALYSIS_FAILED
+    assert stages == ["analyze"]
+    assert "failed:analysis_failed" in telemetry.events
+    assert not [e for e in telemetry.events if e.startswith(_LANGUAGE_EVENTS)]
+
+
+@pytest.mark.parametrize("detected", ["en", "ja"])
+def test_completed_run_records_the_detected_language_not_the_submitted_one(
+    tmp_path: Path, detected: str
+) -> None:
+    submitted = "ja" if detected == "en" else "en"
+    client, telemetry = _language_run(
+        tmp_path,
+        _finish_coaching,
+        game_language=detected,
+        body={"language": submitted},
     )
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "complete"
+    assert f"game_language:{detected}" in telemetry.events
+    assert telemetry.events[-1] == f"completed:{detected}"
+    language_events = [e for e in telemetry.events if "language" in e or "completed" in e]
+    assert not any(e.endswith(f":{submitted}") for e in language_events)
 
 
 def test_undetermined_game_language_has_its_own_telemetry_code() -> None:
@@ -638,7 +723,7 @@ def test_failed_video_delete_keeps_the_review(tmp_path: Path) -> None:
         storage=storage,
         verifier=lambda token: token == "ok",
         probe=_probe_ok,
-        run_command=_finish_coaching,
+        run_command=analyze_detects(_finish_coaching, language=FAKE_DETECTED_LANGUAGE),
         start_worker=False,
     )
     client = TestClient(app)
@@ -717,14 +802,17 @@ class _TelemetryRecorder:
     def stage_finished(self, _submission_id, stage, **_kwargs) -> bool:
         return self._record(f"{stage.value}:finished")
 
+    def game_language_detected(self, _submission_id, game_language) -> bool:
+        return self._record(f"game_language:{game_language}")
+
     def update_artifacts(self, *_args, **_kwargs) -> bool:
         return True
 
-    def completed(self, *_args, **_kwargs) -> bool:
-        return self._record("completed")
+    def completed(self, _submission_id, *, game_language, **_kwargs) -> bool:
+        return self._record(f"completed:{game_language}")
 
-    def failed(self, *_args, **_kwargs) -> bool:
-        return self._record("failed")
+    def failed(self, *_args, error_code=None, **_kwargs) -> bool:
+        return self._record(f"failed:{error_code}")
 
     def interrupted(self, *_args, **_kwargs) -> bool:
         return self._record("interrupted")
@@ -753,13 +841,14 @@ def test_worker_top_level_telemetry_is_serial_and_frames_finish_first(
         "started",
         "analyze:started",
         "analyze:finished",
+        "game_language:en",
         "coach_inputs:started",
         "coach_inputs:finished",
         "coach_prototype:started",
         "coach_prototype:finished",
         "frames:started",
         "frames:finished",
-        "completed",
+        "completed:en",
     ]
 
 

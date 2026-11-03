@@ -53,13 +53,12 @@ def run_analysis(
     *,
     debug_persist_cadence_frames: bool = False,
     video_source: VideoSource | None = None,
-    supplied_language: VisionLanguage | None = None,
     game_language: GameLanguageProbeOutcome | None = None,
 ) -> VisionManifest:
     """Run cadence vision analysis, then derive scenarios from GameEvents.
 
-    The game language is detected from the recording; ``supplied_language``
-    is recorded for comparison only (see :func:`run_vision`).
+    The game language is detected from the recording (see :func:`run_vision`);
+    an undetermined language raises before any scenario is built.
     """
     manifest = run_vision(
         video,
@@ -67,7 +66,6 @@ def run_analysis(
         output_dir,
         debug_persist_cadence_frames=debug_persist_cadence_frames,
         video_source=video_source,
-        supplied_language=supplied_language,
         game_language=game_language,
     )
     write_scenarios(

@@ -14,7 +14,10 @@ import numpy as np
 from loguru import logger
 
 from splatoon3_ai_coach.config.models import ReadyDetectorConfig, VisionLanguage
-from splatoon3_ai_coach.vision.language import resolve_language_template_dir
+from splatoon3_ai_coach.vision.language import (
+    require_game_language,
+    resolve_language_template_dir,
+)
 from splatoon3_ai_coach.vision.models import ReadyReading
 from splatoon3_ai_coach.vision.roi import crop_roi
 
@@ -100,7 +103,9 @@ class ReadyDetector:
     ) -> None:
         self.config = config
         self.cadence_fps = cadence_fps
-        self._templates = _load_templates(config.template_dir, language)
+        self._templates = _load_templates(
+            config.template_dir, require_game_language(language)
+        )
         if config.template_dir is not None and not self._templates:
             logger.warning(
                 "ReadyDetector has no templates under {}; present stays false",

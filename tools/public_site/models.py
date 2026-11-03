@@ -29,7 +29,6 @@ PublicStep = Literal[
 InputType = Literal["video", "review_code"]
 SourceKind = Literal["upload", "nintendo_review_code"]
 UploadState = Literal["pending", "stored", "rejected"]
-LanguageCode = Literal["en", "ja"]
 DisplayLocale = Literal["en", "ja"]
 # Result classification of a ``complete`` submission; never a failure state.
 # ``no_deaths`` means none were detected, not that the match had none.
@@ -56,7 +55,6 @@ class Submission(BaseModel):
     display_name: str | None = None
     notify: bool = False
     user_id: str | None = None
-    language: LanguageCode = "en"
     status: PublicStatus = "received"
     step: PublicStep = "received"
     created_at: str
@@ -181,6 +179,8 @@ class PublicSubmissionResponse(BaseModel):
     expires_at: str
     display_name: str | None = None
     error: str | None = None
+    # Closed key for a localized failure message; ``error`` stays the English text.
+    error_key: Literal["game_language_undetermined"] | None = None
     outcome: CoachingOutcome | None = None
     match_seconds: int | None = None
     locale: DisplayLocale = "en"

@@ -10,6 +10,7 @@ from urllib.parse import urlsplit, urlunsplit
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from game_language_helpers import FAKE_DETECTED_LANGUAGE, analyze_detects
 from psycopg.rows import dict_row
 from public_site.accounts import AccountStore
 from public_site.app import create_app
@@ -81,7 +82,7 @@ def _app(tmp_path: Path, accounts: AccountStore):
         accounts=accounts,
         verifier=lambda token: token == "ok",
         probe=_probe_ok,
-        run_command=lambda _argv: 0,
+        run_command=analyze_detects(lambda _argv: 0, language=FAKE_DETECTED_LANGUAGE),
         start_worker=False,
     )
 
@@ -92,7 +93,6 @@ def _body(email: str, *, notify: bool = True) -> dict:
         "filename": "match.mp4",
         "size_bytes": 8,
         "content_type": "video/mp4",
-        "language": "en",
         "email": email,
         "notify": notify,
         "display_name": "",
@@ -371,7 +371,6 @@ def test_failed_notice_claim_can_be_retried(tmp_path: Path) -> None:
         filename="match.mp4",
         size_bytes=8,
         content_type="video/mp4",
-        language="en",
         email="player@example.com",
         notify=True,
         display_name=None,

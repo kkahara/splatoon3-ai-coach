@@ -4,25 +4,29 @@ from pathlib import Path
 
 from splatoon3_ai_coach.analysis.session import GameSession
 from splatoon3_ai_coach.coach.prompts import load_system_prompt
-from splatoon3_ai_coach.config.models import VisionConfig
+from splatoon3_ai_coach.config.models import VisionConfig, VisionLanguage
 from splatoon3_ai_coach.vision.models import GameEventType, TimerReading
 from splatoon3_ai_coach.vision.registry import build_detectors
 
 
+def _detected_en(vision_config: VisionConfig) -> VisionConfig:
+    return vision_config.model_copy(update={"language": VisionLanguage.EN})
+
+
 def test_timer_detector_is_registered_from_config(vision_config: VisionConfig) -> None:
-    detectors = build_detectors(vision_config)
+    detectors = build_detectors(_detected_en(vision_config))
     assert any(detector.name == "timer" for detector in detectors)
 
 
 def test_death_detector_is_registered_when_enabled(vision_config: VisionConfig) -> None:
     vision_config.enabled_detectors = ["timer", "death"]
-    detectors = build_detectors(vision_config)
+    detectors = build_detectors(_detected_en(vision_config))
     assert {detector.name for detector in detectors} == {"timer", "death"}
 
 
 def test_splat_detector_is_registered_when_enabled(vision_config: VisionConfig) -> None:
     vision_config.enabled_detectors = ["timer", "splat"]
-    detectors = build_detectors(vision_config)
+    detectors = build_detectors(_detected_en(vision_config))
     assert {detector.name for detector in detectors} == {"timer", "splat"}
 
 
@@ -30,7 +34,7 @@ def test_respawn_active_and_map_detectors_register_when_enabled(
     vision_config: VisionConfig,
 ) -> None:
     vision_config.enabled_detectors = ["respawn", "active_gameplay", "map_overlay"]
-    detectors = build_detectors(vision_config)
+    detectors = build_detectors(_detected_en(vision_config))
     assert {detector.name for detector in detectors} == {
         "respawn",
         "active_gameplay",

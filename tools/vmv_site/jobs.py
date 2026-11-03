@@ -152,7 +152,7 @@ class JobRunner:
         self.store.save_job(job)
         log_path = self.store.log_path(job.id)
         log_handle = log_path.open("w", encoding="utf-8")
-        command = analyze_command(self.store.settings, video, out, job.language)
+        command = analyze_command(self.store.settings, video, out)
         proc = self._popen(
             command,
             stdout=log_handle,
@@ -368,10 +368,8 @@ def _orphan_message(kind: str) -> str:
     return "analysis site restarted while analysis was running"
 
 
-def analyze_command(
-    settings: PlatformSettings, video: Path, out: Path, language: str
-) -> list[str]:
-    """Arguments for the existing analyze CLI. Does not reimplement analysis."""
+def analyze_command(settings: PlatformSettings, video: Path, out: Path) -> list[str]:
+    """Arguments for the existing analyze CLI; the game language is detected from the video."""
     import sys
 
     script = Path(sys.executable).with_name("s3-coach")
@@ -382,8 +380,6 @@ def analyze_command(
         str(video),
         "--out",
         str(out),
-        "--language",
-        language,
         "--config",
         str(settings.config_path),
         "--debug-persist-cadence-frames",

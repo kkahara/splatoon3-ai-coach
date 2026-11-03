@@ -9,7 +9,10 @@ import numpy as np
 from loguru import logger
 
 from splatoon3_ai_coach.config.models import DeathDetectorConfig, VisionLanguage
-from splatoon3_ai_coach.vision.language import resolve_language_template_dir
+from splatoon3_ai_coach.vision.language import (
+    require_game_language,
+    resolve_language_template_dir,
+)
 from splatoon3_ai_coach.vision.models import DeathReading
 from splatoon3_ai_coach.vision.roi import crop_roi
 
@@ -141,13 +144,11 @@ class DeathDetector:
         config: DeathDetectorConfig,
         cadence_fps: float | None = None,
         *,
-        language: VisionLanguage | str = VisionLanguage.EN,
+        language: VisionLanguage | str,
     ) -> None:
         self.config = config
         self.cadence_fps = cadence_fps
-        self.language = (
-            language.value if isinstance(language, VisionLanguage) else str(language)
-        )
+        self.language = require_game_language(language)
         self._last_positive_at: float | None = None
         self._ouch_templates = _load_language_cue_templates(
             config.template_dir, "ouch", self.language

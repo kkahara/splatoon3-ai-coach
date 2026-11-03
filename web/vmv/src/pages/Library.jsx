@@ -63,7 +63,7 @@ export function LibraryPage() {
           <thead>
             <tr>
               <th>Run</th>
-              <th>Language</th>
+              <th>Game language</th>
               <th>Stage</th>
               <th>Mode</th>
               <th>Duration</th>
@@ -101,7 +101,6 @@ function JobTable({ jobs, showError = false }) {
           <th>Job</th>
           <th>Status</th>
           <th>Phase</th>
-          <th>Language</th>
           <th>Run</th>
           {showError && <th>Error</th>}
         </tr>
@@ -112,7 +111,6 @@ function JobTable({ jobs, showError = false }) {
             <td><code>{job.id.slice(0, 8)}</code></td>
             <td>{job.status}</td>
             <td>{job.phase}</td>
-            <td>{job.kind && job.kind !== "analyze" ? "—" : job.language}</td>
             <td>
               {job.run_id ? (
                 <Link to={`/runs/${encodeURIComponent(job.run_id)}`}>{job.run_id.slice(0, 8)}</Link>

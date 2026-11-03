@@ -46,7 +46,6 @@ class JobRecord(BaseModel):
     id: str
     kind: JobKind = "analyze"
     video_id: str = ""
-    language: Literal["en", "ja"] = "en"
     scenario_id: str | None = None
     status: JobStatus = "queued"
     phase: str = "queued"

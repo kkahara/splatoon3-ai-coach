@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 from splatoon3_ai_coach.config.models import RainmakerCheckpointConfig
+from splatoon3_ai_coach.vision.language import require_game_language
 from splatoon3_ai_coach.vision.models import RainmakerCheckpointReading
 
 
@@ -23,10 +24,10 @@ class RainmakerCheckpointDetector:
         cadence_fps: float | None = None,
     ) -> None:
         self.config = config
-        self.language = language
+        self.language = require_game_language(language)
         self.cadence_fps = cadence_fps
         self.templates: list[tuple[str, str, np.ndarray]] = []
-        folder = config.template_dir / language / "checkpoint"
+        folder = config.template_dir / self.language / "checkpoint"
         for path in sorted(folder.glob("*.png")):
             team = path.stem.split("__", 1)[0]
             if team not in ("ally", "opponent"):

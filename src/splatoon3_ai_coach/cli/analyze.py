@@ -11,7 +11,6 @@ from splatoon3_ai_coach.analysis.pipeline import (
     run_analysis,
 )
 from splatoon3_ai_coach.config import load_config
-from splatoon3_ai_coach.config.models import VisionLanguage
 from splatoon3_ai_coach.config.paths import resolve_config_path
 from splatoon3_ai_coach.exceptions import (
     ConfigError,
@@ -31,15 +30,6 @@ def analyze(
     video: Path,
     out: Path = typer.Option(..., "--out", help="Analysis output directory."),
     config_path: Path | None = typer.Option(None, "--config"),
-    language: VisionLanguage | None = typer.Option(
-        None,
-        "--language",
-        help=(
-            "Deprecated. The game language is detected from the recording; a "
-            "supplied value (en|ja) is only recorded for comparison and never "
-            "selects templates."
-        ),
-    ),
     video_source: VideoSource | None = typer.Option(
         None,
         "--video-source",
@@ -63,7 +53,6 @@ def analyze(
             out,
             debug_persist_cadence_frames=debug_persist_cadence_frames,
             video_source=video_source,
-            supplied_language=language,
         )
     except GameLanguageUndeterminedError as exc:
         console.print(f"[red]Error:[/red] {exc}")

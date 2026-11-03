@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 from splatoon3_ai_coach.config.models import RainmakerPossessionConfig
+from splatoon3_ai_coach.vision.language import require_game_language
 from splatoon3_ai_coach.vision.models import (
     RainmakerPossessionCue,
     RainmakerPossessionReading,
@@ -21,7 +22,7 @@ RainmakerCueName = Literal[
 
 
 class RainmakerPossessionDetector:
-    """Match only configured language-specific whole-message templates."""
+    """Match only the detected game language's whole-message templates."""
 
     name = "rainmaker_possession"
     run_on_evidence = True
@@ -35,7 +36,7 @@ class RainmakerPossessionDetector:
     ) -> None:
         self.threshold = config.match_threshold
         self.margin = config.match_margin
-        self.language = language if language in ("en", "ja") else "en"
+        self.language = require_game_language(language)
         self.cadence_fps = cadence_fps
         self.templates: list[tuple[RainmakerCueName, str, np.ndarray]] = []
         folder = config.template_dir / self.language / "possession"

@@ -190,6 +190,7 @@ def test_fusion_progress_context_and_refusion_preserve_separate_legacy_fields() 
             package_version="test",
             vision_config_sha256="test",
             video_identity="video",
+            language="en",
         ),
         video_identity="video",
         frame_results=frames,

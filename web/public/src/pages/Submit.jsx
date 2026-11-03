@@ -15,8 +15,6 @@ import heroBanner from "../assets/splatoon3-ai-coach-banner.jpg";
 import { useT } from "../i18n/LocaleContext.jsx";
 import {
   formatFileSize,
-  rememberedGameLanguage,
-  rememberGameLanguage,
   showVoucherApplyButton,
   submissionBody,
   submitButtonLabel,
@@ -123,30 +121,6 @@ function DropZone({ inputRef, limits, onChoose }) {
   );
 }
 
-function GameLanguageField({ language, onChange }) {
-  const t = useT();
-  return (
-    <label>
-      {t("submit.system_language")}
-      <span className="field-help" id="game-language-help">
-        {t("submit.system_language_help")}
-      </span>
-      <select
-        value={language}
-        aria-describedby="game-language-help"
-        onChange={(event) => onChange(event.target.value)}
-        required
-      >
-        <option value="" disabled>
-          {t("submit.choose_language")}
-        </option>
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-      </select>
-    </label>
-  );
-}
-
 function UploadFacts({ config }) {
   const t = useT();
   return (
@@ -164,8 +138,6 @@ export function SubmitPage() {
   const t = useT();
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
-  // No browser-locale default: it selects HUD templates and must match the video.
-  const [language, setLanguage] = useState(rememberedGameLanguage);
   const fileInput = useRef(null);
   const [account, setAccount] = useState(null);
   const [notify, setNotify] = useState(false);
@@ -259,7 +231,7 @@ export function SubmitPage() {
     setError("");
     const token = config?.dev_mode ? "dev" : turnstileToken;
     const maxBytes = config && config.max_video_bytes == null ? null : config?.max_video_bytes;
-    const problem = submitError({ file, language, maxBytes, token });
+    const problem = submitError({ file, maxBytes, token });
     if (problem) {
       setError(t(problem));
       return;
@@ -273,7 +245,7 @@ export function SubmitPage() {
     setBusy(true);
     try {
       const created = await createSubmission(
-        submissionBody({ token, file, language, account, notify, email, voucherCode }),
+        submissionBody({ token, file, account, notify, email, voucherCode }),
       );
       await uploadVideo(created.upload, file);
       await markUploaded(created.token);
@@ -333,13 +305,6 @@ export function SubmitPage() {
           ) : (
             <DropZone inputRef={fileInput} limits={videoLimits(config, t)} onChoose={chooseFile} />
           )}
-          <GameLanguageField
-            language={language}
-            onChange={(next) => {
-              setLanguage(next);
-              rememberGameLanguage(next);
-            }}
-          />
           <label className="check">
             <input
               type="checkbox"
@@ -403,7 +368,7 @@ export function SubmitPage() {
             disabled={
               busy
               || (config?.payment_required && config.price_cents == null)
-              || !submitReady({ file, language })
+              || !submitReady({ file })
             }
           >
             {busy ? t("submit.submitting") : submitButtonLabel(t, config, voucherPreview)}

@@ -47,6 +47,7 @@ def _ja_detector(**overrides: object) -> RespawnDetector:
     return RespawnDetector(
         RespawnDetectorConfig(**data),  # type: ignore[arg-type]
         language=VisionLanguage.JA,
+        ocr_lang="jpn",
     )
 
 

@@ -92,6 +92,7 @@ def _manifest(positions: list[float | None]) -> VisionManifest:
             vision_config_sha256="v",
             video_identity="video",
             detector_versions={"tower_control": "test"},
+            language="en",
         ),
         video_identity="video",
         frame_results=frames,

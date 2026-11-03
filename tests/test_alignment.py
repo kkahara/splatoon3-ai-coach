@@ -101,6 +101,7 @@ def _manifest(
             package_version="test",
             vision_config_sha256="x",
             video_identity="v",
+            language="en",
         ),
         video_identity="v",
         frame_results=frames,

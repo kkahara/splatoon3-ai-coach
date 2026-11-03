@@ -167,7 +167,7 @@ def test_splat_detector_loads_skull_subdirectory(tmp_path: Path) -> None:
 
 
 def test_splat_detector_confirms_user_snap() -> None:
-    detector = SplatDetector(_splat_config())
+    detector = SplatDetector(_splat_config(), language="en")
     image = _load_snap_1080(
         "vlcsnap-2026-09-03-21h18m56s379-b44b62b5-0f8a-487c-9f77-1d0b94fc199a.jpg"
     )
@@ -184,7 +184,7 @@ def test_splat_detector_confirms_user_snap() -> None:
 
 
 def test_blank_frame_is_not_a_splat() -> None:
-    detector = SplatDetector(_splat_config())
+    detector = SplatDetector(_splat_config(), language="en")
     reading, _ = detector.detect(_blank_1080(), timestamp=0.0)
     assert reading is not None
     assert not reading.detected
@@ -192,7 +192,7 @@ def test_blank_frame_is_not_a_splat() -> None:
 
 def test_white_square_in_banner_is_not_a_splat() -> None:
     """A bright blob in the ROI must not trip without matching kill-banner crops."""
-    detector = SplatDetector(_splat_config())
+    detector = SplatDetector(_splat_config(), language="en")
     image = _blank_1080()
     image[918:1058, 672:1248] = (20, 20, 20)
     image[980:1012, 740:772] = (255, 255, 255)
@@ -220,7 +220,7 @@ def _cadence_frames_in_window(
 )
 def test_ground_truth_splat_windows() -> None:
     """Real local-kill banners fire; kill-feed skulls in the same ROI do not."""
-    detector = SplatDetector(_splat_config(debounce_seconds=0.01))
+    detector = SplatDetector(_splat_config(debounce_seconds=0.01), language="en")
     frames_dir = _ANALYSIS_DIR / "cadence_frames"
     for t0, t1, expect_splat in _GT_SPLAT_WINDOWS:
         frames = _cadence_frames_in_window(frames_dir, t0, t1)
@@ -243,7 +243,7 @@ def test_ground_truth_splat_windows() -> None:
 
 
 def test_splat_detector_debounces_repeat_positives() -> None:
-    detector = SplatDetector(_splat_config(debounce_seconds=1.75))
+    detector = SplatDetector(_splat_config(debounce_seconds=1.75), language="en")
     image = _load_snap_1080(
         "vlcsnap-2026-09-03-21h18m56s379-b44b62b5-0f8a-487c-9f77-1d0b94fc199a.jpg"
     )
@@ -257,7 +257,7 @@ def test_splat_detector_debounces_repeat_positives() -> None:
 
 def test_splat_detector_reports_every_frame_when_debounce_is_zero() -> None:
     """Incident policy is not detector cooldown; default debounce is 0."""
-    detector = SplatDetector(_splat_config())
+    detector = SplatDetector(_splat_config(), language="en")
     image = _load_snap_1080(
         "vlcsnap-2026-09-03-21h18m56s379-b44b62b5-0f8a-487c-9f77-1d0b94fc199a.jpg"
     )
@@ -558,6 +558,8 @@ def test_triple_banner_snap_finds_multiple_instances() -> None:
 
 def test_death_detector_unchanged_on_blank() -> None:
     """Splat work must not alter DeathDetector behavior on a blank frame."""
-    reading, _ = DeathDetector(DeathDetectorConfig()).detect(_blank_1080(), timestamp=0.0)
+    reading, _ = DeathDetector(DeathDetectorConfig(), language="en").detect(
+        _blank_1080(), timestamp=0.0
+    )
     assert reading is not None
     assert not reading.detected

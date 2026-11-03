@@ -97,4 +97,4 @@ def test_refuse_analysis_rewrites_manifest_and_scenarios(tmp_path: Path) -> None
     ja = config.model_copy(deep=True)
     ja.vision.language = VisionLanguage.JA
     assert stored.analysis.refused_vision_config_sha256 == hash_vision_config(ja.vision)
-    assert config.vision.language.value == "en"
+    assert config.vision.language is None

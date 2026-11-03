@@ -851,7 +851,9 @@ class VisionOcrConfig(BaseModel):
 class VisionConfig(BaseModel):
     """Settings for the semantic vision layer (Phase 3)."""
 
-    language: VisionLanguage = VisionLanguage.EN
+    # Detected game language only: unset until the pre-scan probe resolves it
+    # (``with_detected_language``). Never read from YAML (the loader rejects it).
+    language: VisionLanguage | None = None
     ocr: VisionOcrConfig = Field(default_factory=VisionOcrConfig)
     enabled_detectors: list[str] = Field(default_factory=lambda: ["timer"])
     timer: TimerDetectorConfig
@@ -903,10 +905,16 @@ class VisionConfig(BaseModel):
 
     def tesseract_lang(self) -> str:
         """Return the OCR language pack for the active vision language."""
+        if self.language is None:
+            raise ValueError(
+                "vision.language is unset: the game language was not detected"
+            )
         code = self.ocr.tesseract_languages.get(self.language.value)
-        if code:
-            return code
-        return self.ocr.tesseract_languages.get(VisionLanguage.EN.value, "eng")
+        if not code:
+            raise ValueError(
+                f"vision.ocr.tesseract_languages has no pack for {self.language.value!r}"
+            )
+        return code
 
 
 class MapCoverageConfig(BaseModel):

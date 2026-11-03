@@ -82,10 +82,11 @@ def test_analyze_does_not_require_extraction(
     assert "reuse-extraction" not in result.stdout
 
 
-def test_analyze_language_flag_is_compared_not_persisted(
-    sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize("detected", ["en", "ja"])
+def test_analyze_proceeds_with_the_detected_language(
+    sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, detected: str
 ) -> None:
-    _detect(monkeypatch, "en")
+    _detect(monkeypatch, detected)
     out = tmp_path / "analysis"
     result = runner.invoke(
         app,
@@ -96,15 +97,16 @@ def test_analyze_language_flag_is_compared_not_persisted(
             str(out),
             "--config",
             str(default_config_path()),
-            "--language",
-            "ja",
         ],
     )
     assert result.exit_code == 0, result.stdout
     manifest = json.loads((out / "vision_manifest.json").read_text(encoding="utf-8"))
-    assert manifest["analysis"]["language"] == "en"
-    assert manifest["game_language"]["supplied_language"] == "ja"
-    assert manifest["game_language"]["supplied_agreement"] == "disagree"
+    assert manifest["analysis"]["language"] == detected
+    assert manifest["game_language"]["language"] == detected
+    assert "supplied_language" not in manifest["game_language"]
+    assert "supplied_agreement" not in manifest["game_language"]
+    assert (out / "scenarios.json").exists()
+    assert (out / "scenario_contexts.json").exists()
 
 
 def test_extract_uses_default_config_when_none_given(

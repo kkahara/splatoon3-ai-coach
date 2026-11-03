@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -58,8 +57,6 @@ class CreateBody(BaseModel):
     filename: str = Field(min_length=1, max_length=200)
     size_bytes: int = Field(ge=1)
     content_type: str
-    # Game display language (selects HUD templates); never defaulted from site locale.
-    language: Literal["en", "ja"]
     email: str | None = None
     notify: bool = False
     display_name: str | None = None
@@ -379,7 +376,6 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
                 filename=body.filename,
                 size_bytes=body.size_bytes,
                 content_type=body.content_type,
-                language=body.language,
                 email=email,
                 notify=notify,
                 display_name=display_name,

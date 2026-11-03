@@ -101,6 +101,13 @@ export function reachedStep(view) {
   return index < 0 ? 0 : index;
 }
 
+/** i18n key for a failure with a localized message, or null to show ``view.error`` as sent. */
+export function failureMessageKey(view) {
+  return view?.error_key === "game_language_undetermined"
+    ? "review.error.game_language_undetermined"
+    : null;
+}
+
 /** Localized calendar date for an ISO timestamp, or null when it cannot be read. */
 export function formatDate(iso, locale) {
   const when = new Date(iso);

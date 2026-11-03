@@ -85,16 +85,13 @@ class PlatformStore:
         path = self.videos_dir / video_id / f"source{record.suffix}"
         return path if path.is_file() else None
 
-    def create_job(self, video_id: str, language: str) -> JobRecord:
+    def create_job(self, video_id: str) -> JobRecord:
         """Queue an analysis job for a stored video."""
-        if language not in {"en", "ja"}:
-            raise ValueError("language must be en or ja")
         if self.get_video(video_id) is None:
             raise KeyError(video_id)
         job = JobRecord(
             id=new_id(),
             video_id=video_id,
-            language=language,  # type: ignore[arg-type]
             submitted_at=utc_now(),
         )
         self.save_job(job)

@@ -111,7 +111,7 @@ def test_admin_filters_are_bounded_and_parameterized(
     client, accounts, telemetry = admin_client
     session = _session(accounts, "admin2@example.test", "admin")
     client.cookies.set(SESSION_COOKIE, session)
-    telemetry.open_initial_run("a" * 32, user_id=None, language="en")
+    telemetry.open_initial_run("a" * 32, user_id=None)
 
     assert client.get("/api/admin/requests?limit=201").status_code == 422
     assert client.get("/api/admin/requests?status=surprising").status_code == 422

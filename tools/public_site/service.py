@@ -21,6 +21,7 @@ from public_site.errors import (
     BAD_SIZE,
     CAPACITY,
     EXPIRED,
+    GAME_LANGUAGE_UNDETERMINED,
     PAYMENT_NOT_REQUIRED,
     PAYMENT_UNAVAILABLE,
     PAYMENT_WINDOW,
@@ -127,7 +128,6 @@ class SubmissionService:
         filename: str,
         size_bytes: int,
         content_type: str,
-        language: str,
         email: str | None,
         notify: bool,
         display_name: str | None,
@@ -161,7 +161,6 @@ class SubmissionService:
             mime=mime,
             size_bytes=size_bytes,
             original_filename=Path(filename).name,
-            language=language,
             email=notice_email,
             notify=notify,
             display_name=name,
@@ -176,7 +175,6 @@ class SubmissionService:
                 self.telemetry.open_initial_run,
                 submission.id,
                 user_id=user_id,
-                language=language,
             )
         return created
 
@@ -257,6 +255,7 @@ class SubmissionService:
             analysis = Path(submission.analysis_dir)
             result = localize_result(load_result(analysis), locale, analysis, self.translator)
         error = submission.error if submission.status in {"failed", "expired"} else None
+        error_key = "game_language_undetermined" if error == GAME_LANGUAGE_UNDETERMINED else None
         gate = None if self.payments is None else self.payments.get(submission.id)
         return PublicSubmissionResponse(
             status=submission.status,
@@ -265,6 +264,7 @@ class SubmissionService:
             expires_at=submission.expires_at,
             display_name=submission.display_name,
             error=error,
+            error_key=error_key,
             outcome=submission.outcome,
             match_seconds=_match_seconds(self.store.get_video(submission.id)),
             locale=locale,
@@ -301,7 +301,6 @@ class SubmissionService:
         mime: str,
         size_bytes: int,
         original_filename: str,
-        language: str,
         email: str | None,
         notify: bool,
         display_name: str | None,
@@ -320,7 +319,6 @@ class SubmissionService:
             display_name=display_name,
             notify=notify,
             user_id=user_id,
-            language=language,  # type: ignore[arg-type]
             created_at=stamp,
             updated_at=stamp,
             expires_at=add_days(stamp, days),

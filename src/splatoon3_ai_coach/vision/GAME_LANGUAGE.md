@@ -23,10 +23,12 @@ neither gate is called validated by unit tests passing.
 - On success, `with_detected_language` sets `vision.language` on a deep copy of
   the config; the vision config hash and `analysis_id` are computed **after**
   that, from the detected language. The probe never depends on `analysis_id`.
-- A supplied language (`analyze --language`, deprecated) is comparison-only:
-  `supplied_agreement` is `not_supplied | agree | disagree | unresolved`, a
-  disagreement is logged as a warning, and it never selects templates or
-  changes identity.
+- Detection is the only source of the game language. `VisionConfig.language`
+  starts unset and is not configurable: the config loader rejects YAML
+  `vision.language`, `analyze` has no `--language`, and detector construction
+  and template lookup fail while it is unset. Phase 1 manifests and
+  diagnostics carrying `supplied_language` / `supplied_agreement` still load;
+  the fields are ignored.
 
 ## Gates
 
@@ -79,7 +81,7 @@ frame index, match phase, timer, reading). For an unresolved video it shows:
 source gate, termination, `established_at`, establishing `DetectorResult`
 (detector `game_language`, frame/result ids minted after `analysis_id`),
 `SourceFrameReference` to `game_language/evidence_<frame_index>.jpg`, gate
-summaries, supplied-language agreement and the policy used.
+summaries and the policy used.
 
 ## Defaults and the measurements behind them
 
@@ -134,7 +136,7 @@ separate.
 
 ## Out of scope (Phase 1)
 
-No Booyah cue, no additional languages, no UI/API language-field removal
-(Phase 2), no change to coaching/report language, team-colour calibration
+No Booyah cue, no additional languages, no change to coaching/report
+language, team-colour calibration
 (post-GO), Ready? gating, map-ink eligibility, lifecycle or canonical
 mode/stage detection.

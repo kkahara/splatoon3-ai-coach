@@ -34,7 +34,7 @@
             "justMyCode": true
         },
         {
-            "name": "s3-coach: analyze ja",
+            "name": "s3-coach: analyze",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/bin/s3-coach",
@@ -47,8 +47,6 @@
                 "${workspaceFolder}/analysis/${input:videoName}",
                 "--config",
                 "${workspaceFolder}/configs/player_count_validate.yaml",
-                "--language",
-                "ja",
                 "--debug-persist-cadence-frames"
             ],
             "cwd": "${workspaceFolder}",
@@ -56,29 +54,7 @@
             "justMyCode": true
         },
         {
-            "name": "s3-coach: analyze en",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/.venv/bin/s3-coach",
-            "python": "${workspaceFolder}/.venv/bin/python",
-            "args": [
-                "-v",
-                "analyze",
-                "/Users/kenjikahara/Movies/${input:videoName}.mov",
-                "--out",
-                "${workspaceFolder}/analysis/${input:videoName}",
-                "--config",
-                "${workspaceFolder}/configs/player_count_validate.yaml",
-                "--language",
-                "en",
-                "--debug-persist-cadence-frames"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "s3-coach: analyze en mp4",
+            "name": "s3-coach: analyze mp4",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/bin/s3-coach",
@@ -91,8 +67,6 @@
                 "${workspaceFolder}/analysis/${input:videoName}",
                 "--config",
                 "${workspaceFolder}/configs/player_count_validate.yaml",
-                "--language",
-                "en",
                 "--debug-persist-cadence-frames"
             ],
             "cwd": "${workspaceFolder}",

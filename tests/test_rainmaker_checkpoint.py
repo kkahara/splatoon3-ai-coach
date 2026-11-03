@@ -7,6 +7,7 @@ import pytest
 from splatoon3_ai_coach.config.loader import load_config
 from splatoon3_ai_coach.config.models import RainmakerCheckpointConfig
 from splatoon3_ai_coach.config.paths import PROJECT_ROOT, default_config_path
+from splatoon3_ai_coach.vision.game_language_result import with_detected_language
 from splatoon3_ai_coach.vision.models import (
     AnalysisIdentity,
     DetectorResult,
@@ -142,7 +143,8 @@ def test_manifest_refusion_preserves_milestone_provenance() -> None:
     """Serialized raw readings rebuild grouped observations and held cleared facts."""
     config = load_config(default_config_path())
     config.vision.enabled_detectors = ["rainmaker_checkpoint"]
-    assert isinstance(build_detectors(config.vision)[0], RainmakerCheckpointDetector)
+    detectors = build_detectors(with_detected_language(config, "en").vision)
+    assert isinstance(detectors[0], RainmakerCheckpointDetector)
     frames = [
         _frame(1, "ally"),
         _frame(1.5, "ally"),
@@ -168,6 +170,7 @@ def test_manifest_refusion_preserves_milestone_provenance() -> None:
             package_version="test",
             vision_config_sha256="test",
             video_identity="dev-video",
+            language="en",
         ),
     )
     first = refuse_vision_manifest(manifest, config)

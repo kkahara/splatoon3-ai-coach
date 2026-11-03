@@ -16,7 +16,10 @@ import numpy as np
 from loguru import logger
 
 from splatoon3_ai_coach.config.models import RespawnDetectorConfig, VisionLanguage
-from splatoon3_ai_coach.vision.language import resolve_language_template_dir
+from splatoon3_ai_coach.vision.language import (
+    require_game_language,
+    resolve_language_template_dir,
+)
 from splatoon3_ai_coach.vision.models import (
     RespawnCountdownValue,
     RespawnEvidenceType,
@@ -234,14 +237,12 @@ class RespawnDetector:
         config: RespawnDetectorConfig,
         cadence_fps: float | None = None,
         *,
-        language: VisionLanguage | str = VisionLanguage.EN,
-        ocr_lang: str = "eng",
+        language: VisionLanguage | str,
+        ocr_lang: str,
     ) -> None:
         self.config = config
         self.cadence_fps = cadence_fps
-        self.language = (
-            language.value if isinstance(language, VisionLanguage) else str(language)
-        )
+        self.language = require_game_language(language)
         self.ocr_lang = ocr_lang
         self._template_dir = (
             resolve_language_template_dir(config.template_dir, self.language)
@@ -345,10 +346,7 @@ class RespawnDetector:
         if not primary_hit:
             ocr_raw = _ocr_text(roi, self.ocr_lang)
         ocr_text = ocr_raw or None
-        keywords = _RESPAWN_KEYWORDS.get(
-            self.language,
-            _RESPAWN_KEYWORDS[VisionLanguage.EN.value],
-        )
+        keywords = _RESPAWN_KEYWORDS[self.language]
         ocr_hit = _keyword_hit(ocr_raw, keywords)
         countdown_value = _parse_countdown_value(ocr_raw)
 

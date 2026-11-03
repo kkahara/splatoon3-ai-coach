@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import json
+from collections.abc import Callable
+from pathlib import Path
+
 import numpy as np
 
 from splatoon3_ai_coach.config.models import VisionConfig
 from splatoon3_ai_coach.media.video import VideoFrame
+from splatoon3_ai_coach.media.vision_manifest import VISION_MANIFEST_FILENAME
 from splatoon3_ai_coach.vision.game_language import (
     GameLanguageProbeOutcome,
     build_policy,
@@ -84,3 +89,32 @@ def unknown_outcome(vision: VisionConfig) -> GameLanguageProbeOutcome:
         ),
         policy=build_policy(vision),
     )
+
+
+
+# What a fake ``analyze`` reports as detected when a test does not care which
+# language was detected. Passed explicitly; never a default.
+FAKE_DETECTED_LANGUAGE = "en"
+
+
+def analyze_detects(
+    run_command: Callable[[list[str]], int], *, language: str
+) -> Callable[[list[str]], int]:
+    """Wrap a fake public-site ``run_command`` so a successful ``analyze`` leaves
+    the detected ``language`` in the vision manifest, as the real CLI does."""
+
+    def run(argv: list[str]) -> int:
+        code = run_command(argv)
+        if code == 0 and "analyze" in argv:
+            out = Path(argv[argv.index("--out") + 1])
+            out.mkdir(parents=True, exist_ok=True)
+            manifest = out / VISION_MANIFEST_FILENAME
+            if not manifest.exists():
+                detected = {"language": language}
+                manifest.write_text(
+                    json.dumps({"analysis": detected, "game_language": detected}),
+                    encoding="utf-8",
+                )
+        return code
+
+    return run

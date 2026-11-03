@@ -833,7 +833,9 @@ def test_respawn_detector_heuristic_fallback_without_templates() -> None:
     x1, x2 = int(0.840 * 1920), 1920
     # Yellow ink only in BR ROI — must not trip present.
     image[y1:y2, x1:x2] = (0, 220, 255)
-    detector = RespawnDetector(RespawnDetectorConfig(template_dir=None))
+    detector = RespawnDetector(
+        RespawnDetectorConfig(template_dir=None), language="en", ocr_lang="eng"
+    )
     reading, _ = detector.detect(image, timestamp=1.0)
     assert reading is not None
     assert not reading.detected
@@ -981,7 +983,9 @@ def test_respawn_label_fixtures_prefer_detected_over_active() -> None:
     active = list((labels / "active_gameplay").glob("*_full.jpg"))
     if not present or not active:
         return
-    detector = RespawnDetector(RespawnDetectorConfig(template_dir=None))
+    detector = RespawnDetector(
+        RespawnDetectorConfig(template_dir=None), language="en", ocr_lang="eng"
+    )
     present_hits = 0
     for path in present[:5]:
         image = cv2.imread(str(path))

@@ -148,3 +148,34 @@ test("the stale-evidence notice has English and Japanese text", () => {
   assert.notEqual(ja, en);
   assert.notEqual(ja, "review.stale_evidence");
 });
+
+test("the undetermined game-language failure has the approved English and Japanese text", () => {
+  const key = "review.error.game_language_undetermined";
+  assert.equal(
+    translate(resources, "en", key),
+    "We couldn't determine the game's display language from this recording, so the recording "
+      + "couldn't be analyzed. Make sure the recording includes the beginning of the battle and "
+      + "that the game interface is clearly visible. Currently, English and Japanese game "
+      + "displays are supported.",
+  );
+  assert.equal(
+    translate(resources, "ja", key),
+    "この録画からゲームの表示言語を判別できなかったため、録画を分析できませんでした。"
+      + "録画にバトルの開始部分が含まれていて、ゲーム画面がはっきり映っていることを確認してください。"
+      + "現在対応しているゲームの表示言語は英語と日本語です。",
+  );
+});
+
+test("no text asks the user to choose or match a game language", () => {
+  for (const key of [
+    "submit.system_language",
+    "submit.system_language_help",
+    "submit.choose_language",
+    "submit.error_language",
+  ]) {
+    assert.equal(key in resources.en, false);
+    assert.equal(key in resources.ja, false);
+  }
+  assert.equal(translate(resources, "en", "review.no_deaths"), "No deaths were detected in this recording.");
+  assert.equal(translate(resources, "ja", "review.no_deaths"), "この録画ではやられた場面が検出されませんでした。");
+});

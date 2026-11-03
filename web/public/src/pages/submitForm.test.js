@@ -6,8 +6,7 @@ import {
   formatReviewCode,
   formatUsd,
   isAcceptedVideo,
-  rememberedGameLanguage,
-  rememberGameLanguage,
+  removeObsoleteStorage,
   reviewCodeComplete,
   submissionBody,
   showVoucherApplyButton,
@@ -22,46 +21,58 @@ import {
 const file = { name: "match.mov", size: 10, type: "video/quicktime" };
 const ready = { file, maxBytes: 100, token: "ok" };
 
-test("a submission without a game language is blocked", () => {
-  assert.equal(submitError({ ...ready, language: "" }), "submit.error_language");
-  assert.equal(submitError({ ...ready, language: undefined }), "submit.error_language");
+test("a video with a check token can be submitted without any language", () => {
+  assert.equal(submitError(ready), null);
 });
 
-test("choosing English or Japanese lets the submission proceed", () => {
-  assert.equal(submitError({ ...ready, language: "en" }), null);
-  assert.equal(submitError({ ...ready, language: "ja" }), null);
+test("the removed game-language preference is deleted and nothing else", () => {
+  const entries = new Map([
+    ["s3-coach-game-language", "ja"],
+    ["s3-locale", "ja"],
+  ]);
+  const storage = { removeItem: (key) => entries.delete(key) };
+  removeObsoleteStorage(() => storage);
+  assert.deepEqual([...entries.keys()], ["s3-locale"]);
+  removeObsoleteStorage(() => storage);
+  assert.deepEqual([...entries.keys()], ["s3-locale"]);
+});
+
+test("blocked storage does not break the page", () => {
+  assert.doesNotThrow(() =>
+    removeObsoleteStorage(() => {
+      throw new Error("SecurityError");
+    }),
+  );
 });
 
 test("a missing size cap does not reject a large file", () => {
   assert.equal(
-    submitError({ ...ready, maxBytes: null, file: { ...file, size: 2_000_000_000 }, language: "en" }),
+    submitError({ ...ready, maxBytes: null, file: { ...file, size: 2_000_000_000 } }),
     null,
   );
 });
 
-test("file problems are reported before the language", () => {
-  assert.equal(submitError({ ...ready, file: null, language: "" }), "submit.error_file");
+test("file problems are reported before the check token", () => {
+  assert.equal(submitError({ ...ready, file: null, token: "" }), "submit.error_file");
   assert.equal(
-    submitError({ ...ready, file: { ...file, size: 200 }, language: "" }),
+    submitError({ ...ready, file: { ...file, size: 200 }, token: "" }),
     "submit.error_size",
   );
+  assert.equal(submitError({ ...ready, token: "" }), "submit.error_check");
 });
 
-for (const [siteLocale, gameLanguage] of [
-  ["ja", "en"],
-  ["en", "ja"],
-]) {
-  test(`site locale ${siteLocale} keeps the chosen game language ${gameLanguage}`, () => {
+for (const siteLocale of ["en", "ja"]) {
+  test(`site locale ${siteLocale} posts no locale and no game language`, () => {
     const body = submissionBody({
       token: "ok",
       file,
-      language: gameLanguage,
       account: null,
       notify: false,
       email: "",
       locale: siteLocale,
+      language: siteLocale,
     });
-    assert.equal(body.language, gameLanguage);
+    assert.equal("language" in body, false);
     assert.equal(body.display_name, null);
     assert.equal("locale" in body, false);
     assert.equal("voucher_code" in body, false);
@@ -72,7 +83,6 @@ test("a voucher code is posted with the submission and a blank one is omitted", 
   const body = submissionBody({
     token: "ok",
     file,
-    language: "en",
     account: null,
     notify: false,
     email: "",
@@ -82,7 +92,6 @@ test("a voucher code is posted with the submission and a blank one is omitted", 
   const blank = submissionBody({
     token: "ok",
     file,
-    language: "en",
     account: null,
     notify: false,
     email: "",
@@ -91,27 +100,11 @@ test("a voucher code is posted with the submission and a blank one is omitted", 
   assert.equal("voucher_code" in blank, false);
 });
 
-test("a chosen game language is remembered", () => {
-  const stored = new Map();
-  const storage = {
-    getItem: (key) => (stored.has(key) ? stored.get(key) : null),
-    setItem: (key, value) => stored.set(key, value),
-  };
-  assert.equal(rememberedGameLanguage(storage), "");
-  rememberGameLanguage("ja", storage);
-  assert.equal(rememberedGameLanguage(storage), "ja");
-  rememberGameLanguage("fr", storage);
-  assert.equal(rememberedGameLanguage(storage), "ja");
-  rememberGameLanguage("en", storage);
-  assert.equal(rememberedGameLanguage(storage), "en");
-});
-
 test("a logged-in submission follows the checkbox and omits the address", () => {
   const account = { email: "rin@example.com" };
   const on = submissionBody({
     token: "ok",
     file,
-    language: "en",
     account,
     notify: true,
     email: "other@example.com",
@@ -121,7 +114,6 @@ test("a logged-in submission follows the checkbox and omits the address", () => 
   const off = submissionBody({
     token: "ok",
     file,
-    language: "en",
     account,
     notify: false,
     email: "other@example.com",
@@ -134,7 +126,6 @@ test("a guest sends an address only when notices are requested", () => {
   const on = submissionBody({
     token: "ok",
     file,
-    language: "en",
     account: null,
     notify: true,
     email: "player@example.com",
@@ -144,7 +135,6 @@ test("a guest sends an address only when notices are requested", () => {
   const off = submissionBody({
     token: "ok",
     file,
-    language: "en",
     account: null,
     notify: false,
     email: "player@example.com",
@@ -163,15 +153,11 @@ test("a review code is masked as four groups of four", () => {
   assert.equal(reviewCodeComplete(""), false);
 });
 
-test("the submit button waits for a language and a video", () => {
-  assert.equal(submitReady({ file, language: "", reviewCode: "" }), false);
-  assert.equal(submitReady({ file: null, language: "en", reviewCode: "" }), false);
-  assert.equal(submitReady({ file: null, language: "en", reviewCode: "ABCD-1234" }), false);
-  assert.equal(submitReady({ file, language: "ja", reviewCode: "" }), true);
-  assert.equal(
-    submitReady({ file: null, language: "en", reviewCode: "ABCD-1234-EFGH-5678" }),
-    false,
-  );
+test("the submit button waits only for a video", () => {
+  assert.equal(submitReady({ file, reviewCode: "" }), true);
+  assert.equal(submitReady({ file: null, reviewCode: "" }), false);
+  assert.equal(submitReady({ file: null, reviewCode: "ABCD-1234" }), false);
+  assert.equal(submitReady({ file: null, reviewCode: "ABCD-1234-EFGH-5678" }), false);
 });
 
 test("a dropped file must be an MP4 or MOV within the cap", () => {

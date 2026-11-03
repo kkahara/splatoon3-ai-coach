@@ -4,7 +4,6 @@ import { api } from "../api.js";
 
 export function AnalyzePage() {
   const [file, setFile] = useState(null);
-  const [language, setLanguage] = useState("ja");
   const [videos, setVideos] = useState([]);
   const [videoId, setVideoId] = useState("");
   const [job, setJob] = useState(null);
@@ -54,7 +53,7 @@ export function AnalyzePage() {
     try {
       const created = await api("/api/jobs", {
         method: "POST",
-        body: JSON.stringify({ video_id: videoId, language }),
+        body: JSON.stringify({ video_id: videoId }),
       });
       setJob(created);
       setMessage("Analysis queued. One analysis runs at a time.");
@@ -75,7 +74,7 @@ export function AnalyzePage() {
   return (
     <div className="stack">
       <h1>Analyze</h1>
-      <p className="muted">Upload a video and choose the language you passed to analysis. The site runs the existing analyze command.</p>
+      <p className="muted">Upload a video and start analysis. The site runs the existing analyze command, which detects the game language from the video.</p>
       {error && <p className="error">{error}</p>}
       {message && <p>{message}</p>}
       <form onSubmit={upload} className="row">
@@ -94,13 +93,6 @@ export function AnalyzePage() {
             {videos.map((video) => (
               <option key={video.id} value={video.id}>{video.original_filename}</option>
             ))}
-          </select>
-        </label>
-        <label>
-          Language
-          <select value={language} onChange={(event) => setLanguage(event.target.value)}>
-            <option value="ja">JA</option>
-            <option value="en">EN</option>
           </select>
         </label>
         <button type="submit">Start analysis</button>

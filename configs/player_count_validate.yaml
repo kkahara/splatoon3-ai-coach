@@ -37,7 +37,6 @@ extraction:
     - 0.8
     - 0.7
 vision:
-  language: en
   ocr:
     engine: tesseract
     tesseract_languages:

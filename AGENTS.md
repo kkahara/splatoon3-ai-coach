@@ -419,9 +419,16 @@ the vision config hash, `analysis_id` and `build_detectors`, then sets
  observation wins; acceptance needs threshold **and** cross-language margin.
 - Unknown fails closed: `GameLanguageUndeterminedError`, `analyze` exit code
  4, only `game_language.json` written. Never default to `en` or `ja`.
-- A supplied language (`--language`, public-site / VMV selectors) is
- deprecated and comparison-only (`supplied_agreement`); it never selects
- templates and never enters the hash or `analysis_id`.
+- Detection is the **only** source of the game language. There is no
+ supplied language: `analyze` has no `--language`, the public site and VMV
+ have no language selector, and YAML `vision.language` is rejected by the
+ config loader. `VisionConfig.language` starts unset (`None`); detectors and
+ template lookups fail if it is still unset. Phase 1 artifacts carrying
+ `supplied_language` / `supplied_agreement` still load; the fields are
+ ignored.
+- Public-site telemetry `job_runs.game_language` is `en` / `ja` from the
+ detected result only, set after a successful analyze; a detection failure is
+ a failed run (`game_language_undetermined`) with no game language.
 - Detectors never infer language per frame. Game language is separate from
  the coaching/report language.
 

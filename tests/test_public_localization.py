@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from coach_artifact_helpers import index_entry
 from fastapi.testclient import TestClient
+from game_language_helpers import FAKE_DETECTED_LANGUAGE, analyze_detects
 from public_site import localize
 from public_site import results as public_results
 from public_site.app import create_app
@@ -337,7 +338,7 @@ def _client(
         store=PublicStore(settings.root),
         verifier=lambda token: token == "ok",
         probe=lambda _path: ProbeFacts(12.0, 1920, 1080, "mp4"),
-        run_command=run,
+        run_command=analyze_detects(run, language=FAKE_DETECTED_LANGUAGE),
         translator=translator,
         start_worker=False,
     )

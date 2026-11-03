@@ -19,11 +19,7 @@ SUBJECTS = {
     "no_moments": "Your Splatoon 3 review is complete: no coaching moments",
     "failed": "Your Splatoon 3 coaching review could not be completed",
 }
-NO_DEATHS_EXPLANATION = (
-    "No deaths were detected in this recording. If the recording contains "
-    "deaths, check that the game display language matches the language "
-    "selected when you uploaded it."
-)
+NO_DEATHS_EXPLANATION = "No deaths were detected in this recording."
 ACCOUNT_SUBJECTS = {
     "verify": "Confirm your Splatoon 3 coaching account",
     "reset": "Reset your Splatoon 3 coaching password",

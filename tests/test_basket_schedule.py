@@ -54,6 +54,7 @@ def test_schedule_roundtrip_legacy_refusion_and_viewer(tmp_path: Path) -> None:
         package_version="test",
         vision_config_sha256="x",
         video_identity="v",
+        language="en",
     )
     manifest = VisionManifest(
         analysis=identity, video_identity="v", frame_results=results

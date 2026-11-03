@@ -45,10 +45,9 @@ from vmv_site.store import PlatformStore
 
 
 class JobCreate(BaseModel):
-    """Request to analyze a previously uploaded video."""
+    """Request to analyze a previously uploaded video. The game language is detected."""
 
     video_id: str
-    language: str = Field(pattern="^(en|ja)$")
 
 
 class ExperimentCreate(BaseModel):
@@ -101,7 +100,7 @@ def create_app(
     @app.post("/api/jobs")
     def post_job(body: JobCreate) -> dict:
         try:
-            job = store.create_job(body.video_id, body.language)
+            job = store.create_job(body.video_id)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="video not found") from exc
         except ValueError as exc:

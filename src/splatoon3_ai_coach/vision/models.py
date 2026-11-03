@@ -1,9 +1,9 @@
 """Phase 3 vision models: observations, state, and events."""
 
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 from splatoon3_ai_coach.media.video_source import VideoRunMetadata
 from splatoon3_ai_coach.vision.provenance import PIPELINE_VERSION
@@ -789,6 +789,12 @@ class GameEvent(BaseModel):
     source_frames: list[SourceFrameReference] = Field(default_factory=list)
 
 
+# Manifests written before ``AnalysisIdentity.language`` existed (commit
+# d2b3841, 2026-09-08) ran with English templates: Japanese templates entered
+# the repository in that same commit. Read-side compatibility only.
+LEGACY_ANALYSIS_LANGUAGE: Literal["en"] = "en"
+
+
 class AnalysisIdentity(BaseModel):
     """Reproducible analysis provenance."""
 
@@ -804,7 +810,8 @@ class AnalysisIdentity(BaseModel):
     video_identity: str
     # Game language that selected detector templates (the detected language
     # since automatic detection); also hashed into vision_config_sha256.
-    language: str = "en"
+    # Required: only VisionManifest's legacy reader fills it for old artifacts.
+    language: Literal["en", "ja"]
     # Set when state_snapshots / game_events were re-fused from the stored
     # frame_results: hash of the config whose fusion and event settings produced
     # them. vision_config_sha256 still describes the run that made the readings.
@@ -922,8 +929,9 @@ class GameLanguagePolicy(BaseModel):
 class GameLanguageResult(BaseModel):
     """Authoritative game language for one analysis and its establishing evidence.
 
-    ``language`` is the only language that selects detector templates. A
-    supplied legacy language is comparison-only (``supplied_agreement``).
+    ``language`` is the only language that selects detector templates; there
+    is no supplied game language. Phase 1 artifacts may still carry
+    ``supplied_language`` / ``supplied_agreement``; they are ignored on load.
     Detailed per-frame attempts live in ``game_language.json``.
     """
 
@@ -941,10 +949,6 @@ class GameLanguageResult(BaseModel):
         default_factory=GameLanguageFallbackSummary
     )
     video_ended_before_resolution: bool = False
-    supplied_language: Literal["en", "ja"] | None = None
-    supplied_agreement: Literal["not_supplied", "agree", "disagree", "unresolved"] = (
-        "not_supplied"
-    )
     policy: GameLanguagePolicy
 
 
@@ -972,3 +976,19 @@ class VisionManifest(BaseModel):
     video: VideoRunMetadata | None = None
     # None for manifests written before automatic game-language detection.
     game_language: GameLanguageResult | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _fill_legacy_analysis_language(cls, data: Any) -> Any:
+        """Give stored manifests that predate ``analysis.language`` their language.
+
+        Applies only to a raw ``analysis`` mapping without the key, i.e. a
+        manifest written before ``AnalysisIdentity.language`` existed; analysis
+        always records the detected language explicitly.
+        """
+        if isinstance(data, dict):
+            analysis = data.get("analysis")
+            if isinstance(analysis, dict) and "language" not in analysis:
+                analysis = {**analysis, "language": LEGACY_ANALYSIS_LANGUAGE}
+                return {**data, "analysis": analysis}
+        return data

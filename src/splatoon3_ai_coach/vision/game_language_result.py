@@ -13,7 +13,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from loguru import logger
 
 from splatoon3_ai_coach.config.models import AppConfig, VisionLanguage
 from splatoon3_ai_coach.vision.game_language import (
@@ -40,33 +39,14 @@ def with_detected_language(config: AppConfig, language: str) -> AppConfig:
     return effective
 
 
-def supplied_agreement(language: str, supplied: VisionLanguage | None) -> str:
-    """Compare a legacy supplied language with the detected one (record only)."""
-    if supplied is None:
-        return "not_supplied"
-    if language == "unknown":
-        return "unresolved"
-    return "agree" if supplied.value == language else "disagree"
-
-
 def build_game_language_result(
     outcome: GameLanguageProbeOutcome,
     output_dir: Path,
     *,
     analysis_id: str | None,
-    supplied_language: VisionLanguage | None,
 ) -> GameLanguageResult:
     """Build the compact result; evidence IDs exist only when resolved."""
     evidence, source_frame = _establishing_evidence(outcome, output_dir, analysis_id)
-    agreement = supplied_agreement(outcome.language, supplied_language)
-    if agreement == "disagree":
-        assert supplied_language is not None
-        logger.warning(
-            "Supplied game language {} disagrees with detected {}; the detected "
-            "language is used and the supplied value is recorded for comparison",
-            supplied_language.value,
-            outcome.language,
-        )
     return GameLanguageResult(
         language=outcome.language,
         source=outcome.source,
@@ -79,8 +59,6 @@ def build_game_language_result(
         fallback=outcome.fallback,
         video_ended_before_resolution=outcome.termination == "video_ended"
         and not outcome.resolved,
-        supplied_language=None if supplied_language is None else supplied_language.value,
-        supplied_agreement=agreement,
         policy=outcome.policy,
     )
 

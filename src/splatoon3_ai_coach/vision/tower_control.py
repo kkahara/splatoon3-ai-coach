@@ -9,7 +9,8 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from splatoon3_ai_coach.config.models import TowerControlDetectorConfig
+from splatoon3_ai_coach.config.models import TowerControlDetectorConfig, VisionLanguage
+from splatoon3_ai_coach.vision.language import require_game_language
 from splatoon3_ai_coach.vision.models import (
     TowerControlReading,
     TowerMarkerReading,
@@ -32,10 +33,12 @@ class TowerControlDetector:
         self,
         config: TowerControlDetectorConfig,
         cadence_fps: float | None = None,
-        language: str = "en",
+        *,
+        language: VisionLanguage | str,
     ) -> None:
         self.config = config
         self.cadence_fps = cadence_fps
+        language = require_game_language(language)
         self._templates = load_templates(config.template_dir)
         self._checkpoint_cue = None
         self._checkpoint_at_cue = None

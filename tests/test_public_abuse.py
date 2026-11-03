@@ -18,6 +18,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi.testclient import TestClient
+from game_language_helpers import FAKE_DETECTED_LANGUAGE, analyze_detects
 from public_site.accounts import Account
 from public_site.app import SESSION_COOKIE, create_app
 from public_site.errors import (
@@ -69,7 +70,7 @@ def _client(tmp_path: Path, **kwargs) -> TestClient:
     app = create_app(
         settings,
         probe=probe,
-        run_command=run_command,
+        run_command=analyze_detects(run_command, language=FAKE_DETECTED_LANGUAGE),
         accounts=accounts,
         start_worker=False,
     )
@@ -84,7 +85,6 @@ def _body(**extra) -> dict:
         "filename": "match.mp4",
         "size_bytes": 8,
         "content_type": "video/mp4",
-        "language": "en",
     }
     payload.update(extra)
     return payload
@@ -131,7 +131,6 @@ def _service_create(client: TestClient, ip: str, user_id: str | None) -> None:
         filename="match.mp4",
         size_bytes=8,
         content_type="video/mp4",
-        language="en",
         email=None,
         notify=False,
         display_name=None,

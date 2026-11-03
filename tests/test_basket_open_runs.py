@@ -97,6 +97,7 @@ def _manifest(states: list[str], *, mode: str = "clam_blitz") -> VisionManifest:
             vision_config_sha256="v",
             video_identity="video",
             detector_versions={"clam_basket_state": "test"},
+            language="en",
         ),
         video_identity="video",
         frame_results=frames,

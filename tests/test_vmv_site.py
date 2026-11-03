@@ -242,12 +242,12 @@ def test_job_success_failure_cancel_and_concurrency(tmp_path: Path) -> None:
         "/api/videos",
         files={"file": ("match.mp4", b"0123456789", "video/mp4")},
     ).json()
-    first = client.post("/api/jobs", json={"video_id": video["id"], "language": "ja"})
+    first = client.post("/api/jobs", json={"video_id": video["id"]})
     assert first.status_code == 200
     assert first.json()["status"] == "running"
     assert "--debug-persist-cadence-frames" in gate.procs[0].command
-    assert "ja" in gate.procs[0].command
-    second = client.post("/api/jobs", json={"video_id": video["id"], "language": "en"})
+    assert "--language" not in gate.procs[0].command
+    second = client.post("/api/jobs", json={"video_id": video["id"]})
     assert second.json()["status"] == "queued"
     assert len(gate.procs) == 1
     queued_id = second.json()["job_id"]
@@ -264,7 +264,7 @@ def test_job_success_failure_cancel_and_concurrency(tmp_path: Path) -> None:
     fail_gate = _Gate(code=1)
     fail_client, _, fail_runner = _client(settings, fail_gate)
     video2 = store.list_videos()[0]
-    failed = fail_client.post("/api/jobs", json={"video_id": video2.id, "language": "en"})
+    failed = fail_client.post("/api/jobs", json={"video_id": video2.id})
     fail_gate.hold.set()
     fail_runner.join_workers()
     body = fail_client.get(f"/api/jobs/{failed.json()['job_id']}").json()
@@ -283,7 +283,7 @@ def test_running_job_cancel_terminates_process(tmp_path: Path) -> None:
         "/api/videos",
         files={"file": ("match.mp4", b"0123456789", "video/mp4")},
     ).json()
-    created = client.post("/api/jobs", json={"video_id": video["id"], "language": "en"})
+    created = client.post("/api/jobs", json={"video_id": video["id"]})
     stopped = client.post(f"/api/jobs/{created.json()['job_id']}/cancel")
     assert stopped.json()["status"] == "cancelled"
     assert gate.procs[0].terminated is True
@@ -294,10 +294,10 @@ def test_running_job_cancel_terminates_process(tmp_path: Path) -> None:
 
 def test_analyze_command_uses_the_cli_entrypoint(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
-    command = analyze_command(settings, Path("clip.mp4"), Path("out"), "en")
+    command = analyze_command(settings, Path("clip.mp4"), Path("out"))
     assert "-m" not in command
     assert command[command.index("analyze") + 1].endswith("clip.mp4")
-    assert "--language" in command
+    assert "--language" not in command
     assert "--debug-persist-cadence-frames" in command
 
 
@@ -457,7 +457,7 @@ def test_coach_job_order_failure_and_shared_queue(tmp_path: Path) -> None:
         "/api/videos",
         files={"file": ("match.mp4", b"0123456789", "video/mp4")},
     ).json()
-    busy_client.post("/api/jobs", json={"video_id": video["id"], "language": "en"})
+    busy_client.post("/api/jobs", json={"video_id": video["id"]})
     queued = busy_client.post("/api/runs/coach-run/coach")
     assert queued.json()["status"] == "queued"
     assert len(busy.procs) == 1
@@ -906,3 +906,21 @@ def test_old_scenario_artifact_has_no_reconstructed_objective(tmp_path: Path) ->
         client.get("/api/runs/old").json()["view"]["scenario_evidence"][0]["objective"]
         is None
     )
+
+
+def test_job_request_with_a_legacy_language_is_accepted_and_ignored(
+    tmp_path: Path,
+) -> None:
+    settings = _settings(tmp_path)
+    gate = _Gate()
+    client, store, runner = _client(settings, gate)
+    video = client.post(
+        "/api/videos",
+        files={"file": ("match.mp4", b"0123456789", "video/mp4")},
+    ).json()
+    created = client.post("/api/jobs", json={"video_id": video["id"], "language": "ja"})
+    assert created.status_code == 200
+    assert "--language" not in gate.procs[0].command
+    assert "language" not in store.get_job(created.json()["job_id"]).model_dump()
+    gate.hold.set()
+    runner.join_workers()

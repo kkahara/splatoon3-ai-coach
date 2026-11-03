@@ -98,6 +98,17 @@ class CoachingOutcome(StrEnum):
     NO_DEATHS = "no_deaths"
 
 
+class GameLanguage(StrEnum):
+    """Game language detected from the recording and used by analysis.
+
+    Detection failure is a failed run (``game_language_undetermined``), never a
+    third value. Never derived from request or submission data.
+    """
+
+    EN = "en"
+    JA = "ja"
+
+
 class Diagnostic(StrEnum):
     """Non-sensitive failure categories."""
 
@@ -151,7 +162,8 @@ _SCHEMA = (
         attempt integer NOT NULL CHECK (attempt > 0),
         user_id uuid REFERENCES users (id) ON DELETE SET NULL,
         is_guest boolean NOT NULL,
-        language text NOT NULL CHECK (language IN ('en', 'ja')),
+        game_language text CHECK (game_language IS NULL OR game_language IN ('en', 'ja')),
+        game_language_required boolean NOT NULL DEFAULT true,
         status text NOT NULL CHECK (
             status IN (
                 'submitted', 'validating', 'queued', 'running',
@@ -233,6 +245,36 @@ _SCHEMA = (
             OR importance_config_hash ~ '^[0-9a-f]{12}$'
         )
     """,
+    # Detected game language replaces the obsolete supplied ``language``.
+    # Pre-migration rows get game_language_required = false (they never had a
+    # detected language); every row created afterwards defaults to true.
+    """
+    ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS game_language text
+        CHECK (game_language IS NULL OR game_language IN ('en', 'ja'))
+    """,
+    """
+    ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS game_language_required boolean
+        NOT NULL DEFAULT false
+    """,
+    "ALTER TABLE job_runs ALTER COLUMN game_language_required SET DEFAULT true",
+    "ALTER TABLE job_runs DROP CONSTRAINT IF EXISTS job_runs_completed_has_game_language",
+    """
+    ALTER TABLE job_runs ADD CONSTRAINT job_runs_completed_has_game_language
+        CHECK (
+            NOT game_language_required
+            OR status <> 'completed'
+            OR game_language IS NOT NULL
+        )
+    """,
+    "ALTER TABLE job_runs DROP CONSTRAINT IF EXISTS job_runs_language_failure_has_no_language",
+    """
+    ALTER TABLE job_runs ADD CONSTRAINT job_runs_language_failure_has_no_language
+        CHECK (
+            error_code IS DISTINCT FROM 'game_language_undetermined'
+            OR game_language IS NULL
+        )
+    """,
+    "ALTER TABLE job_runs DROP COLUMN IF EXISTS language",
     "CREATE INDEX IF NOT EXISTS job_runs_pipeline ON job_runs (pipeline_version, created_at DESC)",
     "CREATE INDEX IF NOT EXISTS job_runs_vision_config ON job_runs (vision_config_hash)",
     """
@@ -289,20 +331,22 @@ class TelemetryStore:
         submission_id: str,
         *,
         user_id: str | None,
-        language: str,
     ) -> str | None:
-        """Atomically create attempt one and its sole submitted event."""
+        """Atomically create attempt one and its sole submitted event.
+
+        The run has no game language yet; it is set only after detection.
+        """
         run_id = str(uuid.uuid4())
         with self._conn() as conn:
             row = conn.execute(
                 """
                 INSERT INTO job_runs
-                    (run_id, submission_id, attempt, user_id, is_guest, language, status)
-                VALUES (%s, %s, 1, %s, %s, %s, 'submitted')
+                    (run_id, submission_id, attempt, user_id, is_guest, status)
+                VALUES (%s, %s, 1, %s, %s, 'submitted')
                 ON CONFLICT (submission_id, attempt) DO NOTHING
                 RETURNING run_id
                 """,
-                (run_id, submission_id, user_id, user_id is None, language),
+                (run_id, submission_id, user_id, user_id is None),
             ).fetchone()
             if row is None:
                 return None
@@ -401,13 +445,34 @@ class TelemetryStore:
             allowed=(RunStatus.RUNNING,),
         )
 
+    def game_language_detected(self, submission_id: str, game_language: GameLanguage) -> bool:
+        """Record the language detected by a successful analyze on the running attempt."""
+        language = GameLanguage(game_language)
+        with self._conn() as conn:
+            run = self._latest(conn, submission_id)
+            if run is None or run["status"] != RunStatus.RUNNING:
+                return False
+            updated = conn.execute(
+                """
+                UPDATE job_runs SET game_language = %s
+                WHERE run_id = %s AND status = 'running'
+                """,
+                (language.value, run["run_id"]),
+            )
+        return updated.rowcount == 1
+
     def completed(
         self,
         submission_id: str,
         *,
+        game_language: GameLanguage,
         outcome: CoachingOutcome = CoachingOutcome.COACHED,
     ) -> bool:
-        """Finish a running attempt successfully with its result classification."""
+        """Finish a running attempt successfully with its result classification.
+
+        ``game_language`` is written in the same update, so a completed run never
+        lacks the detected language (enforced by ``job_runs_completed_has_game_language``).
+        """
         return self._transition(
             submission_id,
             allowed=(RunStatus.RUNNING,),
@@ -415,6 +480,7 @@ class TelemetryStore:
             kind=EventKind.COMPLETED,
             timestamp_column="finished_at",
             outcome=CoachingOutcome(outcome),
+            game_language=GameLanguage(game_language),
         )
 
     def failed(
@@ -595,6 +661,7 @@ class TelemetryStore:
         stage_value: Stage | None = None,
         detail: BaseModel | None = None,
         outcome: CoachingOutcome | None = None,
+        game_language: GameLanguage | None = None,
     ) -> bool:
         with self._conn() as conn:
             run = self._latest(conn, submission_id)
@@ -607,6 +674,9 @@ class TelemetryStore:
             if outcome is not None:
                 clauses.append("coaching_outcome = %s")
                 params.append(outcome.value)
+            if game_language is not None:
+                clauses.append("game_language = %s")
+                params.append(game_language.value)
             if status in {RunStatus.FAILED, RunStatus.INTERRUPTED}:
                 clauses.extend(
                     ["failed_stage = %s", "error_code = %s", "diagnostic = %s"]

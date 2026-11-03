@@ -344,7 +344,7 @@ class ManifestSummary(BaseModel):
     cadence_fps: float | None = None
     processing_time_seconds: float | None = None
     processing_rate: float | None = None
-    # Analyze ``--language`` as stored on the manifest. None when absent.
+    # Game language the analysis ran with, from ``analysis.language``. None when absent.
     language: str | None = None
 
 

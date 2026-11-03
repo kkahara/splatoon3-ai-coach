@@ -155,6 +155,7 @@ def test_observations_survive_manifest_serialization() -> None:
             package_version="test",
             vision_config_sha256="v",
             video_identity="video",
+            language="en",
         ),
         video_identity="video",
         frame_results=frames,

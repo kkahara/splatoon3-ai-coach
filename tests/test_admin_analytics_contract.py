@@ -300,7 +300,7 @@ def _insert(
         """
         INSERT INTO job_runs (
             run_id, submission_id, attempt, user_id, is_guest,
-            language, status, created_at
+            game_language, status, created_at
         )
         VALUES (%s, %s, %s, %s, %s, 'en', %s, %s)
         """,

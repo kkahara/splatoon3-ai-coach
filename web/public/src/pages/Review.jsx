@@ -14,6 +14,7 @@ import { useLocale, useT } from "../i18n/LocaleContext.jsx";
 import {
   coachAttempted,
   evidenceLines,
+  failureMessageKey,
   formatDate,
   formatRemaining,
   momentAnchor,
@@ -123,7 +124,11 @@ export function ReviewPage() {
       )}
       {error ? <p className="error">{error}</p> : null}
       {payError ? <p className="error">{payError}</p> : null}
-      {view?.error ? <p className="error">{view.error}</p> : null}
+      {view?.error ? (
+        <p className="error">
+          {failureMessageKey(view) ? t(failureMessageKey(view)) : view.error}
+        </p>
+      ) : null}
       {voucherFallbackKey(view) ? (
         <p className="error">{t(voucherFallbackKey(view))}</p>
       ) : null}

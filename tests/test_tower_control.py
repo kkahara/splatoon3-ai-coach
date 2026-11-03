@@ -134,7 +134,8 @@ def test_tower_team_mapping_requires_calibrated_marker_hue() -> None:
 def test_tower_detector_reports_no_evidence_on_blank_frame() -> None:
     """An absent HUD stays absent instead of becoming neutral/returning."""
     detector = TowerControlDetector(
-        TowerControlDetectorConfig(template_dir=PROJECT_ROOT / "calibration/templates")
+        TowerControlDetectorConfig(template_dir=PROJECT_ROOT / "calibration/templates"),
+        language="en",
     )
     reading, confidence = detector.detect(np.zeros((1080, 1920, 3), dtype=np.uint8))
     assert reading is None and confidence == 0
@@ -152,7 +153,8 @@ def test_marker_uses_tower_core_in_development_frames(
     image = np.zeros((1080, 1920, 3), dtype=np.uint8)
     image[105:205, 450:1470] = crop
     detector = TowerControlDetector(
-        TowerControlDetectorConfig(template_dir=PROJECT_ROOT / "calibration/templates")
+        TowerControlDetectorConfig(template_dir=PROJECT_ROOT / "calibration/templates"),
+        language="en",
     )
     marker, _ = detector._marker(image)
     assert marker is not None

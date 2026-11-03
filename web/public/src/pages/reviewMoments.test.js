@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   coachAttempted,
   evidenceLines,
+  failureMessageKey,
   formatDate,
   formatRemaining,
   isKeyMoment,
@@ -119,4 +120,14 @@ test("remaining game time is whole-second m:ss and absent when unobserved", () =
   assert.equal(formatRemaining(206.9), "3:26");
   assert.equal(formatRemaining(null), null);
   assert.equal(formatRemaining(undefined), null);
+});
+
+test("an undetermined game language shows the localized failure message", () => {
+  assert.equal(
+    failureMessageKey({ status: "failed", error: "x", error_key: "game_language_undetermined" }),
+    "review.error.game_language_undetermined",
+  );
+  assert.equal(failureMessageKey({ status: "failed", error: "Analysis failed." }), null);
+  assert.equal(failureMessageKey({ status: "failed", error_key: "other" }), null);
+  assert.equal(failureMessageKey(null), null);
 });

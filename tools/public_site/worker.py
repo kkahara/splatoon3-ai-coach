@@ -6,6 +6,7 @@ This worker is not ``vmv_site.jobs.JobRunner``. A submission found in
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import threading
@@ -30,6 +31,7 @@ from public_site.store import PublicStore, copy_lifecycle, utc_now
 from public_site.telemetry import CoachingOutcome as TelemetryOutcome
 from public_site.telemetry import (
     Diagnostic,
+    GameLanguage,
     Stage,
     best_effort,
     classify_error,
@@ -37,6 +39,7 @@ from public_site.telemetry import (
 from splatoon3_ai_coach.cli.analyze import GAME_LANGUAGE_UNDETERMINED_EXIT_CODE
 from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
 from splatoon3_ai_coach.coach.artifacts import coaching_index_path
+from splatoon3_ai_coach.media.vision_manifest import VISION_MANIFEST_FILENAME
 
 Command = Callable[[list[str]], int]
 Capacity = Callable[[], int]
@@ -51,19 +54,31 @@ def cli_launch() -> list[str]:
     return [sys.executable, "-c", boot]
 
 
-def analyze_argv(settings: PublicSettings, video: Path, out: Path, language: str) -> list[str]:
-    """Arguments for ``s3-coach analyze``. Does not reimplement analysis."""
+def analyze_argv(settings: PublicSettings, video: Path, out: Path) -> list[str]:
+    """Arguments for ``s3-coach analyze``. The game language is detected from the video."""
     return [
         *cli_launch(),
         "analyze",
         str(video),
         "--out",
         str(out),
-        "--language",
-        language,
         "--config",
         str(settings.config_path),
     ]
+
+
+def detected_game_language(analysis: Path) -> GameLanguage | None:
+    """Detected game language recorded by a successful analyze, else None.
+
+    Read from the vision manifest's ``game_language`` result, never from the
+    submission or request.
+    """
+    path = analysis / VISION_MANIFEST_FILENAME
+    try:
+        result = json.loads(path.read_text(encoding="utf-8"))["game_language"]
+        return GameLanguage(result["language"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 def coach_argv(
@@ -281,15 +296,29 @@ class PublicWorker:
                 path.unlink()
 
     def _stages(self, submission: Submission, analysis: Path, video: Path) -> None:
-        code = self._stage(submission, Stage.ANALYZE, analyze_argv(
-            self.settings, video, analysis, submission.language
-        ))
+        code = self._stage(submission, Stage.ANALYZE, analyze_argv(self.settings, video, analysis))
         if code == GAME_LANGUAGE_UNDETERMINED_EXIT_CODE:
             self._fail(submission, GAME_LANGUAGE_UNDETERMINED, stage=Stage.ANALYZE)
             return
         if code:
             self._fail(submission, ANALYSIS_FAILED, stage=Stage.ANALYZE)
             return
+        game_language = detected_game_language(analysis)
+        if game_language is None:
+            self._fail(
+                submission,
+                ANALYSIS_FAILED,
+                stage=Stage.ANALYZE,
+                diagnostic=Diagnostic.MISSING_ARTIFACT,
+            )
+            return
+        if self.telemetry is not None:
+            best_effort(
+                "game_language_detected",
+                self.telemetry.game_language_detected,
+                submission.id,
+                game_language,
+            )
         self._capture_trace(submission, analysis)
         submission.step = "coaching"
         submission.updated_at = utc_now()
@@ -298,7 +327,7 @@ class PublicWorker:
         code = self._stage(submission, Stage.COACH_INPUTS, inputs)
         if code == NO_COACHING_UNITS_EXIT_CODE:
             self._capture_trace(submission, analysis)
-            self._complete(submission, "no_deaths")
+            self._complete(submission, "no_deaths", game_language)
             return
         if code:
             self._fail(submission, COACHING_FAILED, stage=Stage.COACH_INPUTS)
@@ -328,9 +357,14 @@ class PublicWorker:
         self._capture_trace(submission, analysis)
         self._frames(submission, analysis, video)
         self._capture_trace(submission, analysis)
-        self._complete(submission, "coached")
+        self._complete(submission, "coached", game_language)
 
-    def _complete(self, submission: Submission, outcome: CoachingOutcome) -> None:
+    def _complete(
+        self,
+        submission: Submission,
+        outcome: CoachingOutcome,
+        game_language: GameLanguage,
+    ) -> None:
         """Finish successfully. ``no_deaths`` is a valid empty result, not a failure."""
         submission.status = "complete"
         submission.step = "ready"
@@ -343,6 +377,7 @@ class PublicWorker:
                 "completed",
                 self.telemetry.completed,
                 submission.id,
+                game_language=game_language,
                 outcome=TelemetryOutcome(outcome),
             )
         notice = "no_moments" if outcome == "no_deaths" else "ready"

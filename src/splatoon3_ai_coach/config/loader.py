@@ -18,11 +18,22 @@ def load_config(path: Path) -> AppConfig:
     with path.open("r", encoding="utf-8") as handle:
         raw: dict[str, Any] = yaml.safe_load(handle) or {}
 
+    _reject_configured_game_language(raw, path)
     _resolve_relative_paths(raw, config_dir)
     try:
         return AppConfig.model_validate(raw)
     except Exception as exc:
         raise ConfigError(f"Invalid configuration in {path}: {exc}") from exc
+
+
+def _reject_configured_game_language(raw: dict[str, Any], path: Path) -> None:
+    """The game language is detected from the recording, never configured."""
+    vision = raw.get("vision")
+    if isinstance(vision, dict) and "language" in vision:
+        raise ConfigError(
+            f"Invalid configuration in {path}: vision.language is not configurable; "
+            "the game language is detected from the recording. Remove vision.language."
+        )
 
 
 def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:

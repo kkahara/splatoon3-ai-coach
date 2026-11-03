@@ -38,7 +38,6 @@ from splatoon3_ai_coach.vision.game_language_result import (
     GAME_LANGUAGE_FILENAME,
     build_game_language_result,
     load_game_language_diagnostics,
-    supplied_agreement,
     write_game_language_diagnostics,
 )
 from splatoon3_ai_coach.vision.ids import parse_result_id
@@ -299,9 +298,7 @@ def test_video_end_before_resolution_is_reported(config: AppConfig) -> None:
     for t in (0.0, 0.5, 1.0, 1.5, 2.0):
         probe.step(_frame(t, _intro(vision, None)))
     outcome = probe.finish()
-    result = build_game_language_result(
-        outcome, Path("/nonexistent"), analysis_id=None, supplied_language=None
-    )
+    result = build_game_language_result(outcome, Path("/nonexistent"), analysis_id=None)
     assert result.language == "unknown"
     assert result.termination == "video_ended"
     assert result.video_ended_before_resolution is True
@@ -334,35 +331,17 @@ def test_cross_language_near_tie_is_rejected_as_ambiguous(config: AppConfig) -> 
     assert reading.rejection == "ambiguous_margin"
 
 
-@pytest.mark.parametrize(
-    ("detected", "supplied", "expected"),
-    [
-        ("ja", None, "not_supplied"),
-        ("ja", VisionLanguage.JA, "agree"),
-        ("ja", VisionLanguage.EN, "disagree"),
-        ("unknown", VisionLanguage.EN, "unresolved"),
-    ],
-)
-def test_supplied_language_is_compared_not_applied(
-    detected: str, supplied: VisionLanguage | None, expected: str
-) -> None:
-    assert supplied_agreement(detected, supplied) == expected
-
-
 def test_provenance_survives_a_json_round_trip(
     config: AppConfig, tmp_path: Path
 ) -> None:
     probe = _probe(config.vision, lambda _t: 150.0, skip_intro=True)
     probe.step(_frame(3.5, _callout(config.vision, "callout_ja_come_on.png")))
     outcome = probe.finish()
-    result = build_game_language_result(
-        outcome, tmp_path, analysis_id="aid", supplied_language=VisionLanguage.EN
-    )
+    result = build_game_language_result(outcome, tmp_path, analysis_id="aid")
     write_game_language_diagnostics(result, outcome, tmp_path)
     loaded = load_game_language_diagnostics(tmp_path)
     assert loaded.result == result
     assert loaded.attempts == outcome.attempts
-    assert result.supplied_agreement == "disagree"
     assert result.source_frame.frame_id == "aid:frame:210"
     assert (tmp_path / result.source_frame.frame_path).is_file()
     parts = parse_result_id(result.evidence_ids[0])
@@ -407,7 +386,7 @@ def test_cli_exits_with_the_language_code(
     _patch_probe(monkeypatch, unknown_outcome(config.vision))
     out = tmp_path / "analysis"
     result = CliRunner().invoke(
-        app, ["analyze", str(sample_video), "--out", str(out), "--language", "en"]
+        app, ["analyze", str(sample_video), "--out", str(out)]
     )
     assert result.exit_code == GAME_LANGUAGE_UNDETERMINED_EXIT_CODE == 4
     assert "Game language could not be determined" in result.output
@@ -415,16 +394,23 @@ def test_cli_exits_with_the_language_code(
     assert not (out / VISION_MANIFEST_FILENAME).exists()
 
 
-def _run_with(
+def test_analyze_has_no_language_option(sample_video: Path, tmp_path: Path) -> None:
+    result = CliRunner().invoke(
+        app, ["analyze", str(sample_video), "--out", str(tmp_path), "--language", "en"]
+    )
+    assert result.exit_code == 2
+    assert "No such option" in result.output
+    assert not (tmp_path / GAME_LANGUAGE_FILENAME).exists()
+
+
+def _run_detected(
     config: AppConfig,
     sample_video: Path,
     out: Path,
     monkeypatch: pytest.MonkeyPatch,
-    *,
     detected: str,
-    supplied: VisionLanguage | None,
-) -> tuple[str, str, object]:
-    seen: list[VisionLanguage] = []
+) -> tuple[list[VisionLanguage | None], object]:
+    seen: list[VisionLanguage | None] = []
 
     def capture(vision: VisionConfig) -> list:
         seen.append(vision.language)
@@ -435,53 +421,144 @@ def _run_with(
         sample_video,
         config,
         out,
-        supplied_language=supplied,
         game_language=injected_outcome(detected, config.vision),
     )
+    return seen, manifest
+
+
+@pytest.mark.parametrize("detected", ["en", "ja"])
+def test_detected_language_alone_selects_detectors_and_identity(
+    sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, detected: str
+) -> None:
+    config = load_config(default_config_path())
+    assert config.vision.language is None
+    seen, manifest = _run_detected(config, sample_video, tmp_path, monkeypatch, detected)
     assert seen == [VisionLanguage(detected)]
-    return manifest.analysis.analysis_id, manifest.analysis.language, manifest
+    assert manifest.analysis.language == detected
+    assert manifest.game_language.language == detected
+    assert config.vision.language is None
 
 
-def test_supplied_language_never_changes_detector_language_or_identity(
+def test_en_and_ja_detections_have_distinct_identities(
     sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     config = load_config(default_config_path())
-    runs = {}
-    for name, supplied in (
-        ("none", None),
-        ("en", VisionLanguage.EN),
-        ("ja", VisionLanguage.JA),
-    ):
-        runs[name] = _run_with(
-            config,
-            sample_video,
-            tmp_path / name,
-            monkeypatch,
-            detected="ja",
-            supplied=supplied,
-        )
-    assert len({aid for aid, _lang, _m in runs.values()}) == 1
-    assert {lang for _aid, lang, _m in runs.values()} == {"ja"}
-    agreements = {k: m.game_language.supplied_agreement for k, (_, _, m) in runs.items()}
-    assert agreements == {"none": "not_supplied", "en": "disagree", "ja": "agree"}
-    assert runs["en"][2].game_language.supplied_language == "en"
+    _, english = _run_detected(config, sample_video, tmp_path / "en", monkeypatch, "en")
+    _, japanese = _run_detected(config, sample_video, tmp_path / "ja", monkeypatch, "ja")
+    assert english.analysis.analysis_id != japanese.analysis.analysis_id
+
+
+def test_a_preset_language_never_overrides_detection(
+    sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = load_config(default_config_path())
+    _, unset = _run_detected(config, sample_video, tmp_path / "unset", monkeypatch, "ja")
     config.vision.language = VisionLanguage.EN
-    stale = _run_with(
-        config,
-        sample_video,
-        tmp_path / "stale",
-        monkeypatch,
-        detected="ja",
-        supplied=None,
+    seen, preset = _run_detected(
+        config, sample_video, tmp_path / "preset", monkeypatch, "ja"
     )
-    assert stale[0] == runs["none"][0]
-    english = _run_with(
-        config,
-        sample_video,
-        tmp_path / "en_detected",
-        monkeypatch,
-        detected="en",
-        supplied=VisionLanguage.JA,
+    assert seen == [VisionLanguage.JA]
+    assert preset.analysis.language == "ja"
+    assert preset.analysis.analysis_id == unset.analysis.analysis_id
+
+
+def test_unknown_language_runs_nothing_downstream_of_resolution(
+    config: AppConfig, sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from splatoon3_ai_coach.analysis import pipeline as analysis_pipeline
+
+    _patch_probe(monkeypatch, unknown_outcome(config.vision))
+    calls: list[str] = []
+
+    def spy(name: str) -> Callable[..., object]:
+        def record(*_a: object, **_k: object) -> object:
+            calls.append(name)
+            raise AssertionError(f"{name} ran after an undetermined game language")
+
+        return record
+
+    for module, name in (
+        (vision_pipeline, "with_detected_language"),
+        (vision_pipeline, "hash_vision_config"),
+        (vision_pipeline, "compute_analysis_id"),
+        (vision_pipeline, "build_detectors"),
+        (vision_pipeline, "build_map_ink_context"),
+        (vision_pipeline, "scan_video"),
+        (vision_pipeline, "build_manifest"),
+        (analysis_pipeline, "write_scenarios"),
+    ):
+        monkeypatch.setattr(module, name, spy(name))
+    out = tmp_path / "analysis"
+    with pytest.raises(GameLanguageUndeterminedError):
+        analysis_pipeline.run_analysis(sample_video, config, out)
+    assert calls == []
+    assert sorted(p.name for p in out.iterdir()) == [GAME_LANGUAGE_FILENAME]
+
+
+def test_phase1_artifacts_with_supplied_fields_still_load(
+    config: AppConfig, tmp_path: Path
+) -> None:
+    import json
+
+    from splatoon3_ai_coach.vision.models import GameLanguageResult
+
+    probe = _probe(config.vision, lambda _t: 150.0, skip_intro=True)
+    probe.step(_frame(3.5, _callout(config.vision, "callout_ja_come_on.png")))
+    outcome = probe.finish()
+    result = build_game_language_result(outcome, tmp_path, analysis_id="aid")
+    write_game_language_diagnostics(result, outcome, tmp_path)
+    path = tmp_path / GAME_LANGUAGE_FILENAME
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["result"]["supplied_language"] = "en"
+    raw["result"]["supplied_agreement"] = "disagree"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    loaded = load_game_language_diagnostics(tmp_path)
+    assert loaded.result == result
+    assert loaded.result.language == "ja"
+    assert "supplied_language" not in loaded.result.model_dump()
+    legacy = GameLanguageResult.model_validate(
+        {
+            **result.model_dump(mode="json"),
+            "supplied_language": "en",
+            "supplied_agreement": "agree",
+        }
     )
-    assert english[0] != runs["none"][0]
-    assert english[1] == "en"
+    assert legacy == result
+
+
+_IDENTITY = {
+    "analysis_id": "aid",
+    "package_version": "test",
+    "vision_config_sha256": "sha",
+    "video_identity": "vid",
+}
+
+
+def test_analysis_identity_never_defaults_the_game_language() -> None:
+    from pydantic import ValidationError
+
+    from splatoon3_ai_coach.vision.models import AnalysisIdentity
+
+    with pytest.raises(ValidationError, match="language"):
+        AnalysisIdentity(**_IDENTITY)
+    with pytest.raises(ValidationError, match="language"):
+        AnalysisIdentity(**_IDENTITY, language="fr")
+    assert AnalysisIdentity(**_IDENTITY, language="ja").language == "ja"
+
+
+@pytest.mark.parametrize("stored", ["en", "ja", None])
+def test_stored_manifests_keep_their_language_and_identity(
+    tmp_path: Path, stored: str | None
+) -> None:
+    import json
+
+    from splatoon3_ai_coach.media.vision_manifest import load_vision_manifest
+
+    analysis = dict(_IDENTITY) if stored is None else {**_IDENTITY, "language": stored}
+    raw = {"analysis": analysis, "video_identity": "vid"}
+    (tmp_path / VISION_MANIFEST_FILENAME).write_text(json.dumps(raw), encoding="utf-8")
+    manifest = load_vision_manifest(tmp_path)
+    # Only a manifest predating analysis.language reads as English.
+    assert manifest.analysis.language == (stored or "en")
+    assert manifest.analysis.analysis_id == "aid"
+    assert manifest.analysis.vision_config_sha256 == "sha"

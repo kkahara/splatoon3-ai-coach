@@ -30,6 +30,7 @@ from splatoon3_ai_coach.media.vision_manifest import (
 from splatoon3_ai_coach.vision.basket_team import resolve_basket_team
 from splatoon3_ai_coach.vision.clam_basket_fusion import fuse_basket_state
 from splatoon3_ai_coach.vision.clam_basket_state import ClamBasketStateDetector
+from splatoon3_ai_coach.vision.game_language_result import with_detected_language
 from splatoon3_ai_coach.vision.models import (
     BasketTeamObservation,
     ClamBasketStateReading,
@@ -251,7 +252,7 @@ def test_experimental_observations_do_not_change_replay(tmp_path: Path) -> None:
     assert names.isdisjoint(config.vision.enabled_detectors)
     experimental = config.model_copy(deep=True)
     experimental.vision.enabled_detectors = sorted(names)
-    detectors = build_detectors(experimental.vision)
+    detectors = build_detectors(with_detected_language(experimental, "en").vision)
     image = cv2.imread(str(image_path))
     assert image is not None
     results, _ = observe_cadence_stream(

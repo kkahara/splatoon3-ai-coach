@@ -16,7 +16,7 @@ from splatoon3_ai_coach.config.models import (
     VisionOcrConfig,
 )
 from splatoon3_ai_coach.config.paths import default_config_path
-from splatoon3_ai_coach.exceptions import VisionError
+from splatoon3_ai_coach.exceptions import ConfigError, VisionError
 from splatoon3_ai_coach.media.vision_manifest import hash_vision_config
 from splatoon3_ai_coach.vision.death import DeathDetector
 from splatoon3_ai_coach.vision.language import (
@@ -24,9 +24,15 @@ from splatoon3_ai_coach.vision.language import (
     ocr_tesseract_lang,
     resolve_language_template_dir,
 )
+from splatoon3_ai_coach.vision.low_ink import LowInkDetector
+from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
+from splatoon3_ai_coach.vision.rainmaker_checkpoint import RainmakerCheckpointDetector
+from splatoon3_ai_coach.vision.rainmaker_possession import RainmakerPossessionDetector
+from splatoon3_ai_coach.vision.ready import ReadyDetector
 from splatoon3_ai_coach.vision.registry import build_detectors
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
+from splatoon3_ai_coach.vision.tower_control import TowerControlDetector
 
 _REPO = Path(__file__).resolve().parents[1]
 _RESPAWN = _REPO / "calibration" / "templates" / "respawn"
@@ -34,11 +40,100 @@ _SPLAT = _REPO / "calibration" / "templates" / "splat"
 _DEATH = _REPO / "calibration" / "templates" / "death"
 
 
-def test_default_config_sets_english_language() -> None:
+def test_default_config_leaves_the_game_language_unset() -> None:
     config = load_config(default_config_path())
-    assert config.vision.language == VisionLanguage.EN
-    assert config.vision.tesseract_lang() == "eng"
+    assert config.vision.language is None
+    assert VisionConfig.model_fields["language"].default is None
     assert config.vision.ocr.engine == "tesseract"
+    with pytest.raises(ValueError, match="unset"):
+        config.vision.tesseract_lang()
+
+
+@pytest.mark.parametrize("value", ["en", "ja", None])
+def test_yaml_game_language_is_rejected(tmp_path: Path, value: str | None) -> None:
+    text = default_config_path().read_text(encoding="utf-8")
+    path = tmp_path / "config.yaml"
+    path.write_text(
+        text.replace("vision:\n", f"vision:\n  language: {value or 'null'}\n", 1),
+        encoding="utf-8",
+    )
+    with pytest.raises(ConfigError, match="vision.language is not configurable"):
+        load_config(path)
+
+
+def test_detectors_and_templates_fail_closed_without_a_detected_language(
+    tmp_path: Path,
+) -> None:
+    config = load_config(default_config_path())
+    with pytest.raises(VisionError, match="unset"):
+        build_detectors(config.vision)
+    with pytest.raises(VisionError, match="unset"):
+        resolve_language_template_dir(tmp_path, None)
+
+
+def _language_detector_factories() -> dict:
+    vision = load_config(default_config_path()).vision
+    return {
+        "death": lambda **kw: DeathDetector(vision.death, **kw),
+        "splat": lambda **kw: SplatDetector(vision.splat, **kw),
+        "respawn": lambda **kw: RespawnDetector(vision.respawn, ocr_lang="eng", **kw),
+        "ready": lambda **kw: ReadyDetector(vision.ready, **kw),
+        "low_ink": lambda **kw: LowInkDetector(vision.low_ink, **kw),
+        "tower_control": lambda **kw: TowerControlDetector(vision.tower_control, **kw),
+        "rainmaker_possession": lambda **kw: RainmakerPossessionDetector(
+            vision.rainmaker_possession, **kw
+        ),
+        "rainmaker_checkpoint": lambda **kw: RainmakerCheckpointDetector(
+            vision.rainmaker_checkpoint, **kw
+        ),
+    }
+
+
+@pytest.mark.parametrize("name", sorted(_language_detector_factories()))
+def test_language_dependent_detectors_have_no_default_language(name: str) -> None:
+    make = _language_detector_factories()[name]
+    with pytest.raises(TypeError, match="language"):
+        make()
+    with pytest.raises(VisionError, match="unset"):
+        make(language=None)
+    with pytest.raises(VisionError, match="Unsupported game language"):
+        make(language="fr")
+    for language in (VisionLanguage.EN, "ja"):
+        detector = make(language=language)
+        if hasattr(detector, "language"):
+            assert detector.language == VisionLanguage(language).value
+
+
+def test_match_intro_has_no_default_and_never_falls_back_to_english() -> None:
+    # match_intro.py is pinned by the map-ink-reference Amendment 4 seal, so an
+    # unusable language keeps its soft-fail (no templates) instead of raising.
+    config = load_config(default_config_path()).vision.match_intro
+    with pytest.raises(TypeError, match="language"):
+        MatchIntroDetector(config)  # type: ignore[call-arg]
+    for unusable in (None, "fr"):
+        detector = MatchIntroDetector(config, language=unusable)  # type: ignore[arg-type]
+        assert detector._mode_templates == {} and detector._stage_templates == {}
+    en = MatchIntroDetector(config, language="en")
+    ja = MatchIntroDetector(config, language=VisionLanguage.JA)
+    assert en._mode_templates and ja._mode_templates
+
+
+def test_respawn_requires_an_explicit_ocr_pack() -> None:
+    with pytest.raises(TypeError, match="ocr_lang"):
+        RespawnDetector(RespawnDetectorConfig(template_dir=_RESPAWN), language="ja")
+
+
+def test_ocr_pack_never_falls_back_to_english(timer_template_dir: Path) -> None:
+    config = VisionConfig(
+        language=VisionLanguage.JA,
+        ocr=VisionOcrConfig(tesseract_languages={"en": "eng"}),
+        timer=TimerDetectorConfig(
+            roi=(0.0, 0.0, 1.0, 1.0),
+            template_dir=timer_template_dir,
+        ),
+    )
+    with pytest.raises(ValueError, match="no pack for 'ja'"):
+        config.tesseract_lang()
 
 
 def test_invalid_language_is_rejected(timer_template_dir: Path) -> None:
@@ -114,10 +209,12 @@ def test_respawn_loads_only_language_templates() -> None:
     en = RespawnDetector(
         RespawnDetectorConfig(template_dir=_RESPAWN),
         language=VisionLanguage.EN,
+        ocr_lang="eng",
     )
     ja = RespawnDetector(
         RespawnDetectorConfig(template_dir=_RESPAWN),
         language=VisionLanguage.JA,
+        ocr_lang="jpn",
     )
     assert en._template_dir == _RESPAWN / "en"
     assert ja._template_dir == _RESPAWN / "ja"
