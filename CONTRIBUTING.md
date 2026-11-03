@@ -24,7 +24,7 @@ Switch clip). Output goes under `analysis/`, which is gitignored:
 
 ```bash
 s3-coach analyze path/to/match.mp4 --out ./analysis/my-match
-s3-coach vision-view ./analysis/my-match/vision_manifest.json
+s3-coach vmv-site
 ```
 
 ## The one idea to keep in mind

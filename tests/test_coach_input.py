@@ -7,6 +7,11 @@ from pathlib import Path
 
 import pytest
 
+from splatoon3_ai_coach.analysis.objective_progress import (
+    ObjectiveProgressEvidence,
+    ObjectiveProgressObservation,
+    ObjectiveTemporalSample,
+)
 from splatoon3_ai_coach.analysis.scenario_context import build_scenario_contexts
 from splatoon3_ai_coach.analysis.scenario_models import ScenarioType
 from splatoon3_ai_coach.analysis.scenarios import build_scenarios, event_id
@@ -136,6 +141,44 @@ def _unit(
         max_gap_seconds=max_gap,
         player_count_clock=player_count_clock,
         player_count_max_gap_seconds=max_gap,
+    )
+
+
+def _objective_progress_with_advantage() -> ObjectiveProgressEvidence:
+    return ObjectiveProgressEvidence(
+        max_gap_seconds=1.0,
+        observations=[
+            ObjectiveTemporalSample(
+                objective=ObjectiveProgressObservation(
+                    game_mode_id="splat_zones",
+                    team="ally",
+                    video_time=40.0,
+                    value_kind="remaining_count",
+                    value_label="ally remaining count",
+                    original_value=72,
+                    objective_evidence_ids=["score:40"],
+                ),
+                ally_alive_count=4,
+                opponent_alive_count=2,
+                roster_reliable=True,
+            ),
+            ObjectiveTemporalSample(
+                objective=ObjectiveProgressObservation(
+                    game_mode_id="splat_zones",
+                    team="ally",
+                    video_time=40.5,
+                    value_kind="remaining_count",
+                    value_label="ally remaining count",
+                    original_value=72,
+                    progress_state_from_previous="no_progress",
+                    normalized_progress_amount=0,
+                    objective_evidence_ids=["score:40.5"],
+                ),
+                ally_alive_count=4,
+                opponent_alive_count=2,
+                roster_reliable=True,
+            ),
+        ],
     )
 
 
@@ -610,6 +653,32 @@ def test_coach_input_composition_leaves_scenario_untouched() -> None:
     assert unit.player_count_window
     assert unit.player_count_context is not None
     assert "ally_alive_count" not in before_contexts[0]
+
+
+def test_coach_input_keeps_derived_objective_temporal_facts() -> None:
+    events = [_death(48.0), _respawn(55.0), _active(57.0)]
+    config = _cfg()
+    scenarios = build_scenarios(events, config)
+    contexts = build_scenario_contexts(events, scenarios, config)
+    primary = next(s for s in scenarios if s.scenario_type is ScenarioType.DEATH_EPISODE)
+    progress = _objective_progress_with_advantage()
+    contexts = [
+        context.model_copy(update={"objective_progress": progress})
+        if context.scenario_id == primary.scenario_id
+        else context
+        for context in contexts
+    ]
+
+    unit = build_coach_input_for_scenario(
+        primary.scenario_id,
+        scenarios,
+        contexts,
+        GameClock(),
+        max_gap_seconds=1.0,
+    )
+
+    assert unit.objective_temporal_facts is not None
+    assert unit.objective_temporal_facts.number_advantage_without_progress is not None
 
 
 def test_roster_transition_does_not_emit_game_event() -> None:

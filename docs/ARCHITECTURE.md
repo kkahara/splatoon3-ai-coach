@@ -84,4 +84,4 @@ and enforced by `tests/test_coach_evidence_contract.py`.
 | Change prompts or LLM calls | `coach/prompts/`, `coach/llm_client.py`, `cli/coach_prototype.py` |
 | Work on Review timeline import | `review/timeline_pipeline.py`, `review/video_adapter.py` |
 | Add a config option | `config/models.py` and `configs/default.yaml` |
-| Debug a run visually | `s3-coach vision-view <manifest>` |
+| Inspect a run visually | `s3-coach vmv-site` |

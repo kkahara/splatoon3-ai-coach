@@ -13,6 +13,7 @@ import {
 import { GT_LABELS, GT_MEANINGS, detectorForChannel, formatTime, labelsFor } from "../labels.js";
 import { Disclosure } from "../Disclosure.jsx";
 import { ScenarioStudio } from "./ScenarioStudio.jsx";
+import { resolveObjectiveEvidence } from "../objectiveEvidence.js";
 
 function mediaUrl(runId, relpath) {
   const parts = relpath.split("/").map((part) => encodeURIComponent(part));
@@ -35,7 +36,9 @@ export function RunPage() {
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [playhead, setPlayhead] = useState(null);
+  const [evidenceFocus, setEvidenceFocus] = useState(null);
   const videoRef = useRef(null);
+  const observationRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,11 +69,15 @@ export function RunPage() {
     });
   }, [allTiles, t0, t1, detector, confidence]);
 
-  const selected = observations.find((obs) => obs.id === selectedId)
+  const selected = evidenceFocus?.kind === "missing" ? null : observations.find((obs) => obs.id === selectedId)
     || preferredReading(tiles[0], detector)
     || null;
   const duration = view?.summary?.duration_seconds || 1;
   const scenarios = view?.scenario_evidence || [];
+  const chipDetectors = [...CHIP_DETECTORS, ...[
+    "score", "zone_control", "tower_control", "rainmaker_score",
+    "rainmaker_possession", "rainmaker_checkpoint", "clam_score",
+  ].filter((name) => view?.detectors?.includes(name))];
   const scenario = scenarios[scenarioIndex] || null;
 
   useEffect(() => {
@@ -113,6 +120,7 @@ export function RunPage() {
   }
 
   function onDetector(value) {
+    setEvidenceFocus(null);
     setDetector(value);
     if (value === "special_gauge") setChannel("special_usage");
   }
@@ -135,6 +143,7 @@ export function RunPage() {
   }
 
   function focusTime(time) {
+    setEvidenceFocus(null);
     const tile = nearestTile(allTiles, time);
     if (tile) {
       revealTile(tile);
@@ -147,9 +156,26 @@ export function RunPage() {
 
   function selectReading(reading) {
     if (!reading) return;
+    setEvidenceFocus(null);
     setSelectedId(reading.id);
     setPlayhead(reading.timestamp);
     seekVideo(reading.timestamp);
+  }
+
+  function viewObjectiveEvidence(reference) {
+    const resolution = resolveObjectiveEvidence(reference, observations);
+    const reading = resolution.observation;
+    setEvidenceFocus({ ...resolution, reference });
+    setDetector("");
+    setConfidence(0);
+    setSelectedId(reading?.id || null);
+    const time = reading?.timestamp ?? reference.videoTime;
+    if (time != null) {
+      revealTile({ timestamp: time });
+      setPlayhead(time);
+      seekVideo(time);
+    }
+    requestAnimationFrame(() => observationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
   }
 
   useEffect(() => {
@@ -305,7 +331,7 @@ export function RunPage() {
                 ) : <span className="ph">No image</span>}
                 <span className="when">{formatTime(tile.timestamp)}</span>
                 <div className="badge-grid">
-                  {CHIP_DETECTORS.map((name) => {
+                  {chipDetectors.map((name) => {
                     const chip = tile.readings.find((item) => item.detector === name);
                     const on = chip?.positive ? "on" : "";
                     const active = chip && chip.id === selectedId ? "picked" : "";
@@ -334,8 +360,15 @@ export function RunPage() {
       </section>
 
       <section className="split">
-        <div>
+        <div ref={observationRef}>
           <h2>Selected observation</h2>
+          {evidenceFocus && <p className="objective-navigation" role="status">
+            {evidenceFocus.kind === "detector" ? "Exact detector evidence selected."
+              : evidenceFocus.kind === "frame" ? "Exact source frame selected; referenced detector result unavailable."
+                : "Supporting frame unavailable: no exact detector or frame record matches this reference."}
+            {evidenceFocus.kind === "missing" && evidenceFocus.reference.videoTime != null
+              ? ` Referenced video time ${formatTime(evidenceFocus.reference.videoTime)}. No nearby image substituted.` : ""}
+          </p>}
           {selected ? (
             <>
               <p>{formatTime(selected.timestamp)} · {selected.detector || "frame"} · {selected.lifecycle || "—"}</p>
@@ -352,10 +385,10 @@ export function RunPage() {
                 <dt>Positive</dt><dd>{String(selected.positive)}</dd>
               </dl>
               <Disclosure key={selected.id || selected.timestamp} title="Raw JSON">
-                <pre>{JSON.stringify(selected.reading, null, 2)}</pre>
+                <pre>{JSON.stringify(selected, null, 2)}</pre>
               </Disclosure>
             </>
-          ) : <p>No observation in this filter.</p>}
+          ) : <p>{evidenceFocus?.kind === "missing" ? "Use the video at the referenced time to review the scene." : "No observation in this filter."}</p>}
         </div>
         <div>
           <h2>Ground truth</h2>
@@ -414,6 +447,7 @@ export function RunPage() {
         onSelect={(index) => setScenarioIndex(Math.max(0, Math.min(scenarios.length - 1, index)))}
         videoRef={videoRef}
         videoUrl={view.review_video_url}
+        onViewEvidence={viewObjectiveEvidence}
         onRefresh={async () => {
           const next = await api(`/api/runs/${encodeURIComponent(runId)}`);
           setPayload(next);

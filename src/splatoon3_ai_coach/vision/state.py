@@ -17,9 +17,11 @@ from splatoon3_ai_coach.config.models import (
     SplatDetectorConfig,
     StateFusionConfig,
     TimerDetectorConfig,
+    TowerControlDetectorConfig,
     ZoneControlDetectorConfig,
 )
 from splatoon3_ai_coach.vision.clam_basket_fusion import fuse_basket_state
+from splatoon3_ai_coach.vision.clam_score_fusion import fuse_clam_score
 from splatoon3_ai_coach.vision.lifecycle import (
     LifecycleFuser,
     extract_lifecycle_observation,
@@ -28,6 +30,7 @@ from splatoon3_ai_coach.vision.models import (
     DetectorResult,
     GameStateSnapshot,
     PlayerCountReading,
+    RainmakerPossessionObservation,
     SourceFrameReference,
     SplatBannerInstance,
     SplatReading,
@@ -36,6 +39,15 @@ from splatoon3_ai_coach.vision.models import (
     VisionFrameResult,
 )
 from splatoon3_ai_coach.vision.player_count import alive_counts_from_reading
+from splatoon3_ai_coach.vision.rainmaker_checkpoint_observations import (
+    checkpoint_observations_by_frame,
+)
+from splatoon3_ai_coach.vision.rainmaker_checkpoint_state import RainmakerCheckpointFuser
+from splatoon3_ai_coach.vision.rainmaker_possession_observations import (
+    collect_rainmaker_possession_observations,
+)
+from splatoon3_ai_coach.vision.rainmaker_possession_state import RainmakerPossessionFuser
+from splatoon3_ai_coach.vision.rainmaker_score_fusion import fuse_rainmaker_score
 from splatoon3_ai_coach.vision.score_fusion import (
     ScoreFrameFuser,
     ScoreFrameFusion,
@@ -44,6 +56,12 @@ from splatoon3_ai_coach.vision.score_fusion import (
     resolve_battle_mode,
     retract_contradicted_scores,
 )
+from splatoon3_ai_coach.vision.tower_control_state import TowerControlMessageFuser
+from splatoon3_ai_coach.vision.tower_fusion import fuse_tower_observation
+from splatoon3_ai_coach.vision.tower_opponent_lost import (
+    collect_opponent_lost_observations,
+)
+from splatoon3_ai_coach.vision.tower_took import collect_took_observations
 from splatoon3_ai_coach.vision.zone_control_fusion import (
     ZoneControlFuser,
 )
@@ -104,6 +122,7 @@ def fuse_game_state(
     low_ink_config: LowInkDetectorConfig | None = None,
     score_config: ScoreDetectorConfig | None = None,
     zone_control_config: ZoneControlDetectorConfig | None = None,
+    tower_control_config: TowerControlDetectorConfig | None = None,
 ) -> list[GameStateSnapshot]:
     """Fuse detector readings into domain snapshots. Does not emit game events."""
     death_cfg = death_config or DeathDetectorConfig()
@@ -131,6 +150,29 @@ def fuse_game_state(
     zone_fuser = ZoneControlFuser(zone_cfg, resolve_battle_mode(frame_results))
     ally_roster_mem = _RosterSideMemory()
     opponent_roster_mem = _RosterSideMemory()
+    tower_control_fuser = TowerControlMessageFuser()
+    rainmaker_possession_fuser = RainmakerPossessionFuser()
+    rainmaker_checkpoint_fuser = RainmakerCheckpointFuser()
+    rainmaker_checkpoints = checkpoint_observations_by_frame(frame_results)
+    rainmaker_possession_by_frame = _rainmaker_possession_by_frame(frame_results)
+    opponent_lost_by_frame = {}
+    for observation in collect_opponent_lost_observations(frame_results):
+        for index, sample in enumerate(observation.samples):
+            opponent_lost_by_frame[sample.source_frame.frame_id] = observation.model_copy(
+                update={
+                    "samples": observation.samples[: index + 1],
+                    "last_video_time": sample.video_time,
+                }
+            )
+    took_by_frame = {}
+    for observation in collect_took_observations(frame_results):
+        for index, sample in enumerate(observation.samples):
+            took_by_frame[sample.source_frame.frame_id] = observation.model_copy(
+                update={
+                    "samples": observation.samples[: index + 1],
+                    "last_video_time": sample.video_time,
+                }
+            )
 
     for frame in sorted(frame_results, key=lambda item: item.timestamp):
         source = _source_reference(frame)
@@ -183,9 +225,46 @@ def fuse_game_state(
             life.match_phase,
             map_overlay_present=life.map_overlay_present,
         )
+        tower_pods, tower_marker, tower_presentation, tower_ids = fuse_tower_observation(
+            frame,
+            battle_mode_id,
+            life.match_phase,
+            map_overlay_present=life.map_overlay_present,
+        )
+        tower_control_state, tower_control_evidence = tower_control_fuser.step(
+            frame,
+            battle_mode_id,
+            life.match_phase,
+            opponent_lost_observation=opponent_lost_by_frame.get(frame.frame_id),
+            took_observation=took_by_frame.get(frame.frame_id),
+        )
+        rainmaker_possession_state, rainmaker_possession_evidence = (
+            rainmaker_possession_fuser.step(
+                frame,
+                battle_mode_id,
+                life.match_phase,
+                rainmaker_possession_by_frame.get(frame.frame_id),
+            )
+        )
         snapshots.append(
             GameStateSnapshot(
                 timestamp=frame.timestamp,
+                clam_score=fuse_clam_score(
+                    frame,
+                    battle_mode_id,
+                    life.match_phase,
+                    life.map_overlay_present,
+                    score_cfg,
+                ),
+                **fuse_rainmaker_score(
+                    frame, battle_mode_id, life.match_phase, life.map_overlay_present
+                ),
+                rainmaker_possession_state=rainmaker_possession_state,
+                rainmaker_possession_evidence=rainmaker_possession_evidence,
+                rainmaker_checkpoint_state=rainmaker_checkpoint_fuser.step(
+                    frame, battle_mode_id, life.match_phase,
+                    rainmaker_checkpoints.get(frame.frame_id),
+                ),
                 match_time_remaining=remaining,
                 player_alive=life.player_alive,
                 player_splatted=splatted,
@@ -217,6 +296,12 @@ def fuse_game_state(
                 zone_control_quality=zone.quality,
                 basket_state=basket_state,
                 basket_state_evidence_ids=basket_ids,
+                tower_score_pods=tower_pods,
+                tower_marker=tower_marker,
+                tower_control_presentation=tower_presentation,
+                tower_evidence_ids=tower_ids,
+                tower_control_state=tower_control_state,
+                tower_control_evidence=tower_control_evidence,
                 quality=quality,
                 evidence_ids=_combined_evidence(
                     remaining,
@@ -231,6 +316,8 @@ def fuse_game_state(
                     score_ids=score.evidence_ids,
                     zone_state=zone.state,
                     zone_ids=zone.evidence_ids,
+                    tower_asserted=bool(tower_ids),
+                    tower_ids=tower_ids,
                 ),
                 source_frame=source,
                 last_observed_at=last_timer_at,
@@ -241,6 +328,20 @@ def fuse_game_state(
     if score_fuser.plausibility.enabled:
         snapshots = _apply_score_retractions(snapshots, score_fusions, score_cfg)
     return snapshots
+
+
+def _rainmaker_possession_by_frame(
+    frame_results: list[VisionFrameResult],
+) -> dict[str, RainmakerPossessionObservation]:
+    """Map grouped display samples to frames with only observed support so far."""
+    by_frame: dict[str, RainmakerPossessionObservation] = {}
+    for observation in collect_rainmaker_possession_observations(frame_results):
+        for index, sample in enumerate(observation.samples):
+            by_frame[sample.source_frame.frame_id] = observation.model_copy(update={
+                "samples": observation.samples[: index + 1],
+                "last_video_time": sample.video_time,
+            })
+    return by_frame
 
 
 def _apply_score_retractions(
@@ -477,6 +578,8 @@ def _combined_evidence(
     score_ids: list[str] | None = None,
     zone_state: str = "unknown",
     zone_ids: list[str] | None = None,
+    tower_asserted: bool = False,
+    tower_ids: list[str] | None = None,
 ) -> list[str]:
     """Keep evidence IDs for fields this snapshot actually asserts."""
     ids: list[str] = []
@@ -492,6 +595,8 @@ def _combined_evidence(
         ids.extend(score_ids)
     if zone_state != "unknown" and zone_ids:
         ids.extend(zone_ids)
+    if tower_asserted and tower_ids:
+        ids.extend(tower_ids)
     seen: set[str] = set()
     unique: list[str] = []
     for item in ids:

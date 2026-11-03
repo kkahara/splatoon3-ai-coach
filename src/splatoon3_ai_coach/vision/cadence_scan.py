@@ -170,7 +170,17 @@ def _observe_cadence_frame(
         )
         maybe_calibrate_team_colors(map_ctx, video_frame, detections)
         maybe_sample_map_ink(map_ctx, video_frame, detections)
+    from splatoon3_ai_coach.vision.rainmaker_score import associate_rainmaker_scores
+
+    rainmaker_association = None
+    if map_ctx is not None:
+        for detection in detections:
+            if detection.detector_name == "rainmaker_score":
+                rainmaker_association = associate_rainmaker_scores(
+                    detection, map_ctx.calibration
+                )
     basket_team = None
+    tower_team = None
     if map_ctx is not None:
         for detection in detections:
             if detection.detector_name == "clam_basket_state":
@@ -193,6 +203,8 @@ def _observe_cadence_frame(
             detector.name == "clam_basket_state" for detector in active
         ),
         basket_team=basket_team,
+        rainmaker_score_association=rainmaker_association,
+        tower_team=tower_team,
         source_frame_index=video_frame.frame_index,
         source_pts=video_frame.source_pts,
         source_time_base_num=video_frame.source_time_base_num,

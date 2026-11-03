@@ -56,11 +56,20 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
             "player_count",
             "special_gauge",
             "score",
+            "tower_control",
+            "rainmaker_score",
+            "rainmaker_possession",
+            "rainmaker_checkpoint",
         ):
             section = vision.get(key)
             if not isinstance(section, dict):
                 continue
-            for field in ("template_dir", "ouch_template_dir", "geometry_dir"):
+            for field in (
+                "template_dir",
+                "ouch_template_dir",
+                "geometry_dir",
+                "checkpoint_cue_template_dir",
+            ):
                 template_dir = section.get(field)
                 if template_dir is not None:
                     path = Path(template_dir)

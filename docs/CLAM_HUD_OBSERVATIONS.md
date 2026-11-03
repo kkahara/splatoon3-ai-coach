@@ -2,8 +2,10 @@
 
 `clam_score` and `clam_basket_state` are experimental, opt-in detectors. Add
 those names to `vision.enabled_detectors` to record per-frame observations.
-They do not feed score fusion, objective temporal evidence, scenario
-construction, ranking, coaching, or events.
+`clam_score` now feeds a separate Clam snapshot observation and the additive
+ScenarioContext objective inspection path. It does not change the legacy score
+fields, Scenario ownership, ranking, coaching, or events. Basket observations
+remain independent of score fusion.
 
 `clam_score` reuses the shared score digit and penalty ROIs, templates, and
 `+`-glyph requirement. It adds Clam-specific white-on-color segmentation.
@@ -15,6 +17,25 @@ labeled EN/JA study frames. One supplied 80–53 screenshot produced 80, 53,
 and a right penalty of +11. Another supplied 80–32 screenshot contains red
 lines across the digit crops; its penalties were read as +10 and +16. Penalty
 accuracy across independent clean Clam footage remains unvalidated.
+
+## Score association and persistence
+
+The existing English and Japanese development frames show the allied HUD bank
+and count on the left, and the opposing bank and count on the right. For a
+resolved in-match Clam Blitz frame, `clam_score` is associated using those
+fixed sides. The same source result ID and canonical source frame identify all
+observations. Results must be unique and digit matches must meet the configured
+threshold. A visible `+N` may be observed independently of the main count;
+missing or unreadable values are unknown, never zero. Map-overlay frames are
+unknown. No value is held or backfilled, no Splat Zones score-rate rules are
+applied, and no basket state is used to establish score or progress.
+
+An opt-in detector is required: add `clam_score` to `vision.enabled_detectors`.
+Refusion can populate these observations from stored `clam_score` readings;
+it cannot create absent detector observations. The detector's labeled 12-frame
+main-count study and the two reviewed English/Japanese penalty examples are
+development checks. They do not independently validate penalty accuracy,
+single-digit score accuracy, or generalization to every palette or condition.
 
 ## Basket visual state
 

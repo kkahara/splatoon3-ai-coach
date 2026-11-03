@@ -14,18 +14,38 @@ from splatoon3_ai_coach.vision.low_ink import LowInkDetector
 from splatoon3_ai_coach.vision.map_overlay import MapOverlayDetector
 from splatoon3_ai_coach.vision.match_intro import MatchIntroDetector
 from splatoon3_ai_coach.vision.player_count import PlayerCountDetector
+from splatoon3_ai_coach.vision.rainmaker_checkpoint import RainmakerCheckpointDetector
+from splatoon3_ai_coach.vision.rainmaker_possession import RainmakerPossessionDetector
+from splatoon3_ai_coach.vision.rainmaker_score import RainmakerScoreDetector
 from splatoon3_ai_coach.vision.ready import ReadyDetector
 from splatoon3_ai_coach.vision.respawn import RespawnDetector
 from splatoon3_ai_coach.vision.score import ClamScoreDetector, ScoreDetector
 from splatoon3_ai_coach.vision.special_gauge import SpecialGaugeDetector
 from splatoon3_ai_coach.vision.splat import SplatDetector
 from splatoon3_ai_coach.vision.timer import TimerDetector
+from splatoon3_ai_coach.vision.tower_control import TowerControlDetector
 from splatoon3_ai_coach.vision.zone_control import ZoneControlDetector
 
 
 def build_detectors(config: VisionConfig) -> list[BaseDetector]:
     """Construct configured detectors for an analysis run."""
     detectors: list[BaseDetector] = []
+    if "rainmaker_checkpoint" in config.enabled_detectors:
+        detectors.append(RainmakerCheckpointDetector(
+            config.rainmaker_checkpoint,
+            language=config.language.value,
+            cadence_fps=config.hud_cadence_fps,
+        ))
+    if "rainmaker_score" in config.enabled_detectors:
+        detectors.append(RainmakerScoreDetector(
+            config.rainmaker_score, cadence_fps=config.hud_cadence_fps
+        ))
+    if "rainmaker_possession" in config.enabled_detectors:
+        detectors.append(RainmakerPossessionDetector(
+            config.rainmaker_possession,
+            language=config.language.value,
+            cadence_fps=config.hud_cadence_fps,
+        ))
     if "timer" in config.enabled_detectors:
         detectors.append(TimerDetector(config.timer, cadence_fps=config.hud_cadence_fps))
     if "death" in config.enabled_detectors:
@@ -133,6 +153,14 @@ def build_detectors(config: VisionConfig) -> list[BaseDetector]:
         detectors.append(
             ClamBasketStateDetector(
                 config.clam_blitz.basket_state, cadence_fps=config.hud_cadence_fps
+            )
+        )
+    if "tower_control" in config.enabled_detectors:
+        detectors.append(
+            TowerControlDetector(
+                config.tower_control,
+                cadence_fps=config.hud_cadence_fps,
+                language=config.language,
             )
         )
     if "zone_control" in config.enabled_detectors:

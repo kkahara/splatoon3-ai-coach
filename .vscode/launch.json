@@ -8,29 +8,27 @@
             "default": "2026-09-05 23-15-32"
         },
         {
-            "id": "videoExt",
-            "type": "pickString",
-            "description": "Video file extension",
-            "options": [".mov", ".mp4"],
-            "default": ".mov"
+            "id": "analysisRoot",
+            "type": "promptString",
+            "description": "Analysis root containing run folders (absolute or relative to the workspace)",
+            "default": "analysis"
         }
     ],
     "configurations": [
         {
-            "name": "s3-coach: vision-view",
+            "name": "s3-coach: React VMV site",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/bin/s3-coach",
             "python": "${workspaceFolder}/.venv/bin/python",
             "args": [
                 "-v",
-                "vision-view",
-                "${workspaceFolder}/analysis/${input:videoName}/vision_manifest.json",
-                "--config",
-                "${workspaceFolder}/configs/default.yaml",
-                "--video",
-                "/Users/kenjikahara/Movies/${input:videoName}${input:videoExt}"
+                "vmv-site",
+                "--no-open"
             ],
+            "env": {
+                "VMV_ANALYSIS_ROOT": "${input:analysisRoot}"
+            },
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": true
@@ -45,28 +43,6 @@
                 "-v",
                 "analyze",
                 "/Users/kenjikahara/Movies/${input:videoName}.mov",
-                "--out",
-                "${workspaceFolder}/analysis/${input:videoName}",
-                "--config",
-                "${workspaceFolder}/configs/player_count_validate.yaml",
-                "--language",
-                "ja",
-                "--debug-persist-cadence-frames"
-            ],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "s3-coach: analyze ja mp4",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/.venv/bin/s3-coach",
-            "python": "${workspaceFolder}/.venv/bin/python",
-            "args": [
-                "-v",
-                "analyze",
-                "/Users/kenjikahara/Movies/${input:videoName}.mp4",
                 "--out",
                 "${workspaceFolder}/analysis/${input:videoName}",
                 "--config",

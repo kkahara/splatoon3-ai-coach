@@ -46,6 +46,12 @@ from splatoon3_ai_coach.vision.models import (
     VisionManifest,
 )
 from splatoon3_ai_coach.vision.provenance import detector_version, git_short_sha
+from splatoon3_ai_coach.vision.rainmaker_checkpoint_observations import (
+    collect_rainmaker_checkpoint_observations,
+)
+from splatoon3_ai_coach.vision.rainmaker_possession_observations import (
+    collect_rainmaker_possession_observations,
+)
 from splatoon3_ai_coach.vision.registry import build_detectors
 from splatoon3_ai_coach.vision.review_icon import ReviewIconTracker
 from splatoon3_ai_coach.vision.state import fuse_game_state
@@ -55,6 +61,10 @@ from splatoon3_ai_coach.vision.timing_manifest import (
     build_timing,
     log_completion,
 )
+from splatoon3_ai_coach.vision.tower_opponent_lost import (
+    collect_opponent_lost_observations,
+)
+from splatoon3_ai_coach.vision.tower_took import collect_took_observations
 
 # Re-exports for public / test API stability.
 __all__ = [
@@ -157,6 +167,16 @@ def run_vision(
         video=run_video,
         git_sha=git_sha,
     )
+    manifest.tower_opponent_lost_observations = collect_opponent_lost_observations(
+        frame_results
+    )
+    manifest.tower_took_observations = collect_took_observations(frame_results)
+    manifest.rainmaker_possession_observations = (
+        collect_rainmaker_possession_observations(frame_results)
+    )
+    manifest.rainmaker_checkpoint_observations = (
+        collect_rainmaker_checkpoint_observations(frame_results)
+    )
     save_vision_manifest(manifest, output_dir)
     log_completion(manifest, timing)
     return manifest
@@ -173,7 +193,21 @@ def refuse_vision_manifest(manifest: VisionManifest, config: AppConfig) -> Visio
         update={"refused_vision_config_sha256": hash_vision_config(config.vision)}
     )
     return manifest.model_copy(
-        update={"analysis": analysis, "state_snapshots": snapshots, "game_events": events}
+        update={
+            "analysis": analysis,
+            "state_snapshots": snapshots,
+            "game_events": events,
+            "tower_opponent_lost_observations": collect_opponent_lost_observations(
+                manifest.frame_results
+            ),
+            "tower_took_observations": collect_took_observations(manifest.frame_results),
+            "rainmaker_possession_observations": (
+                collect_rainmaker_possession_observations(manifest.frame_results)
+            ),
+            "rainmaker_checkpoint_observations": (
+                collect_rainmaker_checkpoint_observations(manifest.frame_results)
+            ),
+        }
     )
 
 
@@ -196,6 +230,7 @@ def _interpret_observations(
         config.vision.low_ink,
         config.vision.score,
         config.vision.zone_control,
+        config.vision.tower_control,
     )
     decision = detect_match_end(
         frame_results,
@@ -212,6 +247,19 @@ def _interpret_observations(
                 "match_phase": "post_match",
                 "basket_state": "unknown",
                 "basket_state_evidence_ids": [],
+                "clam_score": None,
+                "tower_checkpoint_identity": None,
+                "tower_checkpoint_state": None,
+                "tower_control_state": "unknown",
+                "tower_control_evidence": None,
+                "rainmaker_score_reading": None,
+                "rainmaker_score_association": None,
+                "rainmaker_ally_remaining": None,
+                "rainmaker_opponent_remaining": None,
+                "rainmaker_score_evidence_ids": [],
+                "rainmaker_possession_state": "unknown",
+                "rainmaker_possession_evidence": None,
+                "rainmaker_checkpoint_state": None,
             }
         )
         if item.timestamp >= decision.time

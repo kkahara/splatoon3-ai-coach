@@ -221,9 +221,7 @@ def test_ground_truth_round_trip_and_reject(tmp_path: Path) -> None:
     malformed = client.put(
         "/api/runs/gt-run/ground-truth",
         json={
-            "intervals": [
-                {"t0": 3, "t1": 1, "detector": "death", "label": "real_death"}
-            ]
+            "intervals": [{"t0": 3, "t1": 1, "detector": "death", "label": "real_death"}]
         },
     )
     assert malformed.status_code == 422
@@ -346,9 +344,7 @@ def test_scenario_review_round_trip_and_reject(tmp_path: Path) -> None:
     unknown_scenario = client.put(
         "/api/runs/review-run/scenario-review",
         json={
-            "marks": [
-                {"scenario_id": "death_episode:9.000", "status": "needs_review"}
-            ]
+            "marks": [{"scenario_id": "death_episode:9.000", "status": "needs_review"}]
         },
     )
     assert unknown_scenario.status_code == 422
@@ -742,3 +738,171 @@ def test_vmv_site_is_a_cli_command() -> None:
     result = CliRunner().invoke(cli_app, ["--help"])
     assert result.exit_code == 0
     assert "vmv-site" in result.stdout
+
+
+def test_objective_api_retains_all_four_exported_modes_without_coaching(
+    tmp_path: Path,
+) -> None:
+    """Read explicit objective artifacts, including facts absent from the manifest."""
+    from pydantic import TypeAdapter
+
+    from splatoon3_ai_coach.analysis.objective_context import ObjectiveContext
+
+    settings = _settings(tmp_path)
+    client, _, _ = _client(settings)
+    sample = {"video_time": 9.5, "ally_remaining": 68, "opponent_remaining": 32}
+    payloads = [
+        {"mode": "splat_zones", "score": {"at_anchor": sample}},
+        {
+            "mode": "tower_control",
+            "control": {
+                "at_anchor": {
+                    "sample_video_time": 10,
+                    "state": "returning",
+                    "quality": "held",
+                    "state_established_video_time": 5,
+                }
+            },
+        },
+        {
+            "mode": "rainmaker",
+            "counts": {"at_anchor": sample},
+            "possession": {},
+            "checkpoint": {
+                "at_anchor": {
+                    "sample_video_time": 10,
+                    "state": {"ally": "unknown", "opponent": "unknown"},
+                }
+            },
+        },
+        {
+            "mode": "clam_blitz",
+            "score": {
+                "at_anchor": {
+                    "video_time": 9.5,
+                    "score": {
+                        "ally_remaining": 68,
+                        "opponent_remaining": 32,
+                        "opponent_penalty": 19,
+                        "evidence_id": "clam",
+                    },
+                }
+            },
+        },
+    ]
+    for payload in payloads:
+        objective = (
+            TypeAdapter(ObjectiveContext).validate_python(payload).model_dump(mode="json")
+        )
+        folder = _write_run(settings, payload["mode"])
+        path = folder / "scenario_contexts.json"
+        path.write_text(
+            json.dumps([{"scenario_id": "death_episode:10.000", "objective": objective}])
+        )
+        before = path.read_bytes()
+        response = client.get(f"/api/runs/{payload['mode']}")
+        assert response.status_code == 200
+        assert response.json()["view"]["scenario_evidence"][0]["objective"] == objective
+        assert path.read_bytes() == before
+        assert not (folder / "coach_inputs").exists()
+        assert not (folder / "coach_prototype").exists()
+
+
+def test_objective_source_paths_are_normalized_and_decoder_provenance_survives(
+    tmp_path: Path,
+) -> None:
+    """Nested frame paths use the same run-scoped image boundary as observations."""
+    settings = _settings(tmp_path)
+    folder = _write_run(settings, "paths")
+    image = folder / "frame.png"
+    image.write_bytes(b"png")
+    outside = tmp_path / "outside.png"
+    outside.write_bytes(b"png")
+    source = {
+        "frame_id": "f",
+        "timestamp": 5,
+        "source_pts": 900,
+        "source_time_base_num": 1,
+        "source_time_base_den": 180,
+        "frame_path": str(image),
+    }
+    objective = {
+        "mode": "tower_control",
+        "control": {
+            "at_anchor": {
+                "sample_video_time": 10,
+                "state": "ally_control",
+                "quality": "held",
+                "source_frame": {**source, "frame_path": str(outside)},
+                "state_established_video_time": 5,
+                "evidence": {
+                    "source_frame": source,
+                    "detector_evidence_id": "cue",
+                    "took_observation": {
+                        "samples": [
+                            {"source_frame": {**source, "frame_path": "../outside.png"}}
+                        ]
+                    },
+                },
+            }
+        },
+    }
+    path = folder / "scenario_contexts.json"
+    path.write_text(
+        json.dumps([{"scenario_id": "death_episode:10.000", "objective": objective}])
+    )
+    manifest = {
+        **MANIFEST,
+        "frame_results": [
+            {
+                "frame_id": "f",
+                "timestamp": 5,
+                "source": "cadence",
+                "source_frame_index": 300,
+                "source_pts": 900,
+                "source_time_base_num": 1,
+                "source_time_base_den": 180,
+                "frame_path": str(image),
+                "detections": [],
+            }
+        ],
+    }
+    (folder / "vision_manifest.json").write_text(json.dumps(manifest))
+    client, _, _ = _client(settings)
+    response = client.get("/api/runs/paths")
+    assert response.status_code == 200
+    view = response.json()["view"]
+    sample = view["scenario_evidence"][0]["objective"]["control"]["at_anchor"]
+    assert sample["source_frame"]["frame_path"] is None
+    assert sample["evidence"]["source_frame"]["frame_path"] == "frame.png"
+    assert sample["evidence"]["source_frame"]["source_pts"] == 900
+    assert (
+        sample["evidence"]["took_observation"]["samples"][0]["source_frame"]["frame_path"]
+        is None
+    )
+    observation = view["observations"][0]
+    assert observation["image_relpath"] == "frame.png"
+    assert observation["source_pts"] == 900
+    assert observation["source_time_base_den"] == 180
+    assert str(tmp_path) not in response.text
+    assert json.loads(path.read_text())[0]["objective"] == objective
+
+
+def test_old_scenario_artifact_has_no_reconstructed_objective(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    folder = _write_run(settings, "old")
+    (folder / "scenario_contexts.json").write_text(
+        json.dumps(
+            [
+                {
+                    "scenario_id": "death_episode:10.000",
+                    "score": {"at_anchor": {"ally_remaining": 72}},
+                }
+            ]
+        )
+    )
+    client, _, _ = _client(settings)
+    assert (
+        client.get("/api/runs/old").json()["view"]["scenario_evidence"][0]["objective"]
+        is None
+    )

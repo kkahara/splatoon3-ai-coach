@@ -6,10 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from vision_manifest_viewer.html import render_html
 from vision_manifest_viewer.model import (
-    ManifestSummary,
-    ManifestView,
     ObservationView,
     ScenarioEvidenceView,
 )
@@ -672,30 +669,10 @@ def test_vmv_scenario_card_smoke() -> None:
         relations={},
     )
 
-    view = ManifestView(
-        summary=ManifestSummary(
-            video_label="t",
-            video_identity="t",
-            duration_seconds=100.0,
-            frame_count=1,
-            detection_count=0,
-            death_detections=0,
-            countdown_observations=0,
-            splat_detections=0,
-            active_observations=0,
-            spawn_observations=0,
-            lifecycle_episodes=0,
-        ),
-        scenario_evidence=[card],
-    )
-    html = render_html(view)
-    assert "Map ink" in html
-    assert "scenarioMapInkRows" in html
-    assert "scenarioPlayersRows" in html
-    assert "scenarioSpecialRows" in html
-    assert "presentation-only; not a GameEvent" in html
-    assert "should have" not in html.lower()
-    assert "wasted" not in html.lower()
+    assert card.map is not None and card.map["ink"]["observations"]
+    assert card.players is not None and card.players["at_death"]["ally_alive_count"] == 4
+    assert card.special is not None
+    assert card.special["ready_onsets"][0]["video_time"] == 52.0
 
 
 def test_extract_special_readings_from_frames() -> None:

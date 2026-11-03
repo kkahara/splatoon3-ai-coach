@@ -320,6 +320,25 @@ Prohibited: identifying which player caused a capture/loss, claiming that a
 death caused a control change, or calling the factual sequence a missed/seized
 opportunity inside ScenarioContext. Those are coaching interpretations.
 
+## Temporal objective facts (`ScenarioContext.objective_progress`)
+
+Mode adapters may translate fresh fused objective evidence into normalized
+objective-progress observations. The reusable temporal layer pairs those facts
+with reliable roster samples and local-player lifecycle state; it does not
+assume every mode uses a decreasing numeric counter. Splat Zones is the only
+implemented adapter: a decrease in a team's remaining count is positive
+objective progress, while the original counter values and score provenance are
+retained.
+
+The initial optional level-A factual claims are observation-bounded only:
+significant roster advantage with no observed objective progress, local player
+observed alive as the sole ally during observed ally progress, and post-death
+ally progress followed by a confirmed no-progress period. The latter requires
+two fresh unchanged observations and reports a transition bound, never an
+exact stop time. These claims are `coachable=false` and do not affect scenario
+importance, ranking, or selection. They never establish cause, player
+attribution, or continuous state through an unsupported gap.
+
 ## CoachInput unit
 
 `CoachInput` is **one coaching unit**, not a whole-match dump:

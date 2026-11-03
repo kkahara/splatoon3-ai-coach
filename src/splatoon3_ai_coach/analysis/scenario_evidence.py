@@ -202,6 +202,7 @@ class ScenarioEvidencePack:
     map_overlay_samples: list[MapOverlaySample] | None = None
     cadence_times: list[float] | None = None
     special_ring_fill_threshold: float | None = None
+    battle_mode_id: str | None = None
 
 
 def scenario_window(

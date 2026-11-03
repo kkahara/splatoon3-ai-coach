@@ -599,6 +599,58 @@ class ClamBlitzConfig(BaseModel):
     )
 
 
+class RainmakerScoreConfig(BaseModel):
+    """Development remaining-count band and deterministic digit templates."""
+
+    count_roi: NormalizedBox = (0.25, 0.202778, 0.75, 0.240741)
+    template_dir: Path = PROJECT_ROOT / "calibration/templates"
+    match_threshold: float = Field(default=0.6, ge=0, le=1)
+
+
+class RainmakerPossessionConfig(BaseModel):
+    """Language-specific direct Rainmaker message templates."""
+
+    template_dir: Path = PROJECT_ROOT / "calibration/rainmaker"
+    match_threshold: float = Field(default=0.93, ge=0, le=1)
+    match_margin: float = Field(default=0.04, ge=0, le=1)
+
+
+class RainmakerCheckpointConfig(BaseModel):
+    """Direct Rainmaker checkpoint-breakthrough message templates."""
+
+    template_dir: Path = PROJECT_ROOT / "calibration/rainmaker"
+    match_threshold: float = Field(default=0.93, ge=0, le=1)
+    match_margin: float = Field(default=0.04, ge=0, le=1)
+
+
+class TowerCheckpointLocation(BaseModel):
+    """Operator-calibrated checkpoint on one team's attacking HUD lane."""
+
+    stage_id: str = Field(min_length=1)
+    team: Literal["ally", "opponent"]
+    checkpoint: int = Field(ge=1, le=3)
+    lane_position: float = Field(ge=0, le=1)
+    tolerance: float = Field(default=0.02, gt=0, le=0.1)
+
+
+class TowerControlDetectorConfig(BaseModel):
+    """Development geometry for direct Tower Control HUD observations."""
+
+    lane_roi: NormalizedBox = (0.25, 0.101852, 0.75, 0.185185)
+    score_search_roi: NormalizedBox = (0.234375, 0.171296, 0.765625, 0.268519)
+    template_dir: Path = Path("../calibration/templates")
+    checkpoint_cue_template_dir: Path | None = None
+    checkpoint_locations: list[TowerCheckpointLocation] = Field(default_factory=list)
+    digit_match_threshold: float = Field(default=0.55, ge=0, le=1)
+    min_pod_confidence: float = Field(default=0.55, ge=0, le=1)
+    marker_saturation_min: int = Field(default=75, ge=0, le=255)
+    marker_value_min: int = Field(default=65, ge=0, le=255)
+    marker_min_area: int = Field(default=120, ge=1)
+    marker_min_fill: float = Field(default=0.22, ge=0, le=1)
+    team_hue_tolerance: float = Field(default=18.0, ge=0, le=90)
+    team_hue_margin: float = Field(default=8.0, ge=0, le=90)
+
+
 class ZoneControlDetectorConfig(BaseModel):
     """Observe the highlighted Splat Zones scoreboard pod.
 
@@ -792,7 +844,17 @@ class VisionConfig(BaseModel):
         default_factory=SpecialGaugeDetectorConfig
     )
     score: ScoreDetectorConfig = Field(default_factory=ScoreDetectorConfig)
+    rainmaker_score: RainmakerScoreConfig = Field(default_factory=RainmakerScoreConfig)
+    rainmaker_possession: RainmakerPossessionConfig = Field(
+        default_factory=RainmakerPossessionConfig
+    )
+    rainmaker_checkpoint: RainmakerCheckpointConfig = Field(
+        default_factory=RainmakerCheckpointConfig
+    )
     clam_blitz: ClamBlitzConfig = Field(default_factory=ClamBlitzConfig)
+    tower_control: TowerControlDetectorConfig = Field(
+        default_factory=TowerControlDetectorConfig
+    )
     zone_control: ZoneControlDetectorConfig = Field(
         default_factory=ZoneControlDetectorConfig
     )

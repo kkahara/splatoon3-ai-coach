@@ -198,6 +198,7 @@ def load_scenario_evidence_pack(
     map_obs = before_match_end(map_obs, lambda item: item.video_time, match_end)
     snapshots = before_match_end(snapshots, lambda item: item.timestamp, match_end)
     frames = before_match_end(frames, lambda item: item.timestamp, match_end)
+    identity = _read_json_object(analysis_dir / "match_identity.json")
     return ScenarioEvidencePack(
         map_observations=map_obs,
         state_snapshots=snapshots,
@@ -207,6 +208,7 @@ def load_scenario_evidence_pack(
         ),
         cadence_times=sorted(float(frame.timestamp) for frame in frames),
         special_ring_fill_threshold=special_ring_fill_threshold,
+        battle_mode_id=(identity.get("battle_mode_id") if identity else None),
     )
 
 

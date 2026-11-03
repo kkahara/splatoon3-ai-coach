@@ -4,7 +4,7 @@ These markers describe presentation of the special-ready state.
 They are NOT GameEvents and must never be promoted to SPECIAL_READY
 or SPECIAL_USED GameEvents.
 
-Shared by ScenarioContext enrichment and the Vision Manifest Viewer.
+Shared by ScenarioContext enrichment and the React VMV view-model loader.
 Deterministic; no OpenCV; no detector imports; no fusion.
 """
 

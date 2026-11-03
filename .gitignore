@@ -228,11 +228,17 @@ analysis/**
 
 frames/**
 !frames/.gitkeep
+# Legacy root-level extraction output; use analysis/frames/ instead.
+/frames/
 
 calibration/**
 !calibration/.gitkeep
 !calibration/templates/
 !calibration/templates/**
+!calibration/tower_control/
+!calibration/tower_control/**
+!calibration/rainmaker/
+!calibration/rainmaker/**
 # Negating templates/** re-includes junk; keep OS junk out.
 calibration/templates/**/.DS_Store
 

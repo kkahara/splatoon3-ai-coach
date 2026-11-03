@@ -281,18 +281,49 @@ def _manifest_view(settings: PlatformSettings, store: PlatformStore, run_id: str
     summary = summarize_run(store, run_id)
     video_url = f"/api/runs/{quote(run_id)}/video"
     view.review_video_url = video_url if summary.video_available else ""
-    _hide_server_paths(view)
+    _hide_server_paths(view, folder)
     return view.model_dump(mode="json")
 
 
-def _hide_server_paths(view) -> None:
+def _hide_server_paths(view, folder: Path) -> None:
     """Drop absolute filesystem paths from the viewer payload."""
     for obs in view.observations:
         if obs.frame_path and Path(obs.frame_path).is_absolute():
             obs.frame_path = None
+        if obs.image_relpath:
+            obs.image_relpath = _safe_media_path(folder, obs.image_relpath)
     for item in view.review_queue:
         if item.strip_path and Path(item.strip_path).is_absolute():
             item.strip_path = None
+    for scenario in view.scenario_evidence:
+        _normalize_objective_paths(scenario.objective, folder)
+
+
+def _safe_media_path(folder: Path, value: str) -> str | None:
+    """Expose image references only as existing files relative to this run."""
+    path = Path(value)
+    if not path.is_absolute():
+        path = folder / path
+    try:
+        relative = path.resolve().relative_to(folder.resolve())
+    except ValueError:
+        return None
+    if not path.is_file() or path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
+        return None
+    return relative.as_posix()
+
+
+def _normalize_objective_paths(value: object, folder: Path) -> None:
+    """Normalize nested source-frame paths without changing semantic evidence."""
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key == "frame_path" and isinstance(child, str):
+                value[key] = _safe_media_path(folder, child)
+            else:
+                _normalize_objective_paths(child, folder)
+    elif isinstance(value, list):
+        for child in value:
+            _normalize_objective_paths(child, folder)
 
 
 def _mount_ui(app: FastAPI, static_dir: Path) -> None:

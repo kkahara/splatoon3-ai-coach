@@ -113,4 +113,5 @@ def _coach_input(
         include_zone_control_facts=True,
         playback_clock=bundle.playback_clock,
         roster_evidence=coach.roster_evidence,
+        objective_roster_min_gap=coach.death_factor_thresholds.roster_min_gap,
     )

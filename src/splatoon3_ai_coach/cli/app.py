@@ -35,7 +35,10 @@ app.command("extract")(extract)
 app.command("analyze")(analyze)
 app.command("refuse")(refuse)
 app.command("calibrate-timer")(calibrate_timer_command)
-app.command("vision-view")(vision_view)
+app.command(
+    "vision-view",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)(vision_view)
 app.command("vmv-site")(vmv_site)
 app.command("public-site")(public_site)
 app.command("public-monitor")(public_monitor)

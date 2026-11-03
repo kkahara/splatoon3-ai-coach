@@ -1,4 +1,4 @@
-"""Normalized view-model types for the vision manifest viewer."""
+"""Normalized view-model types shared by the React VMV site."""
 
 from __future__ import annotations
 
@@ -151,6 +151,9 @@ class ObservationView(BaseModel):
     timestamp: float
     frame_index: int | None = None
     frame_id: str | None = None
+    source_pts: int | None = None
+    source_time_base_num: int | None = None
+    source_time_base_den: int | None = None
     frame_path: str | None = None
     image_relpath: str | None = None
     detector: str | None = None
@@ -361,6 +364,8 @@ class ScenarioEvidenceView(BaseModel):
     recovery: dict[str, Any] | None = None
     players: dict[str, Any] | None = None
     special: dict[str, Any] | None = None
+    # Explicit analysis artifact payload; never rebuilt from manifest readings.
+    objective: dict[str, Any] | None = None
     relations: dict[str, Any] | None = None
     coaching: dict[str, Any] | None = None
 

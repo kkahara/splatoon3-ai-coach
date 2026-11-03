@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, computed_field
 
 from splatoon3_ai_coach.media.video_source import VideoRunMetadata
 from splatoon3_ai_coach.vision.provenance import PIPELINE_VERSION
+from splatoon3_ai_coach.vision.tower_checkpoint_state import TowerCheckpointState
 
 FrameSource = Literal["evidence", "cadence"]
 StateQuality = Literal["observed", "smoothed", "held", "unknown"]
@@ -18,6 +19,7 @@ ScoreQuality = Literal["observed", "held", "rejected_implausible", "unknown"]
 PenaltyQuality = Literal["observed", "held", "not_shown", "unknown"]
 ZoneControlState = Literal["neutral", "ally_control", "opponent_control", "unknown"]
 ZoneControlQuality = Literal["observed", "held", "unknown"]
+TowerControlPresentation = Literal["ally", "opponent", "unknown"]
 
 
 class GameEventType(StrEnum):
@@ -334,6 +336,124 @@ class ClamBasketStateReading(BaseModel):
     timestamp: float | None = None
 
 
+class ClamScoreObservation(BaseModel):
+    """Fresh Clam score readings mapped using the fixed allied-left HUD layout."""
+
+    association_basis: Literal["fixed_hud_sides"] = "fixed_hud_sides"
+    ally_remaining: int | None = Field(default=None, ge=0, le=100)
+    opponent_remaining: int | None = Field(default=None, ge=0, le=100)
+    ally_penalty: int | None = Field(default=None, gt=0)
+    opponent_penalty: int | None = Field(default=None, gt=0)
+    evidence_id: str = Field(min_length=1)
+
+
+class TowerScorePodReading(BaseModel):
+    """One localized Tower score pod, retaining native screen geometry/color."""
+
+    value: int | None = Field(default=None, ge=0, le=100)
+    bbox: tuple[float, float, float, float]
+    center_x: float = Field(ge=0, le=1)
+    hue: float | None = Field(default=None, ge=0, lt=180)
+    hue_concentration: float = Field(default=0, ge=0, le=1)
+    digit_scores: list[float] = Field(default_factory=list)
+    usable: bool = False
+
+
+class RainmakerCountPod(BaseModel):
+    """Remaining-count digits and pod color in native screen geometry."""
+
+    value: int | None = Field(default=None, ge=0, le=100)
+    bbox: tuple[float, float, float, float]
+    hue: float | None = None
+    usable: bool = False
+    digit_scores: list[float] = Field(default_factory=list)
+
+
+class RainmakerScoreReading(BaseModel):
+    """Per-frame remaining-count observations, before team association."""
+
+    kind: Literal["rainmaker_score"] = "rainmaker_score"
+    pods: list[RainmakerCountPod] = Field(default_factory=list)
+    timestamp: float | None = None
+
+
+class RainmakerScoreAssociation(BaseModel):
+    """Pod-to-team binding supported by the match Ready color calibration."""
+
+    evidence_id: str
+    ally_pod: int | None = None
+    opponent_pod: int | None = None
+    calibration_time: float
+    calibration_frame_ids: list[str] = Field(default_factory=list)
+
+
+class RainmakerPossessionCue(BaseModel):
+    """Language-neutral interpretation of a direct Rainmaker HUD message."""
+
+    cue: Literal[
+        "ally_acquired_rainmaker",
+        "opponent_acquired_rainmaker",
+        "ally_lost_rainmaker",
+        "opponent_lost_rainmaker",
+        "rainmaker_reset",
+    ]
+    template_score: float = Field(ge=0, le=1)
+    language: Literal["en", "ja"]
+    template_name: str
+
+
+class RainmakerPossessionReading(BaseModel):
+    """Per-frame direct message observation, before temporal grouping."""
+
+    kind: Literal["rainmaker_possession"] = "rainmaker_possession"
+    cue: RainmakerPossessionCue
+    timestamp: float | None = None
+
+
+class RainmakerCheckpointReading(BaseModel):
+    """Direct localized checkpoint-breakthrough message on one frame."""
+
+    kind: Literal["rainmaker_checkpoint"] = "rainmaker_checkpoint"
+    team: Literal["ally", "opponent"]
+    language: Literal["en", "ja"]
+    template_name: str
+    template_score: float = Field(ge=0, le=1)
+    timestamp: float | None = None
+
+
+class TowerMarkerReading(BaseModel):
+    """Direct marker location within the configured HUD lane."""
+
+    center_x: float = Field(ge=0, le=1)
+    lane_position: float = Field(ge=0, le=1)
+    bbox: tuple[float, float, float, float]
+    appearance: Literal["colored_presentation", "neutral_like", "unknown"] = "unknown"
+    hue: float | None = Field(default=None, ge=0, lt=180)
+    hue_concentration: float = Field(default=0, ge=0, le=1)
+    usable: bool = False
+
+
+class TowerControlCue(BaseModel):
+    """Directly observed Tower acquisition or loss message."""
+
+    cue_type: Literal["ally_took", "opponent_took", "ally_lost", "opponent_lost"]
+    team: Literal["ally", "opponent"]
+    template_score: float = Field(ge=0, le=1)
+    language: Literal["en", "ja"] | None = None
+
+
+class TowerControlReading(BaseModel):
+    """Per-frame Tower HUD observations; no movement or gameplay inference."""
+
+    kind: Literal["tower_control"] = "tower_control"
+    score_pods: list[TowerScorePodReading] = Field(default_factory=list)
+    marker: TowerMarkerReading | None = None
+    checkpoint_at_cue_score: float | None = Field(default=None, ge=0, le=1)
+    checkpoint_passed_cue_score: float | None = Field(default=None, ge=0, le=1)
+    control_cue: TowerControlCue | None = None
+    timestamp: float | None = None
+
+
 class ZoneControlReading(BaseModel):
     """Per-frame visual observation of the Splat Zones control highlight.
 
@@ -366,6 +486,10 @@ Reading = Annotated[
     | SpecialGaugeReading
     | ScoreReading
     | ClamBasketStateReading
+    | TowerControlReading
+    | RainmakerScoreReading
+    | RainmakerPossessionReading
+    | RainmakerCheckpointReading
     | ZoneControlReading,
     Field(discriminator="kind"),
 ]
@@ -402,6 +526,128 @@ class BasketTeamObservation(BaseModel):
     calibration_time: float | None = None
 
 
+class TowerTeamObservation(BaseModel):
+    """Color-calibrated team association for a Tower detector result."""
+
+    result_id: str
+    control_presentation: TowerControlPresentation = "unknown"
+    color_distance: float | None = Field(default=None, ge=0)
+    calibration_time: float | None = None
+
+
+class TowerOpponentLostSample(BaseModel):
+    """A directly detected opponent-lost cue and canonical frame provenance."""
+
+    video_time: float = Field(ge=0)
+    source_frame: SourceFrameReference
+    evidence_id: str = Field(min_length=1)
+    language: Literal["en", "ja"] | None = None
+
+
+class TowerOpponentLostObservation(BaseModel):
+    """One candidate display; first_video_time is its observation timestamp."""
+
+    cue: Literal["opponent_lost_tower"] = "opponent_lost_tower"
+    first_video_time: float = Field(ge=0)
+    last_video_time: float = Field(ge=0)
+    max_gap_seconds: float = Field(gt=0)
+    samples: list[TowerOpponentLostSample] = Field(min_length=1)
+
+
+class TowerTookSample(BaseModel):
+    """A directly detected Tower acquisition cue with canonical provenance."""
+
+    video_time: float = Field(ge=0)
+    source_frame: SourceFrameReference
+    evidence_id: str = Field(min_length=1)
+    cue: TowerControlCue
+
+
+class TowerTookObservation(BaseModel):
+    """One displayed acquisition cue; its first sample is the observation time."""
+
+    cue: Literal["ally_took_tower", "opponent_took_tower"]
+    first_video_time: float = Field(ge=0)
+    last_video_time: float = Field(ge=0)
+    max_gap_seconds: float = Field(gt=0)
+    samples: list[TowerTookSample] = Field(min_length=1)
+
+
+class RainmakerPossessionSample(BaseModel):
+    """One detected message frame with timestamp and detector provenance."""
+
+    video_time: float = Field(ge=0)
+    source_frame: SourceFrameReference
+    evidence_id: str = Field(min_length=1)
+    cue: RainmakerPossessionCue
+
+
+class RainmakerPossessionObservation(BaseModel):
+    """One displayed Rainmaker message; time is first accepted evidence time."""
+
+    cue: Literal[
+        "ally_acquired_rainmaker",
+        "opponent_acquired_rainmaker",
+        "ally_lost_rainmaker",
+        "opponent_lost_rainmaker",
+        "rainmaker_reset",
+    ]
+    first_video_time: float = Field(ge=0)
+    last_video_time: float = Field(ge=0)
+    max_gap_seconds: float = Field(gt=0)
+    samples: list[RainmakerPossessionSample] = Field(min_length=1)
+
+
+class RainmakerPossessionEvidence(BaseModel):
+    """Provenance for a currently held Rainmaker possession fact."""
+
+    state: Literal["neutral", "ally_possession", "opponent_possession"]
+    video_time: float = Field(ge=0)
+    source_frame: SourceFrameReference
+    detector_evidence_ids: list[str] = Field(default_factory=list)
+    cue_observation: RainmakerPossessionObservation | None = None
+    initialization: Literal["observed_match_start"] | None = None
+
+
+class RainmakerCheckpointSample(BaseModel):
+    """A directly detected milestone with canonical decoder provenance."""
+
+    video_time: float = Field(ge=0)
+    source_frame: SourceFrameReference
+    evidence_id: str = Field(min_length=1)
+    reading: RainmakerCheckpointReading
+
+
+class RainmakerCheckpointObservation(BaseModel):
+    """One displayed breakthrough message, timed by first accepted evidence."""
+
+    team: Literal["ally", "opponent"]
+    first_video_time: float = Field(ge=0)
+    last_video_time: float = Field(ge=0)
+    max_gap_seconds: float = Field(gt=0)
+    samples: list[RainmakerCheckpointSample] = Field(min_length=1)
+
+
+class RainmakerCheckpointState(BaseModel):
+    """Cleared facts supported only by observed breakthrough messages."""
+
+    ally: Literal["cleared", "unknown"] = "unknown"
+    opponent: Literal["cleared", "unknown"] = "unknown"
+    ally_evidence: RainmakerCheckpointObservation | None = None
+    opponent_evidence: RainmakerCheckpointObservation | None = None
+
+
+class TowerControlEvidence(BaseModel):
+    """Direct cue and source establishing the current Tower control state."""
+
+    video_time: float = Field(ge=0)
+    source_frame: SourceFrameReference
+    detector_evidence_id: str
+    cue: TowerControlCue
+    opponent_lost_observation: TowerOpponentLostObservation | None = None
+    took_observation: TowerTookObservation | None = None
+
+
 class VisionFrameResult(BaseModel):
     """Generic per-frame vision output."""
 
@@ -417,6 +663,8 @@ class VisionFrameResult(BaseModel):
     # None means legacy or otherwise unavailable scheduling provenance.
     basket_observation_scheduled: bool | None = None
     basket_team: BasketTeamObservation | None = None
+    tower_team: TowerTeamObservation | None = None
+    rainmaker_score_association: RainmakerScoreAssociation | None = None
 
 
 class GameStateSnapshot(BaseModel):
@@ -460,6 +708,29 @@ class GameStateSnapshot(BaseModel):
     zone_control_quality: ZoneControlQuality = "unknown"
     basket_state: Literal["open", "closed", "unknown"] = "unknown"
     basket_state_evidence_ids: list[str] = Field(default_factory=list)
+    # Fresh per-frame Clam score; never reused by the Splat Zones fuser.
+    clam_score: ClamScoreObservation | None = None
+    # Direct Tower HUD evidence. No hold and no movement interpretation.
+    tower_score_pods: list[TowerScorePodReading] = Field(default_factory=list)
+    rainmaker_score_reading: RainmakerScoreReading | None = None
+    rainmaker_score_association: RainmakerScoreAssociation | None = None
+    rainmaker_ally_remaining: int | None = None
+    rainmaker_opponent_remaining: int | None = None
+    rainmaker_score_evidence_ids: list[str] = Field(default_factory=list)
+    rainmaker_possession_state: Literal[
+        "unknown", "neutral", "ally_possession", "opponent_possession"
+    ] = "unknown"
+    rainmaker_possession_evidence: RainmakerPossessionEvidence | None = None
+    rainmaker_checkpoint_state: RainmakerCheckpointState | None = None
+    tower_marker: TowerMarkerReading | None = None
+    tower_control_presentation: TowerControlPresentation = "unknown"
+    tower_evidence_ids: list[str] = Field(default_factory=list)
+    tower_checkpoint_identity: int | None = Field(default=None, ge=1, le=3)
+    tower_checkpoint_state: TowerCheckpointState | None = None
+    tower_control_state: Literal[
+        "ally_control", "opponent_control", "returning", "unknown"
+    ] = "unknown"
+    tower_control_evidence: TowerControlEvidence | None = None
     quality: StateQuality = "unknown"
     evidence_ids: list[str] = Field(default_factory=list)
     source_frame: SourceFrameReference | None = None
@@ -568,6 +839,16 @@ class VisionManifest(BaseModel):
     video_identity: str
     extraction_manifest_path: str | None = None
     frame_results: list[VisionFrameResult] = Field(default_factory=list)
+    tower_opponent_lost_observations: list[TowerOpponentLostObservation] = Field(
+        default_factory=list
+    )
+    tower_took_observations: list[TowerTookObservation] = Field(default_factory=list)
+    rainmaker_possession_observations: list[RainmakerPossessionObservation] = Field(
+        default_factory=list
+    )
+    rainmaker_checkpoint_observations: list[RainmakerCheckpointObservation] = Field(
+        default_factory=list
+    )
     state_snapshots: list[GameStateSnapshot] = Field(default_factory=list)
     game_events: list[GameEvent] = Field(default_factory=list)
     timing: VisionTimingMetrics | None = None

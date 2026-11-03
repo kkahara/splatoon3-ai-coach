@@ -36,6 +36,14 @@ from splatoon3_ai_coach.analysis.map_coverage import (
     match_map_coverage,
 )
 from splatoon3_ai_coach.analysis.map_overlay_context import map_context as _map_context
+from splatoon3_ai_coach.analysis.objective_context import (
+    ObjectiveContext,
+    build_objective_context,
+)
+from splatoon3_ai_coach.analysis.objective_progress import ObjectiveProgressEvidence
+from splatoon3_ai_coach.analysis.objective_temporal_context import (
+    build_objective_progress_evidence,
+)
 from splatoon3_ai_coach.analysis.player_count_series import NumbersState
 from splatoon3_ai_coach.analysis.scenario_evidence import (
     MapInkEvidence,
@@ -186,6 +194,11 @@ class ScenarioContext(BaseModel):
     low_ink: LowInkEvidence | None = None
     score: ScoreEvidence | None = None
     zone_control: ZoneControlEvidence | None = None
+    objective_progress: ObjectiveProgressEvidence | None = None
+    # Inspection-only until an explicit coaching consumer migration. Exclusion
+    # also protects legacy/debug prompts that dump an entire CoachInput.
+    # The analysis artifact facade explicitly serializes this parallel field.
+    objective: ObjectiveContext | None = Field(default=None, exclude=True)
     relations: ScenarioRelations = Field(default_factory=ScenarioRelations)
 
 
@@ -230,6 +243,8 @@ def build_scenario_context(
     special = None
     score = None
     zone_control = None
+    objective_progress = None
+    objective = None
     snapshots: list[GameStateSnapshot] = []
     if evidence is not None and scenario.scenario_type in _IMPLEMENTED:
         window_start, window_end = scenario_window(scenario, config)
@@ -279,6 +294,27 @@ def build_scenario_context(
             lookback_seconds=config.score_lookback_seconds,
             max_gap_seconds=max_gap,
         )
+        objective_progress = build_objective_progress_evidence(
+            snapshots,
+            battle_mode_id=evidence.battle_mode_id,
+            window_start=window_start,
+            window_end=window_end,
+            max_gap_seconds=max_gap,
+            min_respawn_seconds=config.roster_plausibility.min_respawn_seconds,
+            plausibility_window_seconds=config.roster_plausibility.window_seconds,
+        )
+        objective = build_objective_context(
+            snapshots,
+            battle_mode_id=evidence.battle_mode_id,
+            anchor=anchor,
+            death_time=episode_death,
+            window_start=window_start,
+            window_end=window_end,
+            config=config,
+            score=score,
+            control=zone_control,
+            progress=objective_progress,
+        )
         special = build_special_evidence(
             evidence.special_readings,
             window_start=window_start,
@@ -308,6 +344,8 @@ def build_scenario_context(
         low_ink=build_low_ink_evidence(ordered, scenario),
         score=score,
         zone_control=zone_control,
+        objective_progress=objective_progress,
+        objective=objective,
         relations=ScenarioRelations(),
     )
 
@@ -341,8 +379,18 @@ def build_scenario_contexts(
 
 
 def serialize_scenario_contexts(contexts: list[ScenarioContext]) -> list[dict]:
-    """Deterministic JSON-ready dumps with explicit nulls."""
-    return [item.model_dump(mode="json") for item in contexts]
+    """Analysis artifacts include inspection-only objective evidence explicitly."""
+    return [
+        {
+            **item.model_dump(mode="json"),
+            "objective": (
+                item.objective.model_dump(mode="json")
+                if item.objective is not None
+                else None
+            ),
+        }
+        for item in contexts
+    ]
 
 
 def _timeline(events: list[GameEvent], scenario: Scenario) -> TimelineContext:

@@ -6,7 +6,7 @@ video:
   # source: screen_capture
 
 paths:
-  frame_output: "./frames"
+  frame_output: "./analysis/frames"
   manifest_output: "./manifests"
 
 review:
@@ -299,13 +299,37 @@ vision:
     score_drop_slack: 2
     score_confirm_readings: 3
   # Experimental: add "clam_score" and "clam_basket_state" to enabled_detectors
-  # for observe-only Clam Blitz studies. Score and penalty crops reuse score ROIs.
+  # for Clam Blitz development. clam_score feeds fresh mode-specific scores;
+  # basket state remains independent. Score and penalty crops reuse score ROIs.
   # Basket box: approximately [912, 122, 1009, 215] on a 1920x1080 frame.
   clam_blitz:
     basket_state:
       roi: [0.475, 0.112963, 0.525521, 0.199074]
       sector_count: 36
       min_colored_sectors: 3
+  # Development-only direct Tower HUD observations. Add "tower_control" to
+  # enabled_detectors for Tower recordings. No movement or event inference.
+  tower_control:
+    lane_roi: [0.250000, 0.101852, 0.750000, 0.185185]
+    score_search_roi: [0.234375, 0.171296, 0.765625, 0.268519]
+    template_dir: "../calibration/templates"
+    checkpoint_cue_template_dir: "../calibration/tower_control"
+    # Development-only MakoMart locations, confirmed in the 18-18-00 recording.
+    checkpoint_locations:
+      - {stage_id: makomart, team: ally, checkpoint: 1, lane_position: 0.60625, tolerance: 0.02}
+      - {stage_id: makomart, team: ally, checkpoint: 2, lane_position: 0.81354, tolerance: 0.02}
+      - {stage_id: makomart, team: ally, checkpoint: 3, lane_position: 0.91146, tolerance: 0.02}
+      - {stage_id: makomart, team: opponent, checkpoint: 1, lane_position: 0.39375, tolerance: 0.02}
+      - {stage_id: makomart, team: opponent, checkpoint: 2, lane_position: 0.18646, tolerance: 0.02}
+      - {stage_id: makomart, team: opponent, checkpoint: 3, lane_position: 0.08750, tolerance: 0.02}
+    digit_match_threshold: 0.55
+    min_pod_confidence: 0.55
+    marker_saturation_min: 75
+    marker_value_min: 65
+    marker_min_area: 120
+    marker_min_fill: 0.22
+    team_hue_tolerance: 18.0
+    team_hue_margin: 8.0
   # Splat Zones ownership cue: the highlighted/team-coloured scoreboard pod.
   # This remains an observe-only reading; mode gating belongs to fusion.
   # Thresholds and fusion settings are measured in

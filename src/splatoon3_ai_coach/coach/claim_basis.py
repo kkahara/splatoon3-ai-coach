@@ -220,6 +220,23 @@ def _own_splat_values(coach_input: CoachInput) -> Values:
     return {"time_since_previous_splat": own_splat_gap(coach_input)}
 
 
+def _objective_temporal(which: str) -> Eligibility:
+    """Expose one already-derived generic objective temporal fact."""
+
+    def check(coach_input: CoachInput, _unit: CoachingUnitResult) -> Values | None:
+        facts = coach_input.objective_temporal_facts
+        value = getattr(facts, which, None) if facts is not None else None
+        if value is None:
+            return None
+        out = value.model_dump(mode="json")
+        bounds = facts.stop_bounds if which == "progress_then_stop_after_death" else None
+        if bounds is not None:
+            out["stop_bounds"] = bounds.model_dump(mode="json")
+        return out
+
+    return check
+
+
 def _low_ink_hit(coach_input: CoachInput) -> tuple[int, float, float] | None:
     """(index, start, death time) of the first LOW_INK interval containing
     the death (closed interval)."""
@@ -269,6 +286,23 @@ _ROSTER_PATHS = (
     "roster.before_death.opponent_alive_count",
 )
 _LOW_INK_PATHS = ("low_ink.at_death", "death.death_time_video")
+_OBJECTIVE_ADVANTAGE_PATHS = (
+    "objective_temporal.number_advantage_without_progress.start_video_time",
+    "objective_temporal.number_advantage_without_progress.end_video_time",
+    "objective_temporal.number_advantage_without_progress.starting_value",
+    "objective_temporal.number_advantage_without_progress.ending_value",
+)
+_OBJECTIVE_SOLE_PATHS = (
+    "objective_temporal.sole_ally_alive_during_progress.start_video_time",
+    "objective_temporal.sole_ally_alive_during_progress.end_video_time",
+    "objective_temporal.sole_ally_alive_during_progress.normalized_progress_amount",
+)
+_OBJECTIVE_STOP_PATHS = (
+    "objective_temporal.progress_then_stop_after_death.end_video_time",
+    "objective_temporal.stop_bounds.last_progress_observed_at",
+    "objective_temporal.stop_bounds.first_no_progress_observed_at",
+    "objective_temporal.stop_bounds.no_progress_confirmed_through",
+)
 
 
 def _observation_values(values: Values | None) -> Values | None:
@@ -400,6 +434,41 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         frame="The match timer showed {display} at this death.",
         evidence_paths=_CLOCK_PATHS,
         eligible=_clock_sample,
+        coachable=False,
+    ),
+    ClaimDefinition(
+        claim_id="observed_number_advantage_without_objective_progress",
+        level=ClaimLevel.A,
+        frame=(
+            "During the observed interval from {start_video_time:g}s to "
+            "{end_video_time:g}s, allies had a significant roster advantage "
+            "while the ally objective made no observed progress."
+        ),
+        evidence_paths=_OBJECTIVE_ADVANTAGE_PATHS,
+        eligible=_objective_temporal("number_advantage_without_progress"),
+        coachable=False,
+    ),
+    ClaimDefinition(
+        claim_id="observed_sole_ally_alive_during_objective_progress",
+        level=ClaimLevel.A,
+        frame=(
+            "During observed ally objective progress from {start_video_time:g}s to "
+            "{end_video_time:g}s, one ally was alive and the local player was "
+            "observed alive."
+        ),
+        evidence_paths=_OBJECTIVE_SOLE_PATHS,
+        eligible=_objective_temporal("sole_ally_alive_during_progress"),
+        coachable=False,
+    ),
+    ClaimDefinition(
+        claim_id="observed_objective_progress_then_stop_after_death",
+        level=ClaimLevel.A,
+        frame=(
+            "Ally objective progress was observed after death, then a no-progress "
+            "period was confirmed; the transition is bounded by the observations."
+        ),
+        evidence_paths=_OBJECTIVE_STOP_PATHS,
+        eligible=_objective_temporal("progress_then_stop_after_death"),
         coachable=False,
     ),
     ClaimDefinition(

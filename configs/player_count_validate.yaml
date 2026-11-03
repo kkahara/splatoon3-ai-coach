@@ -2,7 +2,7 @@ video:
   max_width: 1920
   max_height: 1080
 paths:
-  frame_output: ./frames
+  frame_output: ./analysis/frames
   manifest_output: ./manifests
 extraction:
   analysis_fps: 6

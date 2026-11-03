@@ -42,7 +42,7 @@ Optional extras:
 ```bash
 s3-coach inspect path/to/match.mp4                 # media metadata
 s3-coach analyze path/to/match.mp4 --out ./analysis/my-match
-s3-coach vision-view ./analysis/my-match/vision_manifest.json  # inspect results
+s3-coach vmv-site                                  # inspect analysis in React VMV
 s3-coach coach-inputs ./analysis/my-match             # evidence units, no LLM
 s3-coach coach-prototype ./analysis/my-match          # prompts only
 s3-coach coach-prototype ./analysis/my-match --call-llm   # call the provider
@@ -59,7 +59,6 @@ Run any command with `--help` for its options. Add `-v` for verbose logging.
 | `refuse` | Re-run fusion from stored readings (no video decode) after changing fusion settings |
 | `extract` | Optional change-triggered JPEG dumps for debugging (not needed by `analyze`) |
 | `calibrate-timer` | Sample timer glyph tiles for manual labeling |
-| `vision-view` | Open the read-only Vision Manifest Viewer |
 | `coach-inputs` | Build `CoachInput` evidence units + importance-scored candidates (no LLM) |
 | `coach-prototype` | Build prompts; call the LLM only with `--call-llm` |
 | `coach-reannotate-flags` | Recheck existing assessments with today's validator into `*.revalidation.json` (never rewrites the generation-time `*.flags.json`) |
@@ -67,7 +66,7 @@ Run any command with `--help` for its options. Add `-v` for verbose logging.
 | `review timeline-video-import` | Adapt a Review timeline video and import it |
 | `review special-facts` | Write Review-clock SPECIAL_USE facts (`special_use_facts.json`) for an import |
 | `align review-clock` | Map a declared Review import's remaining clock to gameplay video intervals (`review_gameplay_alignment.json`) |
-| `vmv-site` | Local analysis platform (API + React admin UI) |
+| `vmv-site` | Analysis Tool: local API + React VMV site |
 | `public-site` / `public-monitor` | Public coaching submission site and its status monitor |
 
 ## Configuration and secrets
@@ -84,10 +83,9 @@ Run any command with `--help` for its options. Add `-v` for verbose logging.
 
 ## Local artifacts
 
-`--out ./analysis/` and `--out ./frames/` write **local-only** output
-(manifests, debug snapshots, JPEGs). Those trees are gitignored; only
-`analysis/.gitkeep` and `frames/.gitkeep` are tracked. Do not commit session
-dumps or recordings.
+`--out ./analysis/` and `--out ./analysis/frames/` write **local-only** output
+(manifests, debug snapshots, JPEGs). The analysis tree is gitignored; only
+`analysis/.gitkeep` is tracked. Do not commit session dumps or recordings.
 
 ## Repository layout
 

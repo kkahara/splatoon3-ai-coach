@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Disclosure } from "../Disclosure.jsx";
 import { formatTime } from "../labels.js";
+import { ObjectiveEvidence } from "../ObjectiveEvidence.jsx";
+import { ScenarioSnapshot } from "../ScenarioSnapshot.jsx";
+import {
+  EvidenceSequence,
+  playerEvidenceRows,
+  playerSequenceSummary,
+  specialEvidenceRows,
+  specialSequenceSummary,
+} from "../ScenarioEvidenceSequence.jsx";
 
 const REVIEW_STATUSES = [
   ["needs_review", "Needs review"],
@@ -13,7 +22,45 @@ const REVIEW_STATUSES = [
 const SPECIAL_GAP =
   "Special-gauge review marks are not SPECIAL_USED coaching evidence, because fusion does not emit that event.";
 
-export function ScenarioStudio({ runId, scenarios, scenarioIndex, onSelect, videoRef, videoUrl, onRefresh }) {
+export function ScenarioEvidencePanel({ scenario, onViewEvidence }) {
+  return <section className="funnel" key={`evidence-${scenario.scenario_id}`}>
+    <h2>Evidence</h2>
+    <ScenarioSnapshot scenario={scenario} />
+    <Disclosure title="Objective evidence details">
+      <ObjectiveEvidence objective={scenario.objective} onViewEvidence={onViewEvidence} />
+    </Disclosure>
+    <Disclosure title="Death Episode / lifecycle"><JsonBody value={scenario.recovery} /></Disclosure>
+    <Disclosure title="Timeline"><JsonBody value={scenario.timeline} /></Disclosure>
+    <Disclosure title="Combat"><JsonBody value={scenario.combat} /></Disclosure>
+    <Disclosure title="Map / ink"><JsonBody value={scenario.map} /></Disclosure>
+    <EvidenceSequence
+      title="Players"
+      summary={playerSequenceSummary(scenario)}
+      count={scenario.players?.trajectory?.length || 0}
+      disclosureTitle="Show timeline"
+      rows={playerEvidenceRows(scenario)}
+      value={scenario.players}
+    />
+    <EvidenceSequence
+      title="Special gauge"
+      summary={specialSequenceSummary(scenario.special)}
+      count={scenario.special?.observations?.length || 0}
+      disclosureTitle="Show observations"
+      rows={specialEvidenceRows(scenario.special)}
+      value={scenario.special}
+      note={SPECIAL_GAP}
+    />
+    <Disclosure title="Relations"><JsonBody value={scenario.relations} /></Disclosure>
+    <Disclosure title="Raw event timeline">
+      <pre>{(scenario.event_ids || []).join(", ") || "—"}</pre>
+    </Disclosure>
+    <Disclosure title="Developer: raw JSON">
+      <pre>{JSON.stringify(scenario, null, 2)}</pre>
+    </Disclosure>
+  </section>;
+}
+
+export function ScenarioStudio({ runId, scenarios, scenarioIndex, onSelect, videoRef, videoUrl, onRefresh, onViewEvidence }) {
   const scenario = scenarios[scenarioIndex] || null;
   const [layers, setLayers] = useState(null);
   const [experiments, setExperiments] = useState([]);
@@ -155,7 +202,6 @@ export function ScenarioStudio({ runId, scenarios, scenarioIndex, onSelect, vide
   }
 
   const findings = factors.map((factor) => factor.statement_player).filter(Boolean);
-  const facts = evidenceFacts(scenario);
   const newest = experiments[0] || null;
   const older = experiments.slice(1);
 
@@ -173,7 +219,7 @@ export function ScenarioStudio({ runId, scenarios, scenarioIndex, onSelect, vide
       {activeAction && <JobStatus action={activeAction} phase={jobNote} />}
 
       <header className="scenario-summary">
-        <h2>{titleCaseType(scenario.scenario_type)} · {formatTime(scenario.start_time)}</h2>
+        <h2>{titleCaseType(scenario.scenario_type)} · {formatTime(scenario.start_time)}{scenario.outcome ? ` · ${titleCaseType(scenario.outcome)}` : ""}</h2>
         {importance ? (
           <p>
             Importance {importance.importance_score} · Rank #{importance.rank} ·{" "}
@@ -191,32 +237,7 @@ export function ScenarioStudio({ runId, scenarios, scenarioIndex, onSelect, vide
         </aside>
       )}
 
-      <section className="funnel">
-        <h2>Evidence</h2>
-        {facts.length > 0 ? (
-          <dl className="fact-list">
-            {facts.map(([label, value]) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-        <Disclosure title="Timeline"><JsonBody value={scenario.timeline} /></Disclosure>
-        <Disclosure title="Combat"><JsonBody value={scenario.combat} /></Disclosure>
-        <Disclosure title="Map / ink"><JsonBody value={scenario.map} /></Disclosure>
-        <Disclosure title="Players"><JsonBody value={scenario.players} /></Disclosure>
-        <p>{SPECIAL_GAP}</p>
-        <Disclosure title="Special gauge"><JsonBody value={scenario.special} /></Disclosure>
-        <Disclosure title="Relations"><JsonBody value={scenario.relations} /></Disclosure>
-        <Disclosure title="Raw event timeline">
-          <pre>{(scenario.event_ids || []).join(", ") || "—"}</pre>
-        </Disclosure>
-        <Disclosure key={`${scenario.scenario_id}-raw`} title="Developer: raw JSON">
-          <pre>{JSON.stringify(scenario, null, 2)}</pre>
-        </Disclosure>
-      </section>
+      <ScenarioEvidencePanel key={scenario.scenario_id} scenario={scenario} onViewEvidence={onViewEvidence} />
 
       <section className="funnel">
         <h2>Why this scenario was selected</h2>
@@ -354,27 +375,6 @@ function titleCaseType(type) {
     .join(" ");
 }
 
-function evidenceFacts(scenario) {
-  const facts = [];
-  const recovery = scenario.recovery || {};
-  const map = scenario.map || {};
-  const combat = scenario.combat || {};
-  if (scenario.scenario_type === "death_episode") {
-    if (recovery.death_time != null) facts.push(["Death", formatTime(recovery.death_time)]);
-    if (recovery.respawn_time != null) facts.push(["Respawn", formatTime(recovery.respawn_time)]);
-    if (recovery.active_again_time != null) facts.push(["Active again", formatTime(recovery.active_again_time)]);
-    const mapFact = mapCheckFact(map);
-    if (mapFact) facts.push(["Map overlay", mapFact]);
-  } else if (scenario.scenario_type === "engagement") {
-    if (combat.splat_count != null) facts.push(["Splats", String(combat.splat_count)]);
-    if (combat.first_splat_time != null) facts.push(["First splat", formatTime(combat.first_splat_time)]);
-    if (combat.last_splat_time != null) facts.push(["Last splat", formatTime(combat.last_splat_time)]);
-  } else if (scenario.start_time != null && scenario.end_time != null) {
-    facts.push(["Interval", `${formatTime(scenario.start_time)}–${formatTime(scenario.end_time)}`]);
-  }
-  return facts;
-}
-
 function JsonBody({ value }) {
   const empty = value == null || value === "" || (Array.isArray(value) && value.length === 0);
   if (empty) return <p className="muted">—</p>;
@@ -446,16 +446,4 @@ async function pollJob(jobId, setJobNote) {
     if (job.status === "completed" || job.status === "failed" || job.status === "cancelled") return job;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-}
-
-function mapCheckFact(map) {
-  const status = map.map_check_status;
-  if (status === "observed" || (!status && map.map_check_before_death === true)) {
-    return "observed before death";
-  }
-  if (status === "not_observed") return "not observed before death";
-  if (status === "unknown") {
-    return `not assertable (${map.map_check_unknown_reason || "no reason recorded"})`;
-  }
-  return null;
 }

@@ -37,6 +37,7 @@ from splatoon3_ai_coach.coach.death_importance import (
     factor_threshold_entries,
     same_life_last_ready,
 )
+from splatoon3_ai_coach.coach.objective_temporal_facts import ObjectiveTemporalFacts
 from splatoon3_ai_coach.coach.observation_facts import (
     observed_map_ink,
     observed_roster_counts,
@@ -50,7 +51,7 @@ from splatoon3_ai_coach.coach.score_facts import ScoreFacts
 from splatoon3_ai_coach.coach.zone_control_facts import ZoneControlFacts
 from splatoon3_ai_coach.config.models import DeathFactorThresholds
 
-LLM_VIEW_SCHEMA_VERSION = 4
+LLM_VIEW_SCHEMA_VERSION = 5
 """v4: timestamped optional roster-count and sparse polygon-ink facts.
 
 v3: ``claim_basis`` / ``undetermined`` and the roster capability flag.
@@ -120,6 +121,7 @@ class CoachLlmView(BaseModel):
     map: dict[str, Any] | None = None
     score: dict[str, Any] | None = None
     zone_control: dict[str, Any] | None = None
+    objective_temporal: dict[str, Any] | None = None
     related: list[dict[str, Any]] = Field(default_factory=list)
     evidence_limits: list[dict[str, Any]] = Field(default_factory=list)
     supporting_evidence: list[LlmFact] = Field(default_factory=list)
@@ -236,6 +238,9 @@ def build_death_llm_view(
         map=map_block,
         score=_project_score(coach_input.score_facts),
         zone_control=_project_zone_control(coach_input.zone_control_facts),
+        objective_temporal=_project_objective_temporal(
+            coach_input.objective_temporal_facts
+        ),
         related=related_blocks,
         evidence_limits=limits,
         supporting_evidence=support,
@@ -379,8 +384,10 @@ def _project_roster(
 
     present = None
     pc_ctx = coach_input.player_count_context
-    anchor_unreliable = players is not None and pc_ctx is not None and (
-        players.unreliable_at(pc_ctx.anchor_video_time)
+    anchor_unreliable = (
+        players is not None
+        and pc_ctx is not None
+        and (players.unreliable_at(pc_ctx.anchor_video_time))
     )
     if pc_ctx is not None and not anchor_unreliable:
         present = {
@@ -522,6 +529,19 @@ def _project_zone_control(
         "transition_times": facts.transition_times,
         "source_path": facts.source_path,
     }
+
+
+def _project_objective_temporal(
+    facts: ObjectiveTemporalFacts | None,
+) -> dict[str, Any] | None:
+    """Project authorized temporal objective facts without interpretation."""
+    if facts is None:
+        return None
+    data = facts.model_dump(mode="json")
+    for value in data.values():
+        if isinstance(value, dict):
+            value["source_path"] = "objective_temporal_facts"
+    return data
 
 
 def _project_map(map_ctx: Any) -> dict[str, Any] | None:

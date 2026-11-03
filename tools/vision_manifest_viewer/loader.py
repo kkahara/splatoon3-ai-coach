@@ -71,7 +71,7 @@ def load_manifest_view(
     *,
     config_path: Path | None = None,
 ) -> ManifestView:
-    """Load and normalize a vision_manifest.json for the HTML viewer."""
+    """Load and normalize a vision manifest for React VMV consumers."""
     manifest_path = manifest_path.resolve()
     analysis_dir = manifest_path.parent
     raw = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -247,6 +247,7 @@ def _join_scenario_card(
         recovery=_as_dict(ctx.get("death_episode") or ctx.get("recovery")),
         players=_as_dict(ctx.get("players")),
         special=_as_dict(ctx.get("special")),
+        objective=_as_dict(ctx.get("objective")),
         relations=_as_dict(ctx.get("relations")),
         coaching=coaching,
     )
@@ -384,6 +385,9 @@ def _build_observations(
                     timestamp=timestamp,
                     frame_index=frame_index,
                     frame_id=frame_id,
+                    source_pts=frame.get("source_pts"),
+                    source_time_base_num=frame.get("source_time_base_num"),
+                    source_time_base_den=frame.get("source_time_base_den"),
                     frame_path=frame_path,
                     image_relpath=image_relpath,
                     category="other",
@@ -415,6 +419,9 @@ def _build_observations(
                     timestamp=timestamp,
                     frame_index=frame_index,
                     frame_id=frame_id,
+                    source_pts=frame.get("source_pts"),
+                    source_time_base_num=frame.get("source_time_base_num"),
+                    source_time_base_den=frame.get("source_time_base_den"),
                     frame_path=frame_path,
                     image_relpath=image_relpath,
                     detector=detector,
@@ -747,6 +754,37 @@ def _is_positive(detector: str, reading: dict[str, Any]) -> bool:
         left = reading.get("left") or {}
         right = reading.get("right") or {}
         return bool(left.get("visible") or right.get("visible"))
+    if detector == "clam_score":
+        return any(
+            (reading.get(side) or {}).get("visible")
+            and (reading.get(side) or {}).get("value") is not None
+            for side in ("left", "right")
+        ) or any(reading.get(f"{side}_penalty") is not None for side in ("left", "right"))
+    if detector == "tower_control":
+        return (
+            bool(reading.get("control_cue"))
+            or any(pod.get("usable") for pod in reading.get("score_pods", []))
+            or bool((reading.get("marker") or {}).get("usable"))
+        )
+    if detector == "rainmaker_score":
+        return any(
+            pod.get("usable") and pod.get("value") is not None
+            for pod in reading.get("pods", [])
+        )
+    if detector == "rainmaker_possession":
+        return (reading.get("cue") or {}).get("cue") in {
+            "ally_acquired_rainmaker",
+            "opponent_acquired_rainmaker",
+            "ally_lost_rainmaker",
+            "opponent_lost_rainmaker",
+            "rainmaker_reset",
+        }
+    if detector == "rainmaker_checkpoint":
+        return reading.get("team") in {"ally", "opponent"}
+    if detector == "zone_control":
+        return any(
+            reading.get(side) in {"lit", "dim"} for side in ("left_pod", "right_pod")
+        )
     if "detected" in reading:
         return bool(reading.get("detected"))
     # Presence-style readings (countdown, map_overlay, ready, low_ink).

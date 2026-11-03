@@ -21,8 +21,8 @@ need you to have run `s3-coach analyze` on your own recordings first.
 | `diagnostics/` | Validators and diagnostics run against analysis artifacts | Yes |
 | `reports/` | Death-importance ranking reports over a library of analyzed matches | Yes |
 | `studies/` | One-off research scripts that informed a design decision | **No** (see below) |
-| `vision_manifest_viewer/` | Read-only HTML viewer for `vision_manifest.json` (`s3-coach vision-view`) | Yes |
-| `vmv_site/` | Local analysis platform API (`s3-coach vmv-site`) | Yes |
+| `vision_manifest_viewer/` | Shared manifest loader, view models, and media helpers for VMV | Yes |
+| `vmv_site/` | Analysis Tool API and React VMV site (`s3-coach vmv-site`) | Yes |
 | `public_site/` | Public coaching submission site (`s3-coach public-site`) | Yes |
 
 The three web packages stay at the top level because the CLI imports them by

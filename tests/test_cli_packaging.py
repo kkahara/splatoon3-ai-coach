@@ -8,10 +8,8 @@ import sys
 from pathlib import Path
 
 import pytest
-import typer
 from typer.testing import CliRunner
 
-from splatoon3_ai_coach.cli import repo_tools
 from splatoon3_ai_coach.cli.app import app
 from splatoon3_ai_coach.cli.repo_tools import require_repo_tools
 
@@ -51,24 +49,18 @@ def test_core_help_commands_run(argv: list[str]) -> None:
     assert "Usage" in result.output
 
 
-def test_require_repo_tools_exits_cleanly_without_tools(tmp_path: Path) -> None:
-    with pytest.raises(typer.Exit) as excinfo:
-        require_repo_tools("vision-view", tools_dir=tmp_path / "missing")
-    assert excinfo.value.exit_code == 2
-
-
-def test_vision_view_reports_missing_tools(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(repo_tools, "REPO_TOOLS_DIR", tmp_path / "missing")
-    result = CliRunner().invoke(app, ["vision-view", "x.json", "--no-open"])
+def test_removed_vision_view_points_to_react_vmv() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["vision-view", "analysis/run/vision_manifest.json", "--no-open"],
+    )
     assert result.exit_code == 2
-    assert "source checkout" in result.output
+    assert "vmv-site" in result.output
 
 
 def test_require_repo_tools_adds_checkout_tools_to_path(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(sys, "path", list(sys.path))
-    require_repo_tools("vision-view", tools_dir=tmp_path)
+    require_repo_tools("vmv-site", tools_dir=tmp_path)
     assert sys.path[0] == str(tmp_path)

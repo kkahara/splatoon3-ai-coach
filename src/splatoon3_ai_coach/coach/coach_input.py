@@ -36,6 +36,10 @@ from splatoon3_ai_coach.coach.evidence_limits import (
     playback_evidence_limits,
 )
 from splatoon3_ai_coach.coach.game_clock import GameClock
+from splatoon3_ai_coach.coach.objective_temporal_facts import (
+    ObjectiveTemporalFacts,
+    derive_objective_temporal_facts,
+)
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
     PlaybackClockInfo,
@@ -102,6 +106,7 @@ class CoachInput(BaseModel):
     player_count_context: PlayerCountContext | None = None
     score_facts: ScoreFacts | None = None
     zone_control_facts: ZoneControlFacts | None = None
+    objective_temporal_facts: ObjectiveTemporalFacts | None = None
     playback_clock: PlaybackClockInfo | None = None
     durations: UnitDurations | None = None
     evidence_limits: list[EvidenceLimit] = Field(default_factory=list)
@@ -127,7 +132,7 @@ ROSTER_EVIDENCE_DISABLED = EvidenceLimit(
 
 def without_roster(context: ScenarioContext) -> ScenarioContext:
     """Copy of ``context`` with every roster-derived field removed."""
-    update: dict = {"players": None}
+    update: dict = {"players": None, "objective_progress": None}
     death = context.death_episode
     if death is not None:
         update["death_episode"] = death.model_copy(
@@ -219,6 +224,7 @@ def build_coach_input_for_scenario(
     include_zone_control_facts: bool = False,
     playback_clock: PlaybackClockInfo | None = None,
     roster_evidence: bool = True,
+    objective_roster_min_gap: int = 2,
 ) -> CoachInput:
     """Assemble one coaching unit for ``primary_id``.
 
@@ -286,6 +292,11 @@ def build_coach_input_for_scenario(
         if include_zone_control_facts
         else None
     )
+    objective_temporal_facts = derive_objective_temporal_facts(
+        primary_context,
+        roster_evidence=roster_evidence,
+        roster_min_gap=objective_roster_min_gap,
+    )
     durations = unit_durations(
         primary_context,
         primary_scenario,
@@ -316,6 +327,7 @@ def build_coach_input_for_scenario(
         player_count_context=player_count_context,
         score_facts=score_facts,
         zone_control_facts=zone_control_facts,
+        objective_temporal_facts=objective_temporal_facts,
         playback_clock=info,
         durations=durations,
         evidence_limits=limits,
