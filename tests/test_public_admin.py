@@ -154,3 +154,117 @@ def test_role_audit_records_before_and_after(
         "role_before": "user",
         "role_after": "admin",
     }
+
+
+def _insert_run(
+    conn,
+    submission_id: str,
+    status: str,
+    *,
+    created_ago: float,
+    started_ago: float | None,
+    finished_ago: float | None,
+    error_code: str | None = None,
+) -> str:
+    def ago(seconds: float | None):
+        return None if seconds is None else f"{seconds} seconds"
+
+    return str(
+        conn.execute(
+            """
+            INSERT INTO job_runs (run_id, submission_id, attempt, is_guest, status,
+                                  created_at, started_at, finished_at, error_code,
+                                  game_language)
+            VALUES (gen_random_uuid(), %s, 1, true, %s,
+                    now() - %s::interval,
+                    now() - %s::interval,
+                    now() - %s::interval,
+                    %s,
+                    CASE WHEN %s = 'completed' THEN 'en' END)
+            RETURNING run_id
+            """,
+            (
+                submission_id,
+                status,
+                ago(created_ago),
+                ago(started_ago),
+                ago(finished_ago),
+                error_code,
+                status,
+            ),
+        ).fetchone()[0]
+    )
+
+
+def test_overview_tolerates_missing_run_timestamps(
+    admin_client: tuple[TestClient, AccountStore, TelemetryStore],
+) -> None:
+    client, accounts, telemetry = admin_client
+    client.cookies.set(SESSION_COOKIE, _session(accounts, "ops@example.test", "admin"))
+    week = 7 * 24 * 3600
+    with psycopg.connect(telemetry.database_url) as conn:
+        conn.execute("TRUNCATE admin_audit_log, llm_call_metrics, job_events, job_runs")
+        _insert_run(conn, "a" * 32, "failed", created_ago=60, started_ago=None,
+                    finished_ago=50, error_code="probe_rejected")
+        _insert_run(conn, "b" * 32, "completed", created_ago=week, started_ago=None,
+                    finished_ago=60)
+        _insert_run(conn, "c" * 32, "running", created_ago=60, started_ago=50,
+                    finished_ago=None)
+        _insert_run(conn, "d" * 32, "completed", created_ago=60, started_ago=None,
+                    finished_ago=None)
+        _insert_run(conn, "e" * 32, "interrupted", created_ago=60, started_ago=None,
+                    finished_ago=None, error_code="interrupted")
+        _insert_run(conn, "f" * 32, "failed", created_ago=60, started_ago=50,
+                    finished_ago=40, error_code="analysis_failed")
+        skewed = _insert_run(conn, "g" * 32, "completed", created_ago=60, started_ago=50,
+                             finished_ago=49)
+        conn.execute(
+            """
+            INSERT INTO job_events (run_id, kind, stage, detail)
+            VALUES (%s, 'stage_finished', 'analyze', '{"exit_code": 0, "seconds": 5}')
+            """,
+            (skewed,),
+        )
+
+    response = client.get("/api/admin/overview")
+    assert response.status_code == 200, response.text
+    problems = {p["submission_id"]: p for p in response.json()["recent_problems"]}
+    assert set(problems) == {"a" * 32, "b" * 32, "f" * 32, "g" * 32}
+    no_start = problems["a" * 32]
+    assert no_start["kind"] == "failed"
+    assert no_start["processing_seconds"] is None and no_start["other_seconds"] is None
+    assert problems["b" * 32]["kind"] == "slow"
+    assert problems["b" * 32]["other_seconds"] is None
+    assert problems["f" * 32]["kind"] == "failed"
+    assert problems["f" * 32]["processing_seconds"] == pytest.approx(10, abs=0.5)
+    assert problems["g" * 32]["kind"] == "timing_inconsistent"
+
+
+@pytest.mark.parametrize(
+    ("status", "other", "kind"),
+    [
+        ("failed", None, "failed"),
+        ("interrupted", None, "failed"),
+        ("completed", None, "slow"),
+        ("failed", -1.0, "timing_inconsistent"),
+        ("completed", 0.0, "slow"),
+    ],
+)
+def test_problem_without_processing_time_has_no_timing_verdict(
+    status: str, other: float | None, kind: str
+) -> None:
+    from public_site.admin import _problem
+
+    row = {
+        "submission_id": "s",
+        "status": status,
+        "failed_stage": None,
+        "error_code": None,
+        "job_elapsed": 100.0,
+        "processing": None if other is None else 10.0,
+        "other_seconds": other,
+        "finished_at": datetime.now(UTC),
+    }
+    problem = _problem(row, 60)
+    assert problem["kind"] == kind
+    assert problem["other_seconds"] == other

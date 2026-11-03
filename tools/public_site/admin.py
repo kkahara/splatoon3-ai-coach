@@ -635,7 +635,8 @@ def _timing(row: dict[str, Any], measured: float) -> dict[str, Any]:
 
 
 def _problem(row: dict[str, Any], slow_seconds: int) -> dict[str, Any]:
-    inconsistent = float(row["other_seconds"]) < -0.05
+    other = _float(row["other_seconds"])
+    inconsistent = other is not None and other < -0.05
     if inconsistent:
         kind = "timing_inconsistent"
     elif row["status"] in {"failed", "interrupted"}:
@@ -650,7 +651,7 @@ def _problem(row: dict[str, Any], slow_seconds: int) -> dict[str, Any]:
         "error_code": row["error_code"],
         "job_elapsed_seconds": _float(row["job_elapsed"]),
         "processing_seconds": _float(row["processing"]),
-        "other_seconds": _float(row["other_seconds"]),
+        "other_seconds": other,
         "slow_threshold_seconds": slow_seconds,
         "finished_at": _stamp(row["finished_at"]),
     }
