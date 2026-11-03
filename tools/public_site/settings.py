@@ -37,7 +37,13 @@ def _worker_capacity() -> int:
 
 
 def _load_env() -> None:
-    """Load the repo ``.env`` without overriding variables already set."""
+    """Load the repo ``.env`` without overriding variables already set.
+
+    ``PUBLIC_LOAD_DOTENV=0`` skips it, so the test suite never inherits the
+    developer's database URL or production credentials.
+    """
+    if os.environ.get("PUBLIC_LOAD_DOTENV", "").strip() == "0":
+        return
     path = PROJECT_ROOT / ".env"
     if not path.is_file():
         return

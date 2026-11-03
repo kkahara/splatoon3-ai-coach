@@ -120,6 +120,14 @@ class Diagnostic(StrEnum):
     UNKNOWN = "unknown"
 
 
+class TransitionRejection(StrEnum):
+    """Why a telemetry transition or event was not recorded."""
+
+    NO_RUN = "no_run"
+    STATE_NOT_ALLOWED = "state_not_allowed"
+    CONCURRENT_CHANGE = "concurrent_change"
+
+
 class EmptyDetail(BaseModel):
     """An event with no additional data."""
 
@@ -387,7 +395,7 @@ class TelemetryStore:
         with self._conn() as conn:
             run = self._latest(conn, submission_id)
             if run is None or run["status"] != RunStatus.VALIDATING:
-                return False
+                return _rejected(submission_id, run, RunStatus.QUEUED)
             conn.execute(
                 """
                 INSERT INTO job_events (run_id, kind)
@@ -451,7 +459,7 @@ class TelemetryStore:
         with self._conn() as conn:
             run = self._latest(conn, submission_id)
             if run is None or run["status"] != RunStatus.RUNNING:
-                return False
+                return _rejected(submission_id, run, "game_language_detected")
             updated = conn.execute(
                 """
                 UPDATE job_runs SET game_language = %s
@@ -459,7 +467,14 @@ class TelemetryStore:
                 """,
                 (language.value, run["run_id"]),
             )
-        return updated.rowcount == 1
+        if updated.rowcount != 1:
+            return _rejected(
+                submission_id,
+                run,
+                "game_language_detected",
+                TransitionRejection.CONCURRENT_CHANGE,
+            )
+        return True
 
     def completed(
         self,
@@ -491,11 +506,16 @@ class TelemetryStore:
         error_code: ErrorCode,
         diagnostic: Diagnostic,
     ) -> bool:
-        """Fail a pre-worker or running attempt without reopening terminal work."""
+        """Fail a pre-worker, queued or running attempt without reopening terminal work."""
         detail = FailureDetail(error_code=error_code, diagnostic=diagnostic)
         return self._transition(
             submission_id,
-            allowed=(RunStatus.SUBMITTED, RunStatus.VALIDATING, RunStatus.RUNNING),
+            allowed=(
+                RunStatus.SUBMITTED,
+                RunStatus.VALIDATING,
+                RunStatus.QUEUED,
+                RunStatus.RUNNING,
+            ),
             status=RunStatus.FAILED,
             kind=EventKind.FAILED,
             timestamp_column="finished_at",
@@ -504,14 +524,14 @@ class TelemetryStore:
         )
 
     def interrupted(self, submission_id: str) -> bool:
-        """Mark startup-recovered validation or processing as interrupted."""
+        """Mark startup-recovered validation, queued or processing work as interrupted."""
         detail = FailureDetail(
             error_code=ErrorCode.INTERRUPTED,
             diagnostic=Diagnostic.INTERRUPTED,
         )
         return self._transition(
             submission_id,
-            allowed=(RunStatus.VALIDATING, RunStatus.RUNNING),
+            allowed=(RunStatus.VALIDATING, RunStatus.QUEUED, RunStatus.RUNNING),
             status=RunStatus.INTERRUPTED,
             kind=EventKind.INTERRUPTED,
             timestamp_column="finished_at",
@@ -666,7 +686,7 @@ class TelemetryStore:
         with self._conn() as conn:
             run = self._latest(conn, submission_id)
             if run is None or run["status"] not in allowed:
-                return False
+                return _rejected(submission_id, run, status)
             clauses = ["status = %s"]
             params: list[Any] = [status.value]
             if timestamp_column:
@@ -698,7 +718,9 @@ class TelemetryStore:
                 params,
             )
             if result.rowcount != 1:
-                return False
+                return _rejected(
+                    submission_id, run, status, TransitionRejection.CONCURRENT_CHANGE
+                )
             if kind is not None:
                 # job_events allows a stage only on stage_started/stage_finished;
                 # the failed stage lives on job_runs.failed_stage.
@@ -718,7 +740,7 @@ class TelemetryStore:
         with self._conn() as conn:
             run = self._latest(conn, submission_id)
             if run is None or run["status"] not in allowed:
-                return False
+                return _rejected(submission_id, run, kind)
             if set_clause is not None:
                 conn.execute(
                     f"UPDATE job_runs SET {set_clause} WHERE run_id = %s",  # noqa: S608
@@ -759,6 +781,32 @@ class TelemetryStore:
 
     def _conn(self) -> psycopg.Connection:
         return psycopg.connect(self.database_url, row_factory=dict_row)
+
+
+def _rejected(
+    submission_id: str,
+    run: dict[str, Any] | None,
+    requested: StrEnum | str,
+    reason: TransitionRejection | None = None,
+) -> bool:
+    """Log one rejected transition or event with closed values and opaque ids; return False."""
+    if reason is None:
+        reason = (
+            TransitionRejection.NO_RUN if run is None else TransitionRejection.STATE_NOT_ALLOWED
+        )
+    fields = {
+        "submission_id": submission_id,
+        "run_id": None if run is None else str(run["run_id"]),
+        "current_state": None if run is None else str(run["status"]),
+        "requested_state": str(requested),
+        "reason": reason.value,
+    }
+    logger.bind(telemetry_rejection=fields).warning(
+        "telemetry transition rejected: run_id={run_id} current_state={current_state} "
+        "requested_state={requested_state} reason={reason} submission_id={submission_id}",
+        **fields,
+    )
+    return False
 
 
 def best_effort(action: str, operation, *args, **kwargs) -> Any:

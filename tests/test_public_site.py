@@ -852,6 +852,32 @@ def test_worker_top_level_telemetry_is_serial_and_frames_finish_first(
     ]
 
 
+class _ClaimabilityAtQueued(_TelemetryRecorder):
+    def __init__(self) -> None:
+        super().__init__()
+        self.store: PublicStore | None = None
+        self.status_at_queued: str | None = None
+
+    def queued(self, submission_id, **_kwargs) -> bool:
+        self.status_at_queued = self.store.get(submission_id).status
+        return super().queued(submission_id)
+
+
+def test_run_is_queued_before_the_worker_can_claim_the_submission(tmp_path: Path) -> None:
+    telemetry = _ClaimabilityAtQueued()
+    client = _client(tmp_path, run_command=_finish_coaching, telemetry=telemetry)
+    telemetry.store = client.app.state.store
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+
+    assert telemetry.status_at_queued == "validating"
+    assert client.app.state.store.list_submissions()[0].status == "queued"
+    assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
+    assert telemetry.events.index("queued") < telemetry.events.index("started")
+
+
 def test_prototype_llm_can_select_a_provider(tmp_path: Path) -> None:
     from public_site.worker import prototype_extra
 
@@ -907,11 +933,19 @@ def test_dev_mode_keeps_regular_upload_limits(monkeypatch, tmp_path: Path) -> No
 
 
 def test_public_site_refuses_to_start_without_turnstile(monkeypatch) -> None:
+    import public_site.app as public_app
+    import uvicorn
+
+    launched: list[str] = []
+    monkeypatch.setattr(public_app, "create_app", lambda *a, **k: launched.append("app"))
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **k: launched.append("server"))
+    monkeypatch.setenv("PUBLIC_DATABASE_URL", "postgresql://coach@127.0.0.1:5432/coach")
     monkeypatch.delenv("PUBLIC_TURNSTILE_SECRET", raising=False)
     monkeypatch.delenv("PUBLIC_DEV_MODE", raising=False)
     result = CliRunner().invoke(cli_app, ["public-site", "--no-open"])
     assert result.exit_code != 0
     assert "TURNSTILE" in result.output
+    assert launched == []
 
 
 def _raises(payload: dict, settings: PublicSettings, detail: str) -> None:

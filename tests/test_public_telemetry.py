@@ -9,6 +9,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import psycopg
 import pytest
+from loguru import logger
 from public_site.accounts import AccountStore
 from public_site.coaching_metrics import CoachingSnapshot
 from public_site.job_trace import LlmCallRecord, ScalarProvenance
@@ -125,6 +126,107 @@ def test_stage_events_repeat_but_terminal_status_cannot_be_overwritten(
             (submission_id,),
         ).fetchone()[0]
         assert starts == 2
+
+
+def _queued_run(telemetry: TelemetryStore) -> str:
+    submission_id = uuid.uuid4().hex
+    telemetry.open_initial_run(submission_id, user_id=None)
+    telemetry.upload_confirmed(submission_id)
+    telemetry.validation_started(submission_id)
+    telemetry.queued(
+        submission_id,
+        video_seconds=300,
+        size_bytes=100,
+        width=1920,
+        height=1080,
+    )
+    return submission_id
+
+
+def test_queued_run_can_fail_or_be_interrupted(telemetry: TelemetryStore) -> None:
+    failed = _queued_run(telemetry)
+    assert telemetry.failed(
+        failed,
+        stage=None,
+        error_code=ErrorCode.ANALYSIS_FAILED,
+        diagnostic=Diagnostic.NONZERO_EXIT,
+    )
+    interrupted = _queued_run(telemetry)
+    assert telemetry.interrupted(interrupted)
+
+    with psycopg.connect(telemetry.database_url) as conn:
+        statuses = dict(
+            conn.execute(
+                """
+                SELECT submission_id, status FROM job_runs
+                WHERE submission_id = ANY(%s)
+                """,
+                ([failed, interrupted],),
+            ).fetchall()
+        )
+    assert statuses == {failed: RunStatus.FAILED, interrupted: RunStatus.INTERRUPTED}
+    assert not telemetry.started(failed)
+    assert not telemetry.started(interrupted)
+
+
+def _rejections(action) -> list[dict]:
+    records: list[dict] = []
+    handle = logger.add(
+        lambda message: records.append(message.record["extra"]["telemetry_rejection"]),
+        level="WARNING",
+        filter=lambda record: "telemetry_rejection" in record["extra"],
+    )
+    try:
+        action()
+    finally:
+        logger.remove(handle)
+    return records
+
+
+def test_rejected_transitions_log_closed_fields_only(telemetry: TelemetryStore) -> None:
+    submission_id = _queued_run(telemetry)
+    with psycopg.connect(telemetry.database_url) as conn:
+        run_id = str(
+            conn.execute(
+                "SELECT run_id FROM job_runs WHERE submission_id = %s", (submission_id,)
+            ).fetchone()[0]
+        )
+    missing = uuid.uuid4().hex
+
+    def reject() -> None:
+        assert not telemetry.completed(submission_id, game_language=GameLanguage.EN)
+        assert not telemetry.stage_started(submission_id, Stage.ANALYZE)
+        assert not telemetry.started(missing)
+
+    records = _rejections(reject)
+    assert records == [
+        {
+            "submission_id": submission_id,
+            "run_id": run_id,
+            "current_state": "queued",
+            "requested_state": "completed",
+            "reason": "state_not_allowed",
+        },
+        {
+            "submission_id": submission_id,
+            "run_id": run_id,
+            "current_state": "queued",
+            "requested_state": "stage_started",
+            "reason": "state_not_allowed",
+        },
+        {
+            "submission_id": missing,
+            "run_id": None,
+            "current_state": None,
+            "requested_state": "running",
+            "reason": "no_run",
+        },
+    ]
+
+
+def test_accepted_transitions_log_no_rejection(telemetry: TelemetryStore) -> None:
+    submission_id = _queued_run(telemetry)
+    assert _rejections(lambda: telemetry.started(submission_id)) == []
 
 
 def test_failed_at_stage_records_run_stage_and_stageless_event(

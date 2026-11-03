@@ -389,8 +389,8 @@ class SubmissionService:
         submission.step = "queued"
         submission.updated_at = utc_now()
         self.store.save_video(video)
-        self.store.save_submission(submission)
-        self.deliver_notice(submission, "received")
+        # The run must be queued before the worker can claim the submission;
+        # otherwise ``started`` sees ``validating`` and the run never leaves ``queued``.
         if self.telemetry is not None:
             best_effort(
                 "queued",
@@ -401,6 +401,8 @@ class SubmissionService:
                 width=facts.width,
                 height=facts.height,
             )
+        self.store.save_submission(submission)
+        self.deliver_notice(submission, "received")
 
     def _fail(
         self,

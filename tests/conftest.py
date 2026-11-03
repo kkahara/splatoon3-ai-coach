@@ -1,6 +1,9 @@
 """Shared test fixtures."""
 
+import os
+from collections.abc import MutableMapping
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import cv2
 import numpy as np
@@ -16,6 +19,62 @@ from splatoon3_ai_coach.vision.glyphs import GLYPH_HEIGHT, GLYPH_WIDTH
 
 FRAME_SIZE = (320, 180)
 SOURCE_FPS = 30
+
+TEST_DATABASE_PREFIX = "coach_test"
+ADMIN_DATABASE = "postgres"
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Isolate the suite from the developer's ``.env`` and any non-test database."""
+    os.environ["PUBLIC_LOAD_DOTENV"] = "0"
+    confine_database_url(os.environ)
+    _guard_database_connections()
+
+
+def confine_database_url(env: MutableMapping[str, str]) -> None:
+    """Point an inherited ``PUBLIC_DATABASE_URL`` at ``coach_test``.
+
+    The connection guard only covers this process; child processes inherit
+    ``env``. Server, credentials and query are kept for the test fixtures.
+    """
+    url = env.get("PUBLIC_DATABASE_URL", "").strip()
+    if not url:
+        return
+    parts = urlsplit(url)
+    if parts.scheme and parts.netloc:
+        if not parts.path.lstrip("/").startswith(TEST_DATABASE_PREFIX):
+            path = f"/{TEST_DATABASE_PREFIX}"
+            env["PUBLIC_DATABASE_URL"] = urlunsplit(
+                (parts.scheme, parts.netloc, path, parts.query, "")
+            )
+        return
+    from psycopg.conninfo import conninfo_to_dict, make_conninfo
+
+    if not str(conninfo_to_dict(url).get("dbname", "")).startswith(TEST_DATABASE_PREFIX):
+        env["PUBLIC_DATABASE_URL"] = make_conninfo(url, dbname=TEST_DATABASE_PREFIX)
+
+
+def _guard_database_connections() -> None:
+    try:
+        import psycopg
+        from psycopg.conninfo import conninfo_to_dict
+    except ImportError:
+        return
+    if getattr(psycopg.connect, "_test_database_guard", False):
+        return
+    real_connect = psycopg.connect
+
+    def guarded_connect(conninfo: str = "", *args, **kwargs):
+        name = kwargs.get("dbname") or conninfo_to_dict(conninfo).get("dbname") or ""
+        if name != ADMIN_DATABASE and not name.startswith(TEST_DATABASE_PREFIX):
+            raise RuntimeError(
+                f"test suite refused a connection to database {name!r}; "
+                f"tests may only use {TEST_DATABASE_PREFIX}* databases"
+            )
+        return real_connect(conninfo, *args, **kwargs)
+
+    guarded_connect._test_database_guard = True
+    psycopg.connect = guarded_connect
 
 
 @pytest.fixture
