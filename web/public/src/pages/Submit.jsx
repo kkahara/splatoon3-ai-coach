@@ -11,8 +11,9 @@ import {
   uploadVideo,
   validateVoucher,
 } from "../api.js";
-import heroBanner from "../assets/splatoon3-ai-coach-banner.jpg";
-import { useT } from "../i18n/LocaleContext.jsx";
+import heroBannerEn from "../assets/splatoon3-ai-coach-banner-en.jpg";
+import heroBannerJa from "../assets/splatoon3-ai-coach-banner-ja.jpg";
+import { useLocale, useT } from "../i18n/LocaleContext.jsx";
 import {
   formatFileSize,
   showVoucherApplyButton,
@@ -26,6 +27,17 @@ import {
 } from "./submitForm.js";
 
 const REGULAR_MAX_BYTES = 750 * 1024 * 1024;
+
+// French (`splatoon3-ai-coach-banner-fr.jpg`) sits beside these and stays unused
+// until that site language exists.
+const HERO_BANNERS = {
+  en: heroBannerEn,
+  ja: heroBannerJa,
+};
+
+function heroBannerFor(locale) {
+  return HERO_BANNERS[locale] ?? HERO_BANNERS.en;
+}
 
 function videoLimits(config, t) {
   if (config && config.max_video_bytes == null) {
@@ -135,6 +147,7 @@ function UploadFacts({ config }) {
 
 export function SubmitPage() {
   const navigate = useNavigate();
+  const { locale } = useLocale();
   const t = useT();
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
@@ -289,7 +302,7 @@ export function SubmitPage() {
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
       <div className="hero">
-        <img className="hero-banner" src={heroBanner} alt="" />
+        <img className="hero-banner" src={heroBannerFor(locale)} alt="" />
         <div className="hero-copy">
           <h1>{t("submit.title")}</h1>
           <p className="hero-lede">{t("submit.intro")}</p>
