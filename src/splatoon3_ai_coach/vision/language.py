@@ -10,10 +10,12 @@ Layout convention for detector template roots::
       ouch/en/   ouch/ja/
       splatted/en/   splatted/ja/
 
-Language is an analysis-level setting (``VisionConfig.language``). Detectors
-must not infer language from frames, OCR, or template scores. Resource
-selection is deterministic: only ``base_dir / {language}`` is used, with no
-fallback to the parent directory or the other language.
+The game language is resolved once per analysis by the pre-scan probe
+(``vision/game_language.py``, contract in ``vision/GAME_LANGUAGE.md``) before
+detectors are built, and written to ``VisionConfig.language``. Detectors never
+infer language from frames, OCR, or template scores. Resource selection is
+deterministic: only ``base_dir / {language}`` is used, with no fallback to the
+parent directory or the other language.
 """
 
 from __future__ import annotations

@@ -7,6 +7,7 @@ from time import sleep
 
 import numpy as np
 import pytest
+from game_language_helpers import injected_outcome
 
 from splatoon3_ai_coach.analysis.pipeline import run_analysis
 from splatoon3_ai_coach.config import default_config_path, load_config
@@ -139,7 +140,12 @@ def test_run_analysis_does_not_require_extraction(
     config = load_config(default_config_path())
     config.vision.enabled_detectors = list(SIX_DETECTORS)
     output_dir = tmp_path / "analysis"
-    manifest = run_analysis(sample_video, config, output_dir)
+    manifest = run_analysis(
+        sample_video,
+        config,
+        output_dir,
+        game_language=injected_outcome("en", config.vision),
+    )
 
     assert not (output_dir / "frames").exists()
     assert not (output_dir / "debug_snapshots").exists()
@@ -194,7 +200,12 @@ def test_run_vision_opens_video_once(
     )
     config = load_config(default_config_path())
     config.vision.enabled_detectors = list(SIX_DETECTORS)
-    run_vision(sample_video, config, tmp_path / "analysis")
+    run_vision(
+        sample_video,
+        config,
+        tmp_path / "analysis",
+        game_language=injected_outcome("en", config.vision),
+    )
     assert len(opens) == 1
 
 
@@ -210,6 +221,7 @@ def test_debug_persist_writes_observed_cadence_frames(
         config,
         output_dir,
         debug_persist_cadence_frames=True,
+        game_language=injected_outcome("en", config.vision),
     )
     snapshots = list((output_dir / "debug_snapshots").glob("*.jpg"))
     assert snapshots
@@ -238,7 +250,12 @@ def test_pipeline_decode_seconds_exclude_detector_time(
         lambda _config: [_SlowTimer()],
     )
     config = load_config(default_config_path())
-    manifest = run_vision(sample_video, config, tmp_path / "analysis")
+    manifest = run_vision(
+        sample_video,
+        config,
+        tmp_path / "analysis",
+        game_language=injected_outcome("en", config.vision),
+    )
     timing = manifest.timing
     assert timing is not None
     assert timing.timer_detector_invocations == timing.cadence_frame_count

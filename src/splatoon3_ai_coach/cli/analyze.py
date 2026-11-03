@@ -13,11 +13,18 @@ from splatoon3_ai_coach.analysis.pipeline import (
 from splatoon3_ai_coach.config import load_config
 from splatoon3_ai_coach.config.models import VisionLanguage
 from splatoon3_ai_coach.config.paths import resolve_config_path
-from splatoon3_ai_coach.exceptions import ConfigError, S3CoachError
+from splatoon3_ai_coach.exceptions import (
+    ConfigError,
+    GameLanguageUndeterminedError,
+    S3CoachError,
+)
 from splatoon3_ai_coach.media.video_source import VideoSource
 from splatoon3_ai_coach.media.vision_manifest import VISION_MANIFEST_FILENAME
 
 console = Console()
+
+# Distinct from 1 (any other failure) so callers can report the reason.
+GAME_LANGUAGE_UNDETERMINED_EXIT_CODE = 4
 
 
 def analyze(
@@ -27,7 +34,11 @@ def analyze(
     language: VisionLanguage | None = typer.Option(
         None,
         "--language",
-        help="UI language for text templates/OCR (en|ja). Overrides config.",
+        help=(
+            "Deprecated. The game language is detected from the recording; a "
+            "supplied value (en|ja) is only recorded for comparison and never "
+            "selects templates."
+        ),
     ),
     video_source: VideoSource | None = typer.Option(
         None,
@@ -46,15 +57,17 @@ def analyze(
     """Run cadence vision analysis, producing vision_manifest.json."""
     try:
         config = load_config(resolve_config_path(config_path))
-        if language is not None:
-            config.vision.language = language
         manifest = run_analysis(
             video,
             config,
             out,
             debug_persist_cadence_frames=debug_persist_cadence_frames,
             video_source=video_source,
+            supplied_language=language,
         )
+    except GameLanguageUndeterminedError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=GAME_LANGUAGE_UNDETERMINED_EXIT_CODE) from exc
     except (ConfigError, S3CoachError) as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc

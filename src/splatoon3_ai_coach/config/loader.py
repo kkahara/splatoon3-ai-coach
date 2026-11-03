@@ -48,6 +48,7 @@ def _resolve_relative_paths(raw: dict[str, Any], config_dir: Path) -> None:
             "respawn",
             "map_overlay",
             "match_intro",
+            "game_language",
             "ready",
             "low_ink",
             "review_icon",

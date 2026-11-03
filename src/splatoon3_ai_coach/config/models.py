@@ -12,11 +12,12 @@ from splatoon3_ai_coach.types import NormalizedBox
 
 
 class VisionLanguage(StrEnum):
-    """UI / OCR language for language-dependent vision assets.
+    """Game UI language for language-dependent vision assets.
 
-    Selected once per analysis via ``VisionConfig.language``. Detectors must
-    not infer or mutate language from frames, OCR, or template matches.
-    Text templates load only from ``template_dir/<language>/``.
+    Resolved once per analysis by the pre-scan game-language probe
+    (``vision/game_language.py``) before detectors are built, then written to
+    ``VisionConfig.language``. Detectors never infer or mutate language from
+    frames. Text templates load only from ``template_dir/<language>/``.
     """
 
     EN = "en"
@@ -270,6 +271,41 @@ class MatchIntroDetectorConfig(BaseModel):
     intro_deadline_seconds: float = Field(default=90.0, ge=0)
 
     @field_validator("battle_mode_roi", "stage_roi")
+    @classmethod
+    def _check_box(cls, box: NormalizedBox) -> NormalizedBox:
+        x1, y1, x2, y2 = box
+        if not all(0.0 <= value <= 1.0 for value in box):
+            raise ValueError(f"region coordinates must be in [0, 1]: {box}")
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError(f"region must have positive area: {box}")
+        return box
+
+
+class GameLanguageConfig(BaseModel):
+    """Bounded pre-scan probe that resolves the recording's game language.
+
+    Gate 1 reuses ``match_intro`` (``battle_mode_roi``, ``template_dir``,
+    ``intro_deadline_seconds``) with both language packs and its own
+    ``intro_threshold``. Gate 2 matches the bottom-left D-pad signal label on
+    in-match frames, with templates at ``template_dir/<language>/<cue>.png``.
+    See ``vision/GAME_LANGUAGE.md`` for how each default was measured.
+    """
+
+    intro_threshold: float = Field(default=0.80, ge=0, le=1)
+    intro_language_margin: float = Field(default=0.10, ge=0, le=1)
+    template_dir: Path | None = None
+    cues: list[str] = Field(default_factory=lambda: ["come_on"])
+    roi: NormalizedBox = (0.0, 0.7963, 0.1198, 0.9074)
+    threshold: float = Field(default=0.65, ge=0, le=1)
+    language_margin: float = Field(default=0.20, ge=0, le=1)
+    # Templates are cropped from this frame height; other heights scale them.
+    reference_height: int = Field(default=1080, gt=0)
+    max_fallback_observations: int = Field(default=120, gt=0)
+    max_fallback_live_seconds: float = Field(default=180.0, gt=0)
+    # Video time with no eligible live frame yet (e.g. Salmon Run, lobby).
+    max_seconds_before_live: float = Field(default=300.0, gt=0)
+
+    @field_validator("roi")
     @classmethod
     def _check_box(cls, box: NormalizedBox) -> NormalizedBox:
         x1, y1, x2, y2 = box
@@ -831,6 +867,7 @@ class VisionConfig(BaseModel):
     match_intro: MatchIntroDetectorConfig = Field(
         default_factory=MatchIntroDetectorConfig
     )
+    game_language: GameLanguageConfig = Field(default_factory=GameLanguageConfig)
     # ROI/template_dir come from YAML when ``ready`` is enabled; optional otherwise.
     ready: ReadyDetectorConfig | None = None
     # ROI/template_dir required when ``low_ink`` is in enabled_detectors.

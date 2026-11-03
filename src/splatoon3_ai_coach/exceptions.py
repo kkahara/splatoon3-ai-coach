@@ -20,3 +20,19 @@ class VisionError(S3CoachError):
 class ManifestError(S3CoachError):
     """Raised when a manifest cannot be read or validated."""
 
+
+GAME_LANGUAGE_UNDETERMINED_MESSAGE = (
+    "Game language could not be determined from the recording."
+)
+
+
+class GameLanguageUndeterminedError(VisionError):
+    """Raised when the pre-scan probe cannot establish the game language.
+
+    Analysis stops before any detector runs; only ``game_language.json`` is
+    written. Never replaced by a default or supplied language.
+    """
+
+    def __init__(self, message: str = GAME_LANGUAGE_UNDETERMINED_MESSAGE) -> None:
+        super().__init__(message)
+

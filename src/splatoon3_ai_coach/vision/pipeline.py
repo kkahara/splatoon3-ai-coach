@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
 
 from loguru import logger
 
-from splatoon3_ai_coach.config.models import AppConfig
+from splatoon3_ai_coach.config.models import AppConfig, VisionLanguage
+from splatoon3_ai_coach.exceptions import GameLanguageUndeterminedError
 from splatoon3_ai_coach.media.video_identity import video_identity
 from splatoon3_ai_coach.media.video_source import (
     VideoSource,
@@ -24,6 +26,15 @@ from splatoon3_ai_coach.vision.cadence_scan import (
     scan_video,
 )
 from splatoon3_ai_coach.vision.events import infer_events
+from splatoon3_ai_coach.vision.game_language import (
+    GameLanguageProbeOutcome,
+    probe_game_language,
+)
+from splatoon3_ai_coach.vision.game_language_result import (
+    build_game_language_result,
+    with_detected_language,
+    write_game_language_diagnostics,
+)
 from splatoon3_ai_coach.vision.ids import compute_analysis_id
 from splatoon3_ai_coach.vision.match_end import detect_match_end, match_end_event
 from splatoon3_ai_coach.vision.match_side_effects import (
@@ -41,6 +52,7 @@ from splatoon3_ai_coach.vision.match_side_effects import (
 )
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
+    GameLanguageResult,
     GameStateSnapshot,
     VisionFrameResult,
     VisionManifest,
@@ -83,6 +95,53 @@ __all__ = [
 ]
 
 
+@dataclass(frozen=True)
+class _ResolvedIdentity:
+    config: AppConfig
+    video_identity: str
+    vision_sha: str
+    analysis_id: str
+    game_language: GameLanguageResult
+
+
+def _resolve_language_and_identity(
+    video: Path,
+    config: AppConfig,
+    output_dir: Path,
+    *,
+    supplied_language: VisionLanguage | None,
+    game_language: GameLanguageProbeOutcome | None,
+) -> _ResolvedIdentity:
+    """Resolve the game language, then derive identity from the detected value.
+
+    The probe runs before any hashing. ``supplied_language`` never reaches the
+    config, the hash or ``analysis_id``. Unresolved: write diagnostics, raise.
+    """
+    outcome = game_language
+    if outcome is None:
+        outcome = probe_game_language(
+            video,
+            config.vision,
+            max_width=config.video.max_width,
+            max_height=config.video.max_height,
+        )
+    if not outcome.resolved:
+        result = build_game_language_result(
+            outcome, output_dir, analysis_id=None, supplied_language=supplied_language
+        )
+        write_game_language_diagnostics(result, outcome, output_dir)
+        raise GameLanguageUndeterminedError()
+    effective = with_detected_language(config, outcome.language)
+    vid_identity = video_identity(video)
+    vision_sha = hash_vision_config(effective.vision)
+    analysis_id = compute_analysis_id(vid_identity, CADENCE_EXTRACTION_SHA256, vision_sha)
+    result = build_game_language_result(
+        outcome, output_dir, analysis_id=analysis_id, supplied_language=supplied_language
+    )
+    write_game_language_diagnostics(result, outcome, output_dir)
+    return _ResolvedIdentity(effective, vid_identity, vision_sha, analysis_id, result)
+
+
 def run_vision(
     video: Path,
     config: AppConfig,
@@ -90,15 +149,31 @@ def run_vision(
     *,
     debug_persist_cadence_frames: bool = False,
     video_source: VideoSource | None = None,
+    supplied_language: VisionLanguage | None = None,
+    game_language: GameLanguageProbeOutcome | None = None,
 ) -> VisionManifest:
     """Run cadence-only vision analysis and write a vision manifest.
 
     ``video_source`` overrides ``config.video.source`` when provided (CLI).
+    ``supplied_language`` is a deprecated caller statement, recorded for
+    comparison only. ``game_language`` injects a probe outcome (tests) instead
+    of probing the video.
+
+    Raises:
+        GameLanguageUndeterminedError: When the game language stays unknown.
     """
     started = perf_counter()
-    vid_identity = video_identity(video)
-    vision_sha = hash_vision_config(config.vision)
-    analysis_id = compute_analysis_id(vid_identity, CADENCE_EXTRACTION_SHA256, vision_sha)
+    resolved = _resolve_language_and_identity(
+        video,
+        config,
+        output_dir,
+        supplied_language=supplied_language,
+        game_language=game_language,
+    )
+    config = resolved.config
+    vid_identity = resolved.video_identity
+    vision_sha = resolved.vision_sha
+    analysis_id = resolved.analysis_id
     detectors = build_detectors(config.vision)
     detector_versions = {
         detector.name: detector_version(detector.name) for detector in detectors
@@ -167,6 +242,7 @@ def run_vision(
         video=run_video,
         git_sha=git_sha,
     )
+    manifest.game_language = resolved.game_language
     manifest.tower_opponent_lost_observations = collect_opponent_lost_observations(
         frame_results
     )

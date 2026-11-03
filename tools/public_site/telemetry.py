@@ -80,6 +80,7 @@ class ErrorCode(StrEnum):
     """Sanitized public-site failure codes."""
 
     ANALYSIS_FAILED = "analysis_failed"
+    GAME_LANGUAGE_UNDETERMINED = "game_language_undetermined"
     COACHING_FAILED = "coaching_failed"
     INTERRUPTED = "interrupted"
     PROBE_REJECTED = "probe_rejected"
@@ -703,6 +704,10 @@ def classify_error(message: str) -> tuple[ErrorCode, Diagnostic]:
     """Map public messages to closed, non-sensitive telemetry values."""
     mapping = {
         errors.ANALYSIS_FAILED: (ErrorCode.ANALYSIS_FAILED, Diagnostic.NONZERO_EXIT),
+        errors.GAME_LANGUAGE_UNDETERMINED: (
+            ErrorCode.GAME_LANGUAGE_UNDETERMINED,
+            Diagnostic.NONZERO_EXIT,
+        ),
         errors.COACHING_FAILED: (ErrorCode.COACHING_FAILED, Diagnostic.NONZERO_EXIT),
         errors.INTERRUPTED: (ErrorCode.INTERRUPTED, Diagnostic.INTERRUPTED),
         errors.UPLOAD_MISSING: (ErrorCode.UPLOAD_MISSING, Diagnostic.SOURCE_MISSING),

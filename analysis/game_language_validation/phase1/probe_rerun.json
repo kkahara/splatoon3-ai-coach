@@ -1,0 +1,3470 @@
+{
+  "results": [
+    {
+      "label": null,
+      "label_flag": "unlabeled",
+      "manifest_label": null,
+      "prefix_label": null,
+      "runs": {
+        "forced-fallback": {
+          "cue_id": null,
+          "decode_seconds": 127.525,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 7,
+            "best_score": 0.19456,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 117.0,
+            "last_time": 229.5,
+            "no_templates": 0,
+            "observations": 7,
+            "span_seconds": 112.5,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "unknown",
+          "probe_seconds": 130.78,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "video_ended",
+          "video_duration_seconds": 354.93333333333334
+        },
+        "normal": {
+          "cue_id": null,
+          "decode_seconds": 257.12,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 7,
+            "best_score": 0.19456,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": 90.5,
+            "first_time": 117.0,
+            "last_time": 229.5,
+            "no_templates": 0,
+            "observations": 7,
+            "span_seconds": 112.5,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 181,
+            "best_score": 0.469721,
+            "close_reason": "deadline",
+            "first_time": 0.0,
+            "last_time": 90.0,
+            "no_templates": 0,
+            "observations": 181,
+            "span_seconds": 90.0,
+            "status": "unreadable"
+          },
+          "language": "unknown",
+          "probe_seconds": 287.047,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "video_ended",
+          "video_duration_seconds": 354.93333333333334
+        }
+      },
+      "stem": "2026-07-04 16-06-41",
+      "video": "/Users/kenjikahara/Movies/2026-07-04 16-06-41.mp4"
+    },
+    {
+      "label": null,
+      "label_flag": "unlabeled",
+      "manifest_label": null,
+      "prefix_label": null,
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 7.083,
+          "established_at": 15.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.873386,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 15.5,
+            "last_time": 15.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 7.217,
+          "runner_up_score": 0.244751,
+          "score": 0.873386,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 342.51666666666665
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 0.051,
+          "established_at": 0.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.99952,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 0.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 0.111,
+          "runner_up_score": 0.410399,
+          "score": 0.99952,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 342.51666666666665
+        }
+      },
+      "stem": "2026-07-05 20-48-23",
+      "video": "/Users/kenjikahara/Movies/2026-07-05 20-48-23.mov"
+    },
+    {
+      "label": null,
+      "label_flag": "unlabeled",
+      "manifest_label": null,
+      "prefix_label": null,
+      "runs": {
+        "forced-fallback": {
+          "cue_id": null,
+          "decode_seconds": 137.216,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 5,
+            "best_score": 0.268848,
+            "bound_reached": "live_seconds",
+            "entered": true,
+            "entered_at": null,
+            "first_time": 195.5,
+            "last_time": 332.5,
+            "no_templates": 0,
+            "observations": 5,
+            "span_seconds": 137.0,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "unknown",
+          "probe_seconds": 139.556,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 393.6
+        },
+        "normal": {
+          "cue_id": null,
+          "decode_seconds": 290.935,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 5,
+            "best_score": 0.268848,
+            "bound_reached": "live_seconds",
+            "entered": true,
+            "entered_at": 90.5,
+            "first_time": 195.5,
+            "last_time": 332.5,
+            "no_templates": 0,
+            "observations": 5,
+            "span_seconds": 137.0,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 181,
+            "best_score": 0.485576,
+            "close_reason": "deadline",
+            "first_time": 0.0,
+            "last_time": 90.0,
+            "no_templates": 0,
+            "observations": 181,
+            "span_seconds": 90.0,
+            "status": "unreadable"
+          },
+          "language": "unknown",
+          "probe_seconds": 308.782,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 393.6
+        }
+      },
+      "stem": "2026-07-07 22-28-43",
+      "video": "/Users/kenjikahara/Movies/2026-07-07 22-28-43.mov"
+    },
+    {
+      "label": null,
+      "label_flag": "unlabeled",
+      "manifest_label": null,
+      "prefix_label": null,
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 7.296,
+          "established_at": 15.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.731009,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 15.0,
+            "last_time": 15.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 7.46,
+          "runner_up_score": 0.200229,
+          "score": 0.731009,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 301.25
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 0.021,
+          "established_at": 0.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.997794,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 0.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 0.102,
+          "runner_up_score": 0.396402,
+          "score": 0.997794,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 301.25
+        }
+      },
+      "stem": "2026-09-04 22-05-25",
+      "video": "/Users/kenjikahara/Movies/2026-09-04 22-05-25.mov"
+    },
+    {
+      "label": null,
+      "label_flag": "unlabeled",
+      "manifest_label": null,
+      "prefix_label": null,
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 7.288,
+          "established_at": 15.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.732954,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 15.0,
+            "last_time": 15.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 7.46,
+          "runner_up_score": 0.202208,
+          "score": 0.732954,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 225.75
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 0.037,
+          "established_at": 0.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.997945,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 0.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 0.08,
+          "runner_up_score": 0.396362,
+          "score": 0.997945,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 225.75
+        }
+      },
+      "stem": "2026-09-04 22-12-51",
+      "video": "/Users/kenjikahara/Movies/2026-09-04 22-12-51.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": null,
+          "decode_seconds": 81.761,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 120,
+            "best_score": 0.196661,
+            "bound_reached": "observations",
+            "entered": true,
+            "entered_at": null,
+            "first_time": 7.0,
+            "last_time": 66.5,
+            "no_templates": 0,
+            "observations": 120,
+            "span_seconds": 59.5,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "unknown",
+          "probe_seconds": 82.983,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 229.33333333333334
+        },
+        "normal": {
+          "cue_id": null,
+          "decode_seconds": 59.703,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 120,
+            "best_score": 0.196661,
+            "bound_reached": "observations",
+            "entered": true,
+            "entered_at": 7.0,
+            "first_time": 7.0,
+            "last_time": 66.5,
+            "no_templates": 0,
+            "observations": 120,
+            "span_seconds": 59.5,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 14,
+            "best_score": 0.454183,
+            "close_reason": "in_match",
+            "first_time": 0.0,
+            "last_time": 6.5,
+            "no_templates": 0,
+            "observations": 14,
+            "span_seconds": 6.5,
+            "status": "unreadable"
+          },
+          "language": "unknown",
+          "probe_seconds": 63.335,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 229.33333333333334
+        }
+      },
+      "stem": "en-2026-07-04 16-00-03",
+      "video": "/Users/kenjikahara/Movies/en-2026-07-04 16-00-03.mp4"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 8.081,
+          "established_at": 14.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.674908,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 14.0,
+            "last_time": 14.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 8.652,
+          "runner_up_score": 0.216489,
+          "score": 0.674908,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 320.43333333333334
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 0.071,
+          "established_at": 0.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.999164,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 0.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 0.385,
+          "runner_up_score": 0.408798,
+          "score": 0.999164,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 320.43333333333334
+        }
+      },
+      "stem": "en-2026-07-05 16-02-45",
+      "video": "/Users/kenjikahara/Movies/en-2026-07-05 16-02-45.mp4"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 34.333,
+          "established_at": 31.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.874394,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 31.0,
+            "last_time": 31.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 34.815,
+          "runner_up_score": 0.222718,
+          "score": 0.874394,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 337.6166666666667
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 11.429,
+          "established_at": 16.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 33,
+            "best_score": 0.870903,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 16.5,
+            "no_templates": 0,
+            "observations": 34,
+            "span_seconds": 16.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 16.323,
+          "runner_up_score": 0.38088,
+          "score": 0.870903,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 337.6166666666667
+        }
+      },
+      "stem": "en-2026-07-05 16-37-14",
+      "video": "/Users/kenjikahara/Movies/en-2026-07-05 16-37-14.mp4"
+    },
+    {
+      "label": null,
+      "label_flag": "conflicted_prior_runs",
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 2.171,
+          "established_at": 2.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.698315,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 2.0,
+            "last_time": 2.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 2.437,
+          "runner_up_score": 0.209241,
+          "score": 0.698315,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 237.93333333333334
+        },
+        "normal": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 1.76,
+          "established_at": 2.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.698315,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": 2.0,
+            "first_time": 2.0,
+            "last_time": 2.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 4,
+            "best_score": 0.49076,
+            "close_reason": "in_match",
+            "first_time": 0.0,
+            "last_time": 1.5,
+            "no_templates": 0,
+            "observations": 4,
+            "span_seconds": 1.5,
+            "status": "unreadable"
+          },
+          "language": "en",
+          "probe_seconds": 2.302,
+          "runner_up_score": 0.209241,
+          "score": 0.698315,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 237.93333333333334
+        }
+      },
+      "stem": "en-2026-07-05 17-34-46",
+      "video": "/Users/kenjikahara/Movies/en-2026-07-05 17-34-46.mp4"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 49.738,
+          "established_at": 84.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.706757,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 84.5,
+            "last_time": 84.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 50.729,
+          "runner_up_score": 0.260831,
+          "score": 0.706757,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 295.73333333333335
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 33.455,
+          "established_at": 70.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 141,
+            "best_score": 0.978596,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 70.5,
+            "no_templates": 0,
+            "observations": 142,
+            "span_seconds": 70.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 42.87,
+          "runner_up_score": 0.403693,
+          "score": 0.978596,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 295.73333333333335
+        }
+      },
+      "stem": "en-2026-10-16 21-44-08",
+      "video": "/Users/kenjikahara/Movies/en-2026-10-16 21-44-08.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 9.106,
+          "established_at": 21.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.661955,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 21.0,
+            "last_time": 21.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 9.347,
+          "runner_up_score": 0.213845,
+          "score": 0.661955,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 185.13333333333333
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 1.813,
+          "established_at": 6.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 13,
+            "best_score": 0.923574,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 6.5,
+            "no_templates": 0,
+            "observations": 14,
+            "span_seconds": 6.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 2.387,
+          "runner_up_score": 0.406101,
+          "score": 0.923574,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 185.13333333333333
+        }
+      },
+      "stem": "en-2026-10-17 22-41-01",
+      "video": "/Users/kenjikahara/Movies/en-2026-10-17 22-41-01.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 9.013,
+          "established_at": 20.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.672946,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 20.0,
+            "last_time": 20.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 9.269,
+          "runner_up_score": 0.191362,
+          "score": 0.672946,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 368.3833333333333
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 1.957,
+          "established_at": 5.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 11,
+            "best_score": 0.978524,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 5.5,
+            "no_templates": 0,
+            "observations": 12,
+            "span_seconds": 5.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 2.697,
+          "runner_up_score": 0.416042,
+          "score": 0.978524,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 368.3833333333333
+        }
+      },
+      "stem": "en-2026-10-18 21-36-32",
+      "video": "/Users/kenjikahara/Movies/en-2026-10-18 21-36-32.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 20.322,
+          "established_at": 39.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.690812,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 39.0,
+            "last_time": 39.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 20.797,
+          "runner_up_score": 0.215345,
+          "score": 0.690812,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 374.18333333333334
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 10.128,
+          "established_at": 23.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 46,
+            "best_score": 0.976783,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 23.0,
+            "no_templates": 0,
+            "observations": 47,
+            "span_seconds": 23.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 13.174,
+          "runner_up_score": 0.419676,
+          "score": 0.976783,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 374.18333333333334
+        }
+      },
+      "stem": "en-2026-10-18 22-18-04",
+      "video": "/Users/kenjikahara/Movies/en-2026-10-18 22-18-04.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 11.0,
+          "established_at": 20.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.686059,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 20.0,
+            "last_time": 20.5,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 11.35,
+          "runner_up_score": 0.205163,
+          "score": 0.686059,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 370.55
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 2.644,
+          "established_at": 6.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 12,
+            "best_score": 0.977975,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 6.0,
+            "no_templates": 0,
+            "observations": 13,
+            "span_seconds": 6.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 3.589,
+          "runner_up_score": 0.417062,
+          "score": 0.977975,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 370.55
+        }
+      },
+      "stem": "en-2026-10-18 23-26-44",
+      "video": "/Users/kenjikahara/Movies/en-2026-10-18 23-26-44.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 45.826,
+          "established_at": 74.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.740114,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 54.0,
+            "last_time": 74.0,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 20.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 46.705,
+          "runner_up_score": 0.197166,
+          "score": 0.740114,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 382.01666666666665
+        },
+        "normal": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 49.497,
+          "established_at": 74.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.740114,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": 54.0,
+            "first_time": 54.0,
+            "last_time": 74.0,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 20.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 108,
+            "best_score": 0.466386,
+            "close_reason": "in_match",
+            "first_time": 0.0,
+            "last_time": 53.5,
+            "no_templates": 0,
+            "observations": 108,
+            "span_seconds": 53.5,
+            "status": "unreadable"
+          },
+          "language": "en",
+          "probe_seconds": 58.513,
+          "runner_up_score": 0.197166,
+          "score": 0.740114,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 382.01666666666665
+        }
+      },
+      "stem": "en-clam-2026-09-20 22-48-24",
+      "video": "/Users/kenjikahara/Movies/en-clam-2026-09-20 22-48-24.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": "en",
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 9.937,
+          "established_at": 17.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.714003,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 17.0,
+            "last_time": 17.5,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 10.155,
+          "runner_up_score": 0.191571,
+          "score": 0.714003,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 222.73333333333332
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 1.721,
+          "established_at": 2.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 5,
+            "best_score": 0.973655,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 2.5,
+            "no_templates": 0,
+            "observations": 6,
+            "span_seconds": 2.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 2.003,
+          "runner_up_score": 0.397182,
+          "score": 0.973655,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 222.73333333333332
+        }
+      },
+      "stem": "en-live-playerview-2026-10-12 17-42-59",
+      "video": "/Users/kenjikahara/Movies/en-live-playerview-2026-10-12 17-42-59.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 1.664,
+          "established_at": 2.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.836588,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 2.5,
+            "last_time": 2.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 1.794,
+          "runner_up_score": 0.210041,
+          "score": 0.836588,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 305.8833333333333
+        },
+        "normal": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 1.506,
+          "established_at": 2.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.836588,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": 2.5,
+            "first_time": 2.5,
+            "last_time": 2.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 5,
+            "best_score": 0.491157,
+            "close_reason": "in_match",
+            "first_time": 0.0,
+            "last_time": 2.0,
+            "no_templates": 0,
+            "observations": 5,
+            "span_seconds": 2.0,
+            "status": "unreadable"
+          },
+          "language": "en",
+          "probe_seconds": 1.954,
+          "runner_up_score": 0.210041,
+          "score": 0.836588,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 305.8833333333333
+        }
+      },
+      "stem": "en-rain--2026-09-10 14-20-12",
+      "video": "/Users/kenjikahara/Movies/en-rain--2026-09-10 14-20-12.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 9.804,
+          "established_at": 16.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.683877,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 16.5,
+            "last_time": 16.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 10.056,
+          "runner_up_score": 0.200621,
+          "score": 0.683877,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 293.1166666666667
+        },
+        "normal": {
+          "cue_id": "battle_mode/tower_control",
+          "decode_seconds": 0.783,
+          "established_at": 2.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 4,
+            "best_score": 0.977079,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 2.0,
+            "no_templates": 0,
+            "observations": 5,
+            "span_seconds": 2.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 1.136,
+          "runner_up_score": 0.429494,
+          "score": 0.977079,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 293.1166666666667
+        }
+      },
+      "stem": "en_--2026-10-21 20-24-49",
+      "video": "/Users/kenjikahara/Movies/en_--2026-10-21 20-24-49.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 12.418,
+          "established_at": 17.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.783831,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 16.5,
+            "last_time": 17.0,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 12.736,
+          "runner_up_score": 0.251847,
+          "score": 0.783831,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 251.58333333333334
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 0.766,
+          "established_at": 1.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 3,
+            "best_score": 0.996987,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 1.5,
+            "no_templates": 0,
+            "observations": 4,
+            "span_seconds": 1.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 1.169,
+          "runner_up_score": 0.398771,
+          "score": 0.996987,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 251.58333333333334
+        }
+      },
+      "stem": "en_2026-10-26 20-05-52",
+      "video": "/Users/kenjikahara/Movies/en_2026-10-26 20-05-52.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 10.07,
+          "established_at": 13.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.700506,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 13.0,
+            "last_time": 13.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 10.285,
+          "runner_up_score": 0.249429,
+          "score": 0.700506,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 272.78333333333336
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 0.094,
+          "established_at": 0.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.997225,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 0.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 0.345,
+          "runner_up_score": 0.39597,
+          "score": 0.997225,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 272.78333333333336
+        }
+      },
+      "stem": "en_2026-10-26 20-11-21",
+      "video": "/Users/kenjikahara/Movies/en_2026-10-26 20-11-21.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 17.78,
+          "established_at": 31.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.724386,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 30.5,
+            "last_time": 31.0,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 18.233,
+          "runner_up_score": 0.255471,
+          "score": 0.724386,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 342.56666666666666
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 8.967,
+          "established_at": 15.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 30,
+            "best_score": 0.996825,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 15.0,
+            "no_templates": 0,
+            "observations": 31,
+            "span_seconds": 15.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 12.206,
+          "runner_up_score": 0.399324,
+          "score": 0.996825,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 342.56666666666666
+        }
+      },
+      "stem": "en_2026-10-26 20-34-53",
+      "video": "/Users/kenjikahara/Movies/en_2026-10-26 20-34-53.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 12.83,
+          "established_at": 19.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.6802,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 19.0,
+            "last_time": 19.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 13.111,
+          "runner_up_score": 0.181363,
+          "score": 0.6802,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 223.91666666666666
+        },
+        "normal": {
+          "cue_id": "battle_mode/turf_war",
+          "decode_seconds": 2.223,
+          "established_at": 4.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 8,
+            "best_score": 0.882642,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 4.0,
+            "no_templates": 0,
+            "observations": 9,
+            "span_seconds": 4.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 3.09,
+          "runner_up_score": 0.390107,
+          "score": 0.882642,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 223.91666666666666
+        }
+      },
+      "stem": "en_2026-11-01 15-00-53",
+      "video": "/Users/kenjikahara/Movies/en_2026-11-01 15-00-53.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "en",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 15.22,
+          "established_at": 19.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.848915,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 18.5,
+            "last_time": 19.0,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 15.493,
+          "runner_up_score": 0.226765,
+          "score": 0.848915,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 340.6
+        },
+        "normal": {
+          "cue_id": "battle_mode/rainmaker",
+          "decode_seconds": 2.495,
+          "established_at": 4.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 9,
+            "best_score": 0.997783,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 4.5,
+            "no_templates": 0,
+            "observations": 10,
+            "span_seconds": 4.5,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 3.271,
+          "runner_up_score": 0.451435,
+          "score": 0.997783,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 340.6
+        }
+      },
+      "stem": "en_rain-2026-09-20 23-25-42",
+      "video": "/Users/kenjikahara/Movies/en_rain-2026-09-20 23-25-42.mov"
+    },
+    {
+      "label": "fr",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "fr",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": null,
+          "decode_seconds": 62.814,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 120,
+            "best_score": 0.276521,
+            "bound_reached": "observations",
+            "entered": true,
+            "entered_at": null,
+            "first_time": 18.5,
+            "last_time": 82.0,
+            "no_templates": 0,
+            "observations": 120,
+            "span_seconds": 63.5,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "unknown",
+          "probe_seconds": 65.45,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 339.18333333333334
+        },
+        "normal": {
+          "cue_id": null,
+          "decode_seconds": 49.413,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 120,
+            "best_score": 0.276521,
+            "bound_reached": "observations",
+            "entered": true,
+            "entered_at": 18.5,
+            "first_time": 18.5,
+            "last_time": 82.0,
+            "no_templates": 0,
+            "observations": 120,
+            "span_seconds": 63.5,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 37,
+            "best_score": 0.62172,
+            "close_reason": "in_match",
+            "first_time": 0.0,
+            "last_time": 18.0,
+            "no_templates": 0,
+            "observations": 37,
+            "span_seconds": 18.0,
+            "status": "unreadable"
+          },
+          "language": "unknown",
+          "probe_seconds": 54.681,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 339.18333333333334
+        }
+      },
+      "stem": "fr_2026-10-26 22-29-36",
+      "video": "/Users/kenjikahara/Movies/fr_2026-10-26 22-29-36.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": null,
+          "decode_seconds": 109.918,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": "no_live_frames",
+            "entered": true,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "unknown",
+          "probe_seconds": 112.836,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 1148.9833333333333
+        },
+        "normal": {
+          "cue_id": null,
+          "decode_seconds": 177.95,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": "no_live_frames",
+            "entered": true,
+            "entered_at": 90.5,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 181,
+            "best_score": 0.526648,
+            "close_reason": "deadline",
+            "first_time": 0.0,
+            "last_time": 90.0,
+            "no_templates": 0,
+            "observations": 181,
+            "span_seconds": 90.0,
+            "status": "unreadable"
+          },
+          "language": "unknown",
+          "probe_seconds": 200.542,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "fallback_limit",
+          "video_duration_seconds": 1148.9833333333333
+        }
+      },
+      "stem": "ja-2026-09-09 20-01-09",
+      "video": "/Users/kenjikahara/Movies/ja-2026-09-09 20-01-09.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 102.292,
+          "established_at": 227.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.73539,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 227.5,
+            "last_time": 227.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 104.522,
+          "runner_up_score": 0.113575,
+          "score": 0.73539,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 942.3833333333333
+        },
+        "normal": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 159.807,
+          "established_at": 227.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.73539,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": 90.5,
+            "first_time": 227.5,
+            "last_time": 227.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 181,
+            "best_score": 0.517882,
+            "close_reason": "deadline",
+            "first_time": 0.0,
+            "last_time": 90.0,
+            "no_templates": 0,
+            "observations": 181,
+            "span_seconds": 90.0,
+            "status": "unreadable"
+          },
+          "language": "ja",
+          "probe_seconds": 182.26,
+          "runner_up_score": 0.113575,
+          "score": 0.73539,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 942.3833333333333
+        }
+      },
+      "stem": "ja-2026-09-20 14-21-22",
+      "video": "/Users/kenjikahara/Movies/ja-2026-09-20 14-21-22.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 39.812,
+          "established_at": 48.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.709022,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 48.0,
+            "last_time": 48.5,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 40.614,
+          "runner_up_score": 0.107821,
+          "score": 0.709022,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 115.1
+        },
+        "normal": {
+          "cue_id": "battle_mode/rainmaker",
+          "decode_seconds": 21.063,
+          "established_at": 30.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 60,
+            "best_score": 0.993595,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 30.0,
+            "no_templates": 0,
+            "observations": 61,
+            "span_seconds": 30.0,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 26.519,
+          "runner_up_score": 0.405586,
+          "score": 0.993595,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 115.1
+        }
+      },
+      "stem": "ja-2026-09-20 16-18-22",
+      "video": "/Users/kenjikahara/Movies/ja-2026-09-20 16-18-22.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 23.012,
+          "established_at": 28.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.859626,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 28.0,
+            "last_time": 28.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 23.478,
+          "runner_up_score": 0.144621,
+          "score": 0.859626,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 500.53333333333336
+        },
+        "normal": {
+          "cue_id": "battle_mode/turf_war",
+          "decode_seconds": 7.998,
+          "established_at": 14.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 28,
+            "best_score": 0.9924,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 14.0,
+            "no_templates": 0,
+            "observations": 29,
+            "span_seconds": 14.0,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 11.007,
+          "runner_up_score": 0.392309,
+          "score": 0.9924,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 500.53333333333336
+        }
+      },
+      "stem": "ja-2026-09-20 16-33-33",
+      "video": "/Users/kenjikahara/Movies/ja-2026-09-20 16-33-33.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 48.917,
+          "established_at": 85.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.843141,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 85.5,
+            "last_time": 85.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 49.856,
+          "runner_up_score": 0.145301,
+          "score": 0.843141,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 393.65
+        },
+        "normal": {
+          "cue_id": "battle_mode/tower_control",
+          "decode_seconds": 49.233,
+          "established_at": 60.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 121,
+            "best_score": 0.996801,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 60.5,
+            "no_templates": 0,
+            "observations": 122,
+            "span_seconds": 60.5,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 67.54,
+          "runner_up_score": 0.361519,
+          "score": 0.996801,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 393.65
+        }
+      },
+      "stem": "ja-2026-09-20 17-17-57",
+      "video": "/Users/kenjikahara/Movies/ja-2026-09-20 17-17-57.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 33.782,
+          "established_at": 42.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.836307,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 42.5,
+            "last_time": 42.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 34.405,
+          "runner_up_score": 0.126785,
+          "score": 0.836307,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 438.5
+        },
+        "normal": {
+          "cue_id": "battle_mode/rainmaker",
+          "decode_seconds": 22.185,
+          "established_at": 28.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 56,
+            "best_score": 0.994959,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 28.0,
+            "no_templates": 0,
+            "observations": 57,
+            "span_seconds": 28.0,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 31.115,
+          "runner_up_score": 0.407955,
+          "score": 0.994959,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 438.5
+        }
+      },
+      "stem": "ja-rain-2026-09-19 12-38-47",
+      "video": "/Users/kenjikahara/Movies/ja-rain-2026-09-19 12-38-47.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": null,
+          "decode_seconds": 4.995,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "unknown",
+          "probe_seconds": 5.088,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "video_ended",
+          "video_duration_seconds": 5.416666666666667
+        },
+        "normal": {
+          "cue_id": null,
+          "decode_seconds": 4.049,
+          "established_at": null,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": 5.0,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "unreadable"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 11,
+            "best_score": 0.417359,
+            "close_reason": "video_ended",
+            "first_time": 0.0,
+            "last_time": 5.0,
+            "no_templates": 0,
+            "observations": 11,
+            "span_seconds": 5.0,
+            "status": "unreadable"
+          },
+          "language": "unknown",
+          "probe_seconds": 6.069,
+          "runner_up_score": null,
+          "score": null,
+          "source": "none",
+          "termination": "video_ended",
+          "video_duration_seconds": 5.416666666666667
+        }
+      },
+      "stem": "ja_2026-10-31 14-11-43",
+      "video": "/Users/kenjikahara/Movies/ja_2026-10-31 14-11-43.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": "ja",
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 16.739,
+          "established_at": 19.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.779967,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 19.0,
+            "last_time": 19.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 17.039,
+          "runner_up_score": 0.148597,
+          "score": 0.779967,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 322.06666666666666
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 3.817,
+          "established_at": 4.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 9,
+            "best_score": 0.996985,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 4.5,
+            "no_templates": 0,
+            "observations": 10,
+            "span_seconds": 4.5,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 5.307,
+          "runner_up_score": 0.39245,
+          "score": 0.996985,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 322.06666666666666
+        }
+      },
+      "stem": "ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30",
+      "video": "/Users/kenjikahara/Movies/ja_brinewater_springs_triple_inkstrike_2026-09-16 20-06-30.mov"
+    },
+    {
+      "label": "en",
+      "label_flag": "visual_override_of_prefix",
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 20.132,
+          "established_at": 25.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.748694,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 25.5,
+            "last_time": 25.5,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "en",
+          "probe_seconds": 20.509,
+          "runner_up_score": 0.246221,
+          "score": 0.748694,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 243.16666666666666
+        },
+        "normal": {
+          "cue_id": "battle_mode/turf_war",
+          "decode_seconds": 8.089,
+          "established_at": 11.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 22,
+            "best_score": 0.97794,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 11.0,
+            "no_templates": 0,
+            "observations": 23,
+            "span_seconds": 11.0,
+            "status": "accepted"
+          },
+          "language": "en",
+          "probe_seconds": 11.016,
+          "runner_up_score": 0.419057,
+          "score": 0.97794,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 243.16666666666666
+        }
+      },
+      "stem": "ja_turf--2026-10-21 20-19-13",
+      "video": "/Users/kenjikahara/Movies/ja_turf--2026-10-21 20-19-13.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 14.771,
+          "established_at": 15.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 0,
+            "best_score": 0.837574,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 15.0,
+            "last_time": 15.0,
+            "no_templates": 0,
+            "observations": 1,
+            "span_seconds": 0.0,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 15.166,
+          "runner_up_score": 0.142136,
+          "score": 0.837574,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 138.61666666666667
+        },
+        "normal": {
+          "cue_id": "battle_mode/splat_zones",
+          "decode_seconds": 0.339,
+          "established_at": 0.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.966878,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 0.5,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 0.675,
+          "runner_up_score": 0.373096,
+          "score": 0.966878,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 138.61666666666667
+        }
+      },
+      "stem": "jp-2026-09-21 07-24-31",
+      "video": "/Users/kenjikahara/Movies/jp-2026-09-21 07-24-31.mov"
+    },
+    {
+      "label": "ja",
+      "label_flag": null,
+      "manifest_label": null,
+      "prefix_label": "ja",
+      "runs": {
+        "forced-fallback": {
+          "cue_id": "callout/come_on",
+          "decode_seconds": 12.828,
+          "established_at": 19.5,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 1,
+            "best_score": 0.815796,
+            "bound_reached": null,
+            "entered": true,
+            "entered_at": null,
+            "first_time": 19.0,
+            "last_time": 19.5,
+            "no_templates": 0,
+            "observations": 2,
+            "span_seconds": 0.5,
+            "status": "accepted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "close_reason": "disabled",
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "language": "ja",
+          "probe_seconds": 13.122,
+          "runner_up_score": 0.12086,
+          "score": 0.815796,
+          "source": "gameplay_callout",
+          "termination": "callout_accepted",
+          "video_duration_seconds": 354.5
+        },
+        "normal": {
+          "cue_id": "battle_mode/clam_blitz",
+          "decode_seconds": 3.928,
+          "established_at": 5.0,
+          "fallback": {
+            "ambiguous_margin": 0,
+            "attempted": false,
+            "below_threshold": 0,
+            "best_score": null,
+            "bound_reached": null,
+            "entered": false,
+            "entered_at": null,
+            "first_time": null,
+            "last_time": null,
+            "no_templates": 0,
+            "observations": 0,
+            "span_seconds": 0.0,
+            "status": "not_attempted"
+          },
+          "intro": {
+            "ambiguous_margin": 0,
+            "attempted": true,
+            "below_threshold": 10,
+            "best_score": 0.996176,
+            "close_reason": "accepted",
+            "first_time": 0.0,
+            "last_time": 5.0,
+            "no_templates": 0,
+            "observations": 11,
+            "span_seconds": 5.0,
+            "status": "accepted"
+          },
+          "language": "ja",
+          "probe_seconds": 5.666,
+          "runner_up_score": 0.460824,
+          "score": 0.996176,
+          "source": "intro_mode",
+          "termination": "intro_accepted",
+          "video_duration_seconds": 354.5
+        }
+      },
+      "stem": "jp_clam-2026-09-20 23-38-13",
+      "video": "/Users/kenjikahara/Movies/jp_clam-2026-09-20 23-38-13.mov"
+    }
+  ],
+  "summaries": [
+    {
+      "en": {
+        "by_source": {
+          "gameplay_callout": 2,
+          "intro_mode": 15,
+          "none": 1
+        },
+        "callout_seconds_after_first_eligible": {
+          "max": 20.0,
+          "median": 10.0,
+          "min": 0.0,
+          "n": 2,
+          "p90": 20.0
+        },
+        "established_at": {
+          "gameplay_callout": {
+            "max": 74.0,
+            "median": 38.25,
+            "min": 2.5,
+            "n": 2,
+            "p90": 74.0
+          },
+          "intro_mode": {
+            "max": 70.5,
+            "median": 5.5,
+            "min": 0.0,
+            "n": 15,
+            "p90": 23.0
+          }
+        },
+        "n": 18,
+        "probe_seconds": {
+          "max": 63.335,
+          "median": 3.18,
+          "min": 0.345,
+          "n": 18,
+          "p90": 42.87
+        },
+        "unknown": [
+          {
+            "stem": "en-2026-07-04 16-00-03",
+            "termination": "fallback_limit"
+          }
+        ],
+        "wrong": []
+      },
+      "fr": {
+        "by_source": {
+          "none": 1
+        },
+        "callout_seconds_after_first_eligible": null,
+        "established_at": {},
+        "n": 1,
+        "probe_seconds": {
+          "max": 54.681,
+          "median": 54.681,
+          "min": 54.681,
+          "n": 1,
+          "p90": 54.681
+        },
+        "unknown": [
+          {
+            "stem": "fr_2026-10-26 22-29-36",
+            "termination": "fallback_limit"
+          }
+        ],
+        "wrong": []
+      },
+      "ja": {
+        "by_source": {
+          "gameplay_callout": 1,
+          "intro_mode": 7,
+          "none": 2
+        },
+        "callout_seconds_after_first_eligible": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "n": 1,
+          "p90": 0.0
+        },
+        "established_at": {
+          "gameplay_callout": {
+            "max": 227.5,
+            "median": 227.5,
+            "min": 227.5,
+            "n": 1,
+            "p90": 227.5
+          },
+          "intro_mode": {
+            "max": 60.5,
+            "median": 14.0,
+            "min": 0.5,
+            "n": 7,
+            "p90": 30.0
+          }
+        },
+        "n": 10,
+        "probe_seconds": {
+          "max": 200.542,
+          "median": 18.763,
+          "min": 0.675,
+          "n": 10,
+          "p90": 182.26
+        },
+        "unknown": [
+          {
+            "stem": "ja-2026-09-09 20-01-09",
+            "termination": "fallback_limit"
+          },
+          {
+            "stem": "ja_2026-10-31 14-11-43",
+            "termination": "video_ended"
+          }
+        ],
+        "wrong": []
+      },
+      "mode": "normal",
+      "recordings": 35,
+      "unlabeled": {
+        "by_source": {
+          "gameplay_callout": 1,
+          "intro_mode": 3,
+          "none": 2
+        },
+        "callout_seconds_after_first_eligible": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "n": 1,
+          "p90": 0.0
+        },
+        "established_at": {
+          "gameplay_callout": {
+            "max": 2.0,
+            "median": 2.0,
+            "min": 2.0,
+            "n": 1,
+            "p90": 2.0
+          },
+          "intro_mode": {
+            "max": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "n": 3,
+            "p90": 0.0
+          }
+        },
+        "n": 6,
+        "probe_seconds": {
+          "max": 308.782,
+          "median": 1.207,
+          "min": 0.08,
+          "n": 6,
+          "p90": 308.782
+        },
+        "unknown": [
+          {
+            "stem": "2026-07-04 16-06-41",
+            "termination": "video_ended"
+          },
+          {
+            "stem": "2026-07-07 22-28-43",
+            "termination": "fallback_limit"
+          }
+        ],
+        "wrong": []
+      }
+    },
+    {
+      "en": {
+        "by_source": {
+          "gameplay_callout": 17,
+          "none": 1
+        },
+        "callout_seconds_after_first_eligible": {
+          "max": 20.0,
+          "median": 0.0,
+          "min": 0.0,
+          "n": 17,
+          "p90": 0.5
+        },
+        "established_at": {
+          "gameplay_callout": {
+            "max": 84.5,
+            "median": 20.0,
+            "min": 2.5,
+            "n": 17,
+            "p90": 39.0
+          }
+        },
+        "n": 18,
+        "probe_seconds": {
+          "max": 82.983,
+          "median": 12.924,
+          "min": 1.794,
+          "n": 18,
+          "p90": 46.705
+        },
+        "unknown": [
+          {
+            "stem": "en-2026-07-04 16-00-03",
+            "termination": "fallback_limit"
+          }
+        ],
+        "wrong": []
+      },
+      "fr": {
+        "by_source": {
+          "none": 1
+        },
+        "callout_seconds_after_first_eligible": null,
+        "established_at": {},
+        "n": 1,
+        "probe_seconds": {
+          "max": 65.45,
+          "median": 65.45,
+          "min": 65.45,
+          "n": 1,
+          "p90": 65.45
+        },
+        "unknown": [
+          {
+            "stem": "fr_2026-10-26 22-29-36",
+            "termination": "fallback_limit"
+          }
+        ],
+        "wrong": []
+      },
+      "ja": {
+        "by_source": {
+          "gameplay_callout": 8,
+          "none": 2
+        },
+        "callout_seconds_after_first_eligible": {
+          "max": 0.5,
+          "median": 0.0,
+          "min": 0.0,
+          "n": 8,
+          "p90": 0.5
+        },
+        "established_at": {
+          "gameplay_callout": {
+            "max": 227.5,
+            "median": 35.25,
+            "min": 15.0,
+            "n": 8,
+            "p90": 85.5
+          }
+        },
+        "n": 10,
+        "probe_seconds": {
+          "max": 112.836,
+          "median": 28.942,
+          "min": 5.088,
+          "n": 10,
+          "p90": 104.522
+        },
+        "unknown": [
+          {
+            "stem": "ja-2026-09-09 20-01-09",
+            "termination": "fallback_limit"
+          },
+          {
+            "stem": "ja_2026-10-31 14-11-43",
+            "termination": "video_ended"
+          }
+        ],
+        "wrong": []
+      },
+      "mode": "forced-fallback",
+      "recordings": 35,
+      "unlabeled": {
+        "by_source": {
+          "gameplay_callout": 4,
+          "none": 2
+        },
+        "callout_seconds_after_first_eligible": {
+          "max": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "n": 4,
+          "p90": 0.0
+        },
+        "established_at": {
+          "gameplay_callout": {
+            "max": 15.5,
+            "median": 15.0,
+            "min": 2.0,
+            "n": 4,
+            "p90": 15.5
+          }
+        },
+        "n": 6,
+        "probe_seconds": {
+          "max": 139.556,
+          "median": 7.46,
+          "min": 2.437,
+          "n": 6,
+          "p90": 139.556
+        },
+        "unknown": [
+          {
+            "stem": "2026-07-04 16-06-41",
+            "termination": "video_ended"
+          },
+          {
+            "stem": "2026-07-07 22-28-43",
+            "termination": "fallback_limit"
+          }
+        ],
+        "wrong": []
+      }
+    }
+  ]
+}

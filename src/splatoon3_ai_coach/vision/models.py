@@ -472,6 +472,30 @@ class ZoneControlReading(BaseModel):
     confidence: float = Field(default=0.0, ge=0, le=1)
 
 
+GameLanguageGate = Literal["intro_mode", "gameplay_callout"]
+GameLanguageRejection = Literal["below_threshold", "ambiguous_margin", "no_templates"]
+
+
+class GameLanguageCueReading(BaseModel):
+    """One both-language localized cue match on one probe frame.
+
+    ``candidate_language`` is the best-scoring language whether or not it was
+    accepted; only ``accepted`` readings are language evidence. A missing or
+    unreadable cue is never evidence for any language.
+    """
+
+    kind: Literal["game_language"] = "game_language"
+    gate: GameLanguageGate
+    candidate_language: Literal["en", "ja"] | None = None
+    cue_id: str | None = None
+    template_path: str | None = None
+    score: float = Field(default=0.0, ge=-1, le=1)
+    runner_up_language: Literal["en", "ja"] | None = None
+    runner_up_score: float | None = Field(default=None, ge=-1, le=1)
+    accepted: bool = False
+    rejection: GameLanguageRejection | None = None
+
+
 Reading = Annotated[
     TimerReading
     | DeathReading
@@ -490,7 +514,8 @@ Reading = Annotated[
     | RainmakerScoreReading
     | RainmakerPossessionReading
     | RainmakerCheckpointReading
-    | ZoneControlReading,
+    | ZoneControlReading
+    | GameLanguageCueReading,
     Field(discriminator="kind"),
 ]
 
@@ -777,7 +802,8 @@ class AnalysisIdentity(BaseModel):
     extraction_manifest_sha256: str = ""
     vision_config_sha256: str
     video_identity: str
-    # Analysis-level UI language; also hashed into vision_config_sha256.
+    # Game language that selected detector templates (the detected language
+    # since automatic detection); also hashed into vision_config_sha256.
     language: str = "en"
     # Set when state_snapshots / game_events were re-fused from the stored
     # frame_results: hash of the config whose fusion and event settings produced
@@ -831,6 +857,97 @@ class VisionTimingMetrics(BaseModel):
         return self.video_duration_seconds / self.total_seconds
 
 
+class GameLanguageGateSummary(BaseModel):
+    """Counts and time span of one probe gate's observations (no per-frame trace).
+
+    ``status`` is closed vocabulary: ``accepted``; ``unreadable`` (every
+    observation below threshold, or none observed); ``ambiguous`` (at least one
+    observation failed only the language margin); ``not_attempted``.
+    """
+
+    attempted: bool = False
+    observations: int = Field(default=0, ge=0)
+    first_time: float | None = None
+    last_time: float | None = None
+    span_seconds: float = Field(default=0.0, ge=0)
+    below_threshold: int = Field(default=0, ge=0)
+    ambiguous_margin: int = Field(default=0, ge=0)
+    no_templates: int = Field(default=0, ge=0)
+    best_score: float | None = None
+    status: Literal["accepted", "unreadable", "ambiguous", "not_attempted"] = (
+        "not_attempted"
+    )
+
+
+class GameLanguageIntroSummary(GameLanguageGateSummary):
+    """Gate 1 (intro battle-mode label) summary."""
+
+    close_reason: (
+        Literal["accepted", "in_match", "deadline", "disabled", "video_ended"] | None
+    ) = None
+
+
+class GameLanguageFallbackSummary(GameLanguageGateSummary):
+    """Gate 2 (in-match D-pad signal label) summary.
+
+    ``observations`` counts eligible frames (in-match with a usable timer read);
+    ``span_seconds`` is the video time from the first to the last of them.
+    """
+
+    entered: bool = False
+    entered_at: float | None = None
+    bound_reached: Literal["observations", "live_seconds", "no_live_frames"] | None = (
+        None
+    )
+
+
+class GameLanguagePolicy(BaseModel):
+    """Effective probe thresholds and bounds for one run."""
+
+    intro_roi: tuple[float, float, float, float]
+    intro_threshold: float
+    intro_language_margin: float
+    intro_deadline_seconds: float
+    callout_roi: tuple[float, float, float, float]
+    callout_cues: list[str]
+    callout_threshold: float
+    callout_language_margin: float
+    max_fallback_observations: int
+    max_fallback_live_seconds: float
+    max_seconds_before_live: float
+    sample_fps: float
+    languages: list[str]
+
+
+class GameLanguageResult(BaseModel):
+    """Authoritative game language for one analysis and its establishing evidence.
+
+    ``language`` is the only language that selects detector templates. A
+    supplied legacy language is comparison-only (``supplied_agreement``).
+    Detailed per-frame attempts live in ``game_language.json``.
+    """
+
+    language: Literal["en", "ja", "unknown"]
+    source: Literal["intro_mode", "gameplay_callout", "none"]
+    termination: Literal[
+        "intro_accepted", "callout_accepted", "fallback_limit", "video_ended"
+    ]
+    established_at: float | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
+    evidence: DetectorResult | None = None
+    source_frame: SourceFrameReference | None = None
+    intro: GameLanguageIntroSummary = Field(default_factory=GameLanguageIntroSummary)
+    fallback: GameLanguageFallbackSummary = Field(
+        default_factory=GameLanguageFallbackSummary
+    )
+    video_ended_before_resolution: bool = False
+    supplied_language: Literal["en", "ja"] | None = None
+    supplied_agreement: Literal["not_supplied", "agree", "disagree", "unresolved"] = (
+        "not_supplied"
+    )
+    policy: GameLanguagePolicy
+
+
 class VisionManifest(BaseModel):
     """Versioned output of the Phase 3 vision pipeline."""
 
@@ -853,3 +970,5 @@ class VisionManifest(BaseModel):
     game_events: list[GameEvent] = Field(default_factory=list)
     timing: VisionTimingMetrics | None = None
     video: VideoRunMetadata | None = None
+    # None for manifests written before automatic game-language detection.
+    game_language: GameLanguageResult | None = None

@@ -20,6 +20,7 @@ from public_site.errors import (
     CAPACITY,
     COACHING_FAILED,
     EXPIRED,
+    GAME_LANGUAGE_UNDETERMINED,
     INTERRUPTED,
     PROBE_CONTAINER,
     PROBE_DIMENSIONS,
@@ -41,6 +42,7 @@ from public_site.store import PublicStore, add_days, utc_now
 from public_site.worker import PublicWorker
 from typer.testing import CliRunner
 
+from splatoon3_ai_coach.cli.analyze import GAME_LANGUAGE_UNDETERMINED_EXIT_CODE
 from splatoon3_ai_coach.cli.app import app as cli_app
 from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
 from splatoon3_ai_coach.coach.artifacts import CoachingIndexEntry
@@ -382,6 +384,38 @@ def test_analyze_failure_skips_later_stages(tmp_path: Path) -> None:
     assert stored.status == "failed"
     assert stored.error == ANALYSIS_FAILED
     assert calls == ["analyze"]
+
+
+def test_undetermined_game_language_has_its_own_failure_message(tmp_path: Path) -> None:
+    calls: list[str] = []
+
+    def run(argv: list[str]) -> int:
+        calls.append("analyze" if "analyze" in argv else argv[1])
+        return GAME_LANGUAGE_UNDETERMINED_EXIT_CODE if "analyze" in argv else 0
+
+    client = _client(tmp_path, run_command=run)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    assert client.app.state.worker.pump() is True
+    client.app.state.worker.join()
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed"
+    assert stored.error == GAME_LANGUAGE_UNDETERMINED
+    assert calls == ["analyze"]
+    assert client.get(f"/api/submissions/{token}").json()["error"] == (
+        "Game language could not be determined from the recording."
+    )
+
+
+def test_undetermined_game_language_has_its_own_telemetry_code() -> None:
+    from public_site.telemetry import Diagnostic, ErrorCode, classify_error
+
+    assert classify_error(GAME_LANGUAGE_UNDETERMINED) == (
+        ErrorCode.GAME_LANGUAGE_UNDETERMINED,
+        Diagnostic.NONZERO_EXIT,
+    )
+    assert classify_error(ANALYSIS_FAILED)[0] is ErrorCode.ANALYSIS_FAILED
 
 
 def test_llm_failure_still_completes_when_inputs_exist(tmp_path: Path) -> None:

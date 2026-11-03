@@ -72,10 +72,10 @@ extraction:
     death_text: [0.20, 0.25, 0.80, 0.70]
 
 vision:
-  # Analysis-level UI language (en|ja). Text/OCR template packs load only from
-  # template_dir/<language>/ (respawn, splat, death/ouch, death/splatted).
-  # Selected once per analysis; never inferred per frame.
-  language: en
+  # Game UI language (en|ja) is not configured here. The pre-scan probe
+  # (vision.game_language) resolves it once per analysis from the recording,
+  # before detectors are built; text template packs then load only from
+  # template_dir/<language>/. Detectors never infer language per frame.
   ocr:
     engine: tesseract
     tesseract_languages:
@@ -170,6 +170,26 @@ vision:
     match_threshold: 0.70
     min_usable_confidence: 0.50
     intro_deadline_seconds: 90.0
+  # Pre-scan game-language probe. Gate 1 = match_intro battle-mode label in
+  # both language packs; Gate 2 = bottom-left D-pad signal label (EN
+  # "This way!", JA カモン) on in-match frames. Rationale per value:
+  # src/splatoon3_ai_coach/vision/GAME_LANGUAGE.md.
+  game_language:
+    # Wrong-language intro scores reach 0.649 on non-intro screens (results).
+    intro_threshold: 0.80
+    intro_language_margin: 0.10
+    template_dir: "../calibration/templates/lang"
+    cues: ["come_on"]
+    # 1080p [0:230, 860:980]: EN label at x30 y898, JA at x64 y902.
+    roi: [0.0, 0.7963, 0.1198, 0.9074]
+    # Wrong-language callout scores peak at 0.342; some EN peaks are ~0.72.
+    threshold: 0.65
+    language_margin: 0.20
+    reference_height: 1080
+    max_fallback_observations: 120
+    max_fallback_live_seconds: 180.0
+    # First eligible frame by 138.5 s on every battle recording; Salmon Run never.
+    max_seconds_before_live: 300.0
   # Pre-match Ready? plate (center). Runs only after stage identity and before
   # the opening clock first ticks (5:00→4:59 / 3:00→2:59). Templates under
   # calibration/templates/ready/<en|ja>/.

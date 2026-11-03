@@ -29,6 +29,7 @@ from splatoon3_ai_coach.media.vision_manifest import (
     load_vision_manifest,
     save_vision_manifest,
 )
+from splatoon3_ai_coach.vision.game_language import GameLanguageProbeOutcome
 from splatoon3_ai_coach.vision.map_ink import MAP_OBSERVATIONS_FILENAME, MapObservation
 from splatoon3_ai_coach.vision.models import (
     GameEvent,
@@ -52,14 +53,22 @@ def run_analysis(
     *,
     debug_persist_cadence_frames: bool = False,
     video_source: VideoSource | None = None,
+    supplied_language: VisionLanguage | None = None,
+    game_language: GameLanguageProbeOutcome | None = None,
 ) -> VisionManifest:
-    """Run cadence vision analysis, then derive scenarios from GameEvents."""
+    """Run cadence vision analysis, then derive scenarios from GameEvents.
+
+    The game language is detected from the recording; ``supplied_language``
+    is recorded for comparison only (see :func:`run_vision`).
+    """
     manifest = run_vision(
         video,
         config,
         output_dir,
         debug_persist_cadence_frames=debug_persist_cadence_frames,
         video_source=video_source,
+        supplied_language=supplied_language,
+        game_language=game_language,
     )
     write_scenarios(
         manifest.game_events,

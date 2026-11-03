@@ -406,11 +406,27 @@ Prefer saying **roster X marker** for player-count evidence. Do not call it a
 
 ## Vision language
 
-`VisionConfig.language` (`en` / `ja`) and `VisionConfig.ocr` configure text
-templates and OCR. Prefer **language-neutral** cues (icons, colors, layout) for
-primary detection. Localized text assets live under
-`template_dir/<language>/` when present; helpers are in `vision/language.py`.
-Do not gate kill/death events on OCR.
+The **game language** (`en` / `ja`) is detected from the recording, once per
+analysis, by the bounded pre-scan probe in `vision/game_language.py`
+(contract: `src/splatoon3_ai_coach/vision/GAME_LANGUAGE.md`). It runs before
+the vision config hash, `analysis_id` and `build_detectors`, then sets
+`VisionConfig.language`, which alone selects text templates
+(`template_dir/<language>/`, helpers in `vision/language.py`).
+
+- Gate 1: intro battle-mode label matched in both language packs. Gate 2
+ (only if Gate 1 fails): bottom-left D-pad signal label on in-match frames,
+ bounded by `vision.game_language.max_fallback_*`. First accepted
+ observation wins; acceptance needs threshold **and** cross-language margin.
+- Unknown fails closed: `GameLanguageUndeterminedError`, `analyze` exit code
+ 4, only `game_language.json` written. Never default to `en` or `ja`.
+- A supplied language (`--language`, public-site / VMV selectors) is
+ deprecated and comparison-only (`supplied_agreement`); it never selects
+ templates and never enters the hash or `analysis_id`.
+- Detectors never infer language per frame. Game language is separate from
+ the coaching/report language.
+
+Prefer **language-neutral** cues (icons, colors, layout) for primary
+detection. Do not gate kill/death events on OCR.
 
 ## Adding a vision detector
 

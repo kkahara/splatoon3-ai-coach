@@ -29,6 +29,7 @@ def hash_vision_config(config: VisionConfig) -> str:
         "respawn",
         "map_overlay",
         "match_intro",
+        "game_language",
         "ready",
         "player_count",
     ):

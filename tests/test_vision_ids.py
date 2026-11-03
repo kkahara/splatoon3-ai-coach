@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from game_language_helpers import injected_outcome
 
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.vision import pipeline as vision_pipeline
@@ -103,7 +104,9 @@ def _analyze(
     config = load_config(default_config_path())
     config.vision.enabled_detectors = ["timer", "death", "splat"]
     monkeypatch.setattr(vision_pipeline, "git_short_sha", lambda: sha)
-    return vision_pipeline.run_vision(sample_video, config, out)
+    return vision_pipeline.run_vision(
+        sample_video, config, out, game_language=injected_outcome("en", config.vision)
+    )
 
 
 def _result_ids(manifest: VisionManifest) -> list[str]:
@@ -146,7 +149,12 @@ def test_git_is_resolved_once_per_run(
     monkeypatch.setattr(provenance.subprocess, "run", fake_run)
     config = load_config(default_config_path())
     config.vision.enabled_detectors = ["timer", "death", "splat", "respawn"]
-    manifest = vision_pipeline.run_vision(sample_video, config, tmp_path / "a")
+    manifest = vision_pipeline.run_vision(
+        sample_video,
+        config,
+        tmp_path / "a",
+        game_language=injected_outcome("en", config.vision),
+    )
     assert len(calls) == 1
     assert manifest.analysis.git_sha == "abc1234"
 

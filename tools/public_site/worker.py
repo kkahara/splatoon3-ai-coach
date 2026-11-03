@@ -16,7 +16,12 @@ from time import perf_counter
 
 from loguru import logger
 
-from public_site.errors import ANALYSIS_FAILED, COACHING_FAILED, INTERRUPTED
+from public_site.errors import (
+    ANALYSIS_FAILED,
+    COACHING_FAILED,
+    GAME_LANGUAGE_UNDETERMINED,
+    INTERRUPTED,
+)
 from public_site.frames import extract_frames
 from public_site.models import CoachingOutcome, Submission
 from public_site.service import SubmissionService
@@ -29,6 +34,7 @@ from public_site.telemetry import (
     best_effort,
     classify_error,
 )
+from splatoon3_ai_coach.cli.analyze import GAME_LANGUAGE_UNDETERMINED_EXIT_CODE
 from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
 from splatoon3_ai_coach.coach.artifacts import coaching_index_path
 
@@ -275,9 +281,13 @@ class PublicWorker:
                 path.unlink()
 
     def _stages(self, submission: Submission, analysis: Path, video: Path) -> None:
-        if self._stage(submission, Stage.ANALYZE, analyze_argv(
+        code = self._stage(submission, Stage.ANALYZE, analyze_argv(
             self.settings, video, analysis, submission.language
-        )):
+        ))
+        if code == GAME_LANGUAGE_UNDETERMINED_EXIT_CODE:
+            self._fail(submission, GAME_LANGUAGE_UNDETERMINED, stage=Stage.ANALYZE)
+            return
+        if code:
             self._fail(submission, ANALYSIS_FAILED, stage=Stage.ANALYZE)
             return
         self._capture_trace(submission, analysis)
