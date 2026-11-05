@@ -616,7 +616,11 @@ def test_interpret_probe_accepts_a_normal_mp4_and_rejects_limits(tmp_path: Path)
     _raises(payload, settings, PROBE_CONTAINER)
 
 
-def test_complete_deletes_the_source_video_outside_dev_mode(tmp_path: Path) -> None:
+def test_complete_deletes_the_source_video_outside_dev_mode(
+    tmp_path: Path, monkeypatch
+) -> None:
+    # These storage lifecycle tests use fake source bytes; clips are tested separately.
+    monkeypatch.setattr("public_site.service.missing_clips", lambda _analysis: False)
     client = _client(tmp_path, dev_mode=False, run_command=_finish_coaching)
     created = _create(client)
     token = _put(client, created)
@@ -715,7 +719,9 @@ def test_coach_inputs_crash_stays_coaching_failed(tmp_path: Path) -> None:
     assert stored.error == COACHING_FAILED
 
 
-def test_failed_video_delete_keeps_the_review(tmp_path: Path) -> None:
+def test_failed_video_delete_keeps_the_review(tmp_path: Path, monkeypatch) -> None:
+    # These storage lifecycle tests use fake source bytes; clips are tested separately.
+    monkeypatch.setattr("public_site.service.missing_clips", lambda _analysis: False)
     settings = _settings(tmp_path, dev_mode=False)
     storage = _StickyStorage(settings.root)
     app = create_app(
@@ -1172,7 +1178,7 @@ def test_failed_grab_still_completes_without_an_image(
     body = client.get(f"/api/submissions/{token}").json()
     moment = body["result"]["moments"][0]
     assert stored.status == "complete"
-    assert video_row.object_key == ""
+    assert video_row.object_key  # Retained because the clip also could not be generated.
     assert moment["frame"] is False
     assert moment["statements"] == [STATEMENT]
     assert "public_frames" not in json.dumps(moment)
