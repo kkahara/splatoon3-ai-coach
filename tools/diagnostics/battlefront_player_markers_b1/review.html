@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mark visible players</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#111827;color:#edf2f7}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1500px;margin:auto;padding:20px}h1{font-size:1.6rem;margin:.2rem 0}.intro{max-width:1000px;color:#c6d2e1;line-height:1.5}.notice{background:#263449;border-left:4px solid #48cbb7;padding:12px 16px;border-radius:6px;margin:12px 0;max-width:1100px}.bar,.controls,.teams{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}button,select,input{font:inherit;padding:8px 12px;border:1px solid #60738b;border-radius:7px;background:#263449;color:#fff}button{cursor:pointer}button:hover{background:#344a66}button.active{outline:2px solid #fff}.team-orange{border-color:#ff8b42}.team-purple{border-color:#bf83ff}.team-unknown{border-color:#9ba9ba}.good{background:#145347;border-color:#41b99d}.complete{background:#18513f;border-color:#53c39b}.danger{border-color:#e36f78}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px}.viewer{height:min(72vh,820px);min-height:440px;overflow:hidden;background:#05080d;border:1px solid #52647a;border-radius:7px;position:relative;touch-action:none}.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}.stage img{width:1920px;height:1080px;display:block}.stage svg{position:absolute;inset:0;width:1920px;height:1080px;overflow:visible}.marker{stroke:#101820;stroke-width:4;cursor:grab}.marker.orange{fill:#ff8b42}.marker.purple{fill:#bf83ff}.marker.unknown{fill:#c1cbd8}.marker.selected{stroke:#fff;stroke-width:7}.marker.uncertain{stroke-dasharray:6 5}.proposal{fill:none;stroke:#ffe166;stroke-width:3;pointer-events:none}.side{background:#1b2635;padding:14px;border-radius:8px}.small{font-size:.9rem;color:#b9c7d7;line-height:1.45}.state{font-size:1.05rem;padding:8px 0}.comparison{background:#263449;padding:12px;border-radius:7px;margin-top:10px}.comparison p{margin:7px 0}.key{font-weight:700}label{cursor:pointer}input[type=checkbox]{width:18px;height:18px;vertical-align:middle}details{margin:14px 0}video{width:100%;max-height:320px;background:#000}.hidden{display:none}@media(max-width:900px){.layout{grid-template-columns:1fr}.viewer{height:62vh;min-height:360px}.side{order:-1}}
+</style>
+</head>
+<body><main class="wrap">
+<h1>Mark the players you can clearly see</h1>
+<p class="intro">Click the center of each visible player marker on the map. Mark only what you can see. Don’t guess hidden positions, and don’t assume every colored spot is a player. If a symbol might not be a player, mark its identity as unsure.</p>
+<div class="notice"><b>Human-first review:</b> the frame starts clean. Computer suggestions stay hidden until you turn them on. You can finish your human marks before comparing them.</div>
+<div class="bar"><label for="frame">Development frame</label><select id="frame"></select><span id="frameNote" class="small"></span></div>
+<div class="layout"><section>
+<div class="controls">
+<span>New mark team:</span>
+<button class="team-orange active" data-team="orange">Orange</button>
+<button class="team-purple" data-team="purple">Purple</button>
+<button class="team-unknown" data-team="unknown">Unknown</button>
+<label><input id="uncertain" type="checkbox"> Marker identity unsure</label>
+</div>
+<div class="controls">
+<button id="pan">Pan map</button><button id="zoomOut">− Zoom</button><button id="zoomIn">+ Zoom</button><button id="fit">Fit frame</button>
+<button id="undo">Undo</button><button id="delete" class="danger">Delete selected mark</button>
+</div>
+<div id="viewer" class="viewer"><div id="stage" class="stage"><img id="img" alt="Clean source gameplay map"><svg id="svg" viewBox="0 0 1920 1080"></svg></div></div>
+<p class="small">Click the map to add a mark. Drag a mark to move it. Select a mark, then choose a team to correct it. Use Pan map or the mouse wheel to move and zoom around small markers.</p>
+<details><summary>Show computer suggestions (optional)</summary><p class="small">These experimental suggestions can include paint fragments and unrelated objects. Keep them hidden while making your independent marks.</p><label><input id="showProposals" type="checkbox"> Show computer suggestions</label></details>
+<details><summary>Play a short source-video segment around this frame</summary><video id="video" controls preload="metadata"></video><p class="small">If your browser supports this recording’s video format, it seeks to about one second before the selected frame.</p></details>
+</section><aside class="side">
+<h2>Your marks</h2><div id="annotationCount" class="state">No marks yet.</div>
+<label>Reviewer initials (optional)<br><input id="reviewer" placeholder="Initials"></label>
+<div class="controls"><button id="save" class="good">Save marks</button><button id="completeFrame" class="complete">Frame complete</button></div>
+<div id="saveStatus" class="small">Save marks as a draft while you work. Use Frame complete only after checking the whole visible map.</div>
+<div id="comparison" class="comparison hidden"><div class="key">Computer comparison</div><div id="comparisonText" class="small"></div></div>
+<hr><div class="small"><b>What to mark</b><br>• One point at each visible player marker’s center.<br>• Choose Orange, Purple, or Unknown team.<br>• Check “Marker identity unsure” if it may be another kind of icon.<br>• Do not add hidden or guessed players.</div>
+</aside></div></main>
+<script>
+let study, frames=[], currentIndex=0, points=[], selectedId=null, nextId=1, undoStack=[], currentTeam='orange';
+let scale=1, tx=0, ty=0, panMode=false, dragState=null, complete=false;
+const viewer=document.querySelector('#viewer'),stage=document.querySelector('#stage'),svg=document.querySelector('#svg'),frameSelect=document.querySelector('#frame');
+function copyPoints(){undoStack.push(JSON.stringify(points));if(undoStack.length>40)undoStack.shift()}
+function currentFrame(){return frames[currentIndex]}
+function setTransform(){stage.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;viewer.style.cursor=panMode?'grab':'crosshair'}
+function fitFrame(){const box=viewer.getBoundingClientRect();scale=Math.min(box.width/1920,box.height/1080);tx=(box.width-1920*scale)/2;ty=(box.height-1080*scale)/2;setTransform()}
+function imagePoint(event){const r=viewer.getBoundingClientRect();return [(event.clientX-r.left-tx)/(1920*scale),(event.clientY-r.top-ty)/(1080*scale)]}
+function markChanged(){complete=false;document.querySelector('#comparison').classList.add('hidden');document.querySelector('#saveStatus').textContent='Unsaved changes. Save marks or complete this frame again.'}
+function render(){const f=currentFrame();if(!f)return;document.querySelector('#img').src='/frames/'+f.image_path.split('/').pop();document.querySelector('#frameNote').textContent=`${f.video_time_seconds}s · ${f.selection_note||'development example selected'}`;frameSelect.value=String(currentIndex);svg.replaceChildren();
+ if(document.querySelector('#showProposals').checked){for(const c of f.candidates){const [x,y,w,h]=c.bbox_px;const box=document.createElementNS('http://www.w3.org/2000/svg','rect');box.setAttribute('x',x);box.setAttribute('y',y);box.setAttribute('width',w);box.setAttribute('height',h);box.setAttribute('class','proposal');svg.append(box)}}
+ for(const p of points){const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');circle.setAttribute('cx',p.image_xy[0]*1920);circle.setAttribute('cy',p.image_xy[1]*1080);circle.setAttribute('r',selectedId===p.id?15:12);circle.setAttribute('class',`marker ${p.team} ${p.identity_uncertain?'uncertain':''} ${selectedId===p.id?'selected':''}`);circle.addEventListener('pointerdown',event=>startMarkerDrag(event,p.id));circle.addEventListener('click',event=>event.stopPropagation());svg.append(circle)}
+ const uncertain=points.filter(p=>p.identity_uncertain).length;document.querySelector('#annotationCount').textContent=`${points.length} mark${points.length===1?'':'s'}${uncertain?`; ${uncertain} identity unsure`:''}.`;
+ document.querySelector('#completeFrame').textContent=complete?'Frame complete ✓':'Frame complete';document.querySelector('#completeFrame').disabled=complete;setTransform();
+}
+function addPoint(event){const [x,y]=imagePoint(event);if(x<0||x>1||y<0||y>1)return;copyPoints();const id=`human-${nextId++}`;points.push({id,image_xy:[+x.toFixed(7),+y.toFixed(7)],team:currentTeam,identity_uncertain:document.querySelector('#uncertain').checked});selectedId=id;markChanged();render()}
+function startMarkerDrag(event,id){event.preventDefault();event.stopPropagation();selectedId=id;const point=points.find(item=>item.id===id);currentTeam=point.team;document.querySelector('#uncertain').checked=point.identity_uncertain;document.querySelectorAll('[data-team]').forEach(button=>button.classList.toggle('active',button.dataset.team===currentTeam));copyPoints();dragState={kind:'marker',id,pointerId:event.pointerId};viewer.setPointerCapture(event.pointerId);render()}
+function startPan(event){if(!panMode||event.target.closest('circle'))return;event.preventDefault();dragState={kind:'pan',x:event.clientX,y:event.clientY,tx,ty,pointerId:event.pointerId};viewer.setPointerCapture(event.pointerId)}
+viewer.addEventListener('pointerdown',event=>{if(event.button!==0)return;if(panMode)startPan(event);else if(!event.target.closest('circle')&&!event.target.closest('button'))addPoint(event)});
+viewer.addEventListener('pointermove',event=>{if(!dragState)return;if(dragState.kind==='pan'){tx=dragState.tx+event.clientX-dragState.x;ty=dragState.ty+event.clientY-dragState.y;setTransform();return}const p=points.find(item=>item.id===dragState.id);if(!p)return;const [x,y]=imagePoint(event);p.image_xy=[Math.max(0,Math.min(1,+x.toFixed(7))),Math.max(0,Math.min(1,+y.toFixed(7)))];markChanged();render()});
+function finishDrag(event){if(dragState&&viewer.hasPointerCapture(event.pointerId))viewer.releasePointerCapture(event.pointerId);dragState=null}viewer.addEventListener('pointerup',finishDrag);viewer.addEventListener('pointercancel',finishDrag);
+viewer.addEventListener('wheel',event=>{event.preventDefault();const rect=viewer.getBoundingClientRect(),cx=event.clientX-rect.left,cy=event.clientY-rect.top;const imageX=(cx-tx)/scale,imageY=(cy-ty)/scale;scale=Math.max(.25,Math.min(4,scale*(event.deltaY<0?1.15:1/1.15)));tx=cx-imageX*scale;ty=cy-imageY*scale;setTransform()},{passive:false});
+document.querySelectorAll('[data-team]').forEach(button=>button.onclick=()=>{currentTeam=button.dataset.team;document.querySelectorAll('[data-team]').forEach(item=>item.classList.toggle('active',item===button));if(selectedId){copyPoints();const p=points.find(item=>item.id===selectedId);p.team=currentTeam;markChanged();render()}});
+document.querySelector('#uncertain').onchange=event=>{if(selectedId){copyPoints();points.find(p=>p.id===selectedId).identity_uncertain=event.target.checked;markChanged();render()}};
+document.querySelector('#delete').onclick=()=>{if(!selectedId)return;copyPoints();points=points.filter(p=>p.id!==selectedId);selectedId=null;markChanged();render()};
+document.querySelector('#undo').onclick=()=>{if(!undoStack.length)return;points=JSON.parse(undoStack.pop());selectedId=null;markChanged();render()};
+document.querySelector('#pan').onclick=()=>{panMode=!panMode;document.querySelector('#pan').classList.toggle('active',panMode);setTransform()};
+document.querySelector('#zoomIn').onclick=()=>zoomAtCenter(1.2);document.querySelector('#zoomOut').onclick=()=>zoomAtCenter(1/1.2);document.querySelector('#fit').onclick=fitFrame;
+function zoomAtCenter(factor){const box=viewer.getBoundingClientRect(),cx=box.width/2,cy=box.height/2,ix=(cx-tx)/scale,iy=(cy-ty)/scale;scale=Math.max(.25,Math.min(4,scale*factor));tx=cx-ix*scale;ty=cy-iy*scale;setTransform()}
+document.querySelector('#showProposals').onchange=render;
+async function saveFrame(frameComplete){const f=currentFrame();const response=await fetch('/api/annotations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frame_id:f.frame_id,reviewer:document.querySelector('#reviewer').value,frame_complete:frameComplete,annotations:points})});const data=await response.json();if(!response.ok){document.querySelector('#saveStatus').textContent=`Could not save: ${data.error||'please retry'}`;return}complete=frameComplete;document.querySelector('#saveStatus').textContent=frameComplete?`Saved. Frame ${f.video_time_seconds}s is marked complete (revision ${data.revision}).`:`Draft saved (revision ${data.revision}).`;render();if(complete)await showComparison()}
+document.querySelector('#save').onclick=()=>saveFrame(false);document.querySelector('#completeFrame').onclick=()=>saveFrame(true);
+async function showComparison(){const f=currentFrame(),response=await fetch('/api/comparison/'+f.frame_id),data=await response.json();if(data.status!=='measured')return;const lines=[`${data.matched_markers} computer suggestions were near clear human marks.`,`${data.false_positives} suggestions were not near a marked player.`,`${data.missed_markers} clear visible marks had no nearby suggestion.`,`${data.ambiguous_proposals_near_uncertain_markers} suggestions overlapped identity-unsure marks and were not counted as false positives.`,data.localization_errors_pixels.mean===null?'No matched centers to measure.':`Matched centers were about ${data.localization_errors_pixels.mean.toFixed(1)} pixels apart on average.`,data.color_side_accuracy===null?'Team-color agreement could not be checked.':`Computer color side agreed with the selected team on ${Math.round(data.color_side_accuracy*100)}% of checked marks.`];document.querySelector('#comparisonText').innerHTML=lines.map(text=>`<p>${text}</p>`).join('');document.querySelector('#comparison').classList.remove('hidden')}
+async function loadFrame(index){currentIndex=index;selectedId=null;undoStack=[];document.querySelector('#comparison').classList.add('hidden');const f=currentFrame(),response=await fetch('/api/annotations/'+f.frame_id),saved=await response.json();points=saved.annotations||[];complete=!!saved.frame_complete;nextId=points.reduce((n,p)=>Math.max(n,Number((p.id||'').split('-').at(-1))||0),0)+1;document.querySelector('#reviewer').value=saved.reviewer||'';fitFrame();render();if(complete)await showComparison()}
+frameSelect.onchange=()=>loadFrame(Number(frameSelect.value));
+document.querySelector('#video').addEventListener('loadedmetadata',event=>{const video=event.currentTarget;video.currentTime=Math.max(0,+video.dataset.target-1)});document.querySelector('#video').addEventListener('timeupdate',event=>{const video=event.currentTarget;if(video.currentTime>+video.dataset.target+2)video.pause()});
+(async()=>{study=await(await fetch('/api/study')).json();const queue=study.review_queue.frames;frames=queue.map(item=>{const f=study.outputs.find(output=>output.frame_id===item.frame_id);return {...f,selection_note:item.selection_note}}).filter(Boolean);frames.forEach((f,i)=>{const option=document.createElement('option');option.value=i;option.textContent=`${f.video_time_seconds}s — clear development example`;frameSelect.append(option)});document.querySelector('#frameNote').textContent=frames[0]?.selection_note||'';document.querySelector('#video').src='/source-video';await loadFrame(0);window.addEventListener('resize',fitFrame)})();
+</script></body></html>
