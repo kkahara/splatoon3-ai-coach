@@ -1142,6 +1142,14 @@ class CoachConfig(BaseModel):
     # Only candidates scoring above zero may fill the top N; otherwise ties
     # among zero-score deaths are settled by video time alone.
     llm_units_require_positive_score: bool = True
+    report_advice_family_cap: bool = Field(
+        default=False,
+        description=(
+            "Experimental, off in production: after ranking, keep at most one "
+            "LLM-selected unit per recommendation template and backfill only "
+            "with positive-score units offering an unused template."
+        ),
+    )
     # Factors that add their weight only when another factor is active, so
     # they never make a death eligible on their own.
     death_modifier_factors: list[str] = Field(default_factory=lambda: ["death_first_30s"])

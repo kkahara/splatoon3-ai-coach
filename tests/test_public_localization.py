@@ -179,6 +179,7 @@ _PATTERN_SAMPLES = [
     "and the opponents had 4.",
     "Two consecutive deaths occurred within 15 seconds.",
     "Two consecutive deaths occurred 7.5 seconds apart.",
+    "Two consecutive deaths occurred 12.0 game-clock seconds apart.",
 ]
 
 

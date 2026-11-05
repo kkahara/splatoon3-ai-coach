@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from public_site.evidence_text import observed_ink_line, render_evidence
 from public_site.results import _context
 
 from splatoon3_ai_coach.analysis.scenario_context import build_scenario_contexts
@@ -30,7 +31,6 @@ from splatoon3_ai_coach.coach.game_clock import GameClock, GameClockObservation
 from splatoon3_ai_coach.coach.llm_view import CoachLlmView, build_coach_llm_view
 from splatoon3_ai_coach.coach.load_analysis import load_coach_analysis_bundle
 from splatoon3_ai_coach.coach.match_scoring import score_match
-from splatoon3_ai_coach.coach.observation_facts import render_observation_fact
 from splatoon3_ai_coach.config.loader import load_config
 from splatoon3_ai_coach.config.models import ScenarioBuilderConfig
 from splatoon3_ai_coach.vision.models import GameEvent, GameStateSnapshot
@@ -102,9 +102,12 @@ def test_reliable_3v4_is_a_fact_without_two_player_factor() -> None:
     assert coach_input.primary_context.players is not None
     counts = view.roster["observed_counts"]
     assert (counts["ally_alive_count"], counts["opponent_alive_count"]) == (3, 4)
+    assert counts["video_time"] == 92
     claim = next(c for c in view.claim_basis if c["claim_id"] == "observed_roster_counts")
-    assert claim["values"]["video_time"] == 92
+    assert "video_time" not in claim["values"]
+    assert "roster.observed_counts.video_time" in claim["evidence_paths"]
     assert claim["values"]["offset_from_anchor_seconds"] == -8
+    assert claim["values"]["timing"] == "before"
     assert claim["coachable"] is False  # Optional context, never forces coaching.
     assert not next(
         f for f in unit.factors if f.factor_id == "death_while_outnumbered"
@@ -171,16 +174,21 @@ def test_ink_uses_nearest_observation_with_pre_death_tie_break(times, expected) 
     assert fact["ally_share_of_detected_ink_percent"] == 75
     assert fact["opponent_share_of_detected_ink_percent"] == 25
     claim = next(c for c in view.claim_basis if c["claim_id"] == "observed_map_ink")
-    assert claim["values"]["video_time"] == expected
-    text = render_observation_fact(claim["claim_id"], claim["values"])
-    assert "visible ink coverage within the registered polygon was 40.00%" in text
-    assert "Ally share of detected ink: 75.00%" in text
+    assert "video_time" not in claim["values"]
+    assert claim["values"]["ally_share_of_detected_ink_rounded_percent"] == 75
+    assert claim["values"]["visible_ink_coverage_rounded_percent"] == 40
+    text = render_evidence(observed_ink_line(claim["values"]), "en")
+    assert "40.00% of the measured map area" in text
+    assert "75% belonged to your team" in text
+    assert "25% to the opposing team" in text
     if expected > 100:
         assert fact["temporal_relationship"] == "after_death"
-        assert "post-death observation" in text
-        assert "at death" not in text
+        assert claim["values"]["timing"] == "after"
+        assert "after the death" in text.lower()
+        assert "before the death" not in text.lower()
     else:
         assert fact["temporal_relationship"] == "before_death"
+        assert "before the death" in text.lower()
 
 
 def test_zero_ink_keeps_zero_and_unavailable_team_shares() -> None:
@@ -189,7 +197,11 @@ def test_zero_ink_keeps_zero_and_unavailable_team_shares() -> None:
     assert fact["visible_ink_coverage_percent"] == 0
     assert fact["ally_share_of_detected_ink_percent"] is None
     assert fact["opponent_share_of_detected_ink_percent"] is None
-    assert "unavailable" in render_observation_fact("observed_map_ink", fact)
+    assert fact["ally_share_of_detected_ink_rounded_percent"] is None
+    claim = next(c for c in view.claim_basis if c["claim_id"] == "observed_map_ink")
+    text = render_evidence(observed_ink_line(claim["values"]), "en")
+    assert "0.00% of the measured map area" in text
+    assert "unavailable belonged to your team" in text
 
 
 def test_claim_values_are_literal_view_leaves_and_public_lines_keep_timing() -> None:
@@ -199,16 +211,25 @@ def test_claim_values_are_literal_view_leaves_and_public_lines_keep_timing() -> 
     for claim in view.claim_basis:
         if claim["claim_id"] not in {"observed_map_ink", "observed_roster_counts"}:
             continue
+        leaves = {}
         for path in claim["evidence_paths"]:
             value = payload
             for part in path.split("."):
                 value = value[part]
-            assert value == claim["values"][path.split(".")[-1]]
-    lines = _context(coach_input.model_dump(mode="json"), [], payload)
-    assert any("3 allies alive and 4 opponents alive" in line for line in lines)
-    assert any("post-death observation" in line for line in lines)
+            assert not isinstance(value, dict | list)
+            leaves[path.split(".")[-1]] = value
+        for name, value in claim["values"].items():
+            assert leaves[name] == value
+    lines = [
+        render_evidence(line, "en")
+        for line in _context(coach_input.model_dump(mode="json"), [], payload)
+    ]
+    assert any("3 teammates and 4 opponents were alive" in line for line in lines)
+    assert any("after the death" in line.lower() for line in lines)
     for line in lines:
         assert video_clock_wording_hits({"assessment": line}) == []
+        for phrase in ("at video", "recording timeline", "registered polygon"):
+            assert phrase not in line.lower()
     assert not any("Roster at death:" in line for line in lines)
 
 

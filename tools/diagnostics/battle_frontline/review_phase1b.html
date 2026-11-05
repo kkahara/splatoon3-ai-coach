@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Human-first battle-line review</title>
+<style>
+  :root { color-scheme:dark; font:15px system-ui,sans-serif; background:#111821; color:#eef3fa; }
+  body { margin:0; padding:20px; }
+  header,.toolbar,.controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  header { justify-content:space-between; }
+  h1 { font-size:1.45rem; margin:0; } p { line-height:1.45; color:#c8d3e0; }
+  .panel { border:1px solid #435269; border-radius:8px; padding:14px; margin:14px 0; background:#192330; }
+  .toolbar { position:sticky; top:0; z-index:4; padding:10px 0; background:#111821; }
+  button,select,textarea { color:#fff; background:#26364a; border:1px solid #72849c; border-radius:6px; padding:9px 12px; font:inherit; }
+  button { cursor:pointer; } button:disabled { opacity:.4; cursor:not-allowed; }
+  button.primary { background:#11665f; border-color:#46d6c8; font-weight:700; }
+  button.warn { background:#654a20; border-color:#d6b460; }
+  label { display:inline-flex; align-items:center; gap:7px; }
+  .frame { position:relative; width:min(100%,1280px); aspect-ratio:16/9; background:#202b39; }
+  .frame img,.frame svg { position:absolute; inset:0; width:100%; height:100%; }
+  #source { object-fit:contain; }
+  svg { pointer-events:none; } svg.editing { pointer-events:auto; cursor:crosshair; }
+  .boundary { fill:none; stroke:#ffe45c; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; }
+  .contested { fill:#ff704d55; stroke:#ff765a; stroke-width:4; }
+  .uncertain { fill:#b7c5d655; stroke:#d0d8e2; stroke-width:4; stroke-dasharray:9 7; }
+  .preview { fill:none; stroke:#ffe45c; stroke-width:5; stroke-dasharray:10 7; }
+  .provisional { fill:none; stroke:#ff483d; stroke-width:5; stroke-linecap:round; }
+  .prediction { fill:none; stroke:#00eddf; stroke-width:5; stroke-linecap:round; }
+  .handle { fill:#fff; stroke:#101722; stroke-width:3; cursor:move; }
+  .status { min-height:24px; color:#bcebd2; } .muted { color:#aebdce; }
+  .comparison { display:none; } .comparison.visible { display:block; }
+  textarea { display:block; width:min(100%,800px); min-height:70px; box-sizing:border-box; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; }
+  .swatch { display:inline-block; width:16px; height:4px; vertical-align:middle; margin-right:5px; }
+  .history { font-size:.9rem; } @media(max-width:720px) { body {padding:12px;} .frame {width:100%;} }
+  .history a { display:inline-block; color:#9de8dc; margin:4px 10px 4px 0; }
+</style>
+<header>
+ <div><h1>Define the battle line</h1><p class="muted">Judge the clean frame first, including visible player positions. Draw the line as you understand it; it does not need to follow the paint edge. A difference from paint is not automatically an error. Prior sketches and paint predictions stay hidden until you save an independent judgment and choose Reveal comparison.</p></div>
+ <label>Recording and frame <select id="case"></select></label>
+</header>
+<div class="toolbar"><button id="previous">Previous frame in this recording</button><button id="next">Next frame in this recording</button><span id="frame-meta" class="muted"></span></div>
+<section class="panel">
+ <strong>1. Your independent judgment</strong>
+ <p>A battle line may curve, split into several lines, or be absent. Colored ink alone does not have to define it.</p>
+ <div class="controls">
+  <label><input type="radio" name="judgment" value="boundary" checked> I can identify one or more battle lines</label>
+  <label><input type="radio" name="judgment" value="no_meaningful_line"> No meaningful battle line is present</label>
+  <label><input type="radio" name="judgment" value="insufficient_evidence"> I cannot tell from this frame</label>
+ </div>
+ <fieldset class="panel"><legend>What influenced your judgment? (optional)</legend><div class="controls">
+  <label><input type="checkbox" name="reason" value="player_positions">Player positions</label>
+  <label><input type="checkbox" name="reason" value="ink_coverage">Ink coverage</label>
+  <label><input type="checkbox" name="reason" value="active_confrontation">Active confrontation</label>
+  <label><input type="checkbox" name="reason" value="terrain">Terrain</label>
+  <label><input type="checkbox" name="reason" value="recent_movement">Recent movement</label>
+ </div></fieldset>
+ <div class="controls">
+  <label>Draw type <select id="shape-kind"><option value="boundary">Boundary line</option><option value="contested">Contested region</option><option value="uncertain">Uncertain region</option></select></label>
+  <button id="start-drawing" class="primary">Draw on the map</button><button id="finish-shape" disabled>Finish this shape</button>
+  <button id="undo-point">Undo last point</button><button id="delete-shape">Erase selected shape</button><button id="clear-shapes">Clear all shapes</button>
+ </div>
+ <p class="muted">Choose a draw type and click points on the map. A line needs two points; a region needs three. Select a finished shape to erase it, or drag its white points to move them.</p>
+ <div class="frame"><img id="source" alt="Clean top-down source frame"><svg id="annotation" viewBox="0 0 1000 1000" preserveAspectRatio="none"></svg></div>
+ <p><label for="explanation">Why did you choose this? (short note)</label></p>
+ <textarea id="explanation" maxlength="3000" placeholder="For example: The colored ink reaches here, but the active line seems farther forward."></textarea>
+ <div class="controls"><button id="save-independent" class="primary">Save independent judgment</button><span class="muted">Each save creates a new revision; older judgments remain.</span></div>
+ <p id="status" class="status" role="status"></p><div id="history" class="history"></div>
+</section>
+<section class="panel">
+ <strong>2. Compare after saving</strong><p>Only reveal the previous sketch and paint-only result after saving your independent judgment.</p>
+ <button id="reveal" class="warn" disabled>Reveal comparison</button><button id="save-post" class="primary" hidden>Save post-reveal revision</button>
+ <div id="comparison" class="comparison">
+  <div class="legend"><span><i class="swatch" style="background:#ff483d"></i>Provisional sketch</span><span><i class="swatch" style="background:#00eddf"></i>Paint-only prediction</span><span><i class="swatch" style="background:#ffe45c"></i>Your saved annotation</span></div>
+  <div id="comparison-assessment" class="panel" hidden>
+   <strong>Do you accept either candidate after comparing?</strong>
+   <div class="controls"><label>Provisional sketch <select id="assess-provisional"><option value="unsure">Unsure</option><option value="accept">Accept</option><option value="reject">Reject</option></select></label>
+   <label>Paint-only prediction <select id="assess-prediction"><option value="unsure">Unsure</option><option value="accept">Accept</option><option value="reject">Reject</option></select></label></div>
+   <p class="muted">These are separate post-reveal opinions. They do not change your independent annotation.</p>
+  </div>
+  <div class="controls">
+   <label><input id="show-provisional" type="checkbox" checked>Show provisional sketch</label><label><input id="show-prediction" type="checkbox" checked>Show paint-only prediction</label>
+   <label><input id="show-paint" type="checkbox">Show paint classification</label><label><input id="show-uncertainty" type="checkbox">Show uncertainty</label>
+  </div><p id="comparison-message" class="muted"></p>
+ </div>
+</section>
+<script>
+const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
+let cases=[],current=null,shapes=[],draft=[],drawing=false,selected=-1,comparison=null,revealed=false,dirty=false,drag=null;
+const pointString=points=>points.map(p=>Math.round(p.x*1000)+','+Math.round(p.y*1000)).join(' ');
+const latest=(history,phaseName)=>(history||[]).filter(x=>x.phase===phaseName).slice(-1)[0];
+function setJudgment(value){document.querySelectorAll('input[name="judgment"]').forEach(el=>{el.checked=el.value===value;});}
+function normalizedPoint(event){const rect=$('annotation').getBoundingClientRect();return{x:Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height))};}
+function svgShape(tag,points,className,index){const node=document.createElementNS(NS,tag);node.setAttribute('points',pointString(points));node.setAttribute('class',className);if(index!==undefined)node.dataset.shape=index;return node;}
+function refresh(){
+ const svg=$('annotation');svg.replaceChildren();
+ shapes.forEach((shape,index)=>{const group=document.createElementNS(NS,'g'),tag=shape.kind==='boundary'?'polyline':'polygon';group.appendChild(svgShape(tag,shape.points,shape.kind,index));
+  shape.points.forEach((p,j)=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',Math.round(p.x*1000));c.setAttribute('cy',Math.round(p.y*1000));c.setAttribute('r',8);c.setAttribute('class','handle');c.dataset.shape=index;c.dataset.point=j;group.appendChild(c);});svg.appendChild(group);});
+ if(draft.length)svg.appendChild(svgShape('polyline',draft,'preview'));
+ if(revealed&&comparison){
+  if(comparison.provisional_reference_line&&$('show-provisional').checked)svg.appendChild(svgShape('polyline',comparison.provisional_reference_line,'provisional'));
+  if($('show-prediction').checked)(comparison.generated_line_segments||[]).forEach(s=>{if(s.length)svg.appendChild(svgShape('polyline',s,'prediction'));});
+ }
+ svg.classList.toggle('editing',drawing||shapes.length>0);
+ $('finish-shape').disabled=!drawing;$('undo-point').disabled=drawing?draft.length===0:selected<0;
+ $('delete-shape').disabled=selected<0||selected>=shapes.length;
+ $('save-independent').disabled=revealed||(!dirty&&!current?.has_independent);
+ $('reveal').disabled=!current?.has_independent||revealed;$('save-post').hidden=!revealed;
+}
+function renderDecision(d){if(!d){shapes=[];setJudgment('boundary');$('explanation').value='';document.querySelectorAll('input[name="reason"]').forEach(el=>el.checked=false);$('assess-provisional').value='unsure';$('assess-prediction').value='unsure';dirty=false;return;}
+ shapes=d.shapes.map(s=>({kind:s.kind,points:s.points.map(p=>({...p}))}));setJudgment(d.judgment);$('explanation').value=d.explanation||'';document.querySelectorAll('input[name="reason"]').forEach(el=>el.checked=(d.reasons||[]).includes(el.value));$('assess-provisional').value=d.comparison_assessment?.provisional_sketch||'unsure';$('assess-prediction').value=d.comparison_assessment?.paint_prediction||'unsure';dirty=false;}
+async function loadComparison(){
+ const response=await fetch('/api/comparison/'+current.id),data=await response.json();comparison=data.available?data:null;
+ $('comparison-assessment').hidden=!comparison;
+ $('comparison-message').textContent=data.available?'Comparison revealed after the independent judgment was saved.':(data.message||data.error||'No prior comparison is available for this frame.');
+ document.querySelectorAll('.comparison-image').forEach(img=>img.remove());
+ if(comparison&&comparison.paint_image_available&&$('show-paint').checked)addComparisonImage('paint');
+ if(comparison&&comparison.uncertainty_image_available&&$('show-uncertainty').checked)addComparisonImage('uncertainty');
+ refresh();
+}
+function addComparisonImage(kind){const img=document.createElement('img');img.className='comparison-image';img.alt='Revealed '+kind+' evidence';img.src='/api/revealed-image/'+current.id+'/'+kind;img.style.opacity=kind==='paint'?'.48':'.4';if(kind==='uncertainty')img.style.mixBlendMode='screen';$('source').after(img);}
+async function show(){
+ const chosen=cases.find(item=>item.id===$('case').value);if(!chosen)return;
+ if(dirty&&!window.confirm('Discard unsaved changes and open another frame?')){$('case').value=current?.id||chosen.id;return;}
+ current=chosen;comparison=null;revealed=Boolean(chosen.has_reveal);
+ $('source').src='/api/frame/'+current.id;
+ $('frame-meta').textContent='Match '+String(current.recording_index).padStart(2,'0')+' · '+current.recording_filename+' · video '+current.video_time.toFixed(1)+'s · stage '+current.stage_identity_status;
+ $('previous').disabled=!current.previous_case;$('next').disabled=!current.next_case;
+ const post=latest(current.post_reveal_history,'post_reveal'),independent=latest(current.independent_history,'independent'),record=post||independent;
+ if(record){const response=await fetch('/api/record/'+current.id+'/'+record.filename);renderDecision(response.ok?await response.json():null);}else renderDecision(null);
+ $('status').textContent=record?'Loaded '+record.filename+' · '+record.phase+' judgment':'No judgment saved yet. The frame is shown without predictions or sketches.';
+ renderHistory();
+ $('comparison').classList.toggle('visible',revealed);if(revealed)await loadComparison();refresh();
+}
+function renderHistory(){
+ const box=$('history'), rows=[...(current.independent_history||[]),...(current.post_reveal_history||[])];box.replaceChildren();
+ const title=document.createElement('div');title.textContent='Saved judgment history: '+rows.length+' revision(s)';box.appendChild(title);
+ rows.forEach(record=>{const link=document.createElement('a');link.href='/api/record/'+current.id+'/'+record.filename;link.target='_blank';link.rel='noreferrer';link.textContent=record.filename+' · '+record.phase+' · '+record.judgment;box.appendChild(link);});
+}
+async function saveDecision(phase){
+ if(draft.length){$('status').textContent='Finish or undo the shape you are drawing before saving.';return;}
+ const judgment=document.querySelector('input[name="judgment"]:checked').value;
+ if(judgment==='boundary'&&!shapes.some(s=>s.kind==='boundary')){$('status').textContent='Draw a boundary, or choose “No meaningful battle line” / “I cannot tell.”';return;}
+ const reasons=[...document.querySelectorAll('input[name="reason"]:checked')].map(el=>el.value);
+ const explanation=$('explanation').value,body={case_id:current.id,phase:phase,judgment:judgment,shapes:shapes,reasons:reasons,explanation:explanation};
+ if(phase==='post_reveal'&&comparison)body.comparison_assessment={provisional_sketch:$('assess-provisional').value,paint_prediction:$('assess-prediction').value};
+ const response=await fetch('/api/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),data=await response.json();
+ if(!response.ok){$('status').textContent='Save failed: '+data.error;return;}
+ $('status').textContent='Saved '+data.filename+'. Earlier judgments remain unchanged.';dirty=false;
+ await reloadCases(current.id);refresh();
+}
+async function reloadCases(selectId){cases=await (await fetch('/api/cases')).json();$('case').replaceChildren(...cases.map(item=>{
+ const option=document.createElement('option');option.value=item.id;option.textContent='Match '+String(item.recording_index).padStart(2,'0')+' · '+item.selection_slot+' · '+item.video_time.toFixed(0)+'s';return option;}));$('case').value=selectId;current=cases.find(x=>x.id===selectId);}
+$('case').addEventListener('change',show);
+$('previous').onclick=()=>{if(current?.previous_case){$('case').value=current.previous_case;show();}};
+$('next').onclick=()=>{if(current?.next_case){$('case').value=current.next_case;show();}};
+$('start-drawing').onclick=()=>{drawing=true;draft=[];refresh();$('status').textContent='Click points on the map. Finish the shape when ready.';};
+$('finish-shape').onclick=()=>{const kind=$('shape-kind').value,min=kind==='boundary'?2:3;if(draft.length<min){$('status').textContent='This '+kind+' needs at least '+min+' points.';return;}shapes.push({kind:kind,points:draft});selected=shapes.length-1;draft=[];drawing=false;dirty=true;refresh();};
+$('undo-point').onclick=()=>{if(drawing)draft.pop();else if(selected>=0){const s=shapes[selected],min=s.kind==='boundary'?2:3;if(s.points.length<=min){shapes.splice(selected,1);selected=-1;}else s.points.pop();}dirty=true;refresh();};
+$('delete-shape').onclick=()=>{if(selected>=0)shapes.splice(selected,1);selected=-1;dirty=true;refresh();};
+$('clear-shapes').onclick=()=>{if(window.confirm('Clear all current shapes?')){shapes=[];draft=[];selected=-1;dirty=true;refresh();}};
+$('annotation').addEventListener('click',e=>{if(!drawing||e.target.closest('.handle'))return;draft.push(normalizedPoint(e));dirty=true;refresh();});
+$('annotation').addEventListener('pointerdown',e=>{if(!e.target.classList.contains('handle')){const n=e.target.closest('[data-shape]');if(n){selected=Number(n.dataset.shape);refresh();}return;}drag={shape:Number(e.target.dataset.shape),point:Number(e.target.dataset.point)};$('annotation').setPointerCapture(e.pointerId);e.preventDefault();});
+$('annotation').addEventListener('pointermove',e=>{if(!drag)return;shapes[drag.shape].points[drag.point]=normalizedPoint(e);dirty=true;refresh();});
+$('annotation').addEventListener('pointerup',()=>{drag=null;});$('annotation').addEventListener('pointercancel',()=>{drag=null;});
+$('save-independent').onclick=()=>saveDecision('independent');$('save-post').onclick=()=>saveDecision('post_reveal');
+$('reveal').onclick=async()=>{const response=await fetch('/api/reveal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:current.id})}),data=await response.json();if(!response.ok){$('status').textContent='Reveal failed: '+data.error;return;}revealed=true;$('comparison').classList.add('visible');$('comparison-message').textContent=data.comparison?'Prior sketch and paint-only output revealed.':data.comparison_message;await loadComparison();};
+['show-provisional','show-prediction'].forEach(id=>$(id).addEventListener('change',refresh));
+$('show-paint').addEventListener('change',loadComparison);$('show-uncertainty').addEventListener('change',loadComparison);
+$('explanation').addEventListener('input',()=>{dirty=true;refresh();});
+document.querySelectorAll('input[name="judgment"]').forEach(el=>el.addEventListener('change',()=>{dirty=true;refresh();}));
+document.querySelectorAll('input[name="reason"]').forEach(el=>el.addEventListener('change',()=>{dirty=true;refresh();}));
+fetch('/api/cases').then(r=>r.json()).then(async list=>{cases=list;$('case').replaceChildren(...cases.map(item=>{const o=document.createElement('option');o.value=item.id;o.textContent='Match '+String(item.recording_index).padStart(2,'0')+' · '+item.selection_slot+' · '+item.video_time.toFixed(0)+'s';return o;}));$('case').value=cases[0]?.id||'';await show();}).catch(e=>{$('status').textContent='Could not load review queue: '+e;});
+</script>
+</html>

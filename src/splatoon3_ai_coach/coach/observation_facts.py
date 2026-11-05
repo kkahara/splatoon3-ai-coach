@@ -1,4 +1,14 @@
-"""Timestamped factual roster and sparse map-ink selections for coaching."""
+"""Timestamped factual roster and sparse map-ink selections for coaching.
+
+Each selection is one internal dict with full provenance (video times,
+``source_path``, raw percentages). Three projections read it:
+
+* :func:`view_block` — the CoachLlmView evidence block: raw numeric leaves stay
+  (they are the citation targets); English narration and display strings go.
+* :func:`claim_values` — the model-facing summary a claim frame words: timing
+  relative to the death and whole-number percentages, no recording-clock times.
+* :func:`render_observation_debug` — developer text (VMV supporting evidence).
+"""
 
 from __future__ import annotations
 
@@ -8,19 +18,51 @@ from splatoon3_ai_coach.coach.claim_catalog import RosterSample
 from splatoon3_ai_coach.coach.coach_input import CoachInput
 
 ROSTER_FRAME = (
+    "The roster observed {timing} the death showed {ally_alive_count} teammates "
+    "and {opponent_alive_count} opponents alive."
+)
+MAP_INK_FRAME = (
+    "In the map observation {timing} the death, allies accounted for about "
+    "{ally_share_of_detected_ink_rounded_percent}% and opponents about "
+    "{opponent_share_of_detected_ink_rounded_percent}% of the detected ink."
+)
+
+ROSTER_DEBUG_FRAME = (
     "At video {video_time:g}s ({timing_description}), the observed roster was "
     "{ally_alive_count} allies alive and {opponent_alive_count} opponents alive."
 )
-MAP_INK_FRAME = (
+MAP_INK_DEBUG_FRAME = (
     "At video {video_time:g}s ({timing_description}), visible ink coverage within "
     "the registered polygon was {visible_ink_coverage_percent:.2f}%. "
     "Ally share of detected ink: {ally_share_of_detected_ink_display}; "
     "opponent share of detected ink: {opponent_share_of_detected_ink_display}."
 )
-OBSERVATION_FRAMES = {
-    "observed_roster_counts": ROSTER_FRAME,
-    "observed_map_ink": MAP_INK_FRAME,
+OBSERVATION_DEBUG_FRAMES = {
+    "observed_roster_counts": ROSTER_DEBUG_FRAME,
+    "observed_map_ink": MAP_INK_DEBUG_FRAME,
 }
+
+_NARRATION_FIELDS = frozenset(
+    {
+        "timing_description",
+        "ally_share_of_detected_ink_display",
+        "opponent_share_of_detected_ink_display",
+    }
+)
+_ROUNDED_PERCENTS = {
+    "visible_ink_coverage_percent": "visible_ink_coverage_rounded_percent",
+    "ally_share_of_detected_ink_percent": "ally_share_of_detected_ink_rounded_percent",
+    "opponent_share_of_detected_ink_percent": (
+        "opponent_share_of_detected_ink_rounded_percent"
+    ),
+}
+_SUMMARY_FIELDS = (
+    "timing",
+    "temporal_relationship",
+    "offset_from_anchor_seconds",
+    "ally_alive_count",
+    "opponent_alive_count",
+)
 
 
 def observation_timing(coach_input: CoachInput, video_time: float) -> dict[str, Any]:
@@ -102,9 +144,43 @@ def observed_map_ink(coach_input: CoachInput) -> dict[str, Any] | None:
     }
 
 
-def render_observation_fact(claim_id: str, values: dict[str, Any]) -> str:
-    """Render a known factual template for deterministic evidence presentation."""
-    return OBSERVATION_FRAMES[claim_id].format(**values)
+def view_block(values: dict[str, Any] | None) -> dict[str, Any] | None:
+    """CoachLlmView evidence block: raw leaves, provenance and wording summary.
+
+    Raw numbers are kept unchanged; ``timing`` and the rounded percentages are
+    added beside them for wording. English narration and display strings go.
+    """
+    if values is None:
+        return None
+    block = {k: v for k, v in values.items() if k not in _NARRATION_FIELDS}
+    block["timing"] = str(values["temporal_relationship"]).split("_", 1)[0]
+    for raw, rounded in _ROUNDED_PERCENTS.items():
+        if raw in values:
+            block[rounded] = rounded_percent(values[raw])
+    return block
+
+
+def claim_values(values: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Model-facing summary: timing relative to the death, rounded percentages.
+
+    Every value equals a :func:`view_block` leaf; recording-clock times, raw
+    percentages and provenance stay out of the claim.
+    """
+    block = view_block(values)
+    if block is None:
+        return None
+    keys = (*_SUMMARY_FIELDS, *_ROUNDED_PERCENTS.values())
+    return {key: block[key] for key in keys if key in block}
+
+
+def rounded_percent(percent: float | None) -> int | None:
+    """Whole-number percentage for wording; ``None`` stays unavailable."""
+    return None if percent is None else int(round(float(percent)))
+
+
+def render_observation_debug(claim_id: str, values: dict[str, Any]) -> str:
+    """Developer text with recording-clock times; never player-facing."""
+    return OBSERVATION_DEBUG_FRAMES[claim_id].format(**values)
 
 
 def _percent(fraction: float | None) -> float | None:

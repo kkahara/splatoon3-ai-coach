@@ -1,0 +1,225 @@
+{
+  "gap_and_control_legacy_players_equal": true,
+  "results": [
+    {
+      "case": "long_gap_expanded_window",
+      "frame_count": 44,
+      "input": {
+        "death": 22,
+        "first": 0,
+        "hidden_middle": true,
+        "last_initial": 0.5,
+        "last_resumed": 21.5,
+        "resumed": 21
+      },
+      "legacy_players": {
+        "at_anchor": {
+          "ally_alive_count": 3,
+          "opponent_alive_count": 3,
+          "reliable": true,
+          "video_time": 21.5
+        },
+        "at_death": {
+          "ally_alive_count": 3,
+          "opponent_alive_count": 3,
+          "reliable": true,
+          "video_time": 21.5
+        },
+        "trajectory": [
+          {
+            "ally_alive_count": 3,
+            "opponent_alive_count": 3,
+            "reliable": true,
+            "video_time": 0.0
+          }
+        ],
+        "unreliable_intervals": []
+      },
+      "legacy_pre_death_sample": {
+        "ally_alive_count": 3,
+        "opponent_alive_count": 3,
+        "source_path": "primary_context.players.trajectory[0]",
+        "video_time": 0.0
+      },
+      "legacy_pre_death_sample_age_video_seconds": 22.0,
+      "scope": "synthetic existing-code behavior; no new detector or proposed schema implemented",
+      "source_roster_result_count": 44,
+      "unknown_snapshot_times": [
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0,
+        3.5,
+        4.0,
+        4.5,
+        5.0,
+        5.5,
+        6.0,
+        6.5,
+        7.0,
+        7.5,
+        8.0,
+        8.5,
+        9.0,
+        9.5,
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5,
+        18.0,
+        18.5,
+        19.0,
+        19.5,
+        20.0,
+        20.5
+      ],
+      "usable_paired_snapshot_times": [
+        0.0,
+        0.5,
+        21.0,
+        21.5
+      ]
+    },
+    {
+      "case": "gap_inside_default_8_second_lookback",
+      "frame_count": 16,
+      "input": {
+        "death": 18,
+        "first": 10,
+        "hidden_middle": true,
+        "last_initial": 10.5,
+        "last_resumed": 17.5,
+        "resumed": 17
+      },
+      "legacy_players": {
+        "at_anchor": {
+          "ally_alive_count": 3,
+          "opponent_alive_count": 3,
+          "reliable": true,
+          "video_time": 17.5
+        },
+        "at_death": {
+          "ally_alive_count": 3,
+          "opponent_alive_count": 3,
+          "reliable": true,
+          "video_time": 17.5
+        },
+        "trajectory": [
+          {
+            "ally_alive_count": 3,
+            "opponent_alive_count": 3,
+            "reliable": true,
+            "video_time": 10.0
+          }
+        ],
+        "unreliable_intervals": []
+      },
+      "legacy_pre_death_sample": {
+        "ally_alive_count": 3,
+        "opponent_alive_count": 3,
+        "source_path": "primary_context.players.trajectory[0]",
+        "video_time": 10.0
+      },
+      "legacy_pre_death_sample_age_video_seconds": 8.0,
+      "scope": "synthetic existing-code behavior; no new detector or proposed schema implemented",
+      "source_roster_result_count": 16,
+      "unknown_snapshot_times": [
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5
+      ],
+      "usable_paired_snapshot_times": [
+        10.0,
+        10.5,
+        17.0,
+        17.5
+      ]
+    },
+    {
+      "case": "readable_control_inside_default_lookback",
+      "frame_count": 16,
+      "input": {
+        "death": 18,
+        "first": 10,
+        "hidden_middle": false,
+        "last_initial": 10.5,
+        "last_resumed": 17.5,
+        "resumed": 17
+      },
+      "legacy_players": {
+        "at_anchor": {
+          "ally_alive_count": 3,
+          "opponent_alive_count": 3,
+          "reliable": true,
+          "video_time": 17.5
+        },
+        "at_death": {
+          "ally_alive_count": 3,
+          "opponent_alive_count": 3,
+          "reliable": true,
+          "video_time": 17.5
+        },
+        "trajectory": [
+          {
+            "ally_alive_count": 3,
+            "opponent_alive_count": 3,
+            "reliable": true,
+            "video_time": 10.0
+          }
+        ],
+        "unreliable_intervals": []
+      },
+      "legacy_pre_death_sample": {
+        "ally_alive_count": 3,
+        "opponent_alive_count": 3,
+        "source_path": "primary_context.players.trajectory[0]",
+        "video_time": 10.0
+      },
+      "legacy_pre_death_sample_age_video_seconds": 8.0,
+      "scope": "synthetic existing-code behavior; no new detector or proposed schema implemented",
+      "source_roster_result_count": 16,
+      "unknown_snapshot_times": [],
+      "usable_paired_snapshot_times": [
+        10.0,
+        10.5,
+        11.0,
+        11.5,
+        12.0,
+        12.5,
+        13.0,
+        13.5,
+        14.0,
+        14.5,
+        15.0,
+        15.5,
+        16.0,
+        16.5,
+        17.0,
+        17.5
+      ]
+    }
+  ],
+  "schema_version": 1
+}

@@ -473,7 +473,8 @@ def test_llm_view_carries_the_pre_death_sample() -> None:
     before = view.roster["before_death"]
     assert (before["ally_alive_count"], before["opponent_alive_count"]) == (3, 4)
     assert before["source_path"] == "primary_context.players.trajectory[0]"
-    assert any(fact.label == "Roster before death" for fact in view.supporting_evidence)
+    assert any(fact.label == "Roster before death" for fact in unit.supporting_evidence)
+    assert "supporting_evidence" not in view.model_dump(mode="json")
 
 
 def test_negative_weight_fails_config_validation() -> None:

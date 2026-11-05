@@ -8,9 +8,20 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from public_site.evidence_text import (
+    factor_line,
+    observed_ink_line,
+    observed_roster_line,
+    render_evidence,
+)
 from public_site.frames import has_frame, ranked_entries
-from public_site.models import CoachingMoment, LifecycleMark, PublicSubmissionResult
-from splatoon3_ai_coach.analysis.player_count_series import format_avb
+from public_site.models import (
+    CoachingMoment,
+    EvidenceLine,
+    LifecycleMark,
+    MomentEvidence,
+    PublicSubmissionResult,
+)
 from splatoon3_ai_coach.coach.artifacts import (
     CoachingIndexEntry,
     coach_inputs_dir,
@@ -21,14 +32,11 @@ from splatoon3_ai_coach.coach.artifacts import (
     read_document,
     unit_file_names,
 )
+from splatoon3_ai_coach.coach.claim_catalog import DeathImportanceFactorId
 from splatoon3_ai_coach.coach.claim_validation import ValidationStatus
 from splatoon3_ai_coach.coach.coach import annotate_claim_flags
 from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
-from splatoon3_ai_coach.coach.observation_facts import (
-    OBSERVATION_FRAMES,
-    render_observation_fact,
-)
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
     PlaybackClockInfo,
@@ -37,9 +45,14 @@ from splatoon3_ai_coach.coach.playback_clock import (
 from splatoon3_ai_coach.config.models import canonical_factor_id
 
 _SKIP = empty_coaching_assessment().assessment
-_REPLACED = frozenset(
-    {"death_special_ready", "death_map_overlay_before_false"}
+_REPLACED = frozenset({"death_special_ready", "death_map_overlay_before_false"})
+_ROSTER_FACTORS = frozenset(
+    {
+        DeathImportanceFactorId.DEATH_WHILE_OUTNUMBERED.value,
+        DeathImportanceFactorId.DEATH_WHILE_AHEAD_IN_NUMBERS.value,
+    }
 )
+_ROSTER_IDENTITY = ("video_time", "ally_alive_count", "opponent_alive_count")
 _CONTEXT = frozenset({"splat", "map_overlay"})
 _TITLES = {"splat": "Splat", "map_overlay": "Map check", "death": "Death"}
 _BEFORE = 3
@@ -56,9 +69,9 @@ class _Projected:
     heading: str
     marks: list[LifecycleMark]
     gaps: list[str | None]
-    until_active_again: str | None
-    recovery_context: str | None
-    context: list[str]
+    until_active_again: EvidenceLine | None
+    recovery_context: EvidenceLine | None
+    context: list[EvidenceLine]
     recording_times: list[str]
 
 
@@ -89,13 +102,18 @@ def _moment(
 ) -> CoachingMoment:
     coaching = read_document(inputs, entry.coaching_json) or {}
     factors = coaching.get("factors") or []
-    statements = _statements(factors)
-    projected = _projected(entry, inputs, factors, events)
+    projected = _projected(entry, inputs, coaching, events)
     review = _review(prototype, inputs, entry)
+    evidence = MomentEvidence(
+        statements=_statements(factors),
+        context=[] if projected is None else projected.context,
+        until_active_again=None if projected is None else projected.until_active_again,
+        recovery_context=None if projected is None else projected.recovery_context,
+    )
     return CoachingMoment(
         scenario_type=entry.candidate_type,
         video_time=entry.video_time,
-        statements=statements,
+        statements=_english(evidence.statements),
         assessment=review.assessment,
         assessment_status=review.status,
         current_assessment_status=review.current_status,
@@ -105,29 +123,44 @@ def _moment(
         heading=None if projected is None else projected.heading,
         marks=[] if projected is None else projected.marks,
         gaps=[] if projected is None else projected.gaps,
-        until_active_again=None if projected is None else projected.until_active_again,
-        recovery_context=None if projected is None else projected.recovery_context,
-        context=[] if projected is None else projected.context,
+        until_active_again=_english_one(evidence.until_active_again),
+        recovery_context=_english_one(evidence.recovery_context),
+        context=_english(evidence.context),
         recording_times=[] if projected is None else projected.recording_times,
+        evidence=evidence,
     )
 
 
-def _statements(factors: object) -> list[str]:
+def _english(lines: list[EvidenceLine]) -> list[str]:
+    rendered = (render_evidence(line, "en") for line in lines)
+    return [text for text in rendered if text]
+
+
+def _english_one(line: EvidenceLine | None) -> str | None:
+    return None if line is None else render_evidence(line, "en")
+
+
+def _statements(factors: object) -> list[EvidenceLine]:
     if not isinstance(factors, list):
         return []
-    lines: list[str] = []
+    lines: list[EvidenceLine] = []
     for factor in factors:
         if not isinstance(factor, dict) or not factor.get("active"):
             continue
         if factor.get("statement_player"):
-            lines.append(str(factor["statement_player"]))
+            lines.append(_factor_evidence(factor))
     return lines
+
+
+def _factor_evidence(factor: dict) -> EvidenceLine:
+    factor_id = canonical_factor_id(str(factor.get("factor_id")))
+    return factor_line(factor_id, str(factor["statement_player"]))
 
 
 def _projected(
     entry: CoachingIndexEntry,
     inputs: Path,
-    factors: object,
+    coaching: dict,
     events: list[tuple[str, float]],
 ) -> _Projected | None:
     if entry.candidate_type != "death_episode":
@@ -149,7 +182,10 @@ def _projected(
         until_active_again=_recovery(coach_input),
         recovery_context=_recovery_map_line(coach_input),
         context=_context(
-            coach_input, factors, read_document(inputs, entry.llm_view_json) or {}
+            coach_input,
+            coaching.get("factors") or [],
+            read_document(inputs, entry.llm_view_json) or {},
+            coaching.get("roster_before_death"),
         ),
         recording_times=[],
     )
@@ -381,38 +417,38 @@ def _heading(remaining: int | None) -> str:
     return f"Death — {_clock(remaining)} remaining"
 
 
-def _recovery(coach_input: dict) -> str | None:
+def _recovery(coach_input: dict) -> EvidenceLine | None:
     """Play-time recovery line; omitted when only unverified video seconds exist."""
     durations = coach_input.get("durations")
     if not isinstance(durations, dict):
         return None
-    for key, suffix in (
-        ("death_to_active_again", "out of play"),
-        ("death_to_respawn", "until respawn"),
+    for key, kind in (
+        ("death_to_active_again", "recovery.out_of_play"),
+        ("death_to_respawn", "recovery.until_respawn"),
     ):
-        text = _clocked_text(durations.get(key), suffix)
-        if text is not None:
-            return text
+        line = _clocked_line(durations.get(key), kind)
+        if line is not None:
+            return line
     return None
 
 
-def _clocked_text(duration: object, suffix: str) -> str | None:
+def _clocked_line(duration: object, kind: str) -> EvidenceLine | None:
     if not isinstance(duration, dict):
         return None
     value = _seconds(duration.get("value"))
     if value is None:
         return None
     if duration.get("clock") == "game":
-        return f"{value:.0f}s {suffix} (game clock)"
+        return EvidenceLine(key=f"{kind}_game_clock", params={"seconds": f"{value:.0f}"})
     if duration.get("clock") == "video":
-        return f"{value:.1f}s {suffix}"
+        return EvidenceLine(key=kind, params={"seconds": f"{value:.1f}"})
     return None
 
 
-def _recovery_map_line(coach_input: dict) -> str | None:
+def _recovery_map_line(coach_input: dict) -> EvidenceLine | None:
     nest = _nest(coach_input, "map")
     if nest is not None and nest.get("map_checked_while_dead") is True:
-        return "The player checked the map during recovery."
+        return EvidenceLine(key="recovery.map_checked")
     return None
 
 
@@ -425,41 +461,100 @@ def _seconds(raw: object) -> float | None:
         return None
 
 
-def _context(coach_input: dict, factors: object, view: dict | None = None) -> list[str]:
-    lines: list[str] = []
+def _context(
+    coach_input: dict,
+    factors: object,
+    view: dict | None = None,
+    roster_sample: object = None,
+) -> list[EvidenceLine]:
+    lines: list[EvidenceLine] = []
     special = _special_line(coach_input, _active_ids(factors))
     mapped = _map_line(coach_input)
     if special:
         lines.append(special)
     if mapped:
         lines.append(mapped)
-    lines.extend(_factor_lines(factors))
-    facts = _observation_lines(
-        view or {}, coach_input.get("roster_evidence") is not False
+    roster_enabled = coach_input.get("roster_evidence") is not False
+    facts = _observation_lines(view or {}, roster_enabled, _playback_normal(coach_input))
+    shown = "observed_roster_counts" in facts
+    lines.extend(
+        _factor_lines(
+            factors,
+            skip=_ROSTER_FACTORS
+            if shown and _same_roster_sample(view or {}, roster_sample)
+            else frozenset(),
+            coach_input=coach_input,
+            roster_sample=roster_sample,
+        )
     )
-    if (
-        coach_input.get("roster_evidence") is not False
-        and "observed_roster_counts" not in facts
-    ):
+    if roster_enabled and not shown:
         lines.append(_roster_line(coach_input))
     lines.extend(facts.values())
     return lines
 
 
-def _observation_lines(view: dict, roster_enabled: bool) -> dict[str, str]:
-    """Render saved authorized observation claims; never reselect old evidence."""
-    lines: dict[str, str] = {}
+_OBSERVATION_LINES = {
+    "observed_roster_counts": observed_roster_line,
+    "observed_map_ink": observed_ink_line,
+}
+
+
+def _observation_lines(
+    view: dict, roster_enabled: bool, playback_normal: bool = False
+) -> dict[str, EvidenceLine]:
+    """Saved authorized observation claims as lines; never reselect old evidence."""
+    lines: dict[str, EvidenceLine] = {}
     for entry in view.get("claim_basis") or []:
         claim_id = entry.get("claim_id") if isinstance(entry, dict) else None
-        if claim_id not in OBSERVATION_FRAMES:
+        if claim_id not in _OBSERVATION_LINES:
             continue
         if claim_id == "observed_roster_counts" and not roster_enabled:
             continue
-        try:
-            lines[claim_id] = render_observation_fact(claim_id, entry["values"])
-        except (KeyError, TypeError, ValueError):
-            continue
+        group, name = (
+            ("roster", "observed_counts")
+            if claim_id == "observed_roster_counts"
+            else ("map", "observed_ink")
+        )
+        block = view.get(group)
+        block = block.get(name) if isinstance(block, dict) else None
+        values = _merge_observation_values(block, entry.get("values"))
+        if isinstance(block, dict) and isinstance(entry.get("values"), dict):
+            values = {**entry["values"], **block}
+        line = (
+            observed_roster_line(values, include_offset=playback_normal)
+            if claim_id == "observed_roster_counts"
+            else observed_ink_line(values, include_offset=playback_normal)
+        )
+        if line is not None and not (
+            claim_id == "observed_roster_counts"
+            and line.key == "roster.unavailable"
+        ):
+            if isinstance(block, dict):
+                line.provenance = dict(block)
+            lines[claim_id] = line
     return lines
+
+
+def _merge_observation_values(
+    block: object, claim: object
+) -> object:
+    """Use structured block fields, adding only timing metadata to legacy claims."""
+    if isinstance(block, dict):
+        return block
+    if not isinstance(claim, dict):
+        return claim
+    return dict(claim)
+
+
+def _same_roster_sample(view: dict, sample: object) -> bool:
+    """The shown roster fact and the roster factors' sample are one observation."""
+    roster = view.get("roster")
+    block = roster.get("observed_counts") if isinstance(roster, dict) else None
+    if not isinstance(block, dict) or not isinstance(sample, dict):
+        return False
+    if block.get("video_time") is None:
+        return False
+    return all(block.get(key) == sample.get(key) for key in _ROSTER_IDENTITY)
 
 
 def _active_ids(factors: object) -> set[str]:
@@ -472,15 +567,10 @@ def _active_ids(factors: object) -> set[str]:
     }
 
 
-_SPECIAL_LINES = {
-    "ready": "Special was ready.",
-    "unconfirmed": "Special readiness just before the death was not confirmed.",
-    "not_ready": "Special was not ready just before the death.",
-    "not_observed": "The special gauge was not visible just before the death.",
-}
+_SPECIAL_STATES = frozenset({"ready", "unconfirmed", "not_ready", "not_observed"})
 
 
-def _special_line(coach_input: dict, active: set[str]) -> str | None:
+def _special_line(coach_input: dict, active: set[str]) -> EvidenceLine | None:
     """ "Ready" needs the confirmed special-ready factor (consecutive readings);
     a reading the vision layer marked not coaching-valid is not observed."""
     special = _nest(coach_input, "special")
@@ -490,11 +580,11 @@ def _special_line(coach_input: dict, active: set[str]) -> str | None:
     state = special.get("state_at_anchor") if special else None
     if reading.get("coaching_valid") is False or reading.get("visible") is not True:
         state = "not_observed"
-    elif state not in _SPECIAL_LINES:
+    elif state not in _SPECIAL_STATES:
         state = "ready" if reading.get("ready") is True else "not_ready"
     if state == "ready" and "death_special_ready" not in active:
         state = "unconfirmed"
-    return _SPECIAL_LINES[state]
+    return EvidenceLine(key=f"special.{state}")
 
 
 _EPISODE_MAP_REASONS = frozenset(
@@ -502,7 +592,7 @@ _EPISODE_MAP_REASONS = frozenset(
 )
 
 
-def _map_line(coach_input: dict) -> str | None:
+def _map_line(coach_input: dict) -> EvidenceLine | None:
     nest = _nest(coach_input, "map")
     if nest is None:
         return None
@@ -515,18 +605,20 @@ def _map_line(coach_input: dict) -> str | None:
         status = "observed" if observed else "unknown"
     if status == "unknown":
         if nest.get("map_check_unknown_reason") in _EPISODE_MAP_REASONS:
-            return "Map-check evidence was unavailable around this death."
-        return "Map-check evidence was unavailable for this video."
+            return EvidenceLine(key="map.unknown_around_death")
+        return EvidenceLine(key="map.unknown_for_video")
     if status == "not_observed":
-        return "No map check observed before death"
+        return EvidenceLine(key="map.not_observed")
     if status != "observed":
         return None
     gap = nest.get("seconds_since_map_check_before_death")
     if isinstance(gap, bool) or not isinstance(gap, (int, float)):
-        return "A map check was observed before this death."
+        return EvidenceLine(key="map.observed")
     if not _playback_normal(coach_input):
-        return "A map check was observed before this death."
-    return f"Last observed map check: {float(gap):.1f}s before death"
+        return EvidenceLine(key="map.observed")
+    return EvidenceLine(
+        key="map.observed_seconds_before", params={"seconds": f"{float(gap):.1f}"}
+    )
 
 
 def _playback_normal(coach_input: dict) -> bool:
@@ -535,31 +627,107 @@ def _playback_normal(coach_input: dict) -> bool:
     return isinstance(playback, dict) and playback.get("status") == "normal"
 
 
-def _factor_lines(factors: object) -> list[str]:
+def _factor_lines(
+    factors: object,
+    skip: frozenset[str] = frozenset(),
+    *,
+    coach_input: dict | None = None,
+    roster_sample: object = None,
+) -> list[EvidenceLine]:
+    """Active factor statements; ``skip`` drops ones another line already states."""
     if not isinstance(factors, list):
         return []
-    lines: list[str] = []
+    lines: list[EvidenceLine] = []
     for factor in factors:
         if not isinstance(factor, dict) or not factor.get("active"):
             continue
         if factor.get("factor_id") in _REPLACED or not factor.get("statement_player"):
             continue
-        lines.append(str(factor["statement_player"]))
+        if canonical_factor_id(str(factor.get("factor_id"))) in skip:
+            continue
+        structured = _score_factor_line(factor, coach_input or {}) or _roster_factor_line(
+            factor, coach_input or {}, roster_sample
+        )
+        lines.append(structured or _factor_evidence(factor))
     return lines
 
 
-def _roster_line(coach_input: dict) -> str:
+def _roster_factor_line(
+    factor: dict, coach_input: dict, sample: object
+) -> EvidenceLine | None:
+    """Use the factor's own saved sample; retain its factor identity and provenance."""
+    factor_id = canonical_factor_id(str(factor.get("factor_id")))
+    if factor_id not in _ROSTER_FACTORS or not isinstance(sample, dict):
+        return None
+    death = _death(coach_input)
+    anchor = death.get("death_time") if isinstance(death, dict) else None
+    sample_time = sample.get("video_time")
+    if any(
+        isinstance(x, bool) or not isinstance(x, (int, float))
+        for x in (anchor, sample_time)
+    ):
+        return None
+    offset = sample_time - anchor
+    timing = "before_death" if offset < 0 else "after_death" if offset > 0 else "at_death"
+    values = {
+        **sample,
+        "temporal_relationship": timing,
+        "offset_from_anchor_seconds": offset,
+    }
+    line = observed_roster_line(values, include_offset=_playback_normal(coach_input))
+    if line is None:
+        return None
+    return EvidenceLine(
+        key=f"factor.{factor_id}",
+        params={**line.params, "template_key": line.key},
+        provenance={
+            **sample,
+            "anchor_video_time": anchor,
+            "offset_from_anchor_seconds": offset,
+        },
+    )
+
+
+def _score_factor_line(factor: dict, coach_input: dict) -> EvidenceLine | None:
+    """Render the score factor from its original observed pre-death sample."""
+    if canonical_factor_id(str(factor.get("factor_id"))) not in {
+        "death_while_behind_in_count",
+        "death_while_ahead_in_count",
+    }:
+        return None
+    score = _nest(coach_input, "score")
+    sample = score.get("pre_death") if score else None
+    if not isinstance(sample, dict):
+        return None
+    if any(
+        sample.get(key, "observed") != "observed"
+        for key in ("ally_score_quality", "opponent_score_quality")
+    ):
+        return None
+    ally, opponent = sample.get("ally_remaining"), sample.get("opponent_remaining")
+    if any(isinstance(x, bool) or not isinstance(x, int) for x in (ally, opponent)):
+        return None
+    return EvidenceLine(
+        key="score.pre_death",
+        params={"ally": ally, "opponent": opponent},
+        provenance={"source_path": "primary_context.score.pre_death", **sample},
+    )
+
+
+def _roster_line(coach_input: dict) -> EvidenceLine:
     players = _nest(coach_input, "players")
     if players and _death_in_unreliable_roster(players, _death(coach_input)):
-        return "Roster information around this death was unreliable."
+        return EvidenceLine(key="roster.unreliable")
     at_death = players.get("at_death") if players else None
     if not isinstance(at_death, dict):
-        return "No roster information was available."
-    ally = at_death.get("ally_alive_count")
-    opponent = at_death.get("opponent_alive_count")
-    if _count(ally) is None or _count(opponent) is None:
-        return "No roster information was available."
-    return f"Roster at death: {format_avb(ally, opponent)}."
+        return EvidenceLine(key="roster.unavailable")
+    ally = _count(at_death.get("ally_alive_count"))
+    opponent = _count(at_death.get("opponent_alive_count"))
+    if ally is None or opponent is None:
+        return EvidenceLine(key="roster.unavailable")
+    return EvidenceLine(
+        key="roster.at_death_counts", params={"ally": ally, "opponent": opponent}
+    )
 
 
 def _death_in_unreliable_roster(players: dict, death: dict | None) -> bool:

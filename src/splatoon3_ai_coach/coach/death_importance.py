@@ -38,7 +38,7 @@ from splatoon3_ai_coach.coach.game_clock import GameClock
 from splatoon3_ai_coach.coach.observation_facts import (
     observed_map_ink,
     observed_roster_counts,
-    render_observation_fact,
+    render_observation_debug,
 )
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
@@ -533,7 +533,7 @@ def build_supporting_evidence(
                     label="Observed roster"
                     if claim_id == "observed_roster_counts"
                     else "Observed map ink",
-                    value=render_observation_fact(claim_id, values),
+                    value=render_observation_debug(claim_id, values),
                     path=values["source_path"],
                 )
             )

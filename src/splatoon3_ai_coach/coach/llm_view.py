@@ -41,6 +41,7 @@ from splatoon3_ai_coach.coach.objective_temporal_facts import ObjectiveTemporalF
 from splatoon3_ai_coach.coach.observation_facts import (
     observed_map_ink,
     observed_roster_counts,
+    view_block,
 )
 from splatoon3_ai_coach.coach.playback_clock import (
     ClockedDuration,
@@ -51,8 +52,14 @@ from splatoon3_ai_coach.coach.score_facts import ScoreFacts
 from splatoon3_ai_coach.coach.zone_control_facts import ZoneControlFacts
 from splatoon3_ai_coach.config.models import DeathFactorThresholds
 
-LLM_VIEW_SCHEMA_VERSION = 5
-"""v4: timestamped optional roster-count and sparse polygon-ink facts.
+LLM_VIEW_SCHEMA_VERSION = 6
+"""v6: no ``supporting_evidence`` (developer display strings stay in
+coaching.json); observation blocks drop English narration and display strings;
+observation claim values are a rounded, death-relative summary.
+
+v5: claim_basis evidence_paths are literal scalar view leaves.
+
+v4: timestamped optional roster-count and sparse polygon-ink facts.
 
 v3: ``claim_basis`` / ``undetermined`` and the roster capability flag.
 
@@ -124,7 +131,6 @@ class CoachLlmView(BaseModel):
     objective_temporal: dict[str, Any] | None = None
     related: list[dict[str, Any]] = Field(default_factory=list)
     evidence_limits: list[dict[str, Any]] = Field(default_factory=list)
-    supporting_evidence: list[LlmFact] = Field(default_factory=list)
 
 
 def build_coach_llm_view(
@@ -183,10 +189,10 @@ def build_death_llm_view(
     special_block = _project_special(coach_input)
     map_block = _project_map(ctx.map)
     if map_block is not None:
-        map_block["observed_ink"] = observed_map_ink(coach_input)
+        map_block["observed_ink"] = view_block(observed_map_ink(coach_input))
     if roster_block is not None:
-        roster_block["observed_counts"] = observed_roster_counts(
-            coach_input, unit.roster_before_death
+        roster_block["observed_counts"] = view_block(
+            observed_roster_counts(coach_input, unit.roster_before_death)
         )
     related_blocks = [
         _project_related(index, item) for index, item in enumerate(coach_input.related)
@@ -194,15 +200,6 @@ def build_death_llm_view(
     limits = [
         {"code": limit.code, "statement": limit.statement}
         for limit in coach_input.evidence_limits
-    ]
-    support = [
-        LlmFact(
-            label=item.label,
-            value=item.value,
-            source_path=item.path or "supporting_evidence",
-        )
-        for item in unit.supporting_evidence
-        if item.label not in {"Observed roster", "Observed map ink"}
     ]
 
     basis = build_claim_basis(coach_input, unit)
@@ -243,7 +240,6 @@ def build_death_llm_view(
         ),
         related=related_blocks,
         evidence_limits=limits,
-        supporting_evidence=support,
     )
 
 

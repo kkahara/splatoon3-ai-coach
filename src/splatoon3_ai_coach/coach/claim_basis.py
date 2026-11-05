@@ -40,6 +40,7 @@ from splatoon3_ai_coach.coach.death_importance import (
 from splatoon3_ai_coach.coach.observation_facts import (
     MAP_INK_FRAME,
     ROSTER_FRAME,
+    claim_values,
     observed_map_ink,
     observed_roster_counts,
 )
@@ -72,7 +73,8 @@ class ClaimDefinition:
 
     ``evidence_paths`` are literal scalar CoachLlmView leaves, one for every
     value the claim carries; ``unit_paths`` adds leaves whose index depends on
-    the unit (which LOW_INK interval).
+    the unit (which LOW_INK interval). Observation claims also list the raw
+    leaves (recording times, unrounded percentages) their summary rests on.
     """
 
     claim_id: str
@@ -305,14 +307,6 @@ _OBJECTIVE_STOP_PATHS = (
 )
 
 
-def _observation_values(values: Values | None) -> Values | None:
-    return (
-        None
-        if values is None
-        else {key: value for key, value in values.items() if key != "source_path"}
-    )
-
-
 def _observation_paths(block: str, fields: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(f"{block}.{field}" for field in fields)
 
@@ -322,7 +316,7 @@ _TIMING_FIELDS = (
     "anchor_video_time",
     "offset_from_anchor_seconds",
     "temporal_relationship",
-    "timing_description",
+    "timing",
 )
 
 
@@ -440,9 +434,8 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="observed_number_advantage_without_objective_progress",
         level=ClaimLevel.A,
         frame=(
-            "During the observed interval from {start_video_time:g}s to "
-            "{end_video_time:g}s, allies had a significant roster advantage "
-            "while the ally objective made no observed progress."
+            "During an observed interval, allies had a significant roster "
+            "advantage while the ally objective made no observed progress."
         ),
         evidence_paths=_OBJECTIVE_ADVANTAGE_PATHS,
         eligible=_objective_temporal("number_advantage_without_progress"),
@@ -452,9 +445,8 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
         claim_id="observed_sole_ally_alive_during_objective_progress",
         level=ClaimLevel.A,
         frame=(
-            "During observed ally objective progress from {start_video_time:g}s to "
-            "{end_video_time:g}s, one ally was alive and the local player was "
-            "observed alive."
+            "During an observed period of ally objective progress, one ally was "
+            "alive and the local player was observed alive."
         ),
         evidence_paths=_OBJECTIVE_SOLE_PATHS,
         eligible=_objective_temporal("sole_ally_alive_during_progress"),
@@ -555,7 +547,7 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
             "roster.observed_counts",
             (*_TIMING_FIELDS, "ally_alive_count", "opponent_alive_count"),
         ),
-        eligible=lambda coach_input, unit: _observation_values(
+        eligible=lambda coach_input, unit: claim_values(
             observed_roster_counts(coach_input, unit.roster_before_death)
         ),
         coachable=False,
@@ -571,13 +563,12 @@ CLAIM_DEFINITIONS: tuple[ClaimDefinition, ...] = (
                 "visible_ink_coverage_percent",
                 "ally_share_of_detected_ink_percent",
                 "opponent_share_of_detected_ink_percent",
-                "ally_share_of_detected_ink_display",
-                "opponent_share_of_detected_ink_display",
+                "visible_ink_coverage_rounded_percent",
+                "ally_share_of_detected_ink_rounded_percent",
+                "opponent_share_of_detected_ink_rounded_percent",
             ),
         ),
-        eligible=lambda coach_input, _unit: _observation_values(
-            observed_map_ink(coach_input)
-        ),
+        eligible=lambda coach_input, _unit: claim_values(observed_map_ink(coach_input)),
         coachable=False,
     ),
 )

@@ -73,25 +73,48 @@ facts therefore preserves existing production ranking and top-three selection.
 
 `observed_roster_counts` is an optional level-A factual claim from the reliable
 pre-death sample already selected by the unit. Its model-facing home is
-`roster.observed_counts`. Counts, actual observation video time, signed offset
-and timing description are exposed. A reliable 3v4 sample qualifies without
-activating the two-player-gap importance factor. Counts describe the roster,
-never nearby players or fight participation.
+`roster.observed_counts`, which keeps the counts, the actual observation video
+time, the anchor time, the signed offset, `temporal_relationship`, `timing`
+(`before` / `at` / `after`) and `source_path`. A reliable 3v4 sample qualifies
+without activating the two-player-gap importance factor. Counts describe the
+roster, never nearby players or fight participation.
 
 `observed_map_ink` is an optional level-A factual claim projected at
 `map.observed_ink`. Selection minimizes absolute distance to the anchor over
 observations already admitted by the ScenarioContext window; equal distances
 prefer the pre-anchor observation. It does not require the one-second
-`nearest_before_anchor` summary. The actual timestamp and signed video-time
-offset remain explicit. Post-death observations are labeled post-death and
-never described as measurements at death; no continuous ink state is inferred.
+`nearest_before_anchor` summary. The block keeps the actual timestamp, signed
+offset and unrounded percentages, plus `timing` and whole-number
+`*_rounded_percent` leaves for wording. Post-death observations stay post-death
+and are never described as measurements at death; no continuous ink state is
+inferred.
 
-Visible ink coverage within the registered polygon uses the polygon denominator.
-Ally share of detected ink and opponent share of detected ink use detected ink
-as denominator; they are never whole-map percentages or map control. Values
-are percentages in the compact projection; missing shares remain unavailable,
-including zero-ink observations. Both new claims have `coachable=false`: they
-are authorized context, not mandatory statements or new ranking factors.
+Visible ink coverage uses the registered stage polygon as denominator (the map
+area of the observation). Ally share of detected ink and opponent share of
+detected ink use detected ink as denominator; they are never whole-map
+percentages or map control. Missing shares remain unavailable, including
+zero-ink observations. Both claims have `coachable=false`: they are authorized
+context, not mandatory statements or new ranking factors.
+
+Since `CoachLlmView` v6 the claim `values` of both observation claims are the
+model-facing summary only (`timing`, `temporal_relationship`, offset, counts,
+rounded percentages): no recording-clock times, raw percentages, English timing
+narration or two-decimal display strings. Their `evidence_paths` still name the
+authoritative raw leaves (`video_time`, `anchor_video_time`, unrounded
+percentages) beside the summary leaves. Frames word timing relative to the
+death; the objective-temporal frames no longer embed video seconds (their
+values and paths are unchanged). The view no longer carries
+`supporting_evidence`; it stays on the unit and in `coaching.json` for the
+viewer. Stored v4/v5 views remain readable and keep revalidating against
+themselves.
+
+Player-facing lines on the public review are rendered from these structured
+values by `tools/public_site/evidence_text.py` in the report language (EN/JA),
+independent of the game language. A Japanese report omits an evidence line
+that has no Japanese rendering and logs its key; it never shows English
+evidence. One roster observation is shown per moment: a roster factor
+statement built from the same sample (time and counts) as the shown roster fact
+is not repeated.
 
 ### Validation rules
 

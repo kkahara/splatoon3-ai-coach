@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paint-only frontline review</title>
+<style>
+  :root { color-scheme: dark; font: 15px system-ui, sans-serif; background: #121822; color: #eef2f7; }
+  body { margin: 0; padding: 24px; }
+  header, .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header { justify-content: space-between; margin-bottom: 20px; }
+  h1 { margin: 0; font-size: 1.55rem; }
+  .hint { max-width: 58rem; color: #becbdc; line-height: 1.45; }
+  .instructions { background: #202a38; border: 1px solid #52657c; border-radius: 8px; padding: 12px 16px; margin: 14px 0; }
+  .actions { position: sticky; top: 0; z-index: 3; background: #121822; padding: 10px 0; border-bottom: 1px solid #52657c; }
+  .primary { background: #11665f; border-color: #46d6c8; font-weight: 700; }
+  .danger { background: #642f38; border-color: #ff8794; }
+  .images { display: grid; grid-template-columns: repeat(2, minmax(320px, 1fr)); gap: 16px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 8px; font-weight: 650; }
+  .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #202a38; overflow: hidden; }
+  .frame img, .frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  svg { pointer-events: none; }
+  svg.edit { pointer-events: auto; cursor: crosshair; }
+  .human { fill: none; stroke: #ff423a; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .generated { fill: none; stroke: #00ebdf; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .adjusted { fill: none; stroke: #fce34f; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .point { fill: #fce34f; stroke: #121822; stroke-width: 2; }
+  button, select, textarea { background: #263448; color: #fff; border: 1px solid #72849b; border-radius: 6px; padding: 9px 12px; font: inherit; }
+  button { cursor: pointer; }
+  button:hover { border-color: #fff; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  label { display: inline-flex; align-items: center; gap: 6px; }
+  .controls { margin: 18px 0 10px; }
+  textarea { display: block; width: min(100%, 850px); height: 54px; box-sizing: border-box; }
+  .status { color: #b8eec7; min-height: 24px; margin-top: 10px; }
+  .meta { font-size: .86rem; color: #aabbd0; overflow-wrap: anywhere; margin: 10px 0 0; }
+  @media (max-width: 800px) { .images { grid-template-columns: 1fr; } }
+</style>
+<header><div><h1>Paint-only frontline review</h1><div class="hint">Red: provisional reference. Cyan: generated proposal. Yellow: your replacement line.</div></div><label>Frame <select id="case"></select></label></header>
+<p id="summary" class="hint"></p>
+<section class="instructions" aria-label="How to review and save">
+  <strong>How to submit</strong>
+  <div>To accept the cyan line, click <b>Accept generated line</b>. To reject it, click <b>Reject generated line</b>. Either action saves a versioned JSON decision.</div>
+  <div>To draw your own line: click <b>Draw replacement</b>, then click points along the line on the right image. Click <b>Finish drawing</b>, then <b>Save my line</b>. Use Undo or Clear if needed.</div>
+  <div>Red sketches are provisional. Check “Confirm reference” only if the red line is a fair human reference. Every saved decision records image, recording, polygon and classifier provenance.</div>
+</section>
+<div class="controls actions"><button id="approve" class="primary">Accept generated line</button><button id="reject" class="danger">Reject generated line</button><button id="redraw">Draw replacement</button><button id="finish-drawing" disabled>Finish drawing</button><button id="undo">Undo point</button><button id="clear">Clear line</button><button id="save-adjust" class="primary" disabled>Save my line</button></div>
+<div class="images">
+  <figure><figcaption>Clean source screenshot</figcaption><div class="frame"><img id="source" alt="Clean source frame"><svg viewBox="0 0 1000 1000" preserveAspectRatio="none"><polyline id="human-left" class="human"></polyline></svg></div></figure>
+  <figure><figcaption>Paint classification, proposed line and uncertainty</figcaption><div class="frame"><img id="paint" alt="Paint classification overlay"><img id="uncertain" alt="Uncertainty band" style="opacity:.55"><svg id="edit" viewBox="0 0 1000 1000" preserveAspectRatio="none"><polyline id="human-right" class="human"></polyline><g id="generated"></g><polyline id="adjusted" class="adjusted"></polyline><g id="points"></g></svg></div></figure>
+</div>
+<div class="controls"><label><input id="show-human" type="checkbox" checked>Show reference line</label><label><input id="show-uncertainty" type="checkbox" checked>Show uncertainty</label><label><input id="confirm" type="checkbox">Confirm red reference line</label><button id="confirm-reference">Save reference confirmation</button></div>
+<label for="note">Optional note</label><textarea id="note" placeholder="Why did you accept, reject, or adjust the line?"></textarea>
+<p id="status" class="status" role="status"></p><a id="download" hidden>Download latest decision JSON</a><p id="meta" class="meta"></p>
+<script>
+  const byId = id => document.getElementById(id);
+  let cases = [], current = null, adjusted = [], drawing = false;
+  const coords = points => (points || []).map(p => `${Math.round(p.x * 1000)},${Math.round(p.y * 1000)}`).join(' ');
+  function show() {
+    current = cases.find(item => item.id === byId('case').value);
+    if (!current) return;
+    adjusted = []; drawing = false;
+    byId('edit').classList.remove('edit');
+    byId('source').src = `/api/image/${current.id}.clean`;
+    byId('paint').src = `/api/image/${current.id}.paint`;
+    byId('uncertain').src = `/api/image/${current.id}.uncertainty`;
+    byId('human-left').setAttribute('points', coords(current.human_line));
+    byId('human-right').setAttribute('points', coords(current.human_line));
+    byId('generated').replaceChildren(...(current.generated.line_segments || [current.generated.line]).map(segment => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      line.setAttribute('points', coords(segment)); line.setAttribute('class', 'generated'); return line;
+    }));
+    byId('confirm').checked = false;
+    byId('note').value = '';
+    byId('summary').textContent = current.role === 'orientation'
+      ? 'Orientation reference only: back → center → front. Choose a Frontline frame to accept, reject, or draw a line.'
+      : 'Provisional reference line: please confirm or revise it before treating it as a label.';
+    byId('meta').textContent = `Video time ${current.video_time}s · Source SHA-256 ${current.source_sha256} · Polygon SHA-256 ${current.generated.polygon_sha256} · Classified fraction ${current.generated.classified_fraction?.toFixed(3) ?? 'unavailable'} · Status ${current.generated.status}`;
+    const previous = current.decisions || [];
+    byId('status').textContent = previous.length
+      ? `Latest saved decision: ${previous[previous.length - 1].action} (${previous[previous.length - 1].filename})`
+      : (current.generated.reasons.join(', ') || 'No decision saved for this frame yet.');
+    byId('download').hidden = previous.length === 0;
+    byId('download').href = `/api/decision/latest/${current.id}`;
+    refresh();
+  }
+  function refresh() {
+    byId('adjusted').setAttribute('points', coords(adjusted));
+    byId('points').replaceChildren(...adjusted.map(p => {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', Math.round(p.x * 1000)); c.setAttribute('cy', Math.round(p.y * 1000));
+      c.setAttribute('r', 8); c.setAttribute('class', 'point'); return c;
+    }));
+    byId('human-left').style.display = byId('show-human').checked ? '' : 'none';
+    byId('human-right').style.display = byId('show-human').checked ? '' : 'none';
+    byId('uncertain').style.display = byId('show-uncertainty').checked ? '' : 'none';
+    const reviewable = current.role === 'frontline';
+    byId('approve').disabled = !reviewable || current.generated.status !== 'available';
+    byId('reject').disabled = !reviewable;
+    byId('redraw').disabled = !reviewable;
+    byId('save-adjust').disabled = current.role !== 'frontline' || adjusted.length < 2 || drawing;
+    byId('confirm-reference').disabled = !reviewable;
+    byId('finish-drawing').disabled = !drawing;
+  }
+  async function save(action) {
+    const payload = {case_id: current.id, action, adjusted_line: action === 'adjust' ? adjusted : [],
+      note: byId('note').value, reference_confirmed: byId('confirm').checked};
+    const response = await fetch('/api/decision', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+    const data = await response.json();
+    byId('status').textContent = response.ok
+      ? `Saved ${action} as revision ${data.revision}. JSON: generated_v2/decisions/${current.id}.r${String(data.revision).padStart(3, '0')}.json`
+      : `Save failed: ${data.error}`;
+    if (response.ok) {
+      byId('download').hidden = false;
+      byId('download').href = `/api/decision/latest/${current.id}`;
+    }
+  }
+  byId('case').addEventListener('change', show);
+  byId('show-human').addEventListener('change', refresh);
+  byId('show-uncertainty').addEventListener('change', refresh);
+  byId('redraw').onclick = () => {drawing = true; adjusted = []; byId('edit').classList.add('edit'); byId('status').textContent = 'Drawing: click at least two points on the right image, then Finish drawing.'; refresh();};
+  byId('undo').onclick = () => {adjusted.pop(); refresh();};
+  byId('clear').onclick = () => {adjusted = []; drawing = false; byId('edit').classList.remove('edit'); refresh();};
+  byId('finish-drawing').onclick = () => {drawing = false; byId('edit').classList.remove('edit'); byId('status').textContent = adjusted.length >= 2 ? 'Line ready. Click Save my line to write the JSON decision.' : 'Add at least two points before saving.'; refresh();};
+  byId('edit').onclick = event => {
+    if (!drawing) return;
+    const rect = byId('edit').getBoundingClientRect();
+    adjusted.push({x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))});
+    refresh();
+  };
+  byId('approve').onclick = () => save('approve');
+  byId('reject').onclick = () => save('reject');
+  byId('save-adjust').onclick = () => save('adjust');
+  byId('confirm-reference').onclick = () => {byId('confirm').checked = true; save('confirm_reference');};
+  fetch('/api/cases').then(response => response.json()).then(items => {
+    cases = items;
+    byId('case').replaceChildren(...items.map(item => {
+      const option = document.createElement('option'); option.value = item.id;
+      const kind = item.role === 'orientation' ? 'Orientation only' : 'Frontline';
+      option.textContent = `${kind}: ${item.id} (${item.video_time}s)`; return option;
+    }));
+    const firstFrontline = items.find(item => item.role === 'frontline');
+    if (firstFrontline) byId('case').value = firstFrontline.id;
+    show();
+  }).catch(error => {byId('status').textContent = `Could not load study: ${error}`;});
+</script>
+</html>

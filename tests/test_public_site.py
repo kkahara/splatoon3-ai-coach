@@ -1821,10 +1821,12 @@ def _write_named_assessment(analysis: Path, safe_id: str, assessment: str) -> No
 
 
 def test_special_line_keeps_not_observed_distinct_from_not_ready() -> None:
+    from public_site.evidence_text import render_evidence
     from public_site.results import _special_line
 
     def line(special: dict, active: frozenset[str] = frozenset()) -> str | None:
-        return _special_line({"primary_context": {"special": special}}, set(active))
+        built = _special_line({"primary_context": {"special": special}}, set(active))
+        return None if built is None else render_evidence(built, "en")
 
     ready = {"nearest_before_anchor": {"visible": True, "ready": True}}
     not_ready = {"nearest_before_anchor": {"visible": True, "ready": False}}
@@ -1837,10 +1839,15 @@ def test_special_line_keeps_not_observed_distinct_from_not_ready() -> None:
 
 
 def test_special_line_requires_confirmed_ready_and_valid_reading() -> None:
+    from public_site.evidence_text import render_evidence
     from public_site.results import _special_line
 
+    def text(special: dict, active: set[str]) -> str | None:
+        built = _special_line({"primary_context": {"special": special}}, active)
+        return None if built is None else render_evidence(built, "en")
+
     ready = {"nearest_before_anchor": {"visible": True, "ready": True}}
-    single = _special_line({"primary_context": {"special": ready}}, set())
+    single = text(ready, set())
     assert single == "Special readiness just before the death was not confirmed."
     invalid = {
         "state_at_anchor": "ready",
@@ -1849,7 +1856,6 @@ def test_special_line_requires_confirmed_ready_and_valid_reading() -> None:
         },
     }
     confirmed = {"death_special_ready"}
-    assert (
-        _special_line({"primary_context": {"special": invalid}}, confirmed)
-        == "The special gauge was not visible just before the death."
+    assert text(invalid, confirmed) == (
+        "The special gauge was not visible just before the death."
     )

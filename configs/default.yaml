@@ -466,6 +466,9 @@ coach:
   roster_scoring: false
   # Leave top-N slots empty rather than fill them with zero-score deaths.
   llm_units_require_positive_score: true
+  # Experimental, keep off in production: one LLM unit per advice family per
+  # report (tools/reports/coaching_report_diversity.py compares both).
+  report_advice_family_cap: false
   # Context factors: they add weight only to a death another factor supports.
   # The final 30 seconds ranks on its own so coachable facts still select units
   # while roster evidence is off.

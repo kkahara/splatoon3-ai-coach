@@ -24,6 +24,10 @@ from splatoon3_ai_coach.coach.load_analysis import (
     CoachAnalysisBundle,
     select_primary_scenario_ids,
 )
+from splatoon3_ai_coach.coach.report_diversity import (
+    ReportDiversityDiagnostics,
+    apply_advice_family_cap,
+)
 from splatoon3_ai_coach.config.models import AppConfig
 
 
@@ -37,6 +41,7 @@ class MatchScoring:
     coach_inputs: dict[str, CoachInput]
     importance_config: dict[str, Any]
     importance_config_hash: str
+    report_diversity: ReportDiversityDiagnostics | None = None
 
     def units_by_rank(self) -> list[CoachingUnitResult]:
         """Units ordered by rank, unranked last."""
@@ -81,14 +86,19 @@ def score_match(
         max_llm_units=top_n,
         require_positive_score=coach.llm_units_require_positive_score,
     )
+    units = apply_candidate_ranking(scored, ranked)
+    diversity = None
+    if coach.report_advice_family_cap:
+        units, diversity = apply_advice_family_cap(units, inputs, max_llm_units=top_n)
     payload = importance_config_payload(coach, max_llm_units=top_n)
     return MatchScoring(
         match_duration_seconds=match_duration,
         max_llm_units=top_n,
-        units=apply_candidate_ranking(scored, ranked),
+        units=units,
         coach_inputs=inputs,
         importance_config=payload,
         importance_config_hash=importance_config_hash(payload),
+        report_diversity=diversity,
     )
 
 

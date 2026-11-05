@@ -24,7 +24,9 @@
             "args": [
                 "-v",
                 "vmv-site",
-                "--no-open"
+                "--no-open",
+                "--port",
+                "8766"
             ],
             "env": {
                 "VMV_ANALYSIS_ROOT": "${input:analysisRoot}"

@@ -21,9 +21,10 @@ def importance_config_payload(
     """The importance-relevant configuration, in full.
 
     ``max_llm_units`` is passed explicitly because a CLI override replaces
-    the configured value for that run.
+    the configured value for that run. ``report_advice_family_cap`` appears
+    only when enabled, so rankings without it keep their existing hash.
     """
-    return {
+    payload: dict[str, Any] = {
         "schema": IMPORTANCE_CONFIG_SCHEMA,
         "death_importance_weights": {
             key: float(value)
@@ -37,6 +38,9 @@ def importance_config_payload(
         "death_modifier_factors": sorted(coach.death_modifier_factors),
         "death_ranking_excluded_factors": sorted(coach.death_ranking_excluded_factors),
     }
+    if coach.report_advice_family_cap:
+        payload["report_advice_family_cap"] = True
+    return payload
 
 
 def importance_config_hash(payload: dict[str, Any]) -> str:

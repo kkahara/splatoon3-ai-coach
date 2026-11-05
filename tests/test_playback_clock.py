@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from public_site.results import _recovery
+from public_site.evidence_text import render_evidence
+from public_site.results import _recovery as _recovery_evidence
 
 from splatoon3_ai_coach.analysis.scenario_context import build_scenario_contexts
 from splatoon3_ai_coach.analysis.scenarios import build_scenarios
@@ -21,6 +22,12 @@ from splatoon3_ai_coach.coach.playback_clock import (
 )
 from splatoon3_ai_coach.config import default_config_path, load_config
 from splatoon3_ai_coach.vision.models import GameEvent, GameEventReason, GameEventType
+
+
+def _recovery(coach_input: dict) -> str | None:
+    """English public recovery line, as the review shows it."""
+    line = _recovery_evidence(coach_input)
+    return None if line is None else render_evidence(line, "en")
 
 
 def _obs(video_time: float, seconds: int) -> GameClockObservation:

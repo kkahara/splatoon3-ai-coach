@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from public_site.results import _roster_line
+from public_site.evidence_text import render_evidence
+from public_site.results import _roster_line as _roster_evidence
 
 from splatoon3_ai_coach.analysis.player_count_series import (
     PlayerCountObservation,
@@ -34,6 +35,12 @@ from splatoon3_ai_coach.vision.models import (
 )
 
 _UNRELIABLE = "Roster information around this death was unreliable."
+
+
+def _roster_line(coach_input: dict) -> str | None:
+    """English public roster line, as the review shows it."""
+    line = _roster_evidence(coach_input)
+    return None if line is None else render_evidence(line, "en")
 _ROSTER_FACTORS = {"death_while_outnumbered", "death_while_ahead_in_numbers"}
 
 

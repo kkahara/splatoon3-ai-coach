@@ -23,15 +23,19 @@ claim_basis — the claims you are authorized to word:
 - Prefer coachable entries. Choose 1-3; do not list every entry.
 - observed_roster_counts and observed_map_ink are optional factual context.
   Use them only when useful to the chosen coaching points; never emit every fact.
-  Their offsets use the recording timeline. Preserve the observation timestamp
-  and its before/at/after relationship to death. A post-death ink observation must remain
+  Word them from their claim_basis values. Keep the `timing` relationship to the
+  death (before / at / after). A post-death ink observation must remain
   explicitly post-death; never call it coverage at death or continuous map state.
-- Visible ink coverage within the registered polygon uses the polygon area as
-  denominator. Ally share of detected ink and opponent share of detected ink
-  use detected ink as denominator. Never call these shares percentages of the
-  whole map or map control. An unavailable share stays unavailable.
+- The ally and opponent ink shares are shares of the detected ink (allies plus
+  opponents), not of the whole map, and never map control. Visible ink
+  coverage is the inked share of the map area in that observation. Use the
+  rounded percentages with "about". An unavailable share stays unavailable.
 - Roster counts describe the observed team roster only. They do not establish
   fight participation or physical proximity.
+- Describe timing relative to the death ("just before the death", "after the
+  death"). Never write recording timestamps or video positions ("at 104s",
+  "video time") in assessment, recommendations or claim sentences; they belong
+  only in evidence_used.
 
 undetermined — topics you must never state, not even hedged ("might have"),
 negated in the assessment, or as a question. Each lists a reason and
@@ -224,7 +228,7 @@ Permitted factual examples:
 - "This death lasted 9.0 seconds until active again." (clock "video", normal)
 - "About 14 game-clock seconds passed before you were active again."
   (clock "game")
-- "At video time 87.0s the match timer showed 2:33 remaining (timer detection)."
+- "The match timer showed 2:33 remaining at this death."
 - "Just before the death your team needed 42 more counts and the opponents 30."
 
 Prohibited as factual claims:

@@ -131,6 +131,23 @@ class LifecycleMark(BaseModel):
     offset_label: str | None = None
 
 
+class EvidenceLine(BaseModel):
+    """One player-facing evidence line as a localization key plus its values."""
+
+    key: str
+    params: dict[str, str | int | float | None] = Field(default_factory=dict)
+    provenance: dict[str, object] = Field(default_factory=dict)
+
+
+class MomentEvidence(BaseModel):
+    """Structured source of a moment's evidence lines, rendered per locale."""
+
+    statements: list[EvidenceLine] = Field(default_factory=list)
+    context: list[EvidenceLine] = Field(default_factory=list)
+    until_active_again: EvidenceLine | None = None
+    recovery_context: EvidenceLine | None = None
+
+
 class CoachingMoment(BaseModel):
     """One ranked coaching unit safe to show on the public review page."""
 
@@ -157,6 +174,8 @@ class CoachingMoment(BaseModel):
     recovery_context: str | None = None
     context: list[str] = Field(default_factory=list)
     recording_times: list[str] = Field(default_factory=list)
+    # Internal: the English fields above rendered from these; never serialized.
+    evidence: MomentEvidence | None = Field(default=None, exclude=True)
 
 
 class PublicSubmissionResult(BaseModel):
@@ -185,7 +204,9 @@ class PublicSubmissionResponse(BaseModel):
     match_seconds: int | None = None
     locale: DisplayLocale = "en"
     result: PublicSubmissionResult | None = None
-    payment_state: Literal["not_required", "unpaid", "checkout_created", "paid"] | None = None
+    payment_state: (
+        Literal["not_required", "unpaid", "checkout_created", "paid"] | None
+    ) = None
     voucher_state: Literal["pending", "redeemed", "failed"] | None = None
     voucher_failure_reason: (
         Literal["expired", "revoked", "exhausted", "inactive", "wrong_service"] | None

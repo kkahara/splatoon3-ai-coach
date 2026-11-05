@@ -47,7 +47,9 @@ add, e.g., `map_awareness.*`. This is what the model sees. The projection
 (`observation.display` to `clock.display`), merges sources into one block
 (death block = `death_episode` + `durations`; score block = `score_facts`),
 derives (`low_ink.at_death`) and formats (`supporting_evidence` display
-strings).
+strings). From view schema v6 `supporting_evidence` is no longer projected
+(it stays in `coaching.json` for the viewer); stored v5 views keep it and
+their outputs still revalidate against their own view.
 
 **`source_path` labels** are strings on view blocks meant to name the N1
 origin. The removed legacy form accepted a citation that started with a

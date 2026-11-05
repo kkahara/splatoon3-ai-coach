@@ -188,11 +188,12 @@ def test_death_episode_95_hidden_gauge_is_not_reported_as_not_ready() -> None:
     coach_input = _coach_input(evidence, _REPLAY)
     text = _special_text(coach_input)
     assert text == "not observed (last observed 3s (game clock) before: not ready)"
-    view = build_coach_llm_view(coach_input, score_death_candidate(coach_input))
+    unit = score_death_candidate(coach_input)
+    view = build_coach_llm_view(coach_input, unit)
     assert view.special is not None
     assert view.special["state_at_anchor"] == "not_observed"
     assert view.special["last_visible_before_anchor"]["video_time"] == 93.0
-    support = {item.label: item.value for item in view.supporting_evidence}
+    support = {item.label: item.value for item in unit.supporting_evidence}
     assert support["Special"] == text
 
 

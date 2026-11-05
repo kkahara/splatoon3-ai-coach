@@ -2,9 +2,11 @@
 
 Two paths, kept separate on purpose:
 
-* Fixed evidence lines (headings, marks, roster/map/special lines, factor
-  statements) are structured evidence rendered as text. They are mapped to
-  Japanese with deterministic templates; an unknown line stays English.
+* Evidence lines (statements, context, recovery) render from their structured
+  key and values (``public_site.evidence_text``). A Japanese view omits a line
+  with no Japanese rendering and logs its key; it never shows English evidence.
+  Headings and mark labels use deterministic templates and stay English when
+  unknown.
 * The coaching paragraph (``assessment``) and its recommendations are prose.
   They are translated by the localization LLM (``coach.translation``), which
   sees only that English text. A blocked assessment has no prose to translate.
@@ -27,7 +29,8 @@ from pathlib import Path
 
 from loguru import logger
 
-from public_site.models import CoachingMoment, PublicSubmissionResult
+from public_site.evidence_text import render_evidence
+from public_site.models import CoachingMoment, EvidenceLine, PublicSubmissionResult
 from splatoon3_ai_coach.coach.claim_catalog import NO_RECOMMENDATION_MESSAGE
 from splatoon3_ai_coach.coach.claim_rules import translation_introduced_hits
 
@@ -165,6 +168,12 @@ _PATTERNS_JA: list[tuple[re.Pattern[str], str]] = [
         re.compile(r"Two consecutive deaths occurred (\d+(?:\.\d+)?) seconds apart\."),
         "{0}秒の間隔で連続デスしています。",
     ),
+    (
+        re.compile(
+            r"Two consecutive deaths occurred (\d+(?:\.\d+)?) game-clock seconds apart\."
+        ),
+        "{0}秒（試合時間）の間隔で連続デスしています。",
+    ),
 ]
 
 
@@ -262,13 +271,10 @@ def _localize_moment(
     recs_translated = bool(recs_ja) and all(item is not None for item in recs_ja)
     return moment.model_copy(
         update={
-            "statements": [localize_line(line, "ja") for line in moment.statements],
+            **_evidence_ja(moment),
             "heading": _maybe(moment.heading),
             "marks": marks,
             "gaps": [_maybe(gap) for gap in moment.gaps],
-            "until_active_again": _maybe(moment.until_active_again),
-            "recovery_context": _maybe(moment.recovery_context),
-            "context": [localize_line(line, "ja") for line in moment.context],
             "assessment": assessment_ja if translated else moment.assessment,
             "assessment_locale": "ja" if translated or not moment.assessment else "en",
             "recommendations": (
@@ -285,6 +291,53 @@ def _localize_moment(
 
 def _maybe(text: str | None) -> str | None:
     return None if text is None else localize_line(text, "ja")
+
+
+def _evidence_ja(moment: CoachingMoment) -> dict[str, object]:
+    """Japanese evidence lines; a line without a Japanese rendering is omitted."""
+    evidence = moment.evidence
+    if evidence is None:
+        return {
+            "statements": _legacy_lines(moment.statements),
+            "context": _legacy_lines(moment.context),
+            "until_active_again": _legacy_line(moment.until_active_again),
+            "recovery_context": _legacy_line(moment.recovery_context),
+        }
+    return {
+        "statements": _keyed_lines(evidence.statements),
+        "context": _keyed_lines(evidence.context),
+        "until_active_again": _keyed_line(evidence.until_active_again),
+        "recovery_context": _keyed_line(evidence.recovery_context),
+    }
+
+
+def _keyed_lines(lines: list[EvidenceLine]) -> list[str]:
+    rendered = (_keyed_line(line) for line in lines)
+    return [text for text in rendered if text is not None]
+
+
+def _keyed_line(line: EvidenceLine | None) -> str | None:
+    if line is None:
+        return None
+    text = render_evidence(line, "ja")
+    if text is None:
+        logger.warning("no Japanese rendering for evidence key {}; line omitted", line.key)
+    return text
+
+
+def _legacy_lines(lines: list[str]) -> list[str]:
+    rendered = (_legacy_line(line) for line in lines)
+    return [text for text in rendered if text is not None]
+
+
+def _legacy_line(text: str | None) -> str | None:
+    """Unkeyed English evidence (a moment built without structure)."""
+    if text is None:
+        return None
+    japanese = template_line(text, "ja")
+    if japanese is None:
+        logger.warning("no Japanese rendering for evidence key unkeyed; line omitted")
+    return japanese
 
 
 def _translate_assessments(

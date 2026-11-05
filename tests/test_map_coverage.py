@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from public_site.results import _map_line
+from public_site.evidence_text import render_evidence
+from public_site.results import _map_line as _map_evidence
 
 from splatoon3_ai_coach.analysis.map_coverage import (
     CoverageStatus,
@@ -21,6 +22,12 @@ from splatoon3_ai_coach.media.video_source import Observability
 from splatoon3_ai_coach.vision.models import GameEvent, GameEventReason, GameEventType
 
 _STEP = 0.5
+
+
+def _map_line(coach_input: dict) -> str | None:
+    """English public map line, as the review shows it."""
+    line = _map_evidence(coach_input)
+    return None if line is None else render_evidence(line, "en")
 
 
 def _event(t: float, kind: GameEventType, reason: GameEventReason) -> GameEvent:
