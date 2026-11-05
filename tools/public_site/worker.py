@@ -17,6 +17,7 @@ from time import perf_counter
 
 from loguru import logger
 
+from public_site.clips import extract_clips
 from public_site.errors import (
     ANALYSIS_FAILED,
     COACHING_FAILED,
@@ -387,7 +388,7 @@ class PublicWorker:
         self._stage_seconds.pop(submission.id, None)
 
     def _frames(self, submission: Submission, analysis: Path, video: Path) -> None:
-        """Copy stills while the source file is still on disk. Failure stays non-fatal."""
+        """Create presentation media before source cleanup. Failure stays non-fatal."""
         started = perf_counter()
         if self.telemetry is not None:
             best_effort(
@@ -398,6 +399,7 @@ class PublicWorker:
             )
         exit_code = 0
         try:
+            extract_clips(analysis, video, submission_id=submission.id)
             extract_frames(analysis, video, submission_id=submission.id)
         except Exception:
             exit_code = 1

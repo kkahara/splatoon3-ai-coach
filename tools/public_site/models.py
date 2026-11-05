@@ -167,6 +167,7 @@ class CoachingMoment(BaseModel):
     recommendations: list[str] = Field(default_factory=list)
     recommendations_locale: DisplayLocale = "en"
     frame: bool = False
+    clip: bool = False
     heading: str | None = None
     marks: list[LifecycleMark] = Field(default_factory=list)
     gaps: list[str | None] = Field(default_factory=list)

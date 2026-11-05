@@ -13,6 +13,7 @@ from typing import NoReturn
 from loguru import logger
 
 from public_site.accounts import AccountStore
+from public_site.clips import clip_path, extract_clips, missing_clips
 from public_site.errors import (
     ACCOUNT_RATE_LIMIT,
     BAD_EMAIL,
@@ -285,6 +286,23 @@ class SubmissionService:
         if path is None:
             raise RequestRejected(404, "not found")
         return path
+
+    def clip_file(self, submission: Submission, index: int) -> Path:
+        """Return a completed clip only for an accessible completed result."""
+        if submission.status != "complete" or not submission.analysis_dir:
+            raise RequestRejected(404, "not found")
+        analysis = Path(submission.analysis_dir)
+        entries = ranked_entries(analysis)
+        if index < 0 or index >= len(entries):
+            raise RequestRejected(404, "not found")
+        path = clip_path(analysis, entries[index].safe_id)
+        if path is None or not path.is_file():
+            raise RequestRejected(404, "not found")
+        return path
+
+    def moment_clip(self, token: str, index: int) -> Path:
+        """Resolve a clip through the guest token access boundary."""
+        return self.clip_file(self._require(token), index)
 
     def maintain(self, now: datetime) -> None:
         """Release abandoned uploads and expire old submissions."""
@@ -612,10 +630,12 @@ class SubmissionService:
     def release_source_video(self, submission: Submission) -> None:
         """Delete the source video after a completed review is stored.
 
-        Dev mode keeps the file. A delete error leaves ``object_key`` set so
+        Dev mode or missing clips keep the file until retry or expiry. A delete error leaves ``object_key`` set so
         the expiry sweep can try again. The coaching result stays available.
         """
         if self.settings.dev_mode:
+            return
+        if submission.analysis_dir and missing_clips(Path(submission.analysis_dir)):
             return
         video = self.store.get_video(submission.id)
         if video is None or not video.object_key:
@@ -664,11 +684,11 @@ class SubmissionService:
         return dest if dest.is_file() else None
 
     def _fill_frames(self, submission: Submission) -> None:
-        """Grab missing stills when the source video is still stored."""
+        """Fill missing presentation media while the source is still stored."""
         if not submission.analysis_dir:
             return
         analysis = Path(submission.analysis_dir)
-        if not missing_frames(analysis):
+        if not missing_frames(analysis) and not missing_clips(analysis):
             return
         video = self.store.get_video(submission.id)
         if video is None or not video.object_key:
@@ -682,7 +702,9 @@ class SubmissionService:
             logger.warning("moment frame source unavailable for submission {}", submission.id)
             return
         try:
+            extract_clips(analysis, path, submission_id=submission.id)
             extract_frames(analysis, path, submission_id=submission.id)
+            self.release_source_video(submission)
         finally:
             if temporary and path.is_file():
                 path.unlink()

@@ -185,7 +185,9 @@ class _Roles:
                 return role
         return None
 
-    def record_history(self, _user_id: str, _submission_id: str, _created: str, _expires: str) -> None:
+    def record_history(
+        self, _user_id: str, _submission_id: str, _created: str, _expires: str
+    ) -> None:
         return None
 
 

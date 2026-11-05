@@ -374,6 +374,7 @@ function ReviewLink({ view, locale, copied, onCopy, shared }) {
 
 function ReviewProgress({ view }) {
   const t = useT();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const reached = view ? reachedStep(view) : 0;
   const spinning = Boolean(view)
     && !awaitingPayment(view)
@@ -384,14 +385,18 @@ function ReviewProgress({ view }) {
   }
   return (
     <div className="progress-done">
-      <p className="progress-summary">
-        <span aria-hidden="true">✓ </span>
-        {t("review.progress.complete")}
-      </p>
-      <details>
-        <summary>{t("review.progress.details")}</summary>
-        {steps}
-      </details>
+      <div className="progress-summary">
+        <span>
+          <span aria-hidden="true">✓ </span>
+          {t("review.progress.complete")}
+        </span>
+        <details onToggle={(event) => setHistoryOpen(event.currentTarget.open)}>
+          <summary>
+            {t(historyOpen ? "review.progress.hide_details" : "review.progress.details")}
+          </summary>
+          {steps}
+        </details>
+      </div>
     </div>
   );
 }
@@ -514,7 +519,7 @@ function KeyMoment({ moment, frameBase, index, locale }) {
     <>
       <h3>{momentTitle(moment, t)}</h3>
       <Coaching moment={moment} locale={locale} />
-      {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
+      {moment.clip || moment.frame ? <MomentMedia moment={moment} frameBase={frameBase} index={index} /> : null}
       <Evidence moment={moment} label={t("review.match_evidence")} />
       {moment.marks?.length ? (
         <AnalysisDetails>
@@ -625,9 +630,9 @@ function OtherMoment({ moment, frameBase, index, locale }) {
         </p>
       ) : null}
       <Evidence moment={moment} label={t("review.match_evidence")} />
-      {moment.frame || marks.length ? (
+      {moment.clip || moment.frame || marks.length ? (
         <AnalysisDetails>
-          {moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null}
+          {moment.clip || moment.frame ? <MomentMedia moment={moment} frameBase={frameBase} index={index} /> : null}
           {marks.length ? <EpisodeTimeline marks={marks} gaps={moment.gaps || []} /> : null}
         </AnalysisDetails>
       ) : null}
@@ -761,6 +766,24 @@ function scenarioTitle(type, t) {
   const key = `scenario.${type}`;
   const label = t(key);
   return label === key ? titleCase(type) : label;
+}
+
+function MomentMedia({ moment, frameBase, index }) {
+  const [failed, setFailed] = useState(false);
+  if (!moment.clip || failed) {
+    return moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null;
+  }
+  return (
+    <video
+      className="still"
+      controls
+      playsInline
+      preload="none"
+      poster={moment.frame ? `${frameBase}/moments/${index}/frame` : undefined}
+      src={`${frameBase}/moments/${index}/clip`}
+      onError={() => setFailed(true)}
+    />
+  );
 }
 
 function MomentStill({ frameBase, index }) {

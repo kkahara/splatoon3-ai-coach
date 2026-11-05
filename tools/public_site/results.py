@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from public_site.clips import has_clip
 from public_site.evidence_text import (
     factor_line,
     observed_ink_line,
@@ -120,6 +121,7 @@ def _moment(
         coaching_state=review.state,
         recommendations=review.recommendations,
         frame=has_frame(analysis, entry.safe_id),
+        clip=has_clip(analysis, entry.safe_id),
         heading=None if projected is None else projected.heading,
         marks=[] if projected is None else projected.marks,
         gaps=[] if projected is None else projected.gaps,

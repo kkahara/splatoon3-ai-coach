@@ -491,6 +491,14 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return FileResponse(path, media_type="image/jpeg")
 
+    @app.get("/api/submissions/{token}/moments/{index}/clip")
+    def get_moment_clip(token: str, index: int) -> FileResponse:
+        try:
+            path = service.moment_clip(token, index)
+        except RequestRejected as exc:
+            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+        return FileResponse(path, media_type="video/mp4")
+
     _register_dev_upload(app, storage)
 
 
@@ -696,6 +704,16 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return FileResponse(path, media_type="image/jpeg")
+
+    @app.get("/api/me/submissions/{submission_id}/moments/{index}/clip")
+    def get_owned_clip(submission_id: str, index: int, request: Request) -> FileResponse:
+        user = _required_user(request, accounts)
+        submission = _owned(accounts, service.store, user, submission_id)
+        try:
+            path = service.clip_file(submission, index)
+        except RequestRejected as exc:
+            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+        return FileResponse(path, media_type="video/mp4")
 
 
 def _save_feedback(
