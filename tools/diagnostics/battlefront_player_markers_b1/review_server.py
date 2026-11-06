@@ -17,6 +17,9 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 STATIC = Path(__file__).resolve().parent / "review.html"
+TEXT_ROSTER_INVESTIGATION_STATIC = (
+    Path(__file__).resolve().parent / "text_roster_investigation.html"
+)
 LOCALIZATION_TOLERANCE_PX = 24.0
 
 
@@ -289,6 +292,59 @@ def make_handler(study_dir: Path):
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
+            elif path == "/text-roster-investigation":
+                body = TEXT_ROSTER_INVESTIGATION_STATIC.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            elif path == "/api/text-roster-investigation":
+                result_path = (
+                    study_dir
+                    / "text_roster_investigation"
+                    / "dbnet_text_regions.json"
+                )
+                if not result_path.is_file():
+                    self.send_error(404, "DBNet investigation artifact unavailable")
+                    return
+                artifact = json.loads(result_path.read_text(encoding="utf-8"))
+                manifest = json.loads(
+                    (study_dir / "manifest.json").read_text(encoding="utf-8")
+                )
+                development_ids = {
+                    frame["frame_id"]
+                    for frame in manifest.get("frames", [])
+                    if frame.get("split") == "development"
+                }
+                if any(
+                    frame["frame_id"] not in development_ids
+                    for frame in artifact.get("frames", [])
+                ):
+                    self.send_error(409, "investigation contains a non-development frame")
+                    return
+                self._json(artifact)
+            elif path == "/api/text-roster-study":
+                manifest = json.loads(
+                    (study_dir / "manifest.json").read_text(encoding="utf-8")
+                )
+                queue = json.loads(
+                    (study_dir / "review_queue_v2.json").read_text(encoding="utf-8")
+                )
+                notes = {
+                    frame["frame_id"]: frame.get("selection_note", "")
+                    for frame in queue.get("frames", [])
+                    if frame.get("split") == "development"
+                }
+                frames = [
+                    {
+                        **frame,
+                        "selection_note": notes.get(frame["frame_id"], ""),
+                    }
+                    for frame in manifest.get("frames", [])
+                    if frame.get("split") == "development"
+                ]
+                self._json({"frames": frames})
             elif path == "/api/study":
                 manifest = json.loads((study_dir / "manifest.json").read_text())
                 outputs = json.loads(
