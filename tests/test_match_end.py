@@ -303,12 +303,25 @@ def test_golden_no_evidence_after_match_end(golden: Path) -> None:
     assert ctx["death_episode"]["death_to_match_end"] == pytest.approx(0.5)
     times = _video_times(contexts)
     inputs = golden / "coach_inputs"
+    post_match_targets = []
     for path in sorted(inputs.glob("*.json")):
-        times += _video_times(json.loads(path.read_text(encoding="utf-8")))
+        coach_input = json.loads(path.read_text(encoding="utf-8"))
+        times += _video_times(coach_input)
+        post_match_targets.extend(
+            point
+            for point in coach_input.get("player_count_window", [])
+            if point["video_time"] >= MATCH_END_AT
+        )
     assert times
-    assert max(t for t, _ in times) <= MATCH_END_AT
     observations = [t for t, observed in times if observed]
     assert observations and max(observations) < MATCH_END_AT
+    assert post_match_targets
+    assert all(
+        point["observation"] is None
+        and point["numbers_differential"] is None
+        and point["numbers_state"] is None
+        for point in post_match_targets
+    )
     contexts_times = [t for t, _ in _video_times(contexts)]
     assert max(contexts_times) < MATCH_END_AT
 

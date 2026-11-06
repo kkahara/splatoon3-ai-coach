@@ -329,19 +329,22 @@ def test_trace_c_roster_follows_the_plausibility_rule(trace_c: Trace) -> None:
     assert players["at_death"]["opponent_alive_count"] == 3
 
 
-def test_trace_c_coaching_withholds_roster_while_capability_is_off(
+def test_trace_c_coaching_includes_roster_with_capability_on(
     trace_c: Trace,
 ) -> None:
-    """The analysis keeps 4v3, but coach.roster_evidence defaults to off."""
-    assert trace_c.coach_input["roster_evidence"] is False
-    assert trace_c.coach_input["primary_context"]["players"] is None
-    assert trace_c.coach_input["player_count_window"] == []
-    assert trace_c.view["roster"] is None
-    assert trace_c.view["roster_evidence"] is False
-    assert trace_c.view["death"]["numbers_state_at_death"] is None
+    """The default enables reliable roster evidence in coaching."""
+    assert trace_c.coach_input["roster_evidence"] is True
+    assert trace_c.coach_input["primary_context"]["players"] is not None
+    assert trace_c.coach_input["player_count_window"]
+    assert trace_c.view["roster"] is not None
+    assert trace_c.view["roster_evidence"] is True
+    assert trace_c.view["death"]["numbers_state_at_death"] == "advantage"
     codes = [limit["code"] for limit in trace_c.view["evidence_limits"]]
-    assert "roster_evidence_disabled" in codes
-    assert not any("oster" in line for line in trace_c.moment.context)
+    assert "roster_evidence_disabled" not in codes
+    assert any(
+        "teammates and 3 opponents were alive" in line
+        for line in trace_c.moment.context
+    )
     factors = trace_c.active_factors()
     assert not any("_numbers" in f or "outnumbered" in f for f in factors)
 
