@@ -23,6 +23,7 @@ from splatoon3_ai_coach.coach.artifacts import (
     StalenessReason,
     artifact_staleness,
     coach_inputs_staleness,
+    upstream_evidence_fingerprint,
 )
 
 ANALYSIS_ID = "a-current"
@@ -66,6 +67,48 @@ def test_current_index_is_current() -> None:
     staleness = artifact_staleness(index, _manifest())
     assert staleness.status == "current"
     assert staleness.message() == ""
+
+
+def test_upstream_evidence_fingerprint_detects_changed_and_unchanged_sources(
+    tmp_path: Path,
+) -> None:
+    analysis = tmp_path / "analysis"
+    analysis.mkdir()
+    for name, content in (
+        ("vision_manifest.json", '{"analysis":{"analysis_id":"a-current"}}'),
+        ("scenarios.json", "[]"),
+        ("scenario_contexts.json", "[]"),
+    ):
+        (analysis / name).write_text(content, encoding="utf-8")
+    original = upstream_evidence_fingerprint(analysis)
+    index = _index(
+        evidence_version=COACH_EVIDENCE_VERSION,
+        analysis_id=ANALYSIS_ID,
+        upstream_evidence_sha256=original,
+    )
+
+    assert not artifact_staleness(index, _manifest(), original).stale
+    (analysis / "scenario_contexts.json").write_text('[{"refused":true}]')
+    changed = upstream_evidence_fingerprint(analysis)
+    stale = artifact_staleness(index, _manifest(), changed)
+    assert stale.stale
+    assert stale.reason == "upstream_evidence_changed"
+
+    inputs = analysis / "coach_inputs"
+    inputs.mkdir()
+    (inputs / "coaching_index.json").write_text(
+        index.model_dump_json(), encoding="utf-8"
+    )
+    shared_stale = coach_inputs_staleness(inputs, analysis)
+    assert shared_stale is not None and shared_stale.stale
+    assert shared_stale.reason == "upstream_evidence_changed"
+
+
+def test_missing_upstream_fingerprint_is_stale_when_freshness_is_required() -> None:
+    index = _index(evidence_version=COACH_EVIDENCE_VERSION, analysis_id=ANALYSIS_ID)
+    stale = artifact_staleness(index, _manifest(), "current-source-hash")
+    assert stale.stale
+    assert stale.reason == "upstream_evidence_fingerprint_missing"
 
 
 def test_missing_manifest_still_checks_evidence_version() -> None:

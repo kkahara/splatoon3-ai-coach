@@ -46,7 +46,14 @@ from typer.testing import CliRunner
 from splatoon3_ai_coach.cli.analyze import GAME_LANGUAGE_UNDETERMINED_EXIT_CODE
 from splatoon3_ai_coach.cli.app import app as cli_app
 from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
-from splatoon3_ai_coach.coach.artifacts import CoachingIndexEntry
+from splatoon3_ai_coach.coach.artifacts import (
+    CoachingIndexEntry,
+    PrototypeIndex,
+    PrototypeIndexEntry,
+    write_assessment_artifacts,
+    write_prototype_index,
+)
+from splatoon3_ai_coach.coach.llm_client import CoachingAssessment
 from splatoon3_ai_coach.coach.llm_runs import empty_coaching_assessment
 from splatoon3_ai_coach.config.paths import default_config_path
 
@@ -503,7 +510,7 @@ def test_undetermined_game_language_has_its_own_telemetry_code() -> None:
     assert classify_error(ANALYSIS_FAILED)[0] is ErrorCode.ANALYSIS_FAILED
 
 
-def test_llm_failure_still_completes_when_inputs_exist(tmp_path: Path) -> None:
+def test_llm_failure_is_not_reported_as_coaching_success(tmp_path: Path) -> None:
     def run(argv: list[str]) -> int:
         if "coach-inputs" in argv:
             _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
@@ -519,9 +526,8 @@ def test_llm_failure_still_completes_when_inputs_exist(tmp_path: Path) -> None:
     client.app.state.worker.pump()
     client.app.state.worker.join()
     body = client.get(f"/api/submissions/{token}").json()
-    assert body["status"] == "complete"
-    assert body["result"]["moments"][0]["statements"] == [STATEMENT]
-    assert body["result"]["moments"][0]["assessment"] is None
+    assert body["status"] == "failed"
+    assert body["result"] is None
 
 
 def test_notices_keep_the_token_out_of_the_subject_and_logs(tmp_path: Path) -> None:
@@ -719,6 +725,46 @@ def test_coach_inputs_crash_stays_coaching_failed(tmp_path: Path) -> None:
     assert stored.error == COACHING_FAILED
 
 
+def test_prototype_nonzero_exit_cannot_complete_coaching(tmp_path: Path) -> None:
+    def fail_prototype(argv: list[str]) -> int:
+        if "coach-inputs" in argv:
+            _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
+        if "coach-prototype" in argv:
+            analysis = Path(argv[argv.index("coach-prototype") + 1])
+            _write_assessment(analysis)
+            return 1
+        return 0
+
+    client = _client(tmp_path, dev_mode=False, run_command=fail_prototype)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    client.app.state.worker.join()
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed"
+    assert stored.error == COACHING_FAILED
+    assert stored.outcome is None
+
+
+def test_partial_prototype_output_cannot_complete_coaching(tmp_path: Path) -> None:
+    def omit_output(argv: list[str]) -> int:
+        if "coach-inputs" in argv:
+            _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
+        return 0
+
+    client = _client(tmp_path, dev_mode=False, run_command=omit_output)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.app.state.worker.pump()
+    client.app.state.worker.join()
+    stored = client.app.state.store.list_submissions()[0]
+    assert stored.status == "failed"
+    assert stored.error == COACHING_FAILED
+    assert stored.outcome is None
+
+
 def test_failed_video_delete_keeps_the_review(tmp_path: Path, monkeypatch) -> None:
     # These storage lifecycle tests use fake source bytes; clips are tested separately.
     monkeypatch.setattr("public_site.service.missing_clips", lambda _analysis: False)
@@ -775,6 +821,8 @@ class _StickyStorage(LocalStorage):
 def _finish_coaching(argv: list[str]) -> int:
     if "coach-inputs" in argv:
         _write_coaching(Path(argv[argv.index("coach-inputs") + 1]))
+    if "coach-prototype" in argv:
+        _write_assessment(Path(argv[argv.index("coach-prototype") + 1]))
     return 0
 
 
@@ -986,7 +1034,14 @@ def _write_coaching(analysis: Path) -> None:
     inputs.mkdir(parents=True, exist_ok=True)
     (inputs / "coaching_index.json").write_text(
         json.dumps(
-            [index_entry("death_episode_72.5", video_time=72.5, rank=1)]
+            [
+                index_entry(
+                    "death_episode_72.5",
+                    video_time=72.5,
+                    rank=1,
+                    selected_for_llm=True,
+                )
+            ]
         ),
         encoding="utf-8",
     )
@@ -1004,7 +1059,7 @@ def _write_coaching(analysis: Path) -> None:
 
 
 def _write_assessment(analysis: Path) -> None:
-    write_prototype_unit(
+    index = write_prototype_unit(
         analysis / "coach_prototype",
         "death_episode_72.5",
         {
@@ -1013,6 +1068,8 @@ def _write_assessment(analysis: Path) -> None:
         },
         primary_model="model",
     )
+    index.entries[0].selected_for_llm = True
+    write_prototype_index(analysis / "coach_prototype", index)
 
 
 def test_moment_jpeg_remains_after_the_source_video_is_deleted(tmp_path: Path) -> None:
@@ -1229,6 +1286,8 @@ def _coaching_command(entries: list[dict]) -> Callable[[list[str]], int]:
         if "coach-inputs" in argv:
             folder = Path(argv[argv.index("coach-inputs") + 1])
             _write_index(folder, entries)
+        elif "coach-prototype" in argv:
+            _write_prototype(Path(argv[argv.index("coach-prototype") + 1]), entries)
         return 0
 
     return run
@@ -1249,7 +1308,42 @@ def _write_index(analysis: Path, entries: list[dict]) -> None:
 
 
 def _moment_entry(safe_id: str, video_time: float, rank: int) -> dict:
-    return index_entry(safe_id, video_time=video_time, rank=rank)
+    return index_entry(
+        safe_id, video_time=video_time, rank=rank, selected_for_llm=True
+    )
+
+
+def _write_prototype(analysis: Path, entries: list[dict]) -> None:
+    prototype_dir = analysis / "coach_prototype"
+    prototype_dir.mkdir(parents=True, exist_ok=True)
+    prototype_entries = []
+    for row in entries:
+        fields = {
+            key: value
+            for key, value in row.items()
+            if key in PrototypeIndexEntry.model_fields
+        }
+        safe_id = str(row["safe_id"])
+        output = write_assessment_artifacts(
+            out_dir=prototype_dir,
+            safe_id=safe_id,
+            model_label="test-model",
+            assessment=CoachingAssessment(assessment="Test coaching assessment."),
+            raw_text="Test coaching assessment.",
+            flags={"hit_count": 0},
+            skipped_llm=False,
+        )
+        prototype_entries.append(
+            PrototypeIndexEntry(
+                **fields,
+                outputs=[output],
+                primary_output_json=output.output_json,
+            )
+        )
+    write_prototype_index(
+        prototype_dir,
+        PrototypeIndex(primary_model="test-model", entries=prototype_entries),
+    )
 
 
 def _indexed_death(analysis: Path, safe_id: str, video_time: float) -> CoachingIndexEntry:

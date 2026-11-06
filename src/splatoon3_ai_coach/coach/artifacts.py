@@ -29,6 +29,7 @@ outside this module reads the legacy layout.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -59,7 +60,7 @@ COACHING_INDEX_FILENAME = "coaching_index.json"
 SYSTEM_PROMPT_FILENAME = "system_prompt.txt"
 
 LEGACY_SCHEMA_VERSION = 1
-COACHING_INDEX_SCHEMA_VERSION = 3
+COACHING_INDEX_SCHEMA_VERSION = 4
 # Bump when deterministic evidence semantics change (coaching.json / llm_view).
 # v4: roster capability off, same-life special, claim_basis / undetermined.
 # v5: claim_basis evidence_paths are literal scalar CoachLlmView leaves.
@@ -170,6 +171,10 @@ class CoachingIndex(BaseModel):
         default=None, description="None for artifacts written before versioning."
     )
     analysis_id: str | None = None
+    upstream_evidence_sha256: str | None = Field(
+        default=None,
+        description="Digest of the exact source artifacts used to build CoachInputs.",
+    )
     entries: list[CoachingIndexEntry]
 
     def by_scenario_id(self, scenario_id: str) -> CoachingIndexEntry | None:
@@ -372,12 +377,14 @@ def write_coaching_index(
     entries: list[CoachingIndexEntry],
     *,
     analysis_id: str | None,
+    upstream_evidence_sha256: str | None = None,
 ) -> Path:
     """Write the rank-ordered coach-inputs index (current schema + evidence)."""
     path = inputs_dir / COACHING_INDEX_FILENAME
     index = CoachingIndex(
         evidence_version=COACH_EVIDENCE_VERSION,
         analysis_id=analysis_id,
+        upstream_evidence_sha256=upstream_evidence_sha256,
         entries=entries,
     )
     write_json(path, index.model_dump(mode="json"))
@@ -390,6 +397,9 @@ class StalenessReason(StrEnum):
     EVIDENCE_VERSION_MISSING = "evidence_version_missing"
     EVIDENCE_VERSION_OLD = "evidence_version_old"
     ANALYSIS_ID_MISMATCH = "analysis_id_mismatch"
+    UPSTREAM_EVIDENCE_FINGERPRINT_MISSING = "upstream_evidence_fingerprint_missing"
+    UPSTREAM_EVIDENCE_CHANGED = "upstream_evidence_changed"
+    UPSTREAM_EVIDENCE_UNAVAILABLE = "upstream_evidence_unavailable"
 
 
 class ArtifactStaleness(BaseModel):
@@ -429,7 +439,11 @@ def manifest_analysis_id(manifest: Any) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
-def artifact_staleness(index: CoachingIndex, manifest: Any) -> ArtifactStaleness:
+def artifact_staleness(
+    index: CoachingIndex,
+    manifest: Any,
+    upstream_evidence_sha256: str | None = None,
+) -> ArtifactStaleness:
     """Compare a coaching index to the current evidence version and analysis.
 
     A missing ``evidence_version`` or ``analysis_id`` means stale, never current.
@@ -444,7 +458,37 @@ def artifact_staleness(index: CoachingIndex, manifest: Any) -> ArtifactStaleness
         current_id is not None and index.analysis_id != current_id
     ):
         return _stale(StalenessReason.ANALYSIS_ID_MISMATCH)
+    if upstream_evidence_sha256 is not None:
+        if index.upstream_evidence_sha256 is None:
+            return _stale(StalenessReason.UPSTREAM_EVIDENCE_FINGERPRINT_MISSING)
+        if index.upstream_evidence_sha256 != upstream_evidence_sha256:
+            return _stale(StalenessReason.UPSTREAM_EVIDENCE_CHANGED)
     return ArtifactStaleness(status="current")
+
+
+UPSTREAM_COACH_EVIDENCE_FILES = (
+    VISION_MANIFEST_FILENAME,
+    "scenarios.json",
+    "scenario_contexts.json",
+)
+
+
+def upstream_evidence_fingerprint(analysis_dir: Path) -> str:
+    """Hash the source artifacts loaded to build CoachInputs, including names."""
+    digest = hashlib.sha256()
+    root = analysis_dir.resolve()
+    for name in UPSTREAM_COACH_EVIDENCE_FILES:
+        path = root / name
+        if not path.is_file():
+            raise ArtifactError(
+                f"Cannot verify CoachInput freshness: required source {name} is missing."
+            )
+        payload = path.read_bytes()
+        digest.update(name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(len(payload).to_bytes(8, "big"))
+        digest.update(payload)
+    return digest.hexdigest()
 
 
 def _stale(reason: StalenessReason) -> ArtifactStaleness:
@@ -460,7 +504,13 @@ def coach_inputs_staleness(
         return None
     manifest_path = analysis_dir / VISION_MANIFEST_FILENAME
     manifest = load_json(manifest_path) if manifest_path.is_file() else None
-    return artifact_staleness(index, manifest)
+    try:
+        fingerprint = upstream_evidence_fingerprint(analysis_dir)
+    except ArtifactError:
+        if index.upstream_evidence_sha256 is not None:
+            return _stale(StalenessReason.UPSTREAM_EVIDENCE_UNAVAILABLE)
+        fingerprint = None
+    return artifact_staleness(index, manifest, fingerprint)
 
 
 def read_prototype_index(prototype_dir: Path) -> PrototypeIndex | None:
@@ -533,6 +583,24 @@ def load_llm_view(inputs_dir: Path, entry: CoachingIndexEntry) -> CoachLlmView |
 def load_assessment(path: Path) -> CoachingAssessment:
     """Typed CoachingAssessment from an ``*.output.json`` file."""
     return _validated(CoachingAssessment, path)
+
+
+def load_required_assessment(path: Path) -> CoachingAssessment:
+    """Load an LLM result and reject a structurally valid but empty response."""
+    assessment = load_assessment(path)
+    has_content = any(
+        (
+            assessment.assessment.strip(),
+            assessment.evidence_used,
+            assessment.limitations,
+            assessment.recommendations,
+            assessment.selected_claim_ids,
+            assessment.claims,
+        )
+    )
+    if not has_content:
+        raise ArtifactError(f"LLM assessment is empty: {path.name}")
+    return assessment
 
 
 def validate_unit_relationships(

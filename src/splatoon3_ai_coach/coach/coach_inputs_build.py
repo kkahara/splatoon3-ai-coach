@@ -14,9 +14,11 @@ from pathlib import Path
 
 from splatoon3_ai_coach.coach.artifacts import (
     COACH_INPUTS_META_FILENAME,
+    ArtifactError,
     CoachingIndexEntry,
     safe_filename,
     unit_file_names,
+    upstream_evidence_fingerprint,
     write_coaching_index,
     write_json,
 )
@@ -72,6 +74,7 @@ def write_coach_inputs(
     ``on_unit`` is called per unit in rank order with its active factor IDs,
     for progress output.
     """
+    source_fingerprint = upstream_evidence_fingerprint(analysis_dir)
     bundle = load_coach_analysis_bundle(
         analysis_dir,
         min_usable_confidence=app_config.vision.timer.min_usable_confidence,
@@ -91,7 +94,18 @@ def write_coach_inputs(
         if on_unit is not None:
             on_unit(unit, active)
     eval_lines.extend(_CHECKLIST)
-    index_path = write_coaching_index(out_dir, entries, analysis_id=bundle.analysis_id)
+    current_fingerprint = upstream_evidence_fingerprint(analysis_dir)
+    if current_fingerprint != source_fingerprint:
+        raise ArtifactError(
+            "Upstream evidence changed while CoachInputs were being built; "
+            "rerun `s3-coach coach-inputs`."
+        )
+    index_path = write_coaching_index(
+        out_dir,
+        entries,
+        analysis_id=bundle.analysis_id,
+        upstream_evidence_sha256=source_fingerprint,
+    )
     write_json(
         out_dir / COACH_INPUTS_META_FILENAME, _meta(analysis_dir, scoring, entries)
     )

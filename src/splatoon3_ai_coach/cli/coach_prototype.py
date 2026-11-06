@@ -19,12 +19,15 @@ from splatoon3_ai_coach.coach.artifacts import (
     PrototypeIndex,
     PrototypeIndexEntry,
     PrototypeOutput,
+    StalenessReason,
     artifact_staleness,
     load_json,
+    load_required_assessment,
     load_unit_artifacts,
     output_file_names,
     read_coaching_index,
     unit_file_names,
+    upstream_evidence_fingerprint,
     write_assessment_artifacts,
     write_json,
     write_prototype_index,
@@ -182,8 +185,8 @@ def coach_prototype(
         False,
         "--allow-stale",
         help=(
-            "Proceed even when coach_inputs predate the current evidence "
-            "version or analysis (they are not rebuilt)."
+            "Proceed when coach_inputs predate the current evidence version "
+            "or analysis. LLM calls still require a matching source fingerprint."
         ),
     ),
 ) -> None:
@@ -200,6 +203,34 @@ def coach_prototype(
             provider or settings.llm_provider or app_config.coach.provider
         )
         spend_calls = call_llm and not claims_only
+        inputs_dir = resolve_coach_inputs_dir(analysis_dir, inputs)
+        meta_path = inputs_dir / COACH_INPUTS_META_FILENAME
+        if not (inputs_dir / COACHING_INDEX_FILENAME).is_file():
+            raise FileNotFoundError(
+                f"Missing {COACHING_INDEX_FILENAME} in {inputs_dir}. "
+                f"Run `s3-coach coach-inputs {analysis_dir}` first."
+            )
+        coaching_index = read_coaching_index(inputs_dir)
+        fingerprint = (
+            upstream_evidence_fingerprint(analysis_dir) if spend_calls else None
+        )
+        staleness = artifact_staleness(
+            coaching_index, _manifest_or_none(analysis_dir), fingerprint
+        )
+        evidence_freshness_failure = staleness.reason in {
+            StalenessReason.UPSTREAM_EVIDENCE_FINGERPRINT_MISSING,
+            StalenessReason.UPSTREAM_EVIDENCE_CHANGED,
+        }
+        if spend_calls and evidence_freshness_failure:
+            raise ValueError(staleness.message())
+        if staleness.stale:
+            if not allow_stale:
+                raise ValueError(f"{staleness.message()} (or pass --allow-stale)")
+            console.print(f"[yellow]warning:[/yellow] {staleness.message()}")
+        if not coaching_index.entries:
+            raise ValueError(
+                f"No coaching units in {inputs_dir / COACHING_INDEX_FILENAME}"
+            )
         llm_runs = [] if not spend_calls else build_llm_runs(
             provider_name=provider_name,
             coach_cfg=app_config.coach,
@@ -210,26 +241,6 @@ def coach_prototype(
             baseline_model_override=baseline_model,
             cursor_model_override=cursor_model,
         )
-
-        inputs_dir = resolve_coach_inputs_dir(analysis_dir, inputs)
-        meta_path = inputs_dir / COACH_INPUTS_META_FILENAME
-        if not (inputs_dir / COACHING_INDEX_FILENAME).is_file():
-            raise FileNotFoundError(
-                f"Missing {COACHING_INDEX_FILENAME} in {inputs_dir}. "
-                f"Run `s3-coach coach-inputs {analysis_dir}` first."
-            )
-        coaching_index = read_coaching_index(inputs_dir)
-        staleness = artifact_staleness(
-            coaching_index, _manifest_or_none(analysis_dir)
-        )
-        if staleness.stale:
-            if not allow_stale:
-                raise ValueError(f"{staleness.message()} (or pass --allow-stale)")
-            console.print(f"[yellow]warning:[/yellow] {staleness.message()}")
-        if not coaching_index.entries:
-            raise ValueError(
-                f"No coaching units in {inputs_dir / COACHING_INDEX_FILENAME}"
-            )
         meta = load_json(meta_path) if meta_path.is_file() else {}
         match_duration = meta.get("match_duration_seconds")
 
@@ -275,6 +286,7 @@ def coach_prototype(
         metrics_path = out_dir / "llm_metrics.jsonl"
         metrics_file = metrics_path.open("w", encoding="utf-8")
         result_entries: list[PrototypeIndexEntry] = []
+        required_failures: list[str] = []
 
         try:
             for entry in units:
@@ -408,11 +420,12 @@ def coach_prototype(
                     raw_path = out_dir / run_names.raw
                     started = time.perf_counter()
                     executed_at = utc_timestamp()
+                    raw_response: str | None = None
                     try:
-                        raw = run.provider.complete(system_prompt, user_prompt)
+                        raw_response = run.provider.complete(system_prompt, user_prompt)
                         latency_ms = int((time.perf_counter() - started) * 1000)
-                        raw_path.write_text(raw, encoding="utf-8")
-                        assessment = parse_coaching_assessment(raw)
+                        raw_path.write_text(raw_response, encoding="utf-8")
+                        assessment = parse_coaching_assessment(raw_response)
                         flags = annotate_claim_flags(assessment, llm_view)
                         outputs.append(
                             write_assessment_artifacts(
@@ -420,7 +433,7 @@ def coach_prototype(
                                 safe_id=safe_id,
                                 model_label=run.label,
                                 assessment=assessment,
-                                raw_text=raw,
+                                raw_text=raw_response,
                                 flags=flags,
                                 skipped_llm=False,
                                 provenance=run_provenance(
@@ -450,7 +463,7 @@ def coach_prototype(
                                 "system_tokens_est": system_tokens,
                                 "user_tokens_est": user_tokens,
                                 "input_tokens_est": input_tokens,
-                                "output_tokens_est": approx_token_count(raw),
+                                "output_tokens_est": approx_token_count(raw_response),
                                 "latency_ms": latency_ms,
                                 "success": True,
                                 "error": None,
@@ -467,8 +480,18 @@ def coach_prototype(
                         )
                     except Exception as exc:  # noqa: BLE001 — prototype must continue
                         latency_ms = int((time.perf_counter() - started) * 1000)
-                        if not raw_path.is_file():
-                            raw_path.write_text(f"ERROR: {exc}\n", encoding="utf-8")
+                        failure_text = (
+                            raw_response
+                            if raw_response is not None
+                            else f"ERROR: {exc}\n"
+                        )
+                        raw_path.write_text(
+                            failure_text,
+                            encoding="utf-8",
+                        )
+                        required_failures.append(
+                            f"{scenario_id} / {run.label}: {exc}"
+                        )
                         write_metric(
                             metrics_file,
                             {
@@ -514,6 +537,49 @@ def coach_prototype(
         summary_path.write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
         console.print(f"[bold]Wrote[/bold] {summary_path}")
         console.print(f"[bold]Wrote[/bold] {metrics_path}")
+        if spend_calls:
+            if not llm_runs:
+                required_failures.append("no LLM provider runs were configured")
+            required_failures.extend(
+                _missing_required_outputs(result_entries, llm_runs, force_llm, out_dir)
+            )
+        if required_failures:
+            summary_lines.extend(
+                ["", "## Required output validation failures", ""]
+            )
+            summary_lines.extend(f"- {failure}" for failure in required_failures)
+            summary_path.write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
+            for failure in required_failures:
+                console.print(f"[red]Required output failure:[/red] {failure}")
+            console.print(
+                "[red]Coaching incomplete:[/red] required LLM outputs failed "
+                "or were missing. See summary.md and llm_metrics.jsonl for details."
+            )
+            raise typer.Exit(code=2)
     except (ConfigError, S3CoachError, FileNotFoundError, ValueError, OSError) as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc
+
+
+def _missing_required_outputs(
+    entries: list[PrototypeIndexEntry],
+    runs: list[object],
+    force_llm: bool,
+    out_dir: Path,
+) -> list[str]:
+    """Validate every selected unit/model output required by this run."""
+    missing: list[str] = []
+    for entry in entries:
+        if not entry.selected_for_llm and not force_llm:
+            continue
+        for run in runs:
+            label = str(getattr(run, "label", ""))
+            output = next((item for item in entry.outputs if item.model == label), None)
+            if output is None or output.skipped_llm is not False:
+                missing.append(f"{entry.scenario_id} / {label}: required output missing")
+                continue
+            try:
+                load_required_assessment(out_dir / output.output_json)
+            except Exception as exc:  # noqa: BLE001 — output validation must fail closed
+                missing.append(f"{entry.scenario_id} / {label}: invalid output ({exc})")
+    return missing

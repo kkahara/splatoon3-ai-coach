@@ -21,6 +21,7 @@ from splatoon3_ai_coach.coach.artifacts import (
     PROTOTYPE_INDEX_SCHEMA_VERSION,
     primary_assessment,
     read_prototype_index,
+    upstream_evidence_fingerprint,
     write_json,
 )
 from splatoon3_ai_coach.coach.llm_client import LLMProvider, sha256_text
@@ -263,12 +264,15 @@ def test_call_llm_invokes_selected_units_only(tmp_path: Path, monkeypatch) -> No
     assert provenance.executed_at
 
 
-def _current_index(entries: list[dict]) -> dict:
+def _current_index(
+    entries: list[dict], upstream_evidence_sha256: str | None = None
+) -> dict:
     """Coaching index as coach-inputs writes it today (versioned, analysis-bound)."""
     return {
         "schema_version": COACHING_INDEX_SCHEMA_VERSION,
         "evidence_version": COACH_EVIDENCE_VERSION,
         "analysis_id": "test-analysis",
+        "upstream_evidence_sha256": upstream_evidence_sha256,
         "entries": entries,
     }
 
@@ -299,6 +303,12 @@ def _two_unit_inputs(tmp_path: Path) -> tuple[Path, Path, str, str]:
     """Write one selected unit and one unselected unit under coach_inputs/."""
     analysis = tmp_path / "analysis"
     analysis.mkdir()
+    for name, content in (
+        ("vision_manifest.json", '{"analysis":{"analysis_id":"test-analysis"}}'),
+        ("scenarios.json", "[]"),
+        ("scenario_contexts.json", "[]"),
+    ):
+        (analysis / name).write_text(content, encoding="utf-8")
     inputs = default_coach_inputs_dir(analysis)
     inputs.mkdir(parents=True)
     selected = _write_saved_unit(inputs, "death_episode:10.000", rank=1, selected=True)
@@ -306,7 +316,8 @@ def _two_unit_inputs(tmp_path: Path) -> tuple[Path, Path, str, str]:
     write_json(
         inputs / COACHING_INDEX_FILENAME,
         _current_index(
-            [_index_entry(selected, 1, True), _index_entry(unselected, 4, False)]
+            [_index_entry(selected, 1, True), _index_entry(unselected, 4, False)],
+            upstream_evidence_fingerprint(analysis),
         ),
     )
     write_json(
@@ -314,6 +325,113 @@ def _two_unit_inputs(tmp_path: Path) -> tuple[Path, Path, str, str]:
         {"analysis_dir": str(analysis), "match_duration_seconds": 300, "unit_count": 2},
     )
     return analysis, inputs, selected[0], unselected[0]
+
+
+def test_call_llm_refuses_changed_upstream_evidence_before_provider_call(
+    tmp_path: Path, monkeypatch
+) -> None:
+    provider = _RecordingProvider()
+    monkeypatch.setattr(
+        "splatoon3_ai_coach.cli.coach_prototype.build_llm_runs",
+        lambda **_kwargs: [provider],
+    )
+    analysis, inputs, _selected, _unselected = _two_unit_inputs(tmp_path)
+    (analysis / "scenario_contexts.json").write_text('[{"changed":true}]')
+    result = runner.invoke(
+        app,
+        [
+            "coach-prototype",
+            str(analysis),
+            "--inputs",
+            str(inputs),
+            "--call-llm",
+            "--allow-stale",
+        ],
+    )
+    assert result.exit_code == 1
+    assert "upstream_evidence_changed" in result.stdout
+    assert provider.calls == []
+
+
+class _FailingProvider(_RecordingProvider):
+    """Provider stand-in that fails on completion."""
+
+    def complete(self, system_prompt: str, user_prompt: str) -> str:
+        self.calls.append((system_prompt, user_prompt))
+        raise RuntimeError("provider unavailable")
+
+
+def test_call_llm_failure_exits_nonzero_and_retains_diagnostics(
+    tmp_path: Path, monkeypatch
+) -> None:
+    provider = _FailingProvider()
+    monkeypatch.setattr(
+        "splatoon3_ai_coach.cli.coach_prototype.build_llm_runs",
+        lambda **_kwargs: [provider],
+    )
+    analysis, inputs, selected, _unselected = _two_unit_inputs(tmp_path)
+    out = tmp_path / "failed-prototype"
+    result = runner.invoke(
+        app,
+        [
+            "coach-prototype",
+            str(analysis),
+            "--inputs",
+            str(inputs),
+            "--out",
+            str(out),
+            "--call-llm",
+        ],
+    )
+    assert result.exit_code == 2
+    assert "Coaching incomplete" in result.stdout
+    assert "provider unavailable" in (out / "summary.md").read_text()
+    metrics = (out / "llm_metrics.jsonl").read_text()
+    assert '"success": false' in metrics
+    assert (out / f"{selected}.fake-model.raw.txt").read_text().startswith("ERROR:")
+
+
+def test_call_llm_partial_model_completion_is_failure(
+    tmp_path: Path, monkeypatch
+) -> None:
+    successful = _RecordingProvider()
+    failed = _FailingProvider()
+    failed.label = "baseline-model"
+    monkeypatch.setattr(
+        "splatoon3_ai_coach.cli.coach_prototype.build_llm_runs",
+        lambda **_kwargs: [successful, failed],
+    )
+    analysis, inputs, _selected, _unselected = _two_unit_inputs(tmp_path)
+    result = runner.invoke(
+        app,
+        [
+            "coach-prototype", str(analysis), "--inputs", str(inputs),
+            "--call-llm", "--also-baseline",
+        ],
+    )
+    assert result.exit_code == 2
+    assert "Coaching incomplete" in result.stdout
+    assert "baseline-model" in (analysis / "coach_prototype" / "summary.md").read_text()
+
+
+def test_call_llm_rejects_empty_structured_assessment(
+    tmp_path: Path, monkeypatch
+) -> None:
+    provider = _RecordingProvider()
+    provider.complete = lambda _system, _user: "{}"  # type: ignore[method-assign]
+    monkeypatch.setattr(
+        "splatoon3_ai_coach.cli.coach_prototype.build_llm_runs",
+        lambda **_kwargs: [provider],
+    )
+    analysis, inputs, _selected, _unselected = _two_unit_inputs(tmp_path)
+    result = runner.invoke(
+        app,
+        ["coach-prototype", str(analysis), "--inputs", str(inputs), "--call-llm"],
+    )
+    assert result.exit_code == 2
+    assert "LLM assessment is empty" in (
+        analysis / "coach_prototype" / "summary.md"
+    ).read_text()
 
 
 def _write_saved_unit(

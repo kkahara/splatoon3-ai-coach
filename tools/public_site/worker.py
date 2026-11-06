@@ -39,7 +39,14 @@ from public_site.telemetry import (
 )
 from splatoon3_ai_coach.cli.analyze import GAME_LANGUAGE_UNDETERMINED_EXIT_CODE
 from splatoon3_ai_coach.cli.coach_inputs import NO_COACHING_UNITS_EXIT_CODE
-from splatoon3_ai_coach.coach.artifacts import coaching_index_path
+from splatoon3_ai_coach.coach.artifacts import (
+    ArtifactError,
+    coach_prototype_dir,
+    coaching_index_path,
+    load_required_assessment,
+    read_coaching_index,
+    read_prototype_index,
+)
 from splatoon3_ai_coach.media.vision_manifest import VISION_MANIFEST_FILENAME
 
 Command = Callable[[list[str]], int]
@@ -341,18 +348,29 @@ class PublicWorker:
             prototype_extra(self.settings),
         )
         index = coaching_index_path(analysis)
-        if (
-            self._stage(submission, Stage.COACH_PROTOTYPE, prototype)
-            and not index.is_file()
-        ):
+        prototype_code = self._stage(submission, Stage.COACH_PROTOTYPE, prototype)
+        if prototype_code:
             self._fail(submission, COACHING_FAILED, stage=Stage.COACH_PROTOTYPE)
             return
         if not index.is_file():
+            self._fail(submission, COACHING_FAILED, stage=Stage.COACH_PROTOTYPE)
+            return
+        valid_outputs, output_problem = _required_coaching_outputs_valid(analysis)
+        if not valid_outputs:
+            logger.error(
+                "submission {} coach-prototype output validation failed: {}",
+                submission.id,
+                output_problem,
+            )
             self._fail(
                 submission,
                 COACHING_FAILED,
                 stage=Stage.COACH_PROTOTYPE,
-                diagnostic=Diagnostic.MISSING_ARTIFACT,
+                diagnostic=(
+                    Diagnostic.MISSING_ARTIFACT
+                    if output_problem and "missing" in output_problem.lower()
+                    else Diagnostic.UNKNOWN
+                ),
             )
             return
         self._capture_trace(submission, analysis)
@@ -386,6 +404,7 @@ class PublicWorker:
         self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
         self._stage_seconds.pop(submission.id, None)
+
 
     def _frames(self, submission: Submission, analysis: Path, video: Path) -> None:
         """Create presentation media before source cleanup. Failure stays non-fatal."""
@@ -527,3 +546,30 @@ class PublicWorker:
             if not worked:
                 self._wake.wait(0.5)
                 self._wake.clear()
+
+
+def _required_coaching_outputs_valid(analysis: Path) -> tuple[bool, str | None]:
+    """Require a valid, non-skipped LLM assessment for every selected unit."""
+    try:
+        input_index = read_coaching_index(analysis / "coach_inputs")
+        required = [entry for entry in input_index.entries if entry.selected_for_llm]
+        if not required:
+            return False, "missing selected CoachInput units"
+        prototype = read_prototype_index(coach_prototype_dir(analysis))
+        if prototype is None:
+            return False, "missing coach-prototype coaching index"
+        for input_entry in required:
+            output_entry = prototype.by_safe_id(input_entry.safe_id)
+            if output_entry is None:
+                return False, f"missing prototype entry for {input_entry.scenario_id}"
+            if not output_entry.selected_for_llm:
+                return False, f"missing selected status for {input_entry.scenario_id}"
+            output = output_entry.primary_output()
+            if output is None or output.skipped_llm is not False:
+                return False, f"missing required LLM output for {input_entry.scenario_id}"
+            load_required_assessment(
+                coach_prototype_dir(analysis) / output.output_json
+            )
+        return True, None
+    except (ArtifactError, FileNotFoundError, OSError, ValueError) as exc:
+        return False, f"invalid coaching artifacts: {exc}"
