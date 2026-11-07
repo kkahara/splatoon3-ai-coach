@@ -11,7 +11,9 @@ from test_public_site import _finish_video, _moment_entry, _sample_video, _write
 
 def test_clip_window_and_unsafe_id(tmp_path: Path) -> None:
     """Beginning clips shorten rather than extending beyond anchor plus three."""
-    for anchor, start, duration in [(20, '15.000', '8.000'), (2, '0.000', '5.000')]:
+    for anchor, start, duration in [
+        (20, '5.000', '18.000'), (10, '0.000', '13.000'), (2, '0.000', '5.000'),
+    ]:
         argv = clip_argv(tmp_path / 'in.mp4', tmp_path / 'out.mp4', anchor)
         assert argv[argv.index('-ss') + 1] == start
         assert argv[argv.index('-t') + 1] == duration
@@ -41,7 +43,7 @@ def test_failed_clip_is_retryable(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("fps", "anchor", "duration"), [(60, 6, 8), (30, 2, 5), (60, 9, 6)],
+    ("fps", "anchor", "duration"), [(60, 6, 9), (30, 2, 5), (60, 9, 10), (30, 18, 18)],
 )
 def test_real_clip_preserves_720p60_and_window(
     tmp_path: Path, fps: int, anchor: int, duration: int,
@@ -50,7 +52,8 @@ def test_real_clip_preserves_720p60_and_window(
     source = tmp_path / 'source.mp4'
     subprocess.run([
         'ffmpeg', '-v', 'error', '-f', 'lavfi', '-i',
-        f'color=c=blue:s=1920x1080:r={fps}:d=10', '-c:v', 'libx264',
+        f'color=c=blue:s=1920x1080:r={fps}:d={10 if anchor < 15 else anchor + 3}',
+        '-c:v', 'libx264',
         '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', str(source),
     ], check=True, capture_output=True)
     _write_index(tmp_path, [_moment_entry('death_6', anchor, 1)])

@@ -5,7 +5,7 @@ using the existing still as its poster and fallback. No autoplay or upfront vide
 download is requested. Social sharing continues to use JPEG previews.
 
 After `coaching_index.json` is available, the worker extracts from the original
-source recording, not the analysis cadence frames. Each clip spans five recording
+source recording, not the analysis cadence frames. Each clip spans fifteen recording
 seconds before the moment anchor and three after. Death-episode anchors are death
 video times. At file boundaries the clip is shorter; no padding or invented
 frames are added. This is presentation media, not new analysis or LLM evidence.

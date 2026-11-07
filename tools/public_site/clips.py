@@ -32,12 +32,12 @@ def missing_clips(analysis: Path) -> bool:
 
 
 def clip_argv(video: Path, dest: Path, anchor: float) -> list[str]:
-    """Encode five seconds before and three after the anchor, bounded by EOF.
+    """Encode fifteen seconds before and three after the anchor, bounded by EOF.
 
     Near the beginning, shorten the lead rather than shifting the end.
     Preserve source audio when present using browser-compatible AAC.
     """
-    start = max(0.0, anchor - 5.0)
+    start = max(0.0, anchor - 15.0)
     duration = anchor + 3.0 - start
     return [
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
