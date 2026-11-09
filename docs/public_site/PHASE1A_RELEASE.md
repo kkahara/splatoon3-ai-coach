@@ -90,34 +90,38 @@ Preparation (no production contact):
       an operator-controlled mailbox with production SMTP settings.
 - [ ] Operator has an admin account and has read the admin recordings UI flow.
 
-Production, phase 1 (code only, flag off):
+Production, phase 1 (code only, flag off). This follows the procedure recorded
+in `/srv/www/s3-coaching/DEPLOYED_SHA`: compose project `s3-coaching`, service
+`app` runs `s3-coaching-app:latest`, images are tagged
+`candidate-<sha12>` / `rollback-<sha8>`, and activation never builds. The
+compose build context `/srv/www/s3-coaching` holds an older tree; never run
+`docker compose ... --build` there.
 
-- [ ] Backup: `pg_dump -Fc` of the production database stored off-host;
-      snapshot or copy of the `coaching-data` volume (`/data/public`).
-- [ ] `pg_dump --schema-only` from production compared with the rehearsal's
-      pre-migration schema; any difference reviewed before continuing.
-- [ ] Current image preserved and its ID recorded:
-      `docker image tag s3-coaching-app:candidate-d0bea4230a54
-      s3-coaching-app:prod-d0bea42` (image
-      `sha256:5114061227fc4a942ce03f8069e0242d9c12b416cf38b198b1612a34ff979277`
-      at inspection; re-check before tagging).
-- [ ] Image naming confirmed: the repository compose file builds `app`
-      without an `image:` name, while production runs
-      `s3-coaching-app:candidate-d0bea4230a54`. Use the same mechanism that
-      produced that tag, so the new image is `s3-coaching-app:candidate-<sha12>`
-      and the preserved image is not overwritten.
-- [ ] `PUBLIC_REVIEW_CODES_ENABLED` absent (not merely `0`) from
-      `/srv/www/s3-coaching/.env` and from the compose environment:
-      `docker compose config | grep -c PUBLIC_REVIEW_CODES_ENABLED` prints `0`.
-- [ ] Sync from the release-commit tree only (never the development checkout):
-      `src/ tools/ configs/ calibration/templates/ web/public/dist/
-      pyproject.toml README.md Dockerfile docker-compose.yml .dockerignore`;
-      `web/public/dist` built from the release commit.
-- [ ] `docker compose up -d --build app` with `GIT_SHA=<release commit>`.
-- [ ] Verify: image revision label equals the release commit and the image ID
-      is recorded; `/api/config` has `review_codes_enabled: false`;
-      `POST /api/review-code-submissions` is 404; schema unchanged
-      (`\d submission_gates` has no `source`; no `review_code_*` tables).
+- [ ] Backup into `/root/s3-coach-backups/deploy-<sha8>/`:
+      `docker exec s3-coaching-db pg_dump -Fc -U coach coach > predeploy.dump`,
+      checked with `pg_restore --list`; `pg_dump --schema-only` saved as
+      `schema-before.sql`; archive of the `s3-coaching_coaching-data` volume.
+      Copy both off the host before continuing.
+- [ ] Current image preserved: `docker image tag s3-coaching-app:latest
+      s3-coaching-app:rollback-d0bea423`; its ID must be
+      `sha256:5114061227fc4a942ce03f8069e0242d9c12b416cf38b198b1612a34ff979277`.
+- [ ] `PUBLIC_REVIEW_CODES_ENABLED` absent (not merely `0`): `grep -c` on
+      `/srv/www/s3-coaching/.env` and on `docker compose config` both `0`.
+- [ ] Release image present as `s3-coaching-app:candidate-<sha12>`, either
+      loaded from the verified release tarball (`docker load`; the image ID
+      equals the recorded release ID) or built on the host from a clean
+      snapshot in `/srv/www/s3-coaching-staging/<sha12>` with
+      `GIT_SHA=<release commit>`. Python dependencies are unpinned, so a host
+      build resolves them again and gets a different image ID; record it.
+- [ ] Activate: `docker image tag s3-coaching-app:candidate-<sha12>
+      s3-coaching-app:latest`, then from `/srv/www/s3-coaching`:
+      `docker compose up -d --no-build --no-deps app`. Append the deploy to
+      `DEPLOYED_SHA`.
+- [ ] Verify: container image ID equals the release ID and the revision label
+      equals the release commit; `/` and `/api/config` return 200;
+      `/api/config` has `review_codes_enabled: false`;
+      `POST /api/review-code-submissions` is 404; `pg_dump --schema-only`
+      identical to `schema-before.sql`.
 - [ ] Video smoke test: create, upload, pay (or voucher), queue, complete.
 - [ ] Observe at least one maintenance/worker cycle with no new errors.
 
@@ -125,7 +129,8 @@ Production, phase 2 (enable): P1-B release only, not part of P1-A. Kept here
 because the migration and rollback facts below were rehearsed against it.
 
 - [ ] Fresh `pg_dump -Fc` backup.
-- [ ] Set `PUBLIC_REVIEW_CODES_ENABLED=1`; `docker compose up -d app`.
+- [ ] Set `PUBLIC_REVIEW_CODES_ENABLED=1`;
+      `docker compose up -d --no-build --no-deps app`.
 - [ ] Verify schema: `submission_gates.source` exists, every pre-existing row
       is `upload`; both new tables and the `review_code_acquisition_paid_once`
       index exist.
@@ -150,9 +155,11 @@ image swap alone:
    no projection with `"input_type": "review_code"` under
    `/data/public/submissions`. If either exists, the flag was enabled at some
    point; use Level 2 instead.
-2. Point the compose `app` service back at `s3-coaching-app:prod-d0bea42`;
-   `docker compose up -d app`.
-3. Verify the image revision label is `d0bea42…` and run the video smoke test.
+2. `docker image tag s3-coaching-app:rollback-d0bea423 s3-coaching-app:latest`;
+   from `/srv/www/s3-coaching`: `docker compose up -d --no-build --no-deps app`.
+3. Verify the container image ID is `sha256:5114061227fc…`, the revision label
+   is `d0bea42…`, and run the video smoke test. Append the rollback to
+   `DEPLOYED_SHA`.
 
 Levels 1 to 3 apply once the flag has been enabled (P1-B).
 
@@ -189,10 +196,9 @@ run `d0bea42` with review-code projections in the data root.
    EOF
    ```
 
-4. Restore the preserved image
-   (`docker image tag s3-coaching-app:prod-d0bea42 <compose app image>`) or
-   re-sync the `d0bea42` tree and rebuild with `GIT_SHA=d0bea42…`;
-   `docker compose up -d app`.
+4. Restore the preserved image:
+   `docker image tag s3-coaching-app:rollback-d0bea423 s3-coaching-app:latest`;
+   `docker compose up -d --no-build --no-deps app`.
 5. Verify the video smoke test. Review-code status pages return 404 during the
    rollback; their payments and acquisition rows are preserved in PostgreSQL.
 
