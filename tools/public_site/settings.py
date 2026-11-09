@@ -76,6 +76,7 @@ class PublicSettings:
     max_concurrent_jobs: int = 1
     # Configuration identity a capacity is stored under. Not a process id; see worker_id.
     worker_key: str = "default"
+    review_codes_enabled: bool = False
     retention_days: int = 30
     account_retention_days: int = 365
     database_url: str = ""
@@ -154,6 +155,7 @@ class PublicSettings:
             max_queued=int(os.environ.get("PUBLIC_MAX_QUEUED", "20")),
             max_concurrent_jobs=_worker_capacity(),
             worker_key=os.environ.get("PUBLIC_WORKER_KEY", "").strip() or "default",
+            review_codes_enabled=_flag("PUBLIC_REVIEW_CODES_ENABLED"),
             retention_days=int(os.environ.get("PUBLIC_RETENTION_DAYS", "30")),
             account_retention_days=int(os.environ.get("PUBLIC_ACCOUNT_RETENTION_DAYS", "365")),
             database_url=os.environ.get("PUBLIC_DATABASE_URL", "").strip(),

@@ -157,7 +157,8 @@ class PublicStore:
 
     def unfinished_count(self) -> int:
         """Submissions that still occupy a queue slot."""
-        return sum(1 for item in self.list_submissions() if item.status in UNFINISHED)
+        return sum(1 for item in self.list_submissions()
+                   if item.status in UNFINISHED and item.input_type == "video")
 
     def count_status(self, status: str) -> int:
         """How many submissions currently have ``status``."""
@@ -197,7 +198,7 @@ class PublicStore:
         return claimed if won else None
 
     def _queued_oldest_first(self) -> list[Submission]:
-        queued = [item for item in self.list_submissions() if item.status == "queued"]
+        queued = [item for item in self.list_submissions() if item.status == "queued" and item.input_type == "video"]
         return sorted(queued, key=lambda item: item.created_at)
 
     @contextmanager

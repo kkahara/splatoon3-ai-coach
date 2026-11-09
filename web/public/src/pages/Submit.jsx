@@ -11,6 +11,7 @@ import {
   uploadVideo,
   validateVoucher,
 } from "../api.js";
+import { ReviewCodeForm } from "./ReviewCodeForm.jsx";
 import heroBannerEn from "../assets/splatoon3-ai-coach-banner-en.jpg";
 import heroBannerJa from "../assets/splatoon3-ai-coach-banner-ja.jpg";
 import { useLocale, useT } from "../i18n/LocaleContext.jsx";
@@ -151,6 +152,7 @@ export function SubmitPage() {
   const t = useT();
   const [config, setConfig] = useState(null);
   const [file, setFile] = useState(null);
+  const [method, setMethod] = useState("video");
   const fileInput = useRef(null);
   const [account, setAccount] = useState(null);
   const [notify, setNotify] = useState(false);
@@ -309,7 +311,15 @@ export function SubmitPage() {
         </div>
       </div>
       <SampleReview />
-      <section className="upload-card" aria-labelledby="upload-heading">
+      {config?.review_codes_enabled && config?.turnstile_site_key ? <div id="turnstile-slot" /> : null}
+      {config?.review_codes_enabled ? <>
+        <div role="group" aria-label={t("review_code.method")}>
+          <button type="button" aria-pressed={method === "video"} onClick={() => setMethod("video")}>{t("review_code.upload_method")}</button>
+          <button type="button" aria-pressed={method === "review_code"} onClick={() => setMethod("review_code")}>{t("review_code.code_method")}</button>
+        </div>
+        {method === "review_code" ? <ReviewCodeForm account={account} config={config} turnstileToken={turnstileToken} /> : null}
+      </> : null}
+      <section hidden={method !== "video"} className="upload-card" aria-labelledby="upload-heading">
         <h2 id="upload-heading">{t("submit.upload_heading")}</h2>
         <UploadFlow />
         <form onSubmit={onSubmit}>
@@ -340,7 +350,7 @@ export function SubmitPage() {
               />
             </label>
           ) : null}
-          {config?.turnstile_site_key ? <div id="turnstile-slot" /> : null}
+          {!config?.review_codes_enabled && config?.turnstile_site_key ? <div id="turnstile-slot" /> : null}
           {error ? <p className="error">{error}</p> : null}
           {config?.payment_required && config.price_cents > 0 ? (
             <>

@@ -8,7 +8,7 @@ from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 from loguru import logger
 
@@ -51,6 +51,7 @@ from public_site.models import (
 )
 from public_site.notices import NoticeSender
 from public_site.payments import FailureCategory, PaymentStore, PriceQuote, SubmissionGate
+from public_site.recording_models import ReviewCodeCreated
 from public_site.results import load_result
 from public_site.settings import PublicSettings
 from public_site.storage import LocalStorage, R2Storage
@@ -68,6 +69,9 @@ from public_site.vouchers import (
     VoucherPreview,
     VoucherStore,
 )
+
+if TYPE_CHECKING:
+    from public_site.recording_service import RecordingService
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _CLAIM_STALE = timedelta(minutes=2)
@@ -109,6 +113,7 @@ class SubmissionService:
         self.telemetry = telemetry
         self.payments = payments
         self.checkout = checkout
+        self.recordings: RecordingService | None = None
         self.vouchers = vouchers
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
@@ -217,13 +222,17 @@ class SubmissionService:
     def confirm(self, token: str) -> PublicSubmissionResponse:
         """Record the upload, then queue when payment is already satisfied."""
         submission = self._require(token)
+        if submission.input_type == "review_code":
+            raise RequestRejected(409, "Operator recording verification is required.")
         if submission.status != "received":
             return self.project(submission)
         if self.payments is not None:
             return self._confirm_gated(submission, token)
         return self._confirm_free(submission, token)
 
-    def _confirm_free(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+    def _confirm_free(
+        self, submission: Submission, token: str
+    ) -> PublicSubmissionResponse:
         """Probe and queue immediately when this site is not charging."""
         if self.telemetry is not None:
             best_effort(
@@ -254,11 +263,20 @@ class SubmissionService:
         if submission.status == "complete" and coached and submission.analysis_dir:
             self._fill_frames(submission)
             analysis = Path(submission.analysis_dir)
-            result = localize_result(load_result(analysis), locale, analysis, self.translator)
+            result = localize_result(
+                load_result(analysis), locale, analysis, self.translator
+            )
         error = submission.error if submission.status in {"failed", "expired"} else None
-        error_key = "game_language_undetermined" if error == GAME_LANGUAGE_UNDETERMINED else None
+        error_key = (
+            "game_language_undetermined" if error == GAME_LANGUAGE_UNDETERMINED else None
+        )
         gate = None if self.payments is None else self.payments.get(submission.id)
         return PublicSubmissionResponse(
+            acquisition=(
+                self.recordings.view(submission.id)
+                if self.recordings is not None and submission.input_type == "review_code"
+                else None
+            ),
             status=submission.status,
             step=submission.step,
             created_at=submission.created_at,
@@ -306,8 +324,14 @@ class SubmissionService:
 
     def maintain(self, now: datetime) -> None:
         """Release abandoned uploads and expire old submissions."""
+        if self.recordings is not None:
+            self.recordings.reconcile()
         self._abandon(now)
         self._release_unpaid(now)
+        if self.recordings is not None:
+            self.recordings.database.reconcile()
+            self.recordings.database.purge_expired_unpaid(now)
+            self.recordings.reconcile()
         self._recover_ready()
         self._expire(now)
         self.retry_notices(now)
@@ -379,7 +403,11 @@ class SubmissionService:
                 self.telemetry.validation_started,
                 submission.id,
             )
-        dest = self.settings.root / "probe" / f"{submission.id}{Path(video.object_key).suffix}"
+        dest = (
+            self.settings.root
+            / "probe"
+            / f"{submission.id}{Path(video.object_key).suffix}"
+        )
         path, temporary = self.storage.local_file(video.object_key, dest)
         try:
             facts = self.probe(path)
@@ -470,11 +498,13 @@ class SubmissionService:
 
     def _save_lifecycle(self, submission: Submission) -> None:
         """Save status fields without overwriting notice fields written elsewhere."""
-        self.store.update(submission.id, lambda current: copy_lifecycle(submission, current))
+        self.store.update(
+            submission.id, lambda current: copy_lifecycle(submission, current)
+        )
 
     def arrange_guest_notice(
         self,
-        created: CreateSubmissionResponse,
+        created: CreateSubmissionResponse | ReviewCodeCreated,
         email: str,
         browser_cookie: str,
         now: datetime | None = None,
@@ -489,10 +519,14 @@ class SubmissionService:
         self.notices.seal(submission.id, created.token)
         browser_id, fresh = self.guest.open_browser(browser_cookie or None, moment)
         if self.guest.is_verified(browser_id, email):
-            self._enable_notice(submission, email)
+            if not self._enable_notice(submission, email):
+                return True, fresh
             self.guest.remember_verified(browser_id, email, moment)
             return False, fresh
-        self.guest.add_request(browser_id, submission.id, email, moment)
+        browser_id, replacement_cookie = self.guest.add_request(
+            browser_id, submission.id, email, moment
+        )
+        fresh = replacement_cookie or fresh
         self._maybe_confirm(browser_id, email, submission.id, moment)
         return True, fresh
 
@@ -501,14 +535,41 @@ class SubmissionService:
         if self.guest is None:
             return False
         moment = now or datetime.now(UTC)
-        found = self.guest.consume(token, moment)
+        found = self.guest.consume(token, moment, self._guest_request_exists)
         if found is None:
             return False
-        browser_id, email = found
+        browser_id, email, challenge_submission_id = found
         since = moment - _BURST_WINDOW
-        for submission_id in self.guest.pending_ids(browser_id, email, since):
-            self._confirm_request(submission_id, email, moment)
-        return True
+        submission_ids = dict.fromkeys(
+            [
+                *self.guest.pending_ids(browser_id, email, since),
+                challenge_submission_id,
+            ]
+        )
+        target_verified = False
+        for submission_id in submission_ids:
+            verified = self._confirm_request(submission_id, email, moment)
+            if submission_id == challenge_submission_id:
+                target_verified = verified
+        return target_verified
+
+    def _guest_request_exists(self, submission_id: str, email: str) -> bool:
+        """Check the challenge's exact server-side submission/address binding."""
+        submission = self.store.get(submission_id)
+        if submission is None and self.recordings is not None:
+            acquisition = self.recordings.database.get(submission_id)
+            if acquisition is not None:
+                if acquisition["requested_email"] != email:
+                    return False
+                submission = self.recordings.publish(acquisition)
+        if submission is None:
+            return False
+        if submission.input_type != "review_code":
+            return submission.email in {None, email} and not submission.notify
+        if self.recordings is None:
+            return False
+        acquisition = self.recordings.database.get(submission_id)
+        return bool(acquisition is not None and acquisition["requested_email"] == email)
 
     def deliver_notice(self, submission: Submission, kind: str) -> None:
         """Move one notice unsent → claimed → sent. A stale claim can be retried."""
@@ -543,7 +604,9 @@ class SubmissionService:
                     continue
                 self.deliver_notice(submission, kind)
 
-    def _maybe_confirm(self, browser_id: str, email: str, submission_id: str, now: datetime) -> None:
+    def _maybe_confirm(
+        self, browser_id: str, email: str, submission_id: str, now: datetime
+    ) -> None:
         if self.guest is None:
             return
         started = self.guest.begin_challenge(browser_id, email, submission_id, now)
@@ -561,17 +624,35 @@ class SubmissionService:
                 type(exc).__name__,
             )
 
-    def _confirm_request(self, submission_id: str, email: str, now: datetime) -> None:
+    def _confirm_request(self, submission_id: str, email: str, now: datetime) -> bool:
         if self.guest is None:
-            return
+            return False
         submission = self.store.get(submission_id)
-        if submission is None or submission.email is not None or submission.notify:
-            return
-        self._enable_notice(submission, email)
+        if submission is None:
+            return False
+        if submission.input_type == "review_code":
+            if self.recordings is None:
+                return False
+            acquisition = self.recordings.database.get(submission_id)
+            if acquisition is None or acquisition["requested_email"] != email:
+                return False
+            if acquisition["contact_verified_at"] is not None:
+                self.guest.mark_confirmed(submission_id, now)
+                return True
+        elif submission.email is not None or submission.notify:
+            return submission.email == email and submission.notify
+        if not self._enable_notice(submission, email):
+            return False
         self.guest.mark_confirmed(submission_id, now)
         self._release_due_notices(submission)
+        return True
 
-    def _enable_notice(self, submission: Submission, email: str) -> None:
+    def _enable_notice(self, submission: Submission, email: str) -> bool:
+        if submission.input_type == "review_code":
+            if self.recordings is None or not self.recordings.database.verify_contact(
+                submission.id, email
+            ):
+                return False
         submission.email = email
         submission.notify = True
         submission.updated_at = utc_now()
@@ -582,6 +663,7 @@ class SubmissionService:
             current.updated_at = submission.updated_at
 
         self.store.update(submission.id, enable)
+        return True
 
     def _release_due_notices(self, submission: Submission) -> None:
         if submission.status == "complete":
@@ -699,7 +781,9 @@ class SubmissionService:
         try:
             path, temporary = self.storage.local_file(video.object_key, dest)
         except (FileNotFoundError, OSError):
-            logger.warning("moment frame source unavailable for submission {}", submission.id)
+            logger.warning(
+                "moment frame source unavailable for submission {}", submission.id
+            )
             return
         try:
             extract_clips(analysis, path, submission_id=submission.id)
@@ -711,6 +795,10 @@ class SubmissionService:
 
     def _require(self, token: str) -> Submission:
         found = self.store.get_by_hash(hash_token(token))
+        if found is None and self.recordings is not None:
+            found = self.recordings.publish(
+                self.recordings.database.by_token(hash_token(token))
+            )
         if found is None:
             raise RequestRejected(404, "not found")
         return found
@@ -718,7 +806,32 @@ class SubmissionService:
     def _abandon(self, now: datetime) -> None:
         cutoff = now - timedelta(seconds=self.settings.upload_url_seconds)
         for submission in self.store.list_submissions():
-            if submission.status != "received" or parse_utc(submission.created_at) > cutoff:
+            if submission.input_type == "review_code":
+                if submission.status == "expired" and not submission.analysis_dir:
+                    continue
+                if self.recordings is not None:
+                    acquisition = self.recordings.database.get(submission.id)
+                    if (
+                        acquisition is not None
+                        and acquisition["recording_handoff_at"] is not None
+                        and submission.status != "processing"
+                    ):
+                        if acquisition["report_expired_at"] is not None:
+                            if submission.status != "expired" or submission.analysis_dir:
+                                self._expire_one(submission)
+                        elif (
+                            submission.status != "expired"
+                            and parse_utc(submission.expires_at) <= now
+                            and self.recordings.database.mark_report_expired(
+                                submission.id, now
+                            )
+                        ):
+                            self._expire_one(submission)
+                continue
+            if (
+                submission.status != "received"
+                or parse_utc(submission.created_at) > cutoff
+            ):
                 continue
             self._abandon_one(submission)
 
@@ -758,7 +871,11 @@ class SubmissionService:
 
     def _expire(self, now: datetime) -> None:
         for submission in self.store.list_submissions():
-            if submission.status in {"expired", "processing"}:
+            if submission.input_type == "review_code":
+                continue
+            if submission.status == "processing":
+                continue
+            if submission.status == "expired" and not submission.analysis_dir:
                 continue
             if parse_utc(submission.expires_at) > now:
                 continue
@@ -771,9 +888,23 @@ class SubmissionService:
             video.object_key = ""
             video.upload_state = "rejected"
             self.store.save_video(video)
+        if submission.status != "expired":
+            submission.status = "expired"
+            submission.error = EXPIRED
+            submission.updated_at = utc_now()
+            self.store.save_submission(submission)
         if submission.analysis_dir:
-            _remove_tree(Path(submission.analysis_dir))
-            submission.analysis_dir = None
+            try:
+                _remove_tree(Path(submission.analysis_dir))
+                submission.analysis_dir = None
+            except OSError as exc:
+                # analysis_dir stays set so the next sweep retries; identity is
+                # still cleared below.
+                logger.warning(
+                    "analysis cleanup failed for submission {} ({})",
+                    submission.id,
+                    type(exc).__name__,
+                )
         self.notices.clear_sealed(submission.id)
         if self.accounts is not None:
             self.accounts.drop_history(submission.id)
@@ -822,18 +953,32 @@ class SubmissionService:
             }
         )
 
-    def _confirm_gated(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+    def _confirm_gated(
+        self, submission: Submission, token: str
+    ) -> PublicSubmissionResponse:
         """Mark the upload, then queue only when this submission is already paid."""
         self._owned_video(submission)
         if self.payments is not None and self.payments.mark_uploaded(submission.id):
             self._price_event(submission.id, "upload_completed")
         if self.telemetry is not None:
-            best_effort("upload_confirmed", self.telemetry.upload_confirmed, submission.id)
+            best_effort(
+                "upload_confirmed", self.telemetry.upload_confirmed, submission.id
+            )
         return self.attempt_queue(submission, token)
 
-    def attempt_queue(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+    def attempt_queue(
+        self, submission: Submission, token: str
+    ) -> PublicSubmissionResponse:
         """Probe and queue when upload and payment are both already true."""
         current = self.store.get(submission.id) or submission
+        if current.input_type == "review_code":
+            if self.recordings is not None:
+                self.recordings.database.reconcile()
+                current = (
+                    self.recordings.publish(self.recordings.database.get(current.id))
+                    or current
+                )
+            return self.project(current)
         if self.payments is None or current.status != "received":
             return self.project(current)
         gate = self.payments.get(current.id)
@@ -852,7 +997,9 @@ class SubmissionService:
             self._queue(current, video, facts, sealed)
         return self.project(self.store.get(current.id) or current)
 
-    def preview_voucher(self, code: str, ip: str, now: datetime | None = None) -> VoucherPreview:
+    def preview_voucher(
+        self, code: str, ip: str, now: datetime | None = None
+    ) -> VoucherPreview:
         """Validate a code for the form. Does not attach it or redeem it."""
         moment = now or datetime.now(UTC)
         self._watch_voucher(ip, moment)
@@ -860,7 +1007,9 @@ class SubmissionService:
             raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
         return self.vouchers.preview(code, moment)
 
-    def _finish_voucher(self, submission: Submission, token: str) -> PublicSubmissionResponse:
+    def _finish_voucher(
+        self, submission: Submission, token: str
+    ) -> PublicSubmissionResponse:
         """Probe, then redeem and queue in one database transaction."""
         if self.vouchers is None or self.payments is None:
             raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
@@ -905,6 +1054,8 @@ class SubmissionService:
         if self.payments is None or self.checkout is None:
             raise RequestRejected(503, PAYMENT_UNAVAILABLE)
         submission = self._require(token)
+        if submission.input_type == "review_code" and self.recordings is not None:
+            self.recordings.require_verified_contact(submission.id)
         gate = self.payments.get(submission.id)
         if gate is None:
             raise RequestRejected(404, "not found")
@@ -919,7 +1070,11 @@ class SubmissionService:
         if reusable == "pending":
             return {"url": None, "paid": False, "pending": True}
         if isinstance(reusable, CheckoutSession):
-            return {"url": reusable.url or gate.checkout_url, "paid": False, "pending": False}
+            return {
+                "url": reusable.url or gate.checkout_url,
+                "paid": False,
+                "pending": False,
+            }
         return self._open_next_session(submission, token, gate)
 
     def apply_webhook(self, event: CheckoutEvent) -> str:
@@ -955,14 +1110,20 @@ class SubmissionService:
         self._require_owned(video)
         return video
 
-    def _probe_facts(self, submission: Submission, video: VideoInput) -> ProbeFacts | None:
+    def _probe_facts(
+        self, submission: Submission, video: VideoInput
+    ) -> ProbeFacts | None:
         if self.telemetry is not None:
             best_effort(
                 "validation_started",
                 self.telemetry.validation_started,
                 submission.id,
             )
-        dest = self.settings.root / "probe" / f"{submission.id}{Path(video.object_key).suffix}"
+        dest = (
+            self.settings.root
+            / "probe"
+            / f"{submission.id}{Path(video.object_key).suffix}"
+        )
         path, temporary = self.storage.local_file(video.object_key, dest)
         try:
             return self.probe(path)
@@ -990,7 +1151,9 @@ class SubmissionService:
     ) -> dict[str, str | bool | None]:
         if self.payments is None or self.checkout is None:
             raise RequestRejected(503, PAYMENT_UNAVAILABLE)
-        replace = gate.checkout_session_id if gate.payment_state == "checkout_created" else None
+        replace = (
+            gate.checkout_session_id if gate.payment_state == "checkout_created" else None
+        )
         attempt = self.payments.claim_checkout(submission.id, replace)
         if attempt is None:
             self._raise_unclaimed(submission.id)
@@ -1000,7 +1163,9 @@ class SubmissionService:
         except CheckoutRequestError as exc:
             self.payments.abandon_checkout_attempt(submission.id, attempt)
             raise RequestRejected(502, exc.message) from exc
-        if not self.payments.attach_session(submission.id, attempt, created.id, created.url or ""):
+        if not self.payments.attach_session(
+            submission.id, attempt, created.id, created.url or ""
+        ):
             raise RequestRejected(409, PAYMENT_WINDOW)
         return {"url": created.url, "paid": False, "pending": False}
 
@@ -1162,10 +1327,17 @@ def _display_name(value: str | None) -> str | None:
 
 
 def _remove_tree(path: Path) -> None:
+    """Remove a cleanup path, raising unless the path is actually absent."""
     import shutil
 
-    if path.is_dir():
-        shutil.rmtree(path, ignore_errors=True)
+    if not path.exists() and not path.is_symlink():
+        return
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    if path.exists() or path.is_symlink():
+        raise OSError("cleanup path remains after deletion")
 
 
 def _ready(gate: SubmissionGate) -> bool:

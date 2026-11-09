@@ -24,6 +24,7 @@ import {
   shownObservation,
   splitMoments,
 } from "./reviewMoments.js";
+import { ReviewCodeStatus } from "./ReviewCodeStatus.jsx";
 import { awaitingPayment, voucherFallbackKey } from "./reviewPayment.js";
 
 export function ReviewPage() {
@@ -132,15 +133,16 @@ export function ReviewPage() {
       {voucherFallbackKey(view) ? (
         <p className="error">{t(voucherFallbackKey(view))}</p>
       ) : null}
-      {token && awaitingPayment(view) ? (
+      {token && awaitingPayment(view) && (!view?.acquisition || view.acquisition.contact_verified) ? (
         <p>
           <button type="button" onClick={pay}>{t("review.pay")}</button>
         </p>
       ) : null}
-      {confirming || (view?.payment_state === "paid" && view.status === "received") ? (
+      <ReviewCodeStatus view={view} token={token} />
+      {!view?.acquisition && (confirming || (view?.payment_state === "paid" && view.status === "received")) ? (
         <p className="note">{t("review.waiting_payment")}</p>
       ) : null}
-      <ReviewProgress view={view} />
+      {!view?.acquisition || view.acquisition.state === "ready" ? <ReviewProgress view={view} /> : null}
       {noDeaths(view) ? <p className="note">{t("review.no_deaths")}</p> : null}
       {view?.status === "complete" && !noDeaths(view) ? (
         <Result

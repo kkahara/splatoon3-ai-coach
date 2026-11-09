@@ -25,6 +25,9 @@ from public_site.localize import Translator, build_translator
 from public_site.models import DisplayLocale, HistoryItem, PublicConfig, Submission
 from public_site.notices import NoticeSender
 from public_site.payments import PaymentStore
+from public_site.recording_routes import register_recording_routes
+from public_site.recording_service import RecordingService
+from public_site.recording_store import RecordingStore
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
@@ -234,6 +237,12 @@ def create_app(
     )
     if verifier is None:
         verifier = build_verifier(settings)
+    if settings.review_codes_enabled and payments is not None and accounts is not None:
+        recording_store = RecordingStore(payments)
+        recording_store.ensure_schema(
+            settings.retention_days, settings.account_retention_days
+        )
+        service.recordings = RecordingService(service, recording_store)
     worker = PublicWorker(
         settings,
         store,
@@ -251,7 +260,30 @@ def create_app(
     app.state.telemetry = telemetry
     app.state.payments = payments
     app.state.capacities = capacities
-    _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout)
+    _routes(
+        app,
+        settings,
+        service,
+        storage,
+        verifier,
+        worker,
+        accounts,
+        notices,
+        payments,
+        checkout,
+    )
+    if service.recordings is not None:
+        register_recording_routes(
+            app,
+            service.recordings,
+            current_user=lambda request: _current_user(request, accounts),
+            required_admin=lambda request: _required_admin(request, accounts),
+            client_ip=lambda request: _client_ip(request, settings),
+            notice_cookie=lambda response, token: _notice_cookie(
+                response, token, settings
+            ),
+            verifier=verifier,
+        )
     _worker_capacity_routes(app, settings, worker, accounts, capacities)
     from public_site.admin import register_admin_routes
 
@@ -317,7 +349,18 @@ def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
     return LocalStorage(settings.root, url_seconds=settings.upload_url_seconds)
 
 
-def _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout) -> None:
+def _routes(
+    app,
+    settings,
+    service,
+    storage,
+    verifier,
+    worker,
+    accounts,
+    notices,
+    payments,
+    checkout,
+) -> None:
     @app.get("/api/config")
     def get_config(request: Request) -> dict:
         return _public_config(request, settings, accounts, payments).model_dump()
@@ -507,8 +550,13 @@ def _public_config(request: Request, settings, accounts, payments) -> PublicConf
     user = _current_user(request, accounts)
     admin = user is not None and user.role == "admin"
     price = payments.current_price() if payments is not None else None
-    required = payments is not None and not admin and (price is None or price.price_cents > 0)
+    required = (
+        payments is not None and not admin and (price is None or price.price_cents > 0)
+    )
     return PublicConfig(
+        review_codes_enabled=settings.review_codes_enabled
+        and accounts is not None
+        and payments is not None,
         turnstile_site_key=settings.turnstile_site_key,
         dev_mode=settings.dev_mode,
         max_video_bytes=None if admin else settings.max_video_bytes,
@@ -555,7 +603,9 @@ async def _stripe_webhook(request: Request, settings, service, worker, checkout)
     payload = await request.body()
     signature = request.headers.get("stripe-signature", "")
     try:
-        event = checkout.construct_event(payload, signature, settings.stripe_webhook_secret)
+        event = checkout.construct_event(
+            payload, signature, settings.stripe_webhook_secret
+        )
     except CheckoutSignatureError as exc:
         raise HTTPException(status_code=400, detail="invalid signature") from exc
     result = service.apply_webhook(event)
@@ -579,7 +629,9 @@ def _register_dev_upload(app: FastAPI, storage) -> None:
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="not found") from exc
         except ValueError as exc:
-            raise HTTPException(status_code=413, detail="That video is too large.") from exc
+            raise HTTPException(
+                status_code=413, detail="That video is too large."
+            ) from exc
         return {"stored": True}
 
 
@@ -598,7 +650,9 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
                 ip_hash=hash_ip(_client_ip(request, settings)),
                 max_per_ip=settings.accounts_per_ip,
             )
-            notices.send_account(email, "verify", f"{settings.public_base_url}/verify/{token}")
+            notices.send_account(
+                email, "verify", f"{settings.public_base_url}/verify/{token}"
+            )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return {"sent": True}
@@ -631,7 +685,9 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
             email = account_email(body.email)
             token = store.request_reset(email, now)
             if token:
-                notices.send_account(email, "reset", f"{settings.public_base_url}/reset/{token}")
+                notices.send_account(
+                    email, "reset", f"{settings.public_base_url}/reset/{token}"
+                )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return {"sent": True}
@@ -640,7 +696,9 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
     def post_reset(body: TokenBody) -> JSONResponse:
         store = _require_accounts(accounts)
         try:
-            account, token = store.reset_password(body.token, body.password, datetime.now(UTC))
+            account, token = store.reset_password(
+                body.token, body.password, datetime.now(UTC)
+            )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return _session_response(account, token, settings)
@@ -684,13 +742,17 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
         return {"review_path": f"/review/{token}"}
 
     @app.get("/api/me/submissions/{submission_id}")
-    def get_owned(submission_id: str, request: Request, locale: DisplayLocale = "en") -> dict:
+    def get_owned(
+        submission_id: str, request: Request, locale: DisplayLocale = "en"
+    ) -> dict:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
         return service.project(submission, locale).model_dump()
 
     @app.post("/api/me/submissions/{submission_id}/feedback")
-    def post_owned_feedback(submission_id: str, body: FeedbackBody, request: Request) -> dict:
+    def post_owned_feedback(
+        submission_id: str, body: FeedbackBody, request: Request
+    ) -> dict:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
         return _save_feedback(accounts, submission.id, user.id, body.body)
@@ -758,7 +820,9 @@ def _current_user(request: Request, accounts: AccountStore | None) -> Account | 
     return accounts.user_from_session(token, datetime.now(UTC))
 
 
-def _session_response(account: Account, token: str, settings: PublicSettings) -> JSONResponse:
+def _session_response(
+    account: Account, token: str, settings: PublicSettings
+) -> JSONResponse:
     response = JSONResponse({"name": account.name, "email": account.email})
     response.set_cookie(
         SESSION_COOKIE,
@@ -790,7 +854,9 @@ def _chosen_name(given: str | None, account_name: str) -> str:
     return text or account_name
 
 
-def _owned(accounts: AccountStore, store: PublicStore, user: Account, submission_id: str) -> Submission:
+def _owned(
+    accounts: AccountStore, store: PublicStore, user: Account, submission_id: str
+) -> Submission:
     if not accounts.owns(user.id, submission_id):
         raise HTTPException(status_code=404, detail="not found")
     submission = store.get(submission_id)
@@ -799,7 +865,9 @@ def _owned(accounts: AccountStore, store: PublicStore, user: Account, submission
     return submission
 
 
-def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> list[dict]:
+def _history_items(
+    accounts: AccountStore, store: PublicStore, user_id: str
+) -> list[dict]:
     items = []
     for row in accounts.list_history(user_id):
         submission = store.get(row.submission_id)
@@ -866,7 +934,9 @@ def _mount_ui(app: FastAPI, settings: PublicSettings, service: SubmissionService
             return FileResponse(candidate)
         token = review_token(full_path)
         if token:
-            page = review_html(service, settings, index.read_text(encoding="utf-8"), token)
+            page = review_html(
+                service, settings, index.read_text(encoding="utf-8"), token
+            )
             if page is not None:
                 return HTMLResponse(page)
         return FileResponse(index)

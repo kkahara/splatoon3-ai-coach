@@ -6,6 +6,7 @@ leave ``received``. An older Checkout attempt cannot overwrite the current one.
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
@@ -178,6 +179,9 @@ _QUEUE = """
       AND payment_state IN ('paid', 'not_required')
       AND expires_at > now()
 """
+_QUEUE_REVIEW_SAFE = _QUEUE.replace(
+    "AND payment_state", "AND source = 'upload'\n      AND payment_state"
+)
 
 
 @dataclass(frozen=True)
@@ -235,6 +239,7 @@ class PaymentStore:
 
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
+        self.source_column_available = False
 
     def ensure_schema(self) -> None:
         """Create the price, gate, and funnel tables when they are missing."""
@@ -242,6 +247,29 @@ class PaymentStore:
             conn.execute("SELECT pg_advisory_xact_lock(%s)", (_SCHEMA_LOCK,))
             for statement in _SCHEMA:
                 conn.execute(statement)
+            self.source_column_available = self._source_column_exists(conn)
+
+    def refresh_source_schema(self, *, required: bool = False) -> None:
+        """Detect the optional review-code schema without modifying the database."""
+        with self._conn() as conn:
+            self.source_column_available = self._source_column_exists(conn)
+        if required and not self.source_column_available:
+            raise RuntimeError(
+                "Review-code schema is missing the submission_gates.source migration."
+            )
+
+    @staticmethod
+    def _source_column_exists(conn: psycopg.Connection) -> bool:
+        """Check whether the feature-gated source column has been migrated."""
+        return bool(
+            conn.execute(
+                """SELECT EXISTS (
+                       SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = current_schema()
+                         AND table_name = 'submission_gates' AND column_name = 'source'
+                   ) AS present"""
+            ).fetchone()["present"]
+        )
 
     def clear(self) -> None:
         """Delete payment rows. Used by tests, not by the public site."""
@@ -249,7 +277,7 @@ class PaymentStore:
             conn.execute(
                 """
                 TRUNCATE price_events, submission_gates, analysis_price,
-                    account_upload_limit
+                    account_upload_limit CASCADE
                 """
             )
 
@@ -349,6 +377,9 @@ class PaymentStore:
         quote: PriceQuote,
         expires_at: datetime,
         voucher_id: str | None = None,
+        *,
+        conn: psycopg.Connection | None = None,
+        source: str = "upload",
     ) -> None:
         """Insert the gate for a submission that was just created.
 
@@ -356,17 +387,18 @@ class PaymentStore:
         is not authorized by that attachment.
         """
         voucher_state = None if voucher_id is None else "pending"
-        with self._conn() as conn:
-            conn.execute(
-                """
-                INSERT INTO submission_gates (
+        if source != "upload" and not self.source_column_available:
+            raise RuntimeError(
+                "Review-code payment source requires the feature-gated schema migration."
+            )
+        with nullcontext(conn) if conn is not None else self._conn() as conn:
+            if self.source_column_available:
+                statement = """INSERT INTO submission_gates (
                     submission_id, status, uploaded, payment_state, checkout_attempt,
                     price_cents, currency, pricing_version, expires_at,
-                    voucher_id, voucher_state
-                )
-                VALUES (%s, 'received', false, %s, 0, %s, %s, %s, %s, %s, %s)
-                """,
-                (
+                    voucher_id, voucher_state, source
+                ) VALUES (%s, 'received', false, %s, 0, %s, %s, %s, %s, %s, %s, %s)"""
+                values = (
                     submission_id,
                     quote.payment_state,
                     quote.price_cents,
@@ -375,8 +407,25 @@ class PaymentStore:
                     expires_at,
                     voucher_id,
                     voucher_state,
-                ),
-            )
+                    source,
+                )
+            else:
+                statement = """INSERT INTO submission_gates (
+                    submission_id, status, uploaded, payment_state, checkout_attempt,
+                    price_cents, currency, pricing_version, expires_at,
+                    voucher_id, voucher_state
+                ) VALUES (%s, 'received', false, %s, 0, %s, %s, %s, %s, %s, %s)"""
+                values = (
+                    submission_id,
+                    quote.payment_state,
+                    quote.price_cents,
+                    quote.currency,
+                    quote.pricing_version,
+                    expires_at,
+                    voucher_id,
+                    voucher_state,
+                )
+            conn.execute(statement, values)
 
     def get(self, submission_id: str) -> SubmissionGate | None:
         """Load one gate, or None when this submission is not billed here."""
@@ -400,12 +449,14 @@ class PaymentStore:
 
     def mark_uploaded(self, submission_id: str) -> bool:
         """Set the upload prerequisite. True only when this call changes the row."""
+        source_clause = "AND source = 'upload'" if self.source_column_available else ""
         with self._conn() as conn:
             updated = conn.execute(
-                """
+                f"""
                 UPDATE submission_gates
                 SET uploaded = true
                 WHERE submission_id = %s AND status = 'received' AND NOT uploaded
+                    {source_clause}
                 """,
                 (submission_id,),
             )
@@ -413,8 +464,9 @@ class PaymentStore:
 
     def try_queue(self, submission_id: str) -> bool:
         """Move an eligible gate from received to queued. Only one caller wins."""
+        statement = _QUEUE_REVIEW_SAFE if self.source_column_available else _QUEUE
         with self._conn() as conn:
-            updated = conn.execute(_QUEUE, (submission_id,))
+            updated = conn.execute(statement, (submission_id,))
         return updated.rowcount == 1
 
     def apply_paid(
@@ -442,25 +494,46 @@ class PaymentStore:
             ).fetchone()
             if row is None:
                 return "missing"
-            if row["status"] == "expired":
+            if row["status"] == "expired" and not self.source_column_available:
                 return "expired"
+            is_review = (
+                self.source_column_available and row["source"] == "nintendo_review_code"
+            )
+            if row["status"] == "expired" and not is_review:
+                return "expired"
+            if is_review and row["status"] == "expired":
+                acquisition = conn.execute(
+                    """SELECT sensitive_data_purged_at
+                       FROM review_code_acquisitions WHERE submission_id = %s""",
+                    (submission_id,),
+                ).fetchone()
+                if acquisition is None or acquisition["sensitive_data_purged_at"]:
+                    return "expired"
             if row["checkout_session_id"] != session_id:
                 return "stale"
             if not _amount_matches(row, amount_subtotal, amount_total, currency):
                 return "amount"
             if row["payment_state"] == "paid":
                 return "paid"
-            if row["payment_state"] != "checkout_created" or row["status"] != "received":
+            if row["payment_state"] != "checkout_created" or row["status"] not in {
+                "received",
+                "expired",
+            }:
                 return "stale"
+            source_condition = (
+                "(status = 'received' OR (source = 'nintendo_review_code' AND status = 'expired'))"
+                if self.source_column_available
+                else "status = 'received'"
+            )
             updated = conn.execute(
-                """
+                f"""
                 UPDATE submission_gates
-                SET payment_state = 'paid', payment_intent_id = %s
+                SET payment_state = 'paid', payment_intent_id = %s, status = 'received'
                 WHERE submission_id = %s
                   AND checkout_session_id = %s
                   AND checkout_attempt = %s
                   AND payment_state = 'checkout_created'
-                  AND status = 'received'
+                  AND {source_condition}
                 """,
                 (payment_intent_id, submission_id, session_id, row["checkout_attempt"]),
             )
@@ -477,7 +550,9 @@ class PaymentStore:
             )
         return "paid"
 
-    def claim_checkout(self, submission_id: str, replace_session_id: str | None) -> int | None:
+    def claim_checkout(
+        self, submission_id: str, replace_session_id: str | None
+    ) -> int | None:
         """Reserve an attempt number, or None when another request owns it.
 
         Replacing an expired session is conditional on the stored attempt and
@@ -504,7 +579,9 @@ class PaymentStore:
                 return _replace_attempt(conn, row, replace_session_id)
         return None
 
-    def attach_session(self, submission_id: str, attempt: int, session_id: str, url: str) -> bool:
+    def attach_session(
+        self, submission_id: str, attempt: int, session_id: str, url: str
+    ) -> bool:
         """Store the session for this attempt. A repeat of the same id is a no-op."""
         with self._conn() as conn:
             updated = conn.execute(
@@ -619,12 +696,14 @@ class PaymentStore:
 
     def ready_ids(self) -> list[str]:
         """Gates that can still be queued. Used to recover a crash after payment."""
+        source_clause = "AND source = 'upload'" if self.source_column_available else ""
         with self._conn() as conn:
             rows = conn.execute(
-                """
+                f"""
                 SELECT submission_id FROM submission_gates
                 WHERE status = 'received'
                   AND uploaded
+                  {source_clause}
                   AND payment_state IN ('paid', 'not_required')
                   AND expires_at > now()
                 """
@@ -678,8 +757,12 @@ class PaymentStore:
             ).fetchall()
         return [
             PriceEventCount(
-                pricing_version=None if row["pricing_version"] is None else int(row["pricing_version"]),
-                price_cents=None if row["price_cents"] is None else int(row["price_cents"]),
+                pricing_version=None
+                if row["pricing_version"] is None
+                else int(row["pricing_version"]),
+                price_cents=None
+                if row["price_cents"] is None
+                else int(row["price_cents"]),
                 kind=str(row["kind"]),
                 count=int(row["count"]),
             )

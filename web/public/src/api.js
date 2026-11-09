@@ -349,3 +349,29 @@ export async function loadAdminUser(id) {
   const response = await fetch(`/api/admin/users/${encodeURIComponent(id)}`);
   return read(response, "This user was not found.");
 }
+
+export async function createReviewCodeSubmission(body) {
+  return read(await fetch("/api/review-code-submissions", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), "The review-code submission was not accepted.");
+}
+
+export async function resendReviewContact(token) {
+  return read(await fetch(`/api/submissions/${encodeURIComponent(token)}/verify-contact`, {
+    method: "POST",
+  }), "The verification message could not be sent.");
+}
+
+export async function loadRecordings() {
+  return read(await fetch("/api/admin/recordings"), "Recording queue unavailable.");
+}
+
+export async function loadRecording(id) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}`), "Recording job unavailable.");
+}
+
+export async function recordingAction(id, body) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/actions`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), "Recording job could not be updated.");
+}

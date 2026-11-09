@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import uuid
+from collections.abc import Callable
 from datetime import datetime, timedelta
 
 import psycopg
@@ -82,7 +83,9 @@ class GuestNotices:
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
 
-    def open_browser(self, raw_token: str | None, now: datetime) -> tuple[str, str | None]:
+    def open_browser(
+        self, raw_token: str | None, now: datetime
+    ) -> tuple[str, str | None]:
         """Return the browser id, and a new cookie token when one must be set."""
         if raw_token:
             row = self._live_browser(hash_token(raw_token), now)
@@ -103,9 +106,11 @@ class GuestNotices:
             ).fetchone()
         return row is not None
 
-    def remember_verified(self, browser_id: str, email: str, now: datetime) -> None:
+    def remember_verified(self, browser_id: str, email: str, now: datetime) -> bool:
         """Record or refresh a verified address for one browser."""
         with self._conn() as conn:
+            if not self._lock_browser_reference(conn, browser_id):
+                return False
             conn.execute(
                 """
                 INSERT INTO guest_verified_emails
@@ -116,10 +121,16 @@ class GuestNotices:
                 """,
                 (browser_id, email, now, now),
             )
+        return True
 
-    def add_request(self, browser_id: str, submission_id: str, email: str, now: datetime) -> None:
-        """Store the requested address outside the submission record."""
+    def add_request(
+        self, browser_id: str, submission_id: str, email: str, now: datetime
+    ) -> tuple[str, str | None]:
+        """Store a request, replacing a browser row removed by concurrent cleanup."""
         with self._conn() as conn:
+            fresh = None
+            if not self._lock_browser_reference(conn, browser_id):
+                browser_id, fresh = self._create_browser_in(conn, now)
             conn.execute(
                 """
                 INSERT INTO guest_notice_requests
@@ -129,6 +140,7 @@ class GuestNotices:
                 """,
                 (submission_id, browser_id, email, now),
             )
+        return browser_id, fresh
 
     def begin_challenge(
         self,
@@ -145,6 +157,15 @@ class GuestNotices:
         token = new_token()
         challenge_id = str(uuid.uuid4())
         with self._conn() as conn:
+            if not self._lock_browser_reference(conn, browser_id):
+                return None
+            request = conn.execute(
+                """SELECT 1 FROM guest_notice_requests
+                   WHERE submission_id = %s AND normalized_email = %s""",
+                (submission_id, email),
+            ).fetchone()
+            if request is None:
+                return None
             _lock_pair(conn, browser_id, email)
             if _recent(conn, browser_id=browser_id, email=None, since=since):
                 return None
@@ -173,10 +194,17 @@ class GuestNotices:
     def drop_challenge(self, challenge_id: str) -> None:
         """Remove a challenge whose message was not sent, so it does not count."""
         with self._conn() as conn:
-            conn.execute("DELETE FROM guest_email_challenges WHERE id = %s", (challenge_id,))
+            conn.execute(
+                "DELETE FROM guest_email_challenges WHERE id = %s", (challenge_id,)
+            )
 
-    def consume(self, raw_token: str, now: datetime) -> tuple[str, str] | None:
-        """Use one challenge. Returns the browser id and normalized address."""
+    def consume(
+        self,
+        raw_token: str,
+        now: datetime,
+        associated: Callable[[str, str], bool] | None = None,
+    ) -> tuple[str, str, str] | None:
+        """Consume one associated challenge; return its browser, address and request."""
         digest = hash_token(raw_token)
         with self._conn() as conn:
             row = conn.execute(
@@ -184,6 +212,15 @@ class GuestNotices:
                 (digest,),
             ).fetchone()
             if not _usable(row, digest, now):
+                return None
+            submission_id = str(row["submission_id"])
+            email = row["normalized_email"]
+            request = conn.execute(
+                """SELECT 1 FROM guest_notice_requests
+                   WHERE submission_id = %s AND normalized_email = %s""",
+                (submission_id, email),
+            ).fetchone()
+            if request is None or (associated and not associated(submission_id, email)):
                 return None
             updated = conn.execute(
                 """
@@ -208,7 +245,7 @@ class GuestNotices:
                 """,
                 (browser_id, email, now, now),
             )
-        return browser_id, email
+        return browser_id, email, submission_id
 
     def pending_ids(self, browser_id: str, email: str, since: datetime) -> list[str]:
         """Unconfirmed requests for this browser and requested address."""
@@ -236,6 +273,68 @@ class GuestNotices:
                 """,
                 (now, submission_id),
             )
+
+    def purge_submission(self, submission_id: str) -> None:
+        """Delete one expired request and any browser row no longer referenced."""
+        with self._conn() as conn:
+            challenges = conn.execute(
+                """SELECT browser_id, normalized_email FROM guest_email_challenges
+                   WHERE submission_id = %s FOR UPDATE""",
+                (submission_id,),
+            ).fetchall()
+            request = conn.execute(
+                """SELECT browser_id, normalized_email FROM guest_notice_requests
+                   WHERE submission_id = %s""",
+                (submission_id,),
+            ).fetchone()
+            associations = {
+                (str(row["browser_id"]), row["normalized_email"]) for row in challenges
+            }
+            if request is not None:
+                associations.add(
+                    (str(request["browser_id"]), request["normalized_email"])
+                )
+            browser_ids = sorted({browser_id for browser_id, _ in associations})
+            for browser_id in browser_ids:
+                conn.execute(
+                    "SELECT id FROM guest_notice_browsers WHERE id = %s FOR UPDATE",
+                    (browser_id,),
+                ).fetchone()
+            conn.execute(
+                "DELETE FROM guest_email_challenges WHERE submission_id = %s",
+                (submission_id,),
+            )
+            conn.execute(
+                "DELETE FROM guest_notice_requests WHERE submission_id = %s",
+                (submission_id,),
+            )
+            for browser_id, email in associations:
+                conn.execute(
+                    """DELETE FROM guest_verified_emails v
+                       WHERE v.browser_id = %s AND v.normalized_email = %s
+                         AND NOT EXISTS (
+                             SELECT 1 FROM guest_notice_requests r
+                             WHERE r.browser_id = v.browser_id
+                               AND r.normalized_email = v.normalized_email
+                         ) AND NOT EXISTS (
+                             SELECT 1 FROM guest_email_challenges c
+                             WHERE c.browser_id = v.browser_id
+                               AND c.normalized_email = v.normalized_email
+                         )""",
+                    (browser_id, email),
+                )
+            for browser_id in browser_ids:
+                conn.execute(
+                    """DELETE FROM guest_notice_browsers b WHERE b.id = %s
+                       AND NOT EXISTS (
+                           SELECT 1 FROM guest_notice_requests r WHERE r.browser_id = b.id
+                       ) AND NOT EXISTS (
+                           SELECT 1 FROM guest_email_challenges c WHERE c.browser_id = b.id
+                       ) AND NOT EXISTS (
+                           SELECT 1 FROM guest_verified_emails v WHERE v.browser_id = b.id
+                       )""",
+                    (browser_id,),
+                )
 
     def has_open_request(self, submission_id: str) -> bool:
         """True when this submission still has an unconfirmed notice request."""
@@ -274,18 +373,28 @@ class GuestNotices:
             )
 
     def _create_browser(self, now: datetime) -> tuple[str, str]:
+        with self._conn() as conn:
+            return self._create_browser_in(conn, now)
+
+    def _create_browser_in(self, conn, now: datetime) -> tuple[str, str]:
         token = new_token()
         browser_id = str(uuid.uuid4())
-        with self._conn() as conn:
-            conn.execute(
-                """
-                INSERT INTO guest_notice_browsers
-                    (id, browser_token_hash, created_at, last_used_at, expires_at)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (browser_id, hash_token(token), now, now, now + _IDLE),
-            )
+        conn.execute(
+            """INSERT INTO guest_notice_browsers
+               (id, browser_token_hash, created_at, last_used_at, expires_at)
+               VALUES (%s, %s, %s, %s, %s)""",
+            (browser_id, hash_token(token), now, now, now + _IDLE),
+        )
         return browser_id, token
+
+    @staticmethod
+    def _lock_browser_reference(conn, browser_id: str) -> bool:
+        """Serialize new child references with cleanup's parent-row deletion."""
+        row = conn.execute(
+            "SELECT id FROM guest_notice_browsers WHERE id = %s FOR KEY SHARE",
+            (browser_id,),
+        ).fetchone()
+        return row is not None
 
     def _conn(self) -> psycopg.Connection:
         return psycopg.connect(self.database_url, row_factory=dict_row)
@@ -320,7 +429,9 @@ def _recent(conn, *, browser_id: str | None, email: str | None, since: datetime)
 
 
 def _lock_pair(conn, browser_id: str, email: str) -> None:
-    keys = sorted((_lock_key(f"notice-browser:{browser_id}"), _lock_key(f"notice-email:{email}")))
+    keys = sorted(
+        (_lock_key(f"notice-browser:{browser_id}"), _lock_key(f"notice-email:{email}"))
+    )
     for key in keys:
         conn.execute("SELECT pg_advisory_xact_lock(%s)", (key,))
 

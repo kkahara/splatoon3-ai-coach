@@ -9,6 +9,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from public_site.recording_models import AcquisitionView
+
 PublicStatus = Literal[
     "received",
     "validating",
@@ -193,6 +195,7 @@ class PublicSubmissionResult(BaseModel):
 class PublicSubmissionResponse(BaseModel):
     """Status projection. Paths, keys, tokens, and worker fields are absent."""
 
+    acquisition: AcquisitionView | None = None
     status: PublicStatus
     step: PublicStep
     created_at: str
@@ -241,6 +244,7 @@ class PublicConfig(BaseModel):
 
     turnstile_site_key: str | None = None
     dev_mode: bool = False
+    review_codes_enabled: bool = False
     max_video_bytes: int | None = None
     max_duration_seconds: int
     retention_days: int

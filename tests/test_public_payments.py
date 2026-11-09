@@ -14,11 +14,13 @@ from urllib.parse import urlsplit, urlunsplit
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from psycopg import sql
 from public_site.accounts import AccountStore
 from public_site.app import SESSION_COOKIE, create_app
 from public_site.errors import PAYMENT_UNAVAILABLE, PROBE_DURATION
 from public_site.media_probe import ProbeFacts, ProbeRejected
-from public_site.payments import PaymentStore
+from public_site.payments import PaymentStore, PriceQuote
+from public_site.recording_store import RecordingStore
 from public_site.settings import PublicSettings
 from public_site.stripe_checkout import (
     CheckoutEvent,
@@ -456,7 +458,9 @@ def test_upload_and_payment_queue_exactly_once(payments: PaymentStore) -> None:
     payments.open_gate(submission_id, quote, datetime.now(UTC) + timedelta(hours=24))
     attempt = payments.claim_checkout(submission_id, None)
     assert attempt is not None
-    assert payments.attach_session(submission_id, attempt, "cs_race", "https://pay.example/race")
+    assert payments.attach_session(
+        submission_id, attempt, "cs_race", "https://pay.example/race"
+    )
     barrier = threading.Barrier(2)
     wins: list[bool] = []
 
@@ -709,3 +713,87 @@ def test_same_price_does_not_bump_the_version(payments: PaymentStore) -> None:
     assert first.pricing_version == 1
     assert second.pricing_version == 1
     assert third.pricing_version == 2
+
+
+def test_review_schema_is_gated_and_base_payment_flow_needs_no_acquisition_tables() -> (
+    None
+):
+    """Payment startup stays on the legacy schema until review is enabled."""
+    base_url = _database_url()
+    parts = urlsplit(base_url)
+    admin_url = urlunsplit((parts.scheme, parts.netloc, "/postgres", parts.query, ""))
+    name = f"coach_test_review_gate_{uuid.uuid4().hex}"
+    isolated_url = urlunsplit((parts.scheme, parts.netloc, f"/{name}", parts.query, ""))
+    with psycopg.connect(admin_url, autocommit=True) as conn:
+        conn.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
+    try:
+        payments = PaymentStore(isolated_url)
+        payments.ensure_schema()
+        assert not payments.source_column_available
+        with payments._conn() as conn:
+            assert not conn.execute(
+                """SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = current_schema()
+                     AND table_name = 'submission_gates'
+                     AND column_name = 'source') AS present"""
+            ).fetchone()["present"]
+            assert not conn.execute(
+                "SELECT to_regclass('review_code_acquisitions') IS NOT NULL AS present"
+            ).fetchone()["present"]
+        with pytest.raises(RuntimeError, match="Review-code schema is missing"):
+            payments.refresh_source_schema(required=True)
+
+        quote = PriceQuote(199, "usd", 1, "unpaid")
+        video_id = uuid.uuid4().hex
+        payments.open_gate(video_id, quote, datetime.now(UTC) + timedelta(hours=1))
+        attempt = payments.claim_checkout(video_id, None)
+        assert attempt is not None
+        assert payments.attach_session(video_id, attempt, "cs_legacy", "https://pay.test")
+        assert (
+            payments.apply_paid(
+                submission_id=video_id,
+                session_id="cs_legacy",
+                amount_subtotal=199,
+                amount_total=199,
+                currency="usd",
+                payment_intent_id="pi_legacy",
+            )
+            == "paid"
+        )
+        assert payments.mark_uploaded(video_id)
+        assert payments.try_queue(video_id)
+
+        recordings = RecordingStore(payments)
+        recordings.ensure_schema(30, 365)
+        recordings.ensure_schema(30, 365)
+        assert payments.source_column_available
+        with payments._conn() as conn:
+            sources = conn.execute(
+                "SELECT submission_id, source FROM submission_gates "
+                "ORDER BY submission_id"
+            ).fetchall()
+        assert {row["submission_id"]: row["source"] for row in sources} == {
+            video_id: "upload"
+        }
+        review_id = uuid.uuid4().hex
+        payments.open_gate(
+            review_id,
+            quote,
+            datetime.now(UTC) + timedelta(hours=1),
+            source="nintendo_review_code",
+        )
+        with payments._conn() as conn:
+            assert (
+                conn.execute(
+                    "SELECT source FROM submission_gates WHERE submission_id = %s",
+                    (review_id,),
+                ).fetchone()["source"]
+                == "nintendo_review_code"
+            )
+    finally:
+        with psycopg.connect(admin_url, autocommit=True) as conn:
+            conn.execute(
+                sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(
+                    sql.Identifier(name)
+                )
+            )

@@ -567,6 +567,45 @@ def test_expiry_deletes_media_and_email(tmp_path: Path) -> None:
     assert "player@example.com" not in client.get(f"/api/submissions/{token}").text
 
 
+def test_expiry_clears_identity_even_when_analysis_deletion_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from public_site import service as service_module
+
+    client = _client(tmp_path)
+    created = _create(client, notify=True, email="player@example.com", display_name="Rin")
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    store = client.app.state.store
+    stored = store.list_submissions()[0]
+    analysis = tmp_path / "analysis" / stored.id
+    analysis.mkdir(parents=True)
+    (analysis / "report.json").write_text("{}", encoding="utf-8")
+    stored.analysis_dir = str(analysis)
+    store.save_submission(stored)
+    real_remove = service_module._remove_tree
+    attempts = 0
+
+    def fail_once(path: Path) -> None:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise OSError("injected")
+        real_remove(path)
+
+    monkeypatch.setattr(service_module, "_remove_tree", fail_once)
+    later = datetime.now(UTC) + timedelta(days=31)
+    client.app.state.service.maintain(later)
+    failed = store.get(stored.id)
+    assert failed.status == "expired"
+    assert failed.email is None and failed.display_name is None
+    assert failed.analysis_dir == str(analysis) and analysis.exists()
+    assert client.get(f"/api/submissions/{token}").json()["result"] is None
+    client.app.state.service.maintain(later + timedelta(seconds=1))
+    assert store.get(stored.id).analysis_dir is None
+    assert not analysis.exists()
+
+
 def test_abandoned_upload_releases_the_queue(tmp_path: Path) -> None:
     client = _client(tmp_path, upload_url_seconds=60)
     _create(client)
