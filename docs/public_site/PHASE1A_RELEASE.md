@@ -3,6 +3,15 @@
 Companion to `PHASE1A_REVIEW_CODE.md`. Nothing here authorizes a production
 migration or deployment; each production step below needs explicit approval.
 
+## Release mode: dark until P1-B
+
+P1-A ships with `PUBLIC_REVIEW_CODES_ENABLED` absent. P1-A has no recording
+runner, so a paid review-code job could only wait or be refunded; the flag is
+turned on only with P1-B. A dark deploy is code-only: with the flag off the
+candidate creates no table, column or index, the review-code routes are 404,
+and maintenance never creates review-code projections. Phase 2 below belongs to
+the P1-B release.
+
 ## Candidate
 
 - Base: production `d0bea4230a54f1750c1edaa0259e93755be79ea2`.
@@ -55,8 +64,11 @@ CHECK validation (one scan of `submission_gates`). Apply while the app is
 stopped or idle.
 
 With the flag off, the candidate does not touch the schema (rehearsal: schema
-dump byte-identical to the one `d0bea42` creates; the live production schema
-has not been compared yet, see the checklist).
+dump byte-identical to the one `d0bea42` creates). The live production schema
+(PostgreSQL 16.15, `pg_dump --schema-only`) matches the schema `d0bea42`
+creates except for column order in `job_runs`, where production added columns
+later with `ALTER TABLE`. Rehearsals restored from that production schema
+behaved the same as rehearsals on a fresh database.
 
 ## Deployment checklist
 
@@ -69,7 +81,8 @@ Preparation (no production contact):
 - [ ] Candidate suites green from the release commit: `tests/test_public_*`,
       `tests/test_admin_*`, architecture boundary, `web/public` `npm test`,
       `npm run build`. Known pre-existing failures documented, none new.
-- [ ] Image builds with `GIT_SHA=<release commit>`; record the image ID.
+- [ ] Image builds with `GIT_SHA=<release commit>` for `linux/amd64` (the
+      production host is x86_64); record the image ID and revision label.
 - [ ] Migration rehearsal re-run against the release commit.
 - [ ] Stripe test mode: one real Checkout paid with a test card through the
       test-mode webhook endpoint (signature, `paid_recording_queued` once).
@@ -83,21 +96,33 @@ Production, phase 1 (code only, flag off):
       snapshot or copy of the `coaching-data` volume (`/data/public`).
 - [ ] `pg_dump --schema-only` from production compared with the rehearsal's
       pre-migration schema; any difference reviewed before continuing.
-- [ ] Current image preserved:
-      `docker image tag <current app image> s3-coaching-app:prod-d0bea42`.
-- [ ] `PUBLIC_REVIEW_CODES_ENABLED` absent or `0` in `/srv/www/s3-coaching/.env`.
+- [ ] Current image preserved and its ID recorded:
+      `docker image tag s3-coaching-app:candidate-d0bea4230a54
+      s3-coaching-app:prod-d0bea42` (image
+      `sha256:5114061227fc4a942ce03f8069e0242d9c12b416cf38b198b1612a34ff979277`
+      at inspection; re-check before tagging).
+- [ ] Image naming confirmed: the repository compose file builds `app`
+      without an `image:` name, while production runs
+      `s3-coaching-app:candidate-d0bea4230a54`. Use the same mechanism that
+      produced that tag, so the new image is `s3-coaching-app:candidate-<sha12>`
+      and the preserved image is not overwritten.
+- [ ] `PUBLIC_REVIEW_CODES_ENABLED` absent (not merely `0`) from
+      `/srv/www/s3-coaching/.env` and from the compose environment:
+      `docker compose config | grep -c PUBLIC_REVIEW_CODES_ENABLED` prints `0`.
 - [ ] Sync from the release-commit tree only (never the development checkout):
       `src/ tools/ configs/ calibration/templates/ web/public/dist/
       pyproject.toml README.md Dockerfile docker-compose.yml .dockerignore`;
       `web/public/dist` built from the release commit.
 - [ ] `docker compose up -d --build app` with `GIT_SHA=<release commit>`.
-- [ ] Verify: image revision label equals the release commit; `/api/config`
-      has `review_codes_enabled: false`; `POST /api/review-code-submissions`
-      is 404; schema unchanged (`\d submission_gates` has no `source`).
+- [ ] Verify: image revision label equals the release commit and the image ID
+      is recorded; `/api/config` has `review_codes_enabled: false`;
+      `POST /api/review-code-submissions` is 404; schema unchanged
+      (`\d submission_gates` has no `source`; no `review_code_*` tables).
 - [ ] Video smoke test: create, upload, pay (or voucher), queue, complete.
 - [ ] Observe at least one maintenance/worker cycle with no new errors.
 
-Production, phase 2 (enable):
+Production, phase 2 (enable): P1-B release only, not part of P1-A. Kept here
+because the migration and rollback facts below were rehearsed against it.
 
 - [ ] Fresh `pg_dump -Fc` backup.
 - [ ] Set `PUBLIC_REVIEW_CODES_ENABLED=1`; `docker compose up -d app`.
@@ -115,6 +140,21 @@ Production, phase 2 (enable):
       `review_code_acquisitions` states.
 
 ## Rollback
+
+### Dark release (flag never enabled)
+
+No schema change and no review-code projection exists, so rollback is the
+image swap alone:
+
+1. Confirm nothing review-code exists: no `review_code_acquisitions` table and
+   no projection with `"input_type": "review_code"` under
+   `/data/public/submissions`. If either exists, the flag was enabled at some
+   point; use Level 2 instead.
+2. Point the compose `app` service back at `s3-coaching-app:prod-d0bea42`;
+   `docker compose up -d app`.
+3. Verify the image revision label is `d0bea42…` and run the video smoke test.
+
+Levels 1 to 3 apply once the flag has been enabled (P1-B).
 
 ### Level 1: disable the feature (preferred, no code change)
 
