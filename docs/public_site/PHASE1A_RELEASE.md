@@ -16,7 +16,12 @@ the P1-B release.
 
 - Release: `23a304c91eb5989277c103c8376466c927880b63`; image
   `sha256:721071dc5499a05d5709a7216cab017c05020f72be2cb4b101b735aa46a7a417`
-  (linux/amd64, revision label = release). Later commits on the release
+  (linux/amd64, revision label = release). That is the OCI index digest the
+  build Mac's containerd image store shows as the image ID. The production
+  host uses the classic `overlay2` store, which shows the config digest
+  `sha256:d6261c6e1a57cecd9b537ad7f544508fb628b9b4f5be329c66185150da807eef`
+  for the same image: in the release tarball the index `721071dc…` lists one
+  amd64 manifest `61b1aa3c…` whose config is `d6261c6e…`. Later commits on the release
   branch change documentation only; `docs/` is not copied into the image.
 - Base: production `d0bea4230a54f1750c1edaa0259e93755be79ea2`.
 - Overlay: exactly the P1-A allowlist below. Every tracked allowlisted file is
@@ -114,7 +119,7 @@ production host):
 
 ```bash
 REL=23a304c91eb5989277c103c8376466c927880b63
-NEW_ID=sha256:721071dc5499a05d5709a7216cab017c05020f72be2cb4b101b735aa46a7a417
+NEW_ID=sha256:d6261c6e1a57cecd9b537ad7f544508fb628b9b4f5be329c66185150da807eef  # host (overlay2) ID
 OLD_ID=sha256:5114061227fc4a942ce03f8069e0242d9c12b416cf38b198b1612a34ff979277
 TAR=s3-coaching-candidate-23a304c91eb5-amd64.tar
 TAR_SHA=1d14c07246c05e718cf0f422e129e728e23d62562713f8d1e048e6364c432a1f
