@@ -3,12 +3,23 @@
 Companion to `PHASE1A_REVIEW_CODE.md`. Nothing here authorizes a production
 migration or deployment; each production step below needs explicit approval.
 
+## Status: complete, frozen
+
+P1-A phase 1 deployed dark to production on 2026-11-09 (activated 21:36:48Z)
+and is frozen at tag `p1a-review-code-frozen` (release commit `23a304c`).
+Host image `sha256:d6261c6e1a57cecd9b537ad7f544508fb628b9b4f5be329c66185150da807eef`;
+rollback `s3-coaching-app:rollback-d0bea423` (`5114061227fc…`). Steps 1 to 8
+and one real video (completed, coached) passed; flag absent, migration not
+run, schema unchanged. Any code change is a new release; enabling the flag and
+the migration belong to P1-B (phase 2 below).
+
 ## Release mode: dark until P1-B
 
 P1-A ships with `PUBLIC_REVIEW_CODES_ENABLED` absent. P1-A has no recording
 runner, so a paid review-code job could only wait or be refunded; the flag is
 turned on only with P1-B. A dark deploy is code-only: with the flag off the
-candidate creates no table, column or index, the review-code routes are 404,
+candidate creates no table, column or index, the review-code routes are not
+registered (404, or 405 from the GET-only SPA catch-all for POST),
 and maintenance never creates review-code projections. Phase 2 below belongs to
 the P1-B release.
 
