@@ -14,6 +14,10 @@ the P1-B release.
 
 ## Candidate
 
+- Release: `23a304c91eb5989277c103c8376466c927880b63`; image
+  `sha256:721071dc5499a05d5709a7216cab017c05020f72be2cb4b101b735aa46a7a417`
+  (linux/amd64, revision label = release). Later commits on the release
+  branch change documentation only; `docs/` is not copied into the image.
 - Base: production `d0bea4230a54f1750c1edaa0259e93755be79ea2`.
 - Overlay: exactly the P1-A allowlist below. Every tracked allowlisted file is
   byte-identical at `d0bea42` and at the local `HEAD` it was edited against, so
@@ -90,40 +94,147 @@ Preparation (no production contact):
       an operator-controlled mailbox with production SMTP settings.
 - [ ] Operator has an admin account and has read the admin recordings UI flow.
 
-Production, phase 1 (code only, flag off). This follows the procedure recorded
-in `/srv/www/s3-coaching/DEPLOYED_SHA`: compose project `s3-coaching`, service
-`app` runs `s3-coaching-app:latest`, images are tagged
-`candidate-<sha12>` / `rollback-<sha8>`, and activation never builds. The
-compose build context `/srv/www/s3-coaching` holds an older tree; never run
-`docker compose ... --build` there.
+### Production, phase 1: authoritative procedure
 
-- [ ] Backup into `/root/s3-coach-backups/deploy-<sha8>/`:
-      `docker exec s3-coaching-db pg_dump -Fc -U coach coach > predeploy.dump`,
-      checked with `pg_restore --list`; `pg_dump --schema-only` saved as
-      `schema-before.sql`; archive of the `s3-coaching_coaching-data` volume.
-      Copy both off the host before continuing.
-- [ ] Current image preserved: `docker image tag s3-coaching-app:latest
-      s3-coaching-app:rollback-d0bea423`; its ID must be
-      `sha256:5114061227fc4a942ce03f8069e0242d9c12b416cf38b198b1612a34ff979277`.
-- [ ] `PUBLIC_REVIEW_CODES_ENABLED` absent (not merely `0`): `grep -c` on
-      `/srv/www/s3-coaching/.env` and on `docker compose config` both `0`.
-- [ ] Release image present as `s3-coaching-app:candidate-<sha12>`, either
-      loaded from the verified release tarball (`docker load`; the image ID
-      equals the recorded release ID) or built on the host from a clean
-      snapshot in `/srv/www/s3-coaching-staging/<sha12>` with
-      `GIT_SHA=<release commit>`. Python dependencies are unpinned, so a host
-      build resolves them again and gets a different image ID; record it.
-- [ ] Activate: `docker image tag s3-coaching-app:candidate-<sha12>
-      s3-coaching-app:latest`, then from `/srv/www/s3-coaching`:
-      `docker compose up -d --no-build --no-deps app`. Append the deploy to
-      `DEPLOYED_SHA`.
-- [ ] Verify: container image ID equals the release ID and the revision label
-      equals the release commit; `/` and `/api/config` return 200;
-      `/api/config` has `review_codes_enabled: false`;
-      `POST /api/review-code-submissions` is 404; `pg_dump --schema-only`
-      identical to `schema-before.sql`.
-- [ ] Video smoke test: create, upload, pay (or voucher), queue, complete.
-- [ ] Observe at least one maintenance/worker cycle with no new errors.
+This is the only phase 1 procedure. The release image is the verified
+tarball; nothing is built, synced or rsynced on the host. The compose project
+`s3-coaching` runs service `app` from `s3-coaching-app:latest`; the compose
+build context `/srv/www/s3-coaching` holds an older tree, so
+`docker compose ... --build` is never run there.
+
+Phase 1 scope: deploy release `23a304c`, preserve the current image, keep
+`PUBLIC_REVIEW_CODES_ENABLED` absent, run no migration, enable no review-code
+submission, restart only the `app` service, verify the video workflow. Not in
+scope: feature enablement, database migration, review-code transactions,
+schema rollback, destructive cleanup, P1-B.
+
+Every numbered step is a gate: if any check prints something other than the
+expected value, stop. Run from the operator Mac (`ssh Hetzner` is the
+production host):
+
+```bash
+REL=23a304c91eb5989277c103c8376466c927880b63
+NEW_ID=sha256:721071dc5499a05d5709a7216cab017c05020f72be2cb4b101b735aa46a7a417
+OLD_ID=sha256:5114061227fc4a942ce03f8069e0242d9c12b416cf38b198b1612a34ff979277
+TAR=s3-coaching-candidate-23a304c91eb5-amd64.tar
+TAR_SHA=1d14c07246c05e718cf0f422e129e728e23d62562713f8d1e048e6364c432a1f
+HOST_DIR=/root/s3-coach-backups/deploy-23a304c9
+VOL=/var/lib/docker/volumes/s3-coaching_coaching-data/_data
+umask 077
+B=~/backup/s3-coach/$(date -u +%Y%m%dT%H%M%SZ)-predeploy; mkdir -p "$B"
+cat > "$B/counts.sql" <<'SQL'
+select format('select %L, count(*) from public.%I', tablename, tablename)
+from pg_tables where schemaname = 'public' order by tablename \gexec
+SQL
+```
+
+1. **Start the predeployment backup** (mandatory even after the pre-check
+   backup). Volume first (about 17 minutes at 4 MB/s), then the database, so
+   the dump is the last state before activation. Run at a quiet time with no
+   job in progress.
+
+   ```bash
+   ssh Hetzner "tar -C $VOL -cf - ." > "$B/coaching-data.tar"
+   ssh Hetzner "find $VOL -type f | wc -l; find $VOL -type d | wc -l; \
+     find $VOL -type f -printf '%s\n' | awk '{s+=\$1} END {print s}'" \
+     > "$B/volume_manifest_host.txt"
+   ssh Hetzner 'docker exec s3-coaching-db pg_dump -Fc -U coach coach' > "$B/coach.dump"
+   ssh Hetzner 'docker exec s3-coaching-db pg_dump --schema-only -U coach coach' \
+     > "$B/schema-before.sql"
+   ssh Hetzner 'docker exec -i s3-coaching-db psql -X -At -F"|" -U coach -d coach' \
+     < "$B/counts.sql" > "$B/prod_table_counts.txt"
+   ```
+
+2. **Verify checksums and restore.** All three must hold: checksums verify, the
+   restored row counts equal production's, and the archive's file count,
+   directory count and byte total equal the host manifest. A row-count
+   difference caused by traffic between dump and count means: retake step 1's
+   database part.
+
+   ```bash
+   (cd "$B" && shasum -a 256 coach.dump schema-before.sql coaching-data.tar \
+     > SHA256SUMS && shasum -c SHA256SUMS)
+   docker run -d --name restore-check -e POSTGRES_PASSWORD=check postgres:16.15
+   until docker exec restore-check pg_isready -U postgres; do sleep 1; done; sleep 2
+   docker exec restore-check createdb -U postgres restore_check
+   docker exec -i restore-check pg_restore --no-owner --no-privileges \
+     --exit-on-error -U postgres -d restore_check < "$B/coach.dump"
+   docker exec -i restore-check psql -X -At -F"|" -U postgres -d restore_check \
+     < "$B/counts.sql" > "$B/restored_table_counts.txt"
+   diff "$B/prod_table_counts.txt" "$B/restored_table_counts.txt"   # no output
+   tar -tvf "$B/coaching-data.tar" | awk '$1 ~ /^-/ {f++; s+=$5} $1 ~ /^d/ {d++}
+     END {print f; print d; print s}' | diff - "$B/volume_manifest_host.txt"   # no output
+   docker rm -f restore-check
+   ```
+
+3. **Preserve the current production image.**
+
+   ```bash
+   ssh Hetzner "docker inspect s3-coaching-web --format '{{.Image}}'"      # $OLD_ID
+   ssh Hetzner 'docker image tag s3-coaching-app:latest s3-coaching-app:rollback-d0bea423'
+   ssh Hetzner "docker image inspect s3-coaching-app:rollback-d0bea423 --format '{{.Id}}'"   # $OLD_ID
+   ```
+
+4. **Upload and verify the candidate tarball.**
+
+   ```bash
+   shasum -a 256 ~/p1a-release-evidence/$TAR                              # $TAR_SHA
+   ssh Hetzner "mkdir -p $HOST_DIR"
+   scp ~/p1a-release-evidence/$TAR Hetzner:$HOST_DIR/
+   ssh Hetzner "sha256sum $HOST_DIR/$TAR"                                  # $TAR_SHA
+   ```
+
+5. **Load the image and verify its image ID.**
+
+   ```bash
+   ssh Hetzner "docker load -i $HOST_DIR/$TAR"
+   ssh Hetzner "docker image inspect s3-coaching-candidate:23a304c91eb5-amd64 --format \
+     '{{.Id}} {{.Architecture}} {{index .Config.Labels \"org.opencontainers.image.revision\"}}'"
+   # $NEW_ID amd64 $REL
+   ```
+
+6. **Tag the candidate for the Compose configuration.**
+
+   ```bash
+   ssh Hetzner "docker image tag $NEW_ID s3-coaching-app:candidate-23a304c91eb5 && \
+     docker image tag $NEW_ID s3-coaching-app:latest"
+   ssh Hetzner "docker image inspect s3-coaching-app:latest --format '{{.Id}}'"   # $NEW_ID
+   ```
+
+7. **Restart only the application service.** Re-check the flag first; both
+   counts must be `0`.
+
+   ```bash
+   ssh Hetzner 'cd /srv/www/s3-coaching && grep -c PUBLIC_REVIEW_CODES_ENABLED .env; \
+     docker compose config | grep -c PUBLIC_REVIEW_CODES_ENABLED'          # 0, 0
+   ssh Hetzner 'cd /srv/www/s3-coaching && docker compose up -d --no-build --no-deps app'
+   ```
+
+8. **Verify the running image revision and feature flag.**
+
+   ```bash
+   ssh Hetzner "docker inspect s3-coaching-web --format \
+     '{{.Image}} {{index .Config.Labels \"org.opencontainers.image.revision\"}}'"   # $NEW_ID $REL
+   ssh Hetzner 'docker exec s3-coaching-web printenv PUBLIC_REVIEW_CODES_ENABLED; echo "exit=$?"'   # exit=1
+   ssh Hetzner 'curl -s -o /dev/null -w "%{http_code}\n" 127.0.0.1:8770/'               # 200
+   ssh Hetzner 'curl -s 127.0.0.1:8770/api/config'               # "review_codes_enabled": false
+   ssh Hetzner 'curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+     -H "content-type: application/json" -d "{}" 127.0.0.1:8770/api/review-code-submissions'   # 404
+   ssh Hetzner 'docker exec s3-coaching-db pg_dump --schema-only -U coach coach' \
+     > "$B/schema-after.sql"
+   diff <(grep -v '^\\\(un\)\?restrict ' "$B/schema-before.sql") \
+        <(grep -v '^\\\(un\)\?restrict ' "$B/schema-after.sql")       # no output
+   ```
+
+After step 8:
+
+- [ ] Existing video workflow: one real video through the public site (create,
+      upload, pay or voucher, queue, complete with coaching).
+- [ ] At least one maintenance/worker cycle with no new errors.
+- [ ] Append the deploy (release, image ID, rollback tag, backup folder) to
+      `/srv/www/s3-coaching/DEPLOYED_SHA`.
+
+Any failure from step 6 on: roll back as described under "Dark release" below.
 
 Production, phase 2 (enable): P1-B release only, not part of P1-A. Kept here
 because the migration and rollback facts below were rehearsed against it.
