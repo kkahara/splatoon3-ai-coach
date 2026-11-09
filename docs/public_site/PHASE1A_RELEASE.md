@@ -224,7 +224,9 @@ SQL
    ssh Hetzner 'curl -s -o /dev/null -w "%{http_code}\n" 127.0.0.1:8770/'               # 200
    ssh Hetzner 'curl -s 127.0.0.1:8770/api/config'               # "review_codes_enabled": false
    ssh Hetzner 'curl -s -o /dev/null -w "%{http_code}\n" -X POST \
-     -H "content-type: application/json" -d "{}" 127.0.0.1:8770/api/review-code-submissions'   # 404
+     -H "content-type: application/json" -d "{}" 127.0.0.1:8770/api/review-code-submissions'   # 405
+   # 405 + "allow: HEAD, GET" is the GET/HEAD-only SPA catch-all: the route is not
+   # registered. Same answer as POST /api/no-such-route-xyz; GET on the path is 404.
    ssh Hetzner 'docker exec s3-coaching-db pg_dump --schema-only -U coach coach' \
      > "$B/schema-after.sql"
    diff <(grep -v '^\\\(un\)\?restrict ' "$B/schema-before.sql") \
