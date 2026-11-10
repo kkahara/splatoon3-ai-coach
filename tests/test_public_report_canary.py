@@ -129,6 +129,16 @@ def test_unicode_escaped_code_in_json_is_caught(tmp_path: Path) -> None:
     assert _rule(lambda: scan_json(data, known)) == CANARY_RULE
 
 
+@pytest.mark.parametrize("separator", ["\n", "\t", "\r\n"])
+def test_code_split_by_an_escaped_json_whitespace_is_caught(
+    tmp_path: Path, separator: str
+) -> None:
+    known = _known(_captured(tmp_path))
+    data = json.dumps({"note": f"ABCD1234{separator}EFGH5678"}).encode()
+    assert b"\\u" not in data and b"ABCD1234EFGH5678" not in data
+    assert _rule(lambda: scan_json(data, known)) == CANARY_RULE
+
+
 def test_code_as_a_json_key_is_caught(tmp_path: Path) -> None:
     known = _known(_captured(tmp_path))
     data = json.dumps({COMPACT.lower(): 1}).encode()

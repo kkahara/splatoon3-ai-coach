@@ -78,8 +78,9 @@ class CodeMatcher:
     Runs of ASCII letters/digits, with whitespace and hyphens allowed between
     characters, are compacted and uppercased; every 16-character window is
     HMACed with the precomputed key state and compared in constant time.
-    Windows already found not to match are remembered (bounded), so repeated
-    identifiers are hashed once. ``repr`` reveals neither key nor digest.
+    Windows and whole runs already found not to match are remembered
+    (bounded), so repeated identifiers are hashed once. ``repr`` reveals
+    neither key nor digest.
     """
 
     __slots__ = ("_mac", "_digest", "_seen")
@@ -98,9 +99,12 @@ class CodeMatcher:
             if run.end() - run.start() < CODE_LENGTH:
                 continue
             compact = _CODE_SEPARATORS.sub(b"", run.group()).upper()
+            if compact in self._seen:
+                continue
             for start in range(len(compact) - CODE_LENGTH + 1):
                 if self._window(compact[start : start + CODE_LENGTH]):
                     return True
+            self._remember(compact)
         return False
 
     def matches_text(self, text: str) -> bool:
@@ -114,10 +118,14 @@ class CodeMatcher:
         mac.update(window)
         if hmac.compare_digest(mac.digest(), self._digest):
             return True
+        self._remember(window)
+        return False
+
+    def _remember(self, value: bytes) -> None:
+        """Remember a window or whole run known not to contain the code."""
         if len(self._seen) >= _CODE_SEEN_LIMIT:
             self._seen.clear()
-        self._seen.add(window)
-        return False
+        self._seen.add(value)
 
 
 class ContentFinding(ValueError):
@@ -206,11 +214,16 @@ class KnownValues:
             if matcher.matches(data):
                 raise ContentFinding(rule)
 
-    def check_text(self, text: str, *, is_value: bool = True) -> None:
+    def check_text(
+        self, text: str, *, is_value: bool = True, raw_checked: bool = False
+    ) -> None:
         """Raise the first rule whose value occurs in one decoded string.
 
         Short names (``exact``) are compared with the whole string, and only
-        for string values (``is_value``), never for keys.
+        for string values (``is_value``), never for keys. ``raw_checked`` means
+        the file's raw bytes were already matched and contain no ``\\u``
+        escape: a plain ASCII string then appears verbatim in them, so the code
+        matchers skip it.
         """
         folded = unicodedata.normalize("NFKC", text).casefold()
         compact = _compact(folded)
@@ -221,9 +234,19 @@ class KnownValues:
             for rule, value in self.exact:
                 if compact == value:
                     raise ContentFinding(rule)
+        if raw_checked and _json_verbatim(text):
+            return
         for rule, matcher in self.codes:
             if matcher.matches_text(text):
                 raise ContentFinding(rule)
+
+
+def _json_verbatim(text: str) -> bool:
+    """Whether JSON writes ``text`` unescaped (ASCII, no control, quote or backslash)."""
+    return text.isascii() and not _JSON_ESCAPED.search(text)
+
+
+_JSON_ESCAPED = re.compile(r'[\x00-\x1f"\\]')
 
 
 def _compact(text: str) -> str:
@@ -233,6 +256,7 @@ def _compact(text: str) -> str:
 def scan_json(data: bytes, known: KnownValues) -> None:
     """Forbidden non-null keys, absolute paths, email addresses, known values."""
     known.check(data)
+    raw_checked = b"\\u" not in data
     try:
         payload = json.loads(data)
     except ValueError:
@@ -242,7 +266,7 @@ def scan_json(data: bytes, known: KnownValues) -> None:
             raise ContentFinding(f"forbidden_key:{key}")
         for text, is_value in ((key, False), (value, True)):
             if isinstance(text, str):
-                known.check_text(text, is_value=is_value)
+                known.check_text(text, is_value=is_value, raw_checked=raw_checked)
                 _scan_text(text)
 
 
