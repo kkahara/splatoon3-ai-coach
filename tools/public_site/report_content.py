@@ -40,8 +40,16 @@ ALLOWED_FORMAT_TAGS = frozenset(
 ALLOWED_STREAM_TAGS = frozenset({"handler_name", "vendor_id", "language", "encoder"})
 ALLOWED_HANDLERS = frozenset({"VideoHandler", "SoundHandler"})
 ALLOWED_STREAMS = frozenset({"video", "audio"})
-_BLOCKED_JPEG_MARKERS = frozenset({0xE1, 0xED})
+_JPEG_APP0 = 0xE0
 _JPEG_COMMENT = 0xFE
+_JPEG_SOS = 0xDA
+# SOFn (not DHT C4, JPG C8 or DAC CC), DHT, DQT, DRI, SOS and DNL.
+_JPEG_STRUCTURAL = frozenset(
+    {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
+    | {0xC4, 0xDB, 0xDD, 0xDA, 0xDC}
+)
+# JFIF APP0: "JFIF\0", version (2), units (1), densities (2+2), thumbnail size (1+1).
+_JFIF_BODY_LENGTH = 14
 # ffmpeg's MJPEG encoder writes its own version as the only comment.
 _ENCODER_COMMENT = re.compile(rb"^Lavc[0-9]{1,3}\.[0-9]{1,4}\.[0-9]{1,4}\x00?$")
 _MIN_SECRET = 8
@@ -132,20 +140,30 @@ class KnownValues:
     tokens: list[tuple[str, bytes]] = field(default_factory=list)
     texts: list[tuple[str, str]] = field(default_factory=list)
     codes: list[tuple[str, CodeMatcher]] = field(default_factory=list)
+    exact: list[tuple[str, str]] = field(default_factory=list)
 
     def add_code(self, rule: str, matcher: CodeMatcher) -> None:
         """Register a review-code canary, matched on raw bytes and decoded strings."""
         self.codes.append((rule, matcher))
 
     def add(self, rule: str, value: str | None, *, minimum: int) -> None:
-        """Register one value under ``rule`` when it is long enough to be meaningful."""
-        if not value or len(value.strip()) < minimum:
+        """Register one value under ``rule`` when it is long enough to be meaningful.
+
+        Raw-byte tokens cover both the value as given and its NFKC form; decoded
+        strings are compared in NFKC form, so full-width and half-width
+        spellings of a name match each other.
+        """
+        if not value:
             return
-        value = value.strip()
-        self.tokens.append((rule, value.encode()))
-        escaped = json.dumps(value)[1:-1].encode()
-        if escaped != value.encode():
-            self.tokens.append((rule, escaped))
+        original = value.strip()
+        value = unicodedata.normalize("NFKC", value).strip()
+        if len(value) < minimum:
+            return
+        for form in dict.fromkeys((value, original)):
+            self.tokens.append((rule, form.encode()))
+            escaped = json.dumps(form)[1:-1].encode()
+            if escaped != form.encode():
+                self.tokens.append((rule, escaped))
         folded = value.casefold()
         self.texts.append((rule, folded))
         compact = _compact(folded)
@@ -154,11 +172,26 @@ class KnownValues:
 
     def copy(self) -> KnownValues:
         """An independent copy (per-run additions never leak into the original)."""
-        return KnownValues(list(self.tokens), list(self.texts), list(self.codes))
+        return KnownValues(
+            list(self.tokens), list(self.texts), list(self.codes), list(self.exact)
+        )
 
     def add_personal(self, rule: str, value: str | None) -> None:
         """A personal value (email, display name, filename, ...)."""
         self.add(rule, value, minimum=_MIN_PERSONAL)
+
+    def add_name(self, rule: str, value: str | None) -> None:
+        """A player or display name. Under 4 characters it is matched only as an
+        entire decoded JSON string value (after NFKC, case-folding and
+        compaction), never as a substring.
+        """
+        if not value:
+            return
+        normalized = unicodedata.normalize("NFKC", value).strip()
+        if len(normalized) >= _MIN_PERSONAL:
+            self.add_personal(rule, normalized)
+        elif normalized:
+            self.exact.append((rule, _compact(normalized.casefold())))
 
     def add_secret(self, rule: str, value: str | None) -> None:
         """A configured secret; values shorter than 8 characters are ignored."""
@@ -173,13 +206,21 @@ class KnownValues:
             if matcher.matches(data):
                 raise ContentFinding(rule)
 
-    def check_text(self, text: str) -> None:
-        """Raise the first rule whose value occurs in one decoded string."""
-        folded = text.casefold()
+    def check_text(self, text: str, *, is_value: bool = True) -> None:
+        """Raise the first rule whose value occurs in one decoded string.
+
+        Short names (``exact``) are compared with the whole string, and only
+        for string values (``is_value``), never for keys.
+        """
+        folded = unicodedata.normalize("NFKC", text).casefold()
         compact = _compact(folded)
         for rule, value in self.texts:
             if value in folded or value in compact:
                 raise ContentFinding(rule)
+        if is_value:
+            for rule, value in self.exact:
+                if compact == value:
+                    raise ContentFinding(rule)
         for rule, matcher in self.codes:
             if matcher.matches_text(text):
                 raise ContentFinding(rule)
@@ -199,9 +240,9 @@ def scan_json(data: bytes, known: KnownValues) -> None:
     for key, value in _walk(payload):
         if key in FORBIDDEN_KEYS and value not in (None, "", [], {}):
             raise ContentFinding(f"forbidden_key:{key}")
-        for text in (key, value):
+        for text, is_value in ((key, False), (value, True)):
             if isinstance(text, str):
-                known.check_text(text)
+                known.check_text(text, is_value=is_value)
                 _scan_text(text)
 
 
@@ -224,32 +265,57 @@ def _walk(payload: Any, key: str | None = None) -> Iterable[tuple[str | None, An
 
 def scan_jpeg(data: bytes, known: KnownValues) -> None:
     """Walk every marker from SOI to EOI, across all scans (baseline and
-    progressive), and reject EXIF/XMP (APP1), IPTC (APP13) and any comment other
-    than ffmpeg's encoder version (``Lavc<major>.<minor>.<micro>``) wherever
-    they occur. A truncated or malformed structure, a second SOI or any byte
-    after EOI is ``jpeg_invalid``.
+    progressive), against a segment allowlist.
+
+    Allowed: structural markers (SOFn, DHT, DQT, DRI, SOS, RSTn, DNL), at most
+    one APP0 that is a plain JFIF header without thumbnail, and at most one
+    comment that is exactly ffmpeg's encoder version
+    (``Lavc<major>.<minor>.<micro>``, optional trailing NUL). Every other
+    marker (APP1-APP15, JFXX, a second APP0 or comment, any other comment,
+    unknown markers) is ``jpeg_metadata``. A truncated or malformed structure,
+    a second SOI or any byte after EOI is ``jpeg_invalid``.
     """
     known.check(data)
     if data[:2] != b"\xff\xd8":
         raise ContentFinding("jpeg_invalid")
-    index = 2
+    index, seen = 2, set()
     while True:
         marker, index = _jpeg_marker(data, index)
         if marker == 0xD9:
             if index != len(data):
                 raise ContentFinding("jpeg_invalid")
             return
-        if marker in _BLOCKED_JPEG_MARKERS:
-            raise ContentFinding("jpeg_metadata")
-        if 0xD0 <= marker <= 0xD7 or marker == 0x01:
+        if 0xD0 <= marker <= 0xD7:
             continue
         if marker in (0x00, 0xD8):
             raise ContentFinding("jpeg_invalid")
-        body, index = _jpeg_segment(data, index)
-        if marker == _JPEG_COMMENT and not _ENCODER_COMMENT.fullmatch(body):
+        if marker not in _JPEG_STRUCTURAL and marker not in (_JPEG_APP0, _JPEG_COMMENT):
             raise ContentFinding("jpeg_metadata")
-        if marker == 0xDA:
+        body, index = _jpeg_segment(data, index)
+        _check_jpeg_segment(marker, body, seen)
+        if marker == _JPEG_SOS:
             index = _skip_entropy_coded(data, index)
+
+
+def _check_jpeg_segment(marker: int, body: bytes, seen: set[int]) -> None:
+    """APP0 must be a thumbnail-free JFIF header and COM the encoder version;
+    each may occur once.
+    """
+    if marker not in (_JPEG_APP0, _JPEG_COMMENT):
+        return
+    if marker in seen:
+        raise ContentFinding("jpeg_metadata")
+    seen.add(marker)
+    if marker == _JPEG_COMMENT:
+        if not _ENCODER_COMMENT.fullmatch(body):
+            raise ContentFinding("jpeg_metadata")
+        return
+    if (
+        len(body) != _JFIF_BODY_LENGTH
+        or body[:5] != b"JFIF\x00"
+        or body[12:14] != b"\x00\x00"
+    ):
+        raise ContentFinding("jpeg_metadata")
 
 
 def _jpeg_marker(data: bytes, index: int) -> tuple[int, int]:

@@ -205,8 +205,8 @@ def known_values(
     known = KnownValues()
     if submission is not None:
         known.add_personal("known_value:email", submission.email)
-        known.add_personal("known_value:display_name", submission.display_name)
-        known.add_personal("known_value:user_id", submission.user_id)
+        known.add_name("known_value:display_name", submission.display_name)
+        known.add_personal("known_value:user_id", _text(submission.user_id))
         known.add_secret("known_value:access_token_hash", submission.access_token_hash)
     if video is not None:
         known.add_personal("known_value:original_filename", video.original_filename)
@@ -243,17 +243,36 @@ ACQUISITION_FIELDS = (
 SNAPSHOT_FIELDS = ("email", "display_name", "user_id")
 
 
+_NAME_FIELDS = frozenset({"target_player_name", "confirmed_player_name", "display_name"})
+
+
+def _text(value: object) -> str | None:
+    """A stored value as text: strings as-is, numbers (e.g. a numeric
+    ``user_id``) via ``str``, anything else ignored.
+    """
+    if isinstance(value, str):
+        return value
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return str(value)
+    return None
+
+
+def _add_value(known: KnownValues, name: str, value: object) -> None:
+    rule = f"known_value:{name}"
+    if name in _NAME_FIELDS:
+        known.add_name(rule, value if isinstance(value, str) else None)
+    else:
+        known.add_personal(rule, _text(value))
+
+
 def _add_acquisition(known: KnownValues, acquisition: dict) -> None:
     """Review-code acquisition values (P1-A ``review_code_acquisitions`` row)."""
     for name in ACQUISITION_FIELDS:
-        value = acquisition.get(name)
-        known.add_personal(f"known_value:{name}", value if isinstance(value, str) else None)
+        _add_value(known, name, acquisition.get(name))
     snapshot = acquisition.get("submission_snapshot")
     if isinstance(snapshot, dict):
         for name in SNAPSHOT_FIELDS:
-            value = snapshot.get(name)
-            if isinstance(value, str):
-                known.add_personal(f"known_value:{name}", value)
+            _add_value(known, name, snapshot.get(name))
         token_hash = snapshot.get("access_token_hash")
         if isinstance(token_hash, str):
             known.add_secret("known_value:access_token_hash", token_hash)
