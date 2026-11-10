@@ -113,6 +113,23 @@ def drain(publisher: ReportPublisher, limit: int = 20) -> int:
     return count
 
 
+def settle(publisher: ReportPublisher) -> int:
+    """Move the publisher's clock past the expiry-deletion settle time and drain.
+
+    A record emptied by expiry deletion is forgotten only after a second empty
+    LIST at least ``DELETE_SETTLE_SECONDS`` later.
+    """
+    from public_site.report_publisher import DELETE_SETTLE_SECONDS
+
+    seconds = DELETE_SETTLE_SECONDS + 1
+    base = publisher._clock
+    if isinstance(base, Clock):
+        base.advance(seconds=seconds)
+    else:
+        publisher._clock = lambda: base() + timedelta(seconds=seconds)
+    return drain(publisher)
+
+
 def run_keys(fake: FakeS3, submission_id: str) -> dict[str, list[str]]:
     """Object keys under ``reports/<id>/`` grouped by run ID."""
     runs: dict[str, list[str]] = {}

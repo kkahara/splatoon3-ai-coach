@@ -20,6 +20,7 @@ from report_test_helpers import (
     r2_for,
     report_client,
     run_keys,
+    settle,
 )
 from typer.testing import CliRunner
 
@@ -132,6 +133,7 @@ def test_superseded_runs_live_until_expiry_then_whole_prefix_goes(
         assert PublicationStore(root).get(s.id).state == "delete_pending"
         drain(client.app.state.reports)
         assert run_keys(fake, s.id) == {}
+        settle(client.app.state.reports)
         assert PublicationStore(root).get(s.id) is None
         later = fake.requests[seen:]
         deletes = [path for method, path in later if method == "DELETE"]
@@ -164,6 +166,7 @@ def test_expiry_delete_off_keeps_runs_until_enabled(tmp_path: Path, monkeypatch)
         restarted.app.state.reports.startup()
         drain(restarted.app.state.reports)
         assert run_keys(fake, s.id) == {}
+        settle(restarted.app.state.reports)
         assert PublicationStore(root).get(s.id) is None
         assert _snapshot_t(fake, root, t.id) == (before_t, record_t)
         restarted.close()

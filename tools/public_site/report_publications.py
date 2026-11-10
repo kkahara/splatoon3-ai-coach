@@ -62,6 +62,7 @@ class ReportPublication(BaseModel):
     content_policy_version: int | None = None
     delete_attempts: int = 0
     delete_requested_at: str | None = None
+    delete_empty_at: str | None = None
     last_error_logged_on: str | None = None
     updated_at: str = Field(default_factory=utc_now)
 
@@ -130,7 +131,8 @@ class PublicationStore:
     def lock(self, submission_id: str) -> Iterator[None]:
         """One lock per submission, shared by publish, expiry deletion and the sweep.
 
-        Held only for short record changes, never during uploads.
+        Held only for short record changes, never during uploads (expiry
+        deletion holds it for its LIST/DELETE requests).
         """
         self.path(submission_id)
         with _thread_lock(submission_id):

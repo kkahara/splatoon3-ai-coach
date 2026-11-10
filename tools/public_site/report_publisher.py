@@ -61,6 +61,11 @@ LOUD_AFTER_FAILURES = 6
 IDLE_SECONDS = 30.0
 ERROR_PAUSE_SECONDS = 60.0
 BARRIER_DEFER_SECONDS = 60
+# Well above the storage request timeout (60 s), so a PUT abandoned by an
+# earlier attempt has landed or failed before the record is forgotten.
+DELETE_SETTLE_SECONDS = 600
+DELETE_RECHECK_SECONDS = 60
+MAX_RECORDS_PER_PASS = 50
 STAGING_RECOVERY_SECONDS = 3600.0
 AUTO_SWEEP_SECONDS = 86400.0
 _NEW_RUN_CODES = frozenset({"checksum", "conflict", "local_changed", "staging_unsafe"})
@@ -139,12 +144,16 @@ class ReportDeleter:
     def __init__(self, eraser: ReportEraser) -> None:
         self._eraser = eraser
 
-    def delete_submission(self, submission_id: str) -> bool:
-        """Delete every object under the submission prefix. True when LIST is then empty."""
+    def delete_submission(self, submission_id: str) -> tuple[int, bool]:
+        """Delete every object under the submission prefix.
+
+        Returns how many objects were deleted and whether LIST is then empty.
+        """
         prefix = f"reports/{submission_id}/"
-        for item in self._eraser.list_objects(prefix):
+        found = self._eraser.list_objects(prefix)
+        for item in found:
             self._eraser.delete(item.key)
-        return not self._eraser.list_objects(prefix)
+        return len(found), not self._eraser.list_objects(prefix)
 
 
 @dataclass
@@ -219,6 +228,7 @@ class ReportPublisher:
             record.delete_requested_at = _stamp(self._clock())
             record.next_attempt_at = record.delete_requested_at
             record.delete_attempts = 0
+            record.delete_empty_at = None
             return record
 
         self.publications.update(submission_id, change)
@@ -260,10 +270,17 @@ class ReportPublisher:
         self._wake.set()
 
     def _loop(self) -> None:
-        self.startup()
+        """Startup, then passes. Startup is retried until it succeeds and no
+        record is processed before it has. Per-record failures are handled in
+        ``run_once``; the pause is the last resort for anything else.
+        """
+        started = False
         while not self._stop.is_set():
             worked = False
             try:
+                if not started:
+                    self.startup()
+                    started = True
                 worked = self.run_once()
                 self._periodic()
             except Exception as exc:  # noqa: BLE001 — the thread must survive
@@ -320,19 +337,61 @@ class ReportPublisher:
     # Processing.
 
     def run_once(self) -> bool:
-        """Handle the most overdue record. True when something was attempted."""
+        """Attempt due records, most overdue first. True when something was attempted.
+
+        Stops after the first attempt that completes (successfully or with a
+        normal recorded failure). A record whose attempt raises is backed off on
+        its own and the next due record is tried in the same pass. Each record
+        is tried at most once per pass, and at most ``MAX_RECORDS_PER_PASS``.
+        """
         self._drop_stale_runs()
         now = self._clock()
         due = [r for r in self.publications.list() if self._is_due(r, now)]
         due.sort(key=lambda r: (r.state != "delete_pending", r.next_attempt_at or ""))
-        if not due:
+        for record in due[:MAX_RECORDS_PER_PASS]:
+            if self._attempt_record(record):
+                break
+        return bool(due)
+
+    def _attempt_record(self, record: ReportPublication) -> bool:
+        """One record's attempt. False when it raised and was backed off."""
+        try:
+            if record.state == "delete_pending":
+                self._delete(record.submission_id)
+            else:
+                self._publish(record.submission_id)
+        except Exception as exc:  # noqa: BLE001 — isolate this record
+            code = unexpected_error_code(exc)
+            logger.warning(
+                "report record attempt raised {} ({}): submission={}",
+                type(exc).__name__,
+                code,
+                record.submission_id,
+            )
+            self._close(record.submission_id)
+            self._back_off(record.submission_id, record.state, code)
             return False
-        record = due[0]
-        if record.state == "delete_pending":
-            self._delete(record.submission_id)
-        else:
-            self._publish(record.submission_id)
         return True
+
+    def _back_off(self, submission_id: str, state: str, code: ErrorCode) -> None:
+        """Push one record's next attempt out by its normal backoff."""
+        now = self._clock()
+
+        def change(record: ReportPublication | None) -> ReportPublication | None:
+            if record is None or record.state != state:
+                return None
+            record.last_error = code
+            if state == "delete_pending":
+                record.delete_attempts += 1
+                delay = delete_backoff(record.delete_attempts)
+            else:
+                record.attempts += 1
+                record.attempt_run_id = None
+                delay = publish_backoff(record.attempts)
+            record.next_attempt_at = _stamp(now + timedelta(seconds=delay))
+            return record
+
+        self.publications.update(submission_id, change)
 
     def _is_due(self, record: ReportPublication, now: datetime) -> bool:
         if record.state == "delete_pending" and self.deleter is None:
@@ -513,23 +572,18 @@ class ReportPublisher:
             raise PublishFailure("checksum")
 
     def _commit(self, submission_id: str, active: _ActiveRun) -> None:
+        """Re-check under the lock, PUT the bundle (barrier held, lock not),
+        re-check under the lock again, then mark ``verified``.
+        """
         with self.publications.lock(submission_id):
-            record = self.publications.get(submission_id)
-            if (
-                record is None
-                or record.state != "pending"
-                or record.attempt_run_id != active.run_id
-            ):
-                self._close(submission_id)
+            if self._still_current(submission_id, active) is None:
                 return
-            submission = self.store.get(submission_id)
-            if submission is None or submission.status != "complete":
-                if submission is not None and submission.status == "expired":
-                    self._expire_locked(record)
-                self._close(submission_id)
+        _recheck_local(active.prepared)
+        self._put_bundle(submission_id, active)
+        with self.publications.lock(submission_id):
+            record = self._still_current(submission_id, active)
+            if record is None:
                 return
-            _recheck_local(active.prepared)
-            self._put_bundle(submission_id, active)
             self._mark_verified(record, active)
         self._close(submission_id)
         logger.info(
@@ -538,6 +592,30 @@ class ReportPublisher:
             active.run_id,
             len(active.prepared.files) + 1,
         )
+
+    def _still_current(
+        self, submission_id: str, active: _ActiveRun
+    ) -> ReportPublication | None:
+        """The record when this run may still commit (call under the record lock).
+
+        Otherwise closes the run, and moves an expired submission's record to
+        ``delete_pending``.
+        """
+        record = self.publications.get(submission_id)
+        if (
+            record is None
+            or record.state != "pending"
+            or record.attempt_run_id != active.run_id
+        ):
+            self._close(submission_id)
+            return None
+        submission = self.store.get(submission_id)
+        if submission is None or submission.status != "complete":
+            if submission is not None and submission.status == "expired":
+                self._expire_locked(record)
+            self._close(submission_id)
+            return None
+        return record
 
     def _put_bundle(self, submission_id: str, active: _ActiveRun) -> None:
         prepared = active.prepared
@@ -586,6 +664,7 @@ class ReportPublisher:
         record.attempt_run_id = None
         record.delete_requested_at = _stamp(self._clock())
         record.next_attempt_at = record.delete_requested_at
+        record.delete_empty_at = None
         self.publications.save(record)
         self._close(record.submission_id)
 
@@ -661,33 +740,59 @@ class ReportPublisher:
                 record = self.publications.get(submission_id)
                 if record is None or record.state != "delete_pending":
                     return
-                code = self._delete_prefix(submission_id)
+                deleted, code = self._delete_prefix(submission_id)
                 if code is not None:
                     self._delete_failed(record, code)
+                    return
+                if not self._settled(record, deleted):
                     return
                 self.publications.remove(submission_id)
         self._remove_canary(submission_id)
         logger.info("report prefix deleted: submission={}", submission_id)
 
-    def _delete_prefix(self, submission_id: str) -> ErrorCode | None:
-        """Delete and verify the prefix empty. None on success, else the code."""
+    def _settled(self, record: ReportPublication, deleted: int) -> bool:
+        """Whether the empty prefix may be forgotten (call under the record lock).
+
+        An empty LIST is final only when it comes at least
+        ``DELETE_SETTLE_SECONDS`` after the prefix was first seen empty with
+        nothing deleted since; until then the record stays ``delete_pending``
+        and is re-listed every ``DELETE_RECHECK_SECONDS``, deleting any late
+        object again (which restarts the settle time).
+        """
+        now = self._clock()
+        if deleted or record.delete_empty_at is None:
+            record.delete_empty_at = _stamp(now)
+        settle_at = parse_utc(record.delete_empty_at) + timedelta(
+            seconds=DELETE_SETTLE_SECONDS
+        )
+        if now >= settle_at:
+            return True
+        recheck = now + timedelta(seconds=DELETE_RECHECK_SECONDS)
+        record.next_attempt_at = _stamp(min(recheck, settle_at))
+        record.last_error = None
+        self.publications.save(record)
+        return False
+
+    def _delete_prefix(self, submission_id: str) -> tuple[int, ErrorCode | None]:
+        """Delete and verify the prefix empty: (objects deleted, error code or None)."""
         assert self.deleter is not None
         try:
-            empty = self.deleter.delete_submission(submission_id)
+            deleted, empty = self.deleter.delete_submission(submission_id)
         except OSError as exc:
-            return storage_error_code(exc)
+            return 0, storage_error_code(exc)
         except ValueError:
-            return "invalid_key"
+            return 0, "invalid_key"
         except Exception as exc:  # noqa: BLE001 — never retry without backoff
             logger.warning(
                 "report prefix deletion raised {}: submission={}",
                 type(exc).__name__,
                 submission_id,
             )
-            return "network"
-        return None if empty else "network"
+            return 0, "network"
+        return deleted, None if empty else "network"
 
     def _delete_failed(self, record: ReportPublication, code: ErrorCode) -> None:
+        record.delete_empty_at = None
         record.delete_attempts += 1
         record.last_error = code
         delay = delete_backoff(record.delete_attempts)

@@ -31,6 +31,7 @@ from report_test_helpers import (
     r2_for,
     report_client,
     run_keys,
+    settle,
 )
 from typer.testing import CliRunner
 
@@ -226,6 +227,7 @@ def test_p1a_expiry_is_recovered_by_expiry_delete_startup(
         publisher.startup()
         assert PublicationStore(root).get(a.id).state == "delete_pending"
         drain(publisher)
+        settle(publisher)
         redeployed.close()
         assert run_keys(fake, a.id) == {}
         assert PublicationStore(root).get(a.id) is None

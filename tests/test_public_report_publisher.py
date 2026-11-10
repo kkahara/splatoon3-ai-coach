@@ -27,6 +27,7 @@ from report_test_helpers import (
     report_client,
     report_settings,
     run_keys,
+    settle,
 )
 
 FLAGS = ("PUBLIC_REPORT_PUBLISH", "PUBLIC_REPORT_EXPIRY_DELETE", "PUBLIC_REPORT_SWEEP")
@@ -355,6 +356,8 @@ def test_expiry_deletion_removes_prefix_and_record(tmp_path: Path) -> None:
         fake.requests.clear()
         drain(publisher)
         assert run_keys(fake, submission.id) == {}
+        assert publisher.publications.get(submission.id).delete_empty_at
+        settle(publisher)
         assert publisher.publications.get(submission.id) is None
         assert {m for m in methods(fake)} <= {"GET", "DELETE"}
         assert all(
@@ -384,6 +387,7 @@ def test_expiry_deletion_failure_backs_off(tmp_path: Path) -> None:
         fake.fail_always = None
         clock.advance(seconds=61)
         drain(publisher)
+        settle(publisher)
         assert publisher.publications.get(submission.id) is None
 
 

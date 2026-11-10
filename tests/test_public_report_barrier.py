@@ -32,6 +32,7 @@ from report_test_helpers import (
     r2_for,
     report_client,
     run_keys,
+    settle,
 )
 
 TESTS = Path(__file__).resolve().parent
@@ -174,6 +175,7 @@ def test_expiry_deletion_and_sweep_wait_for_an_in_flight_publication(
         clock.advance(minutes=2)
         drain(publisher)
         assert run_keys(fake, submission.id) == {}
+        settle(publisher)
         assert publisher.publications.get(submission.id) is None
         client.close()
 
