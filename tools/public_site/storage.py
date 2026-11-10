@@ -59,12 +59,59 @@ def is_folder_marker(key: str) -> bool:
 
 
 class ObjectStat:
-    """Size, and the recorded SHA-256 when the object has one. The key is the one asked for."""
+    """Size, and the recorded SHA-256 when the object has one. The key is the one asked for.
 
-    def __init__(self, key: str, size_bytes: int, sha256: str | None = None) -> None:
+    ``last_modified`` is filled by listings only.
+    """
+
+    def __init__(
+        self,
+        key: str,
+        size_bytes: int,
+        sha256: str | None = None,
+        last_modified: datetime | None = None,
+    ) -> None:
         self.key = key
         self.size_bytes = size_bytes
         self.sha256 = sha256
+        self.last_modified = last_modified
+
+
+class HashingReader:
+    """A read-only file wrapper that hashes and counts exactly the bytes handed out."""
+
+    def __init__(self, handle) -> None:
+        self._handle = handle
+        self._digest = hashlib.sha256()
+        self.size_bytes = 0
+
+    def read(self, size: int = -1) -> bytes:
+        """Read like the wrapped file and account for every byte returned."""
+        block = self._handle.read(size)
+        self._digest.update(block)
+        self.size_bytes += len(block)
+        return block
+
+    def hexdigest(self) -> str:
+        """SHA-256 of everything read so far."""
+        return self._digest.hexdigest()
+
+
+def _check_sent(reader: HashingReader, digest: str, size: int) -> None:
+    if reader.hexdigest() != digest or reader.size_bytes != size:
+        raise OSError("storage put failed (checksum)")
+
+
+def _hash_stream(handle) -> tuple[int, str]:
+    digest = hashlib.sha256()
+    total = 0
+    try:
+        for block in iter(lambda: handle.read(_CHUNK), b""):
+            digest.update(block)
+            total += len(block)
+    except HTTPException:
+        raise OSError("storage get failed (incomplete)") from None
+    return total, digest.hexdigest()
 
 
 class LocalStorage:
@@ -128,22 +175,45 @@ class LocalStorage:
         return path, False
 
     def put_file(
-        self, key: str, source: Path, content_type: str, sha256: str | None = None
+        self,
+        key: str,
+        source: Path,
+        content_type: str,
+        sha256: str | None = None,
+        size_bytes: int | None = None,
     ) -> ObjectStat:
-        """Copy ``source`` to ``key`` and record its SHA-256 beside it."""
+        """Copy ``source`` to ``key`` and record its SHA-256 beside it.
+
+        The bytes read from ``source`` are hashed while copying; they must match
+        ``sha256`` (and ``size_bytes`` when given).
+        """
         path = self._path(key)
         if path is None:
             raise ValueError("invalid object key")
         digest = sha256 or file_sha256(source)
         path.parent.mkdir(parents=True, exist_ok=True)
         partial = path.with_name(f".{path.name}.part")
-        shutil.copyfile(source, partial)
-        if file_sha256(partial) != digest:
+        with source.open("rb") as handle, partial.open("wb") as out:
+            reader = HashingReader(handle)
+            shutil.copyfileobj(reader, out, _CHUNK)
+        try:
+            _check_sent(reader, digest, reader.size_bytes if size_bytes is None else size_bytes)
+            if file_sha256(partial) != digest:
+                raise OSError("storage put failed (checksum)")
+        except OSError:
             partial.unlink()
-            raise OSError("storage put failed (checksum)")
+            raise
         partial.replace(path)
         _sha_sidecar(path).write_text(digest + "\n", encoding="utf-8")
         return ObjectStat(key, path.stat().st_size, digest)
+
+    def read_sha256(self, key: str) -> tuple[int, str]:
+        """Size and SHA-256 of the stored bytes. A missing object raises FileNotFoundError."""
+        path = self._path(key)
+        if path is None or not path.is_file():
+            raise FileNotFoundError(key)
+        with path.open("rb") as handle:
+            return _hash_stream(handle)
 
     def list_objects(self, prefix: str) -> list[ObjectStat]:
         """Objects under ``prefix``, sorted by key. Folder markers are excluded."""
@@ -155,7 +225,11 @@ class LocalStorage:
                 continue
             key = path.relative_to(self.objects).as_posix()
             if key.startswith(prefix):
-                found.append(ObjectStat(key, path.stat().st_size, self._recorded_sha256(path)))
+                stat = path.stat()
+                modified = datetime.fromtimestamp(stat.st_mtime, UTC)
+                found.append(
+                    ObjectStat(key, stat.st_size, self._recorded_sha256(path), modified)
+                )
         return found
 
     def copy(self, source_key: str, dest_key: str) -> ObjectStat:
@@ -315,27 +389,50 @@ class R2Storage:
             partial.unlink(missing_ok=True)
 
     def put_file(
-        self, key: str, source: Path, content_type: str, sha256: str | None = None
+        self,
+        key: str,
+        source: Path,
+        content_type: str,
+        sha256: str | None = None,
+        size_bytes: int | None = None,
     ) -> ObjectStat:
         """Upload ``source`` as ``key``. The store verifies the signed SHA-256 of the body.
 
         The digest is also stored as ``x-amz-meta-sha256`` so HEAD can verify later.
+        The bytes actually sent are hashed and counted; they must equal ``sha256``
+        and the declared size, or the put fails with ``checksum``.
         """
         uri = self._uri(key)
         digest = sha256 or file_sha256(source)
-        size = source.stat().st_size
+        size = source.stat().st_size if size_bytes is None else size_bytes
         extra = {
             "content-type": content_type,
             "content-length": str(size),
             SHA256_METADATA: digest,
         }
-        with source.open("rb") as body:
+        with source.open("rb") as handle:
+            reader = HashingReader(handle)
             status, _headers, _body = self._request(
-                "PUT", uri, extra_headers=extra, body=body, payload_sha256=digest
+                "PUT", uri, extra_headers=extra, body=reader, payload_sha256=digest
             )
         if status != 200:
             raise OSError(f"storage put failed ({status})")
+        _check_sent(reader, digest, size)
         return ObjectStat(key, size, digest)
+
+    def read_sha256(self, key: str) -> tuple[int, str]:
+        """Stream the object and return its size and SHA-256. Nothing is written to disk.
+
+        Raises:
+            FileNotFoundError: The object does not exist.
+            OSError: Any other storage, network, or length failure.
+        """
+        with self._stream("GET", self._uri(key)) as response:
+            expected = _header(dict(response.headers), "content-length")
+            size, digest = _hash_stream(response)
+        if expected is not None and int(expected) != size:
+            raise OSError("storage get failed (length)")
+        return size, digest
 
     def list_objects(self, prefix: str) -> list[ObjectStat]:
         """Objects under ``prefix``, in key order, across every page. Folder markers excluded."""
@@ -479,9 +576,109 @@ def _parse_list(body: bytes) -> tuple[list[ObjectStat], str | None]:
         ObjectStat(
             item.findtext(f"{_S3_NS}Key") or "",
             int(item.findtext(f"{_S3_NS}Size") or "0"),
+            last_modified=_parse_time(item.findtext(f"{_S3_NS}LastModified")),
         )
         for item in root.iter(f"{_S3_NS}Contents")
     ]
     truncated = (root.findtext(f"{_S3_NS}IsTruncated") or "").lower() == "true"
     token = root.findtext(f"{_S3_NS}NextContinuationToken") if truncated else None
     return items, token or None
+
+
+def _parse_time(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+REPORTS_PREFIX = "reports/"
+Storage = LocalStorage | R2Storage
+
+
+def _report_key(key: str) -> str:
+    if not key.startswith(REPORTS_PREFIX) or not valid_key(key):
+        raise ValueError("invalid report key")
+    return key
+
+
+def _report_prefix(prefix: str) -> str:
+    if not prefix.startswith(REPORTS_PREFIX) or not valid_prefix(prefix):
+        raise ValueError("invalid report prefix")
+    return prefix
+
+
+class ReportWriter:
+    """Publishing capability: HEAD, PUT, read-back and LIST under ``reports/``.
+
+    It has no delete and no copy. The publisher only ever receives this view.
+    """
+
+    def __init__(self, storage: Storage) -> None:
+        self._storage = storage
+
+    @property
+    def bucket(self) -> str:
+        """Bucket name for operator output (never a URL or credential)."""
+        return str(getattr(self._storage, "bucket", "local"))
+
+    def head(self, key: str) -> ObjectStat | None:
+        """HEAD one report object."""
+        return self._storage.head(_report_key(key))
+
+    def put_file(
+        self, key: str, source: Path, content_type: str, sha256: str, size_bytes: int
+    ) -> ObjectStat:
+        """Upload one report object; the bytes sent must match ``sha256`` and size."""
+        return self._storage.put_file(
+            _report_key(key), source, content_type, sha256, size_bytes
+        )
+
+    def read_sha256(self, key: str) -> tuple[int, str]:
+        """Read one report object back and hash it."""
+        return self._storage.read_sha256(_report_key(key))
+
+    def list_objects(self, prefix: str) -> list[ObjectStat]:
+        """List report objects under ``prefix``."""
+        return self._storage.list_objects(_report_prefix(prefix))
+
+
+class ReportLister:
+    """Read-only listing under ``reports/`` for status output. No GET, PUT or DELETE."""
+
+    def __init__(self, storage: Storage) -> None:
+        self._storage = storage
+
+    @property
+    def bucket(self) -> str:
+        """Bucket name for operator output."""
+        return str(getattr(self._storage, "bucket", "local"))
+
+    def list_objects(self, prefix: str) -> list[ObjectStat]:
+        """List report objects under ``prefix``."""
+        return self._storage.list_objects(_report_prefix(prefix))
+
+
+class ReportEraser:
+    """Deleting capability for expiry deletion and the sweep: LIST and DELETE under
+    ``reports/`` only. It cannot write or read object contents.
+    """
+
+    def __init__(self, storage: Storage) -> None:
+        self._storage = storage
+
+    @property
+    def bucket(self) -> str:
+        """Bucket name for operator output."""
+        return str(getattr(self._storage, "bucket", "local"))
+
+    def list_objects(self, prefix: str) -> list[ObjectStat]:
+        """List report objects under ``prefix``."""
+        return self._storage.list_objects(_report_prefix(prefix))
+
+    def delete(self, key: str) -> None:
+        """Delete one report object. A missing object is success."""
+        self._storage.delete(_report_key(key))

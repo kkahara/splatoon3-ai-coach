@@ -9,9 +9,11 @@ from __future__ import annotations
 import hashlib
 import hmac
 import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qsl, quote, unquote, urlsplit
 from xml.sax.saxutils import escape
@@ -25,6 +27,7 @@ class FakeObject:
 
     body: bytes
     metadata: dict[str, str] = field(default_factory=dict)
+    modified: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -39,6 +42,14 @@ class FakeS3:
     truncate_next_get: bool = False
     requests: list[tuple[str, str]] = field(default_factory=list)
     endpoint: str = ""
+    fail_always: int | None = None
+    put_delay_seconds: float = 0.0
+    put_gate: threading.Event | None = None
+    verify_payload: bool = True
+
+
+def _iso(moment: datetime) -> str:
+    return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
 def _sign(secret: str, datestamp: str, to_sign: str) -> str:
@@ -109,6 +120,14 @@ class _Handler(BaseHTTPRequestHandler):
         if self.state.fail_next:
             self._error(self.state.fail_next.pop(0), "InjectedFailure")
             return
+        if self.state.fail_always is not None:
+            self._error(self.state.fail_always, "InjectedFailure")
+            return
+        if method == "PUT":
+            if self.state.put_gate is not None:
+                self.state.put_gate.wait(30)
+            if self.state.put_delay_seconds:
+                time.sleep(self.state.put_delay_seconds)
         bucket, _, key = unquote(parts.path).lstrip("/").partition("/")
         if bucket != self.state.bucket:
             self._error(404, "NoSuchBucket")
@@ -147,7 +166,11 @@ class _Handler(BaseHTTPRequestHandler):
         if access != self.state.access_key or not hmac.compare_digest(given, expected):
             self._error(403, "SignatureDoesNotMatch")
             return False
-        if payload not in {UNSIGNED, ""} and hashlib.sha256(body).hexdigest() != payload:
+        if (
+            self.state.verify_payload
+            and payload not in {UNSIGNED, ""}
+            and hashlib.sha256(body).hexdigest() != payload
+        ):
             self._error(400, "XAmzContentSHA256Mismatch")
             return False
         return True
@@ -219,7 +242,9 @@ class _Handler(BaseHTTPRequestHandler):
         truncated = start + page < len(keys)
         items = "".join(
             f"<Contents><Key>{escape(key)}</Key>"
-            f"<Size>{len(self.state.objects[key].body)}</Size></Contents>"
+            f"<Size>{len(self.state.objects[key].body)}</Size>"
+            f"<LastModified>{_iso(self.state.objects[key].modified)}</LastModified>"
+            "</Contents>"
             for key in chunk
         )
         token = (

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -13,8 +14,12 @@ from public_site.app import open_storage
 from public_site.settings import PublicSettings
 from public_site.storage import (
     OBJECT_PREFIXES,
+    HashingReader,
     LocalStorage,
     R2Storage,
+    ReportEraser,
+    ReportLister,
+    ReportWriter,
     valid_key,
     valid_prefix,
 )
@@ -252,6 +257,96 @@ def test_local_storage_matches_the_r2_operations(tmp_path: Path) -> None:
     assert [item.key for item in local.list_objects("reports/")] == []
     with pytest.raises(FileNotFoundError):
         local.copy(f"reports/{ID}/run/bundle.json", f"exports/{ID}/b.json")
+
+
+def test_hashing_reader_accounts_for_exactly_the_bytes_read(tmp_path: Path) -> None:
+    source = _file(tmp_path, "a.bin", b"abcdef")
+    with source.open("rb") as handle:
+        reader = HashingReader(handle)
+        assert reader.read(4) == b"abcd"
+        assert (reader.size_bytes, reader.hexdigest()) == (
+            4, hashlib.sha256(b"abcd").hexdigest()
+        )
+        assert reader.read() == b"ef"
+    assert reader.hexdigest() == hashlib.sha256(b"abcdef").hexdigest()
+
+
+def test_r2_put_fails_checksum_when_the_sent_bytes_differ(tmp_path: Path) -> None:
+    source = _file(tmp_path, "a.json", b"{}")
+    key = f"reports/{ID}/r/a.json"
+    with fake_s3() as state:
+        state.verify_payload = False
+        with pytest.raises(OSError, match=r"^storage put failed \(checksum\)$"):
+            _r2(state).put_file(key, source, "application/json", "0" * 64, 2)
+        digest = hashlib.sha256(b"{}").hexdigest()
+        stored = _r2(state).put_file(key, source, "application/json", digest, 2)
+        assert (stored.size_bytes, stored.sha256) == (2, digest)
+
+
+def test_read_sha256_streams_the_stored_bytes(tmp_path: Path) -> None:
+    body = b"z" * (2 * 1024 * 1024 + 3)
+    key = f"reports/{ID}/r/clip.mp4"
+    expected = (len(body), hashlib.sha256(body).hexdigest())
+    local = LocalStorage(tmp_path / "root")
+    local.put_file(key, _file(tmp_path, "clip.mp4", body), "video/mp4")
+    assert local.read_sha256(key) == expected
+    with pytest.raises(FileNotFoundError):
+        local.read_sha256(f"reports/{ID}/r/missing.mp4")
+    with fake_s3() as state:
+        state.objects[key] = FakeObject(body)
+        r2 = _r2(state)
+        assert r2.read_sha256(key) == expected
+        with pytest.raises(FileNotFoundError):
+            r2.read_sha256(f"reports/{ID}/r/missing.mp4")
+        state.truncate_next_get = True
+        with pytest.raises(OSError, match="storage get failed"):
+            r2.read_sha256(key)
+    assert not (tmp_path / "root" / "tmp").exists()
+
+
+def test_listings_carry_last_modified(tmp_path: Path) -> None:
+    key = f"reports/{ID}/r/a.json"
+    moment = datetime(2026, 11, 1, 12, 30, tzinfo=UTC)
+    with fake_s3() as state:
+        state.objects[key] = FakeObject(b"{}", {}, moment)
+        (item,) = _r2(state).list_objects("reports/")
+    assert item.last_modified == moment
+    local = LocalStorage(tmp_path / "root")
+    local.put_file(key, _file(tmp_path, "a.json", b"{}"), "application/json")
+    (local_item,) = local.list_objects("reports/")
+    assert local_item.last_modified is not None
+    assert abs((local_item.last_modified - datetime.now(UTC)).total_seconds()) < 60
+
+
+def test_report_views_expose_only_their_capability(tmp_path: Path) -> None:
+    local = LocalStorage(tmp_path / "root")
+    source = _file(tmp_path, "a.json", b"{}")
+    digest = hashlib.sha256(b"{}").hexdigest()
+    writer, lister, eraser = ReportWriter(local), ReportLister(local), ReportEraser(local)
+    assert not hasattr(writer, "delete") and not hasattr(writer, "copy")
+    assert not hasattr(lister, "delete") and not hasattr(lister, "read_sha256")
+    assert not hasattr(lister, "put_file") and not hasattr(eraser, "put_file")
+    assert not hasattr(eraser, "read_sha256") and not hasattr(eraser, "copy")
+    writer.put_file(f"reports/{ID}/r/a.json", source, "application/json", digest, 2)
+    for view in (writer, lister, eraser):
+        assert [o.key for o in view.list_objects(f"reports/{ID}/")] == [
+            f"reports/{ID}/r/a.json"
+        ]
+        with pytest.raises(ValueError):
+            view.list_objects(f"submissions/{ID}/")
+    local.put_file(f"submissions/{ID}/source.mp4", source, "video/mp4")
+    with pytest.raises(ValueError):
+        writer.put_file(f"submissions/{ID}/x.json", source, "application/json", digest, 2)
+    with pytest.raises(ValueError):
+        writer.read_sha256(f"submissions/{ID}/source.mp4")
+    with pytest.raises(ValueError):
+        eraser.delete(f"submissions/{ID}/source.mp4")
+    with pytest.raises(ValueError):
+        eraser.delete(f"reports/{ID}/../submissions/{ID}/source.mp4")
+    assert local.head(f"submissions/{ID}/source.mp4") is not None
+    eraser.delete(f"reports/{ID}/r/a.json")
+    assert lister.list_objects("reports/") == []
+    assert writer.bucket == lister.bucket == eraser.bucket == "local"
 
 
 @pytest.mark.parametrize(
