@@ -11,6 +11,7 @@ from fake_s3_helpers import fake_s3
 from loguru import logger
 from public_site.settings import PublicSettings
 from public_site.storage import R2Storage
+from report_test_helpers import complete_submission, drain, report_client
 
 from splatoon3_ai_coach.logging_config import configure_logging
 
@@ -82,6 +83,7 @@ def test_storage_http_failures_log_only_the_status(
             lambda: r2.head(f"reports/{ID}/r/a.json"),
             lambda: r2.list_objects(f"reports/{ID}/"),
             lambda: r2.delete(f"reports/{ID}/r/a.json"),
+            lambda: r2.read_sha256(f"reports/{ID}/r/a.json"),
         ):
             state.fail_next.append(status)
             try:
@@ -91,7 +93,7 @@ def test_storage_http_failures_log_only_the_status(
             else:
                 pytest.fail("the injected failure was not raised")
     err = capfd.readouterr().err
-    assert err.count("storage operation failed") == 5
+    assert err.count("storage operation failed") == 6
     assert f"({status})" in err
     _assert_clean(err)
 
@@ -106,6 +108,27 @@ def test_network_failure_logs_no_endpoint_details(
     err = capfd.readouterr().err
     assert "storage head failed (network:" in err
     _assert_clean(err)
+
+
+@pytest.mark.parametrize("status", [403, 503])
+def test_report_publishing_failures_log_no_credentials(
+    configured: None, capfd: pytest.CaptureFixture[str], tmp_path: Path, status: int
+) -> None:
+    with fake_s3(access_key=ACCESS_KEY, secret=SECRET) as state:
+        client = report_client(
+            tmp_path, state, report_publish=True, report_expiry_delete=True
+        )
+        _token, submission = complete_submission(client, tmp_path)
+        state.fail_always = status
+        drain(client.app.state.reports)
+        record = client.app.state.reports.publications.get(submission.id)
+        assert record.last_error == f"status_{str(status)[0]}xx"
+        client.close()
+    err = capfd.readouterr().err
+    assert "report publish attempt failed" in err
+    _assert_clean(err)
+    assert state.endpoint not in err
+    assert str(tmp_path) not in err
 
 
 def test_settings_and_storage_repr_hide_credentials(tmp_path: Path) -> None:

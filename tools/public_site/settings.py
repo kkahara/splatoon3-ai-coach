@@ -15,8 +15,25 @@ _MIB = 1024 * 1024
 STORAGE_BACKENDS = ("local", "r2")
 
 
+REPORT_SETTINGS = (
+    "PUBLIC_REPORT_PUBLISH",
+    "PUBLIC_REPORT_EXPIRY_DELETE",
+    "PUBLIC_REPORT_SWEEP",
+)
+
+
 def _flag(name: str) -> bool:
     return os.environ.get(name, "").strip() == "1"
+
+
+def _strict_flag(name: str) -> bool | None:
+    """``0``/unset is off, ``1`` is on, anything else is ``None`` (invalid)."""
+    value = os.environ.get(name, "").strip()
+    if value in {"", "0"}:
+        return False
+    if value == "1":
+        return True
+    return None
 
 
 _legacy_capacity_warned = False
@@ -105,6 +122,10 @@ class PublicSettings:
     payment_hold_seconds: int = 24 * 60 * 60
     contact_to: str = ""
     contact_messages_per_hour: int = 5
+    # Report publishing opt-ins. None means the variable held an invalid value.
+    report_publish: bool | None = False
+    report_expiry_delete: bool | None = False
+    report_sweep: bool | None = False
 
     @property
     def r2_ready(self) -> bool:
@@ -122,6 +143,21 @@ class PublicSettings:
             return "PUBLIC_STORAGE must be local or r2"
         if self.storage == "r2" and not self.r2_ready:
             return "R2 credentials are required when PUBLIC_STORAGE=r2"
+        return None
+
+    @property
+    def reports_enabled(self) -> bool:
+        """True when any report setting is on. Off means no report R2 client at all."""
+        return bool(self.report_publish or self.report_expiry_delete or self.report_sweep)
+
+    def report_problem(self) -> str | None:
+        """Why the report settings cannot start, or None. Never includes a value."""
+        values = (self.report_publish, self.report_expiry_delete, self.report_sweep)
+        for name, value in zip(REPORT_SETTINGS, values, strict=True):
+            if value is None:
+                return f"{name} must be 0 or 1"
+        if self.reports_enabled and not self.r2_ready:
+            return "R2 credentials are required when a PUBLIC_REPORT_* setting is 1"
         return None
 
     @classmethod
@@ -191,4 +227,7 @@ class PublicSettings:
             payment_hold_seconds=int(os.environ.get("PUBLIC_PAYMENT_HOLD_SECONDS", str(24 * 60 * 60))),
             contact_to=os.environ.get("PUBLIC_CONTACT_TO", "").strip(),
             contact_messages_per_hour=int(os.environ.get("PUBLIC_CONTACT_PER_HOUR", "5")),
+            report_publish=_strict_flag("PUBLIC_REPORT_PUBLISH"),
+            report_expiry_delete=_strict_flag("PUBLIC_REPORT_EXPIRY_DELETE"),
+            report_sweep=_strict_flag("PUBLIC_REPORT_SWEEP"),
         )

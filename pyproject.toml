@@ -58,6 +58,9 @@ pythonpath = [
     "tools/studies",
 ]
 addopts = "-ra"
+markers = [
+    "rollback: P1-A to P1-B report rollback recovery (needs git and the frozen tag)",
+]
 
 [tool.ruff]
 line-length = 90

@@ -13,6 +13,7 @@ from splatoon3_ai_coach.cli.extract import extract
 from splatoon3_ai_coach.cli.inspect import inspect
 from splatoon3_ai_coach.cli.public_monitor import public_monitor
 from splatoon3_ai_coach.cli.public_site import public_admin_app, public_site
+from splatoon3_ai_coach.cli.public_site_reports import public_site_reports_app
 from splatoon3_ai_coach.cli.refuse import refuse
 from splatoon3_ai_coach.cli.review import review_app
 from splatoon3_ai_coach.cli.vision_view import vision_view
@@ -43,6 +44,7 @@ app.command("vmv-site")(vmv_site)
 app.command("public-site")(public_site)
 app.command("public-monitor")(public_monitor)
 app.add_typer(public_admin_app, name="public-admin")
+app.add_typer(public_site_reports_app, name="public-site-reports")
 app.command("coach-inputs")(coach_inputs)
 app.command("coach-prototype")(coach_prototype)
 app.command("coach-reannotate-flags")(coach_reannotate_flags)

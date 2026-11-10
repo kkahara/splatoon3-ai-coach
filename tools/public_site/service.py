@@ -72,6 +72,7 @@ from public_site.vouchers import (
 
 if TYPE_CHECKING:
     from public_site.recording_service import RecordingService
+    from public_site.report_publisher import ReportPublisher
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _CLAIM_STALE = timedelta(minutes=2)
@@ -114,6 +115,7 @@ class SubmissionService:
         self.payments = payments
         self.checkout = checkout
         self.recordings: RecordingService | None = None
+        self.reports: ReportPublisher | None = None
         self.vouchers = vouchers
         self.probe = probe or (lambda path: probe_file(path, settings))
         self.limiter = RateLimiter(
@@ -785,6 +787,7 @@ class SubmissionService:
                 "moment frame source unavailable for submission {}", submission.id
             )
             return
+        before = _media_count(analysis)
         try:
             extract_clips(analysis, path, submission_id=submission.id)
             extract_frames(analysis, path, submission_id=submission.id)
@@ -792,6 +795,8 @@ class SubmissionService:
         finally:
             if temporary and path.is_file():
                 path.unlink()
+        if _media_count(analysis) > before:
+            self._report_hook("media_added", submission.id)
 
     def _require(self, token: str) -> Submission:
         found = self.store.get_by_hash(hash_token(token))
@@ -921,6 +926,19 @@ class SubmissionService:
         submission.error = EXPIRED
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
+        self._report_hook("submission_expired", submission.id)
+
+    def note_report_completed(self, submission_id: str) -> None:
+        """Queue a completed report for publishing. Local record only; never fails."""
+        self._report_hook("submission_completed", submission_id)
+
+    def _report_hook(self, action: str, submission_id: str) -> None:
+        if self.reports is None:
+            return
+        try:
+            getattr(self.reports, action)(submission_id)
+        except Exception as exc:  # noqa: BLE001 — publishing never affects serving
+            logger.warning("report hook {} failed ({})", action, type(exc).__name__)
 
     def _quote(self, user_id: str | None) -> PriceQuote | None:
         if self.payments is None:
@@ -1358,3 +1376,13 @@ def _match_seconds(video: object) -> int | None:
     if raw <= 0:
         return None
     return int(raw)
+
+
+def _media_count(analysis: Path) -> int:
+    """Stored clips plus stills; used to notice media filled in after completion."""
+    total = 0
+    for folder, pattern in (("public_clips", "*.mp4"), ("public_frames", "*.jpg")):
+        directory = analysis / folder
+        if directory.is_dir():
+            total += sum(1 for path in directory.glob(pattern) if path.is_file())
+    return total

@@ -28,6 +28,7 @@ from public_site.payments import PaymentStore
 from public_site.recording_routes import register_recording_routes
 from public_site.recording_service import RecordingService
 from public_site.recording_store import RecordingStore
+from public_site.report_publisher import build_report_publisher
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
@@ -196,9 +197,13 @@ def create_app(
     payments: PaymentStore | None = None,
     checkout: CheckoutGateway | None = None,
     capacities: WorkerCapacityStore | None = None,
+    report_storage: LocalStorage | R2Storage | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
+    report_problem = settings.report_problem()
+    if report_problem is not None:
+        raise ValueError(report_problem)
     store = store or PublicStore(settings.root)
     storage = storage or open_storage(settings)
     notices = notices or NoticeSender(settings)
@@ -243,6 +248,9 @@ def create_app(
             settings.retention_days, settings.account_retention_days
         )
         service.recordings = RecordingService(service, recording_store)
+    service.reports = build_report_publisher(settings, store, service, report_storage)
+    if service.reports is not None and start_worker:
+        service.reports.start()
     worker = PublicWorker(
         settings,
         store,
@@ -256,6 +264,7 @@ def create_app(
     app.state.store = store
     app.state.service = service
     app.state.worker = worker
+    app.state.reports = service.reports
     app.state.accounts = accounts
     app.state.telemetry = telemetry
     app.state.payments = payments

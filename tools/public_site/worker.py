@@ -383,6 +383,7 @@ class PublicWorker:
             )
         notice = "no_moments" if outcome == "no_deaths" else "ready"
         self.service.note_analysis_completed(submission.id)
+        self.service.note_report_completed(submission.id)
         self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
         self._stage_seconds.pop(submission.id, None)

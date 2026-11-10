@@ -43,6 +43,9 @@ def public_site(
     storage_problem = settings.storage_problem()
     if storage_problem is not None:
         raise typer.BadParameter(storage_problem)
+    report_problem = settings.report_problem()
+    if report_problem is not None:
+        raise typer.BadParameter(report_problem)
     try:
         build_verifier(settings)
     except RuntimeError as exc:
