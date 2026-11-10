@@ -250,12 +250,16 @@ Runs on the published bytes before the first PUT. A finding blocks the record
   - One function (`report_known.submission_known_values`) builds them for both
     the publisher and `scan`. Acquisition values come from the app's
     `recordings` store, or, when review codes are disabled, from the same
-    read-only `RecordingStore.get` query on `PUBLIC_DATABASE_URL`. A database
-    without the acquisition table holds no acquisitions.
-  - A value group that cannot be retrieved is reported by name
-    (`submission_values`: no submission projection; `acquisition_values`: the
-    lookup failed, or a review-code submission has no lookup). The publisher
-    fails closed on it; `scan` reports it.
+    read-only `RecordingStore.get` query on `PUBLIC_DATABASE_URL`.
+  - A value group that cannot be retrieved is reported by name:
+    `submission_values` when there is no submission projection, and
+    `acquisition_values` when the lookup fails for any submission. A
+    review-code submission must have an acquisition row, so it is also
+    `acquisition_values` when there is no lookup or no row. A database
+    without the acquisition table counts as no row.
+  - An upload without an acquisition row is fully checked.
+  - The publisher fails closed on any unchecked group; `scan` reports it and
+    never counts the analysis as clean.
 - **MP4 (ffprobe):** format tags within `major_brand`, `minor_version`,
   `compatible_brands`, `encoder`; stream tags within `handler_name`,
   `vendor_id`, `language`, `encoder`; handler names `VideoHandler` and

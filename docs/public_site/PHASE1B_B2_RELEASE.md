@@ -36,6 +36,10 @@ Each item changes behavior documented in the first B2 review package.
     service was checked without its acquisition values. When review codes
     are disabled, the publisher now reads the same row from
     `PUBLIC_DATABASE_URL`.
+  - A review-code submission with no acquisition row is unchecked, in both
+    the publisher and `scan`. This covers no lookup, a failing lookup, a
+    lookup that returns no row, and a database without the acquisition
+    table. Uploads without an acquisition row stay fully checked.
 - **R2, in-flight write barrier.**
   - A new non-blocking per-submission `flock`
     (`report_publications/.writers/<id>.lock`) is held by each publication

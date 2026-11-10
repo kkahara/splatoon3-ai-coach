@@ -39,26 +39,35 @@ def submission_known_values(
     """Personal values, acquisition values and configured secrets for one submission.
 
     - Without a submission projection, its personal values are ``unchecked``.
-    - With an acquisition lookup, every submission's acquisition row is read (a
-      plain upload has none). A lookup error marks the acquisition ``unchecked``.
-    - Without a lookup, a review-code submission's acquisition is ``unchecked``;
-      an upload has no acquisition to check.
+    - A lookup error marks the acquisition ``unchecked`` for any submission.
+    - A review-code submission must have an acquisition row: no lookup, a lookup
+      error or no row (including a database without the acquisition table) all
+      mark its acquisition ``unchecked``.
+    - An upload without an acquisition row is fully checked.
     """
-    unchecked: list[str] = []
     if submission is None:
         return KnownResult(known_values(settings, None, None), [UNCHECKED_SUBMISSION])
-    acquisition = None
-    if lookup is not None:
-        try:
-            acquisition = lookup(submission.id)
-        except Exception:  # noqa: BLE001 — any lookup failure: values unknown
-            unchecked.append(UNCHECKED_ACQUISITION)
-    elif submission.input_type == "review_code":
-        unchecked.append(UNCHECKED_ACQUISITION)
+    acquisition, available = _acquisition(submission, lookup)
     known = known_values(
         settings, submission, store.get_video(submission.id), None, acquisition
     )
-    return KnownResult(known, unchecked)
+    return KnownResult(known, [] if available else [UNCHECKED_ACQUISITION])
+
+
+def _acquisition(
+    submission: Submission, lookup: AcquisitionLookup | None
+) -> tuple[dict | None, bool]:
+    """The acquisition row and whether its values are known."""
+    review_code = submission.input_type == "review_code"
+    if lookup is None:
+        return None, not review_code
+    try:
+        acquisition = lookup(submission.id)
+    except Exception:  # noqa: BLE001 — any lookup failure: values unknown
+        return None, False
+    if acquisition is None:
+        return None, not review_code
+    return acquisition, True
 
 
 def recordings_lookup(service) -> AcquisitionLookup | None:
@@ -73,8 +82,9 @@ def database_lookup(settings: PublicSettings) -> AcquisitionLookup | None:
     """A read-only acquisition lookup from ``database_url``, or None without one.
 
     Uses the same ``RecordingStore.get`` query as the app. A database without the
-    acquisition table holds no acquisitions, so that reads as "no row"; every
-    other error propagates (and becomes ``unchecked``).
+    acquisition table holds no acquisitions, so that reads as "no row": an
+    upload stays fully checked and a review-code submission is ``unchecked``.
+    Every other error propagates (and becomes ``unchecked``).
     """
     if not settings.database_url:
         return None

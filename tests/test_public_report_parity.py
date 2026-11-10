@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,7 @@ from public_site.report_bundle import BundleError, prepare_bundle
 from public_site.report_known import (
     UNCHECKED_ACQUISITION,
     UNCHECKED_SUBMISSION,
-    KnownResult,
+    AcquisitionLookup,
     database_lookup,
     submission_known_values,
 )
@@ -22,6 +23,7 @@ from public_site.report_ops import scan
 from public_site.store import PublicStore
 from report_bundle_fixture import add_media, write_report_fixture
 from report_test_helpers import (
+    Clock,
     complete_submission,
     methods,
     report_client,
@@ -150,33 +152,71 @@ def test_clean_review_code_analysis_with_its_acquisition_is_clean(tmp_path: Path
     assert report.unchecked == {}
 
 
-def test_review_code_analysis_without_a_lookup_is_reported_unchecked(
-    tmp_path: Path,
+def _no_row(_submission_id: str) -> dict | None:
+    return None
+
+
+def _raises(_submission_id: str) -> dict | None:
+    raise ConnectionError("database unavailable")
+
+
+def _missing_table(monkeypatch, settings) -> AcquisitionLookup:
+    """``database_lookup`` over a database without ``review_code_acquisitions``."""
+    from psycopg import errors
+    from public_site.recording_store import RecordingStore
+
+    def get(_self, _submission_id: str) -> dict | None:
+        raise errors.UndefinedTable("review_code_acquisitions does not exist")
+
+    monkeypatch.setattr(RecordingStore, "get", get)
+    lookup = database_lookup(
+        replace(settings, database_url="postgresql://unused.invalid/coach_test")
+    )
+    assert lookup is not None
+    return lookup
+
+
+MISSING = {
+    "no_lookup": lambda monkeypatch, settings: None,
+    "lookup_raises": lambda monkeypatch, settings: _raises,
+    "no_row": lambda monkeypatch, settings: _no_row,
+    "missing_table": _missing_table,
+}
+
+
+@pytest.mark.parametrize("case", list(MISSING))
+def test_review_code_without_acquisition_values_is_unchecked_never_clean(
+    tmp_path: Path, monkeypatch, case: str
 ) -> None:
-    settings, _store, analysis = _setup(tmp_path)
+    settings, store, analysis = _setup(tmp_path)
     _plant(analysis, "イカすプレイヤー")
-    report = scan(settings)
+    lookup = MISSING[case](monkeypatch, settings)
+    result = submission_known_values(settings, store, store.get(SID), lookup)
+    assert result.unchecked == [UNCHECKED_ACQUISITION]
+    report = scan(settings, acquisitions=lookup)
     assert report.findings == {}
-    assert report.analyses_clean == 0
-    assert report.analyses_unchecked == 1
-    assert report.unchecked == {UNCHECKED_ACQUISITION: 1}
-
-
-def test_failing_lookup_is_reported_unchecked_not_clean(tmp_path: Path) -> None:
-    settings, _store, _analysis = _setup(tmp_path, input_type="video")
-
-    def broken(_submission_id: str) -> dict | None:
-        raise ConnectionError("database unavailable")
-
-    report = scan(settings, acquisitions=broken)
     assert (report.analyses_clean, report.analyses_unchecked) == (0, 1)
     assert report.unchecked == {UNCHECKED_ACQUISITION: 1}
 
 
-def test_upload_without_a_lookup_is_fully_checked(tmp_path: Path) -> None:
-    settings, _store, _analysis = _setup(tmp_path, input_type="video")
-    report = scan(settings)
+@pytest.mark.parametrize("case", ["no_lookup", "no_row", "missing_table"])
+def test_upload_without_an_acquisition_row_is_fully_checked(
+    tmp_path: Path, monkeypatch, case: str
+) -> None:
+    settings, store, _analysis = _setup(tmp_path, input_type="video")
+    lookup = MISSING[case](monkeypatch, settings)
+    assert (
+        submission_known_values(settings, store, store.get(SID), lookup).unchecked == []
+    )
+    report = scan(settings, acquisitions=lookup)
     assert (report.analyses_clean, report.analyses_unchecked) == (1, 0)
+
+
+def test_upload_with_a_failing_lookup_is_unchecked(tmp_path: Path) -> None:
+    settings, _store, _analysis = _setup(tmp_path, input_type="video")
+    report = scan(settings, acquisitions=_raises)
+    assert (report.analyses_clean, report.analyses_unchecked) == (0, 1)
+    assert report.unchecked == {UNCHECKED_ACQUISITION: 1}
 
 
 def test_analysis_without_a_submission_projection_is_unchecked(tmp_path: Path) -> None:
@@ -186,27 +226,44 @@ def test_analysis_without_a_submission_projection_is_unchecked(tmp_path: Path) -
     assert (report.analyses_clean, report.analyses_unchecked) == (0, 1)
 
 
-def test_publisher_fails_closed_when_acquisition_values_are_unknown(
-    tmp_path: Path,
+def _stamp(moment: datetime) -> str:
+    return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+@pytest.mark.parametrize("case", list(MISSING))
+def test_publisher_fails_closed_for_a_review_code_without_acquisition_values(
+    tmp_path: Path, monkeypatch, case: str
 ) -> None:
+    clock = Clock(datetime.now(UTC).replace(microsecond=0))
     with fake_s3() as fake:
-        client = report_client(tmp_path, fake, report_publish=True)
+        client = report_client(tmp_path, fake, clock=clock, report_publish=True)
         _token, submission = complete_submission(client, tmp_path)
+        store = client.app.state.store
+        submission.input_type = "review_code"
+        store.save_submission(submission)
         publisher = client.app.state.reports
-        known = publisher._known
-        publisher._known = lambda sub: KnownResult(
-            known(sub).known, [UNCHECKED_ACQUISITION]
-        )
-        publisher.run_once()
+        settings = client.app.state.settings
+        if case != "no_lookup":
+            lookup = MISSING[case](monkeypatch, settings)
+            publisher._known = lambda sub: submission_known_values(
+                settings, store, sub, lookup
+            )
+        assert publisher.run_once() is True
         record = publisher.publications.get(submission.id)
         assert (record.state, record.last_error, record.attempts) == (
             "pending",
             "network",
             1,
         )
-        assert record.next_attempt_at > submission.updated_at
-        assert "PUT" not in methods(fake)
+        assert record.next_attempt_at == _stamp(clock.now + timedelta(seconds=60))
         assert publisher.run_once() is False
+        clock.advance(seconds=61)
+        assert publisher.run_once() is True
+        record = publisher.publications.get(submission.id)
+        assert record.attempts == 2
+        assert record.next_attempt_at == _stamp(clock.now + timedelta(seconds=300))
+        assert "PUT" not in methods(fake)
+        client.close()
 
 
 def test_scan_reads_acquisition_values_from_the_database(site) -> None:  # noqa: F811
