@@ -47,6 +47,14 @@ def copy_lifecycle(source: Submission, target: Submission) -> None:
         setattr(target, name, getattr(source, name))
 
 
+def _claimable(item: Submission, admit: Callable[[Submission], bool] | None) -> bool:
+    if item.status != "queued":
+        return False
+    if item.input_type == "video":
+        return True
+    return admit is not None and admit(item)
+
+
 def _write_atomic(path: Path, text: str) -> None:
     """Replace ``path`` so a concurrent reader never sees half a record."""
     temporary = path.with_name(f".{path.name}.{threading.get_ident()}.tmp")
@@ -164,8 +172,17 @@ class PublicStore:
         """How many submissions currently have ``status``."""
         return sum(1 for item in self.list_submissions() if item.status == status)
 
-    def claim_oldest_queued(self, worker_id: str, now: str) -> Submission | None:
+    def claim_oldest_queued(
+        self,
+        worker_id: str,
+        now: str,
+        admit: Callable[[Submission], bool] | None = None,
+    ) -> Submission | None:
         """Move the oldest queued submission to ``processing`` for ``worker_id``.
+
+        Uploaded videos need only ``queued``. A review-code submission is never
+        claimed on its local status alone: ``admit`` must confirm it, and
+        without ``admit`` it is never claimed.
 
         Local-worker mechanism only. The thread lock covers job threads in this
         process and ``flock`` covers processes that share this directory on one
@@ -174,7 +191,7 @@ class PublicStore:
         atomic operation.
         """
         with _CLAIM_LOCK, self._claim_file_lock():
-            for candidate in self._queued_oldest_first():
+            for candidate in self._queued_oldest_first(admit):
                 claimed = self._claim_one(candidate.id, worker_id, now)
                 if claimed is not None:
                     return claimed
@@ -197,8 +214,10 @@ class PublicStore:
         claimed = self.update(submission_id, take)
         return claimed if won else None
 
-    def _queued_oldest_first(self) -> list[Submission]:
-        queued = [item for item in self.list_submissions() if item.status == "queued" and item.input_type == "video"]
+    def _queued_oldest_first(
+        self, admit: Callable[[Submission], bool] | None = None
+    ) -> list[Submission]:
+        queued = [item for item in self.list_submissions() if _claimable(item, admit)]
         return sorted(queued, key=lambda item: item.created_at)
 
     @contextmanager

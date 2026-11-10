@@ -600,12 +600,21 @@ def test_migration_is_repeatable_and_historical_models_keep_video_defaults(site)
 
 
 def test_review_code_never_claimed_even_if_filesystem_status_is_queued(site) -> None:
+    """Unverified is never claimed; ``test_public_recording_intake`` claims verified."""
     created = _paid(site)
     svc = site.app.state.service
     item = svc.store.get(created["submission_id"])
     item.status = "queued"
     svc.store.save_submission(item)
+    worker = site.app.state.worker
     assert svc.store.claim_oldest_queued("test-worker", "2026-11-08T00:00:00Z") is None
+    assert (
+        svc.store.claim_oldest_queued(
+            "test-worker", "2026-11-08T00:00:00Z", admit=worker._admit_review_code
+        )
+        is None
+    )
+    assert not worker.tick()
 
 
 def test_late_verified_payment_recovers_even_after_unpaid_expiry_sweep(site) -> None:

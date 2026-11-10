@@ -221,7 +221,9 @@ class PublicWorker:
             with self._jobs_lock:
                 if len(self._jobs) >= self.capacity():
                     break
-                submission = self.store.claim_oldest_queued(self.worker_id, utc_now())
+                submission = self.store.claim_oldest_queued(
+                    self.worker_id, utc_now(), admit=self._admit_review_code
+                )
                 if submission is None:
                     break
                 self._stage_seconds[submission.id] = {}
@@ -235,6 +237,11 @@ class PublicWorker:
                 thread.start()
             started = True
         return started
+
+    def _admit_review_code(self, submission: Submission) -> bool:
+        """Only a verified, queued review-code recording; never without the feature."""
+        recordings = self.service.recordings
+        return recordings is not None and recordings.intake.admits(submission)
 
     def _run_job(self, submission: Submission) -> None:
         """Run one claimed submission. The slot is released on every path."""

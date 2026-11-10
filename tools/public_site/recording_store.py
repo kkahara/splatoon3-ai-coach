@@ -15,6 +15,9 @@ from public_site.payments import PaymentStore, PriceQuote
 from public_site.recording_models import RecordingAction, RecordingJob, normalize_code
 
 MIGRATION = Path(__file__).parent / "migrations" / "001_review_code_acquisitions.sql"
+_ANALYSIS_READY = """g.source = 'nintendo_review_code' AND g.payment_state = 'paid'
+    AND a.state = 'uploading' AND a.target_confirmed_at IS NOT NULL
+    AND a.queued_at IS NOT NULL"""
 
 
 class RecordingStore:
@@ -193,6 +196,98 @@ class RecordingStore:
                 {"handoff_reference": reference},
             )
         return True
+
+    def grant_upload(
+        self, submission_id: str, actor_id: str, expected_version: int
+    ) -> int:
+        """Allow one operator upload for a paid, target-confirmed job; return its version.
+
+        A repeated grant while still ``recording`` replaces the earlier one (the
+        object key is fixed, so a later upload overwrites the earlier object).
+        """
+        with self._conn() as conn:
+            row = self._paid_for_update(conn, submission_id, expected_version)
+            if row["state"] not in {"awaiting_recording", "recording"}:
+                raise RequestRejected(409, "This recording can no longer be uploaded.")
+            if row["target_confirmed_at"] is None:
+                raise RequestRejected(409, "Confirm the target player before uploading.")
+            version = conn.execute(
+                """UPDATE review_code_acquisitions
+                   SET state = 'recording', version = version + 1
+                   WHERE submission_id = %s RETURNING version""",
+                (submission_id,),
+            ).fetchone()["version"]
+            self._event(conn, submission_id, "recording_upload_granted", actor_id, {})
+        return version
+
+    def verify_upload(
+        self, submission_id: str, actor_id: str, expected_version: int, facts: dict
+    ) -> bool:
+        """Record server-side verification; False when this grant is no longer current."""
+        with self._conn() as conn:
+            row = conn.execute(
+                """UPDATE review_code_acquisitions
+                   SET state = 'uploading', version = version + 1
+                   WHERE submission_id = %s AND state = 'recording'
+                     AND version = %s AND target_confirmed_at IS NOT NULL
+                   RETURNING submission_id""",
+                (submission_id, expected_version),
+            ).fetchone()
+            if row is None:
+                return False
+            self._event(conn, submission_id, "recording_upload_verified", actor_id, facts)
+        return True
+
+    def record_upload_rejected(
+        self, submission_id: str, actor_id: str, reason: str
+    ) -> None:
+        """Audit a failed verification; the job stays in ``recording``."""
+        with self._conn() as conn:
+            self._event(
+                conn, submission_id, "recording_upload_rejected", actor_id, {"reason": reason}
+            )
+
+    def queue_for_analysis(self, submission_id: str) -> bool:
+        """Atomically queue a verified paid recording once. Only one caller wins."""
+        with self._conn() as conn:
+            row = conn.execute(
+                f"""UPDATE submission_gates g
+                    SET status = 'queued', uploaded = true
+                    FROM review_code_acquisitions a
+                    WHERE g.submission_id = %s AND a.submission_id = g.submission_id
+                      AND g.status = 'received' AND {_ANALYSIS_READY}
+                    RETURNING g.submission_id""",
+                (submission_id,),
+            ).fetchone()
+            if row is None:
+                return False
+            self._event(conn, submission_id, "recording_analysis_queued", None, {})
+        return True
+
+    def analysis_admitted(self, submission_id: str) -> bool:
+        """True only for a verified recording whose queue transition committed."""
+        with self._conn() as conn:
+            row = conn.execute(
+                f"""SELECT 1 FROM submission_gates g
+                    JOIN review_code_acquisitions a USING (submission_id)
+                    WHERE g.submission_id = %s AND g.status = 'queued'
+                      AND {_ANALYSIS_READY}""",
+                (submission_id,),
+            ).fetchone()
+        return row is not None
+
+    def _paid_for_update(self, conn, submission_id: str, expected_version: int) -> dict:
+        row = conn.execute(
+            """SELECT a.*, g.payment_state FROM review_code_acquisitions a
+               JOIN submission_gates g USING (submission_id)
+               WHERE a.submission_id = %s FOR UPDATE OF a""",
+            (submission_id,),
+        ).fetchone()
+        if row is None or row["queued_at"] is None or row["payment_state"] != "paid":
+            raise RequestRejected(404, "Recording job not found.")
+        if row["version"] != expected_version:
+            raise RequestRejected(409, "Job changed. Reload before applying this action.")
+        return row
 
     def mark_report_expired(self, submission_id: str, now: datetime) -> bool:
         """Durably mark a retained report expired before deleting its files."""

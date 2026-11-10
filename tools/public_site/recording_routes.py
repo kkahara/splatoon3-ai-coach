@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from public_site.accounts import Account
 from public_site.errors import RequestRejected
+from public_site.recording_intake import RecordingUploadConfirm, RecordingUploadRequest
 from public_site.recording_models import (
     RecordingAction,
     ReviewCodeCreated,
@@ -108,6 +109,34 @@ def _register_operator(app, recordings, required_admin):
         try:
             recordings.act(submission_id, actor.id, body)
             recordings.refresh_projection(submission_id)
+            return JSONResponse(
+                jsonable_encoder(recordings.database.detail(submission_id))
+            )
+        except RequestRejected as exc:
+            return _rejected(exc)
+
+    _register_intake(app, recordings, required_admin)
+
+
+def _register_intake(app, recordings, required_admin):
+    @app.post("/api/admin/recordings/{submission_id}/upload")
+    def upload(
+        submission_id: str, body: RecordingUploadRequest, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        try:
+            grant = recordings.intake.request_upload(submission_id, actor.id, body)
+            return JSONResponse(jsonable_encoder(grant))
+        except RequestRejected as exc:
+            return _rejected(exc)
+
+    @app.post("/api/admin/recordings/{submission_id}/upload/confirm")
+    def confirm_upload(
+        submission_id: str, body: RecordingUploadConfirm, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        try:
+            recordings.intake.confirm_upload(submission_id, actor.id, body)
             return JSONResponse(
                 jsonable_encoder(recordings.database.detail(submission_id))
             )

@@ -14,6 +14,7 @@ from loguru import logger
 from public_site.accounts import Account, account_email
 from public_site.errors import EXPIRED, RequestRejected
 from public_site.models import Submission
+from public_site.recording_intake import RecordingIntake
 from public_site.recording_models import (
     AcquisitionView,
     RecordingAction,
@@ -42,6 +43,7 @@ class RecordingService:
         self.service = service
         self.database = database
         self.canary = canary or CanaryStore(service.settings.root)
+        self.intake = RecordingIntake(self)
         self._published: dict[str, str] = {}
 
     def create(
