@@ -70,6 +70,64 @@ Each item changes behavior documented in the first B2 review package.
 The real-data scan of the 28 local dev analyses (571 files) is still clean
 with these changes: 0 findings, 0 unchecked, empty inventory diff.
 
+## Batch A follow-ups: behavioral changes
+
+Details and operator procedures are in `REPORT_PUBLISHING.md`
+("Review-code canary", "Delete settle (late PUTs)", "Retry policy").
+
+- **A1, review-code HMAC canary.**
+  - A per-submission HMAC-SHA-256 of the compacted, uppercased review code
+    is written to `PUBLIC_ROOT/report_canary/<id>.json` (directory 0700,
+    files 0600, owner-checked, `O_NOFOLLOW`) **before** the acquisition row
+    is inserted. Capture failure refuses the submission with 503.
+  - The key (`key.json`) is created once, under a lock, only when there is
+    no key, no canary entry and no `report_canary.epoch.json` marker. It is
+    never regenerated. A missing or unreadable key, or a missing entry for a
+    post-epoch review-code submission, makes that submission unchecked
+    (`review_code_canary`): the publisher fails closed and `scan` reports
+    it unchecked. It is never a clean result.
+  - The publisher and `scan` match the HMAC over every value, JSON string,
+    key, filename, metadata field and text run (whitespace and hyphens
+    between characters allowed). The canary outlives recording handoff and
+    is removed only with the publication record, or by the hourly prune
+    after the submission is gone.
+  - `correct_code` stages `<id>.pending.json`, updates the database, then
+    promotes it. A pending file is never a valid canary: while it exists the
+    submission is unchecked. Startup repair promotes a pending record only
+    after verifying its HMAC against the database code. Multiple pending
+    files, a mismatch, an unreadable file or a failed lookup are left in
+    place and fail closed.
+  - New `public-site-reports canary-status [--json]`: counts only (never a
+    code, HMAC or key), exit 1 on any pending record, unchecked submission,
+    unsafe directory, or key/epoch marker without a valid key.
+  - Backup: `report_canary/` and `report_canary.epoch.json` are backed up
+    together (tar procedure in `REPORT_PUBLISHING.md`).
+- **A2, privacy.**
+  - JPEG: strict segment allowlist (SOFn, DHT, DQT, DRI, SOS, DNL, RST, at
+    most one JFIF APP0 with a 14-byte body and no thumbnail, at most one
+    `Lavc` COM). Every other APPn, COM, JFXX, thumbnail and DAC is
+    `jpeg_invalid`. All 65 real stills fit the allowlist unchanged.
+  - Known values are NFKC-normalized; player and display names under four
+    characters match exactly (as a whole string value) instead of being
+    skipped; a numeric `user_id` is checked as text.
+- **A3, lifecycle.**
+  - Expiry deletion keeps the record until its prefix has stayed empty for
+    `DELETE_SETTLE_SECONDS` (600 s), re-listing every 60 s and deleting any
+    late PUT. A failed delete restarts the settle window.
+  - `run_once` attempts multiple due records per pass (at most
+    `MAX_RECORDS_PER_PASS` = 50), each at most once per pass, each with its
+    own exception handling and backoff. One record's failure never stops
+    the next. A backoff write failure is contained to its record.
+  - Publisher startup runs inside the loop and is retried after 60 s; no
+    record is processed before startup succeeds.
+  - The bundle PUT runs outside the record lock (barrier still held); the
+    run is re-checked under the lock before it is marked verified.
+- **Time budget.** The canary adds about 0.16 s per analysis on the real
+  data (28 analyses: 13.3 s without, 17.8 s with), within the 1 s budget.
+- **New tests.** `test_public_report_canary.py`,
+  `test_public_report_canary_db.py`, `test_public_report_privacy.py`,
+  `test_public_report_lifecycle.py`. Existing expiry tests call `settle()`.
+
 ## Local verification (before any gate)
 
 ```bash
