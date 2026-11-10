@@ -10,3 +10,8 @@ export function recordingQueued(view) {
   return view?.payment_state === "paid" && view?.acquisition?.contact_verified
     && ["awaiting_recording", "recording", "uploading"].includes(view.acquisition.state);
 }
+
+/** The operator may upload only after confirming the target and before verification. */
+export function canUploadRecording(job) {
+  return Boolean(job?.target_confirmed_at) && ["awaiting_recording", "recording"].includes(job.state);
+}

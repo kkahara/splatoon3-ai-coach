@@ -370,6 +370,18 @@ export async function loadRecording(id) {
   return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}`), "Recording job unavailable.");
 }
 
+export async function requestRecordingUpload(id, body) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/upload`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), "The recording upload was not granted.");
+}
+
+export async function confirmRecordingUpload(id, body) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/upload/confirm`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), "The uploaded recording could not be verified.");
+}
+
 export async function recordingAction(id, body) {
   return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/actions`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),

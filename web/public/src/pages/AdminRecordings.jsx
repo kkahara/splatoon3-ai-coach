@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { loadRecording, loadRecordings, recordingAction } from "../api.js";
+import {
+  confirmRecordingUpload, loadRecording, loadRecordings, recordingAction, requestRecordingUpload, uploadVideo,
+} from "../api.js";
+import { canUploadRecording } from "./recordingForm.js";
 
 export function AdminRecordingsPage() {
   const [jobs, setJobs] = useState([]);
@@ -11,6 +14,7 @@ export function AdminRecordingsPage() {
   const [message, setMessage] = useState("");
   const [refund, setRefund] = useState("");
   const [busy, setBusy] = useState(false);
+  const [file, setFile] = useState(null);
   async function refresh() {
     try { setJobs((await loadRecordings()).jobs); } catch (exc) { setError(exc.message); }
   }
@@ -32,6 +36,20 @@ export function AdminRecordingsPage() {
       }));
       setNote(""); await refresh();
     } catch (exc) { setError(exc.message); }
+    finally { setBusy(false); }
+  }
+  async function uploadRecording() {
+    setBusy(true); setError("");
+    try {
+      const id = detail.job.submission_id;
+      const grant = await requestRecordingUpload(id, {
+        expected_version: detail.job.version, filename: file.name,
+        content_type: file.type, size_bytes: file.size,
+      });
+      await uploadVideo(grant.upload, file);
+      setDetail(await confirmRecordingUpload(id, { expected_version: grant.version }));
+      setFile(null); await refresh();
+    } catch (exc) { setError(exc.message); await select(detail.job.submission_id); }
     finally { setBusy(false); }
   }
   const job = detail?.job;
@@ -58,6 +76,12 @@ export function AdminRecordingsPage() {
           <label>Observed target-player name<input value={name} maxLength={100} onChange={(event) => setName(event.target.value)} /></label>
           <button disabled={busy || !note.trim() || !name.trim()} onClick={() => act("confirm_target")}>Confirm target player</button>
         </> : null}
+        {canUploadRecording(job) ? <>
+          <p>Upload exactly one MP4 recording of this match. The site verifies it before queueing analysis.</p>
+          <label>Recording (MP4)<input type="file" accept="video/mp4,.mp4" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
+          <button disabled={busy || !file} onClick={uploadRecording}>Upload and verify recording</button>
+        </> : null}
+        {job.state === "uploading" ? <p>Recording verified and queued for analysis.</p> : null}
         <label>Message visible to customer (optional)<textarea value={message} maxLength={1000} onChange={(event) => setMessage(event.target.value)} /></label>
         {!["closed", "ready", "expired"].includes(job.state) ? <button disabled={busy || !note.trim()} onClick={() => act("recording_failed")}>Flag recording exception / contact customer</button> : null}
         {job.state === "recording_failed" ? <>
