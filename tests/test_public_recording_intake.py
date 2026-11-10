@@ -456,6 +456,40 @@ def test_recovery_fails_interrupted_review_code_and_never_reclaims_it(site) -> N
     assert row["review_code"] == CODE and row["recording_handoff_at"] is None
 
 
+def test_rerecording_after_failed_analysis_is_refused_not_silently_ignored(site) -> None:
+    created = _verified(site)
+    assert _claim(site) is not None
+    site.app.state.worker.recover()
+    job = _job(site, created)
+    endpoint = _endpoint(created) + "/actions"
+    failed = site.post(
+        endpoint,
+        json={
+            "action": "recording_failed",
+            "expected_version": job["version"],
+            "note": "Analysis interrupted; re-record",
+        },
+    )
+    job = failed.json()["job"]
+    corrected = site.post(
+        endpoint,
+        json={
+            "action": "correct_code",
+            "expected_version": job["version"],
+            "note": "Same code",
+            "review_code": CODE,
+        },
+    )
+    assert corrected.status_code == 200
+    _confirm_target(site, created)
+    grant = _granted(site, created)
+    _put(site, grant)
+    response = _confirm(site, created, grant["version"])
+    assert response.status_code == 409
+    assert site.app.state.service.store.get(created["submission_id"]).status == "failed"
+    assert _claim(site) is None
+
+
 def test_normal_video_is_still_claimed_beside_review_code_records(site) -> None:
     created = _paid(site)
     svc = site.app.state.service

@@ -25,6 +25,7 @@ INTAKE_TYPE = "video/mp4"
 INTAKE_FILENAME = "source.mp4"
 BAD_INTAKE_FILE = "Upload one MP4 recording (video/mp4)."
 STALE_GRANT = "The upload grant changed. Reload and upload again."
+ANALYSIS_ENDED = "Analysis for this submission has ended; it cannot be queued again."
 
 
 def intake_key(submission_id: str) -> str:
@@ -174,6 +175,8 @@ class RecordingIntake:
         svc = self.service
         submission = svc.store.get(submission_id)
         video = svc.store.get_video(submission_id)
+        if submission is not None and submission.status in {"failed", "expired"}:
+            raise RequestRejected(409, ANALYSIS_ENDED)
         if submission is None or video is None or submission.status != "received":
             return
         facts = _facts(video)
