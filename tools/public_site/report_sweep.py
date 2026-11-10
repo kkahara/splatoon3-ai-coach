@@ -300,6 +300,16 @@ class ReportSweeper:
             return None
 
     def _apply_row(self, row: SweepRow) -> str:
+        """Re-check and delete one row. A publication attempt in flight on the
+        submission (write barrier held) skips the row: nothing is deleted while a
+        writer can still add objects under the prefix.
+        """
+        with self.publications.write_barrier(row.submission_id) as held:
+            if not held:
+                return "skipped_on_recheck"
+            return self._apply_locked(row)
+
+    def _apply_locked(self, row: SweepRow) -> str:
         with self.publications.lock(row.submission_id):
             now = self._clock()
             prefix_runs = group_objects(

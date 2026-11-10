@@ -72,6 +72,7 @@ class PublicationStore:
     def __init__(self, public_root: Path) -> None:
         self.root = public_root / PUBLICATIONS_DIRNAME
         self._locks = public_root / PUBLICATIONS_DIRNAME / ".locks"
+        self._writers = public_root / PUBLICATIONS_DIRNAME / ".writers"
 
     def path(self, submission_id: str) -> Path:
         """Record file for one submission. Raises ValueError for a malformed ID."""
@@ -127,7 +128,10 @@ class PublicationStore:
 
     @contextmanager
     def lock(self, submission_id: str) -> Iterator[None]:
-        """One lock per submission, shared by publish, expiry deletion and the sweep."""
+        """One lock per submission, shared by publish, expiry deletion and the sweep.
+
+        Held only for short record changes, never during uploads.
+        """
         self.path(submission_id)
         with _thread_lock(submission_id):
             self._locks.mkdir(parents=True, exist_ok=True)
@@ -139,6 +143,33 @@ class PublicationStore:
                 yield
             finally:
                 os.close(fd)
+
+    @contextmanager
+    def write_barrier(self, submission_id: str) -> Iterator[bool]:
+        """The in-flight barrier for ``reports/<id>/``. Yields True when acquired.
+
+        A publication attempt holds it from choosing its run until the attempt
+        ends; expiry deletion and the sweep hold it while deleting. It is
+        exclusive across threads and processes and never waits: a holder elsewhere
+        yields False. The kernel releases it when the holding process dies, so a
+        crash never leaves it held. Always taken before :meth:`lock`.
+        """
+        self.path(submission_id)
+        self._writers.mkdir(parents=True, exist_ok=True)
+        fd = os.open(
+            self._writers / f"{submission_id}.lock",
+            os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_CLOEXEC,
+            0o600,
+        )
+        try:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                yield False
+                return
+            yield True
+        finally:
+            os.close(fd)
 
 
 @contextmanager

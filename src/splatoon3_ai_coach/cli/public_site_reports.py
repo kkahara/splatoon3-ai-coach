@@ -89,15 +89,22 @@ def scan(
     ),
     as_json: bool = typer.Option(False, "--json", help="Machine-readable output."),
 ) -> None:
-    """Read-only content-policy scan of local analyses. Counts by rule only."""
+    """Read-only content-policy scan of local analyses. Counts by rule only.
+
+    Acquisition values are read (SELECT only) from PUBLIC_DATABASE_URL when set;
+    analyses whose values could not be read are counted as unchecked.
+    """
     settings = _settings()
+    from public_site.report_known import database_lookup
     from public_site.report_ops import inventory_diff, inventory_payload
     from public_site.report_ops import scan as run_scan
 
-    report = run_scan(settings, analysis_root)
+    report = run_scan(settings, analysis_root, database_lookup(settings))
     payload: dict = {
         "analyses": report.analyses,
         "analyses_clean": report.analyses_clean,
+        "analyses_unchecked": report.analyses_unchecked,
+        "unchecked": dict(sorted(report.unchecked.items())),
         "files": report.files,
         "findings": dict(sorted(report.findings.items())),
         "clips_with_metadata": report.clips_with_metadata,

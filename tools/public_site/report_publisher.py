@@ -27,11 +27,16 @@ from public_site.report_bundle import (
     BundleError,
     PreparedBundle,
     PreparedFile,
-    known_values,
     prepare_bundle,
     run_key,
 )
 from public_site.report_content import CONTENT_POLICY_VERSION, KnownValues
+from public_site.report_known import (
+    KnownResult,
+    database_lookup,
+    recordings_lookup,
+    submission_known_values,
+)
 from public_site.report_publications import (
     ErrorCode,
     PublicationStore,
@@ -53,6 +58,8 @@ DELETE_BACKOFF = (60, 300, 900)
 DELETE_BACKOFF_TAIL = 3600
 LOUD_AFTER_FAILURES = 6
 IDLE_SECONDS = 30.0
+ERROR_PAUSE_SECONDS = 60.0
+BARRIER_DEFER_SECONDS = 60
 STAGING_RECOVERY_SECONDS = 3600.0
 AUTO_SWEEP_SECONDS = 86400.0
 _NEW_RUN_CODES = frozenset({"checksum", "conflict", "local_changed", "staging_unsafe"})
@@ -100,6 +107,20 @@ class PublishFailure(Exception):
         self.rule = rule
 
 
+class _RunInvalidated(Exception):
+    """The run's record or submission changed; stop writing to its prefix."""
+
+
+def unexpected_error_code(exc: BaseException) -> ErrorCode:
+    """Closed-vocabulary code for an exception no other handler classified.
+
+    A missing local file is ``local_missing``; anything else (another filesystem
+    error or an unexpected exception) is ``local_changed``. Either backs off and
+    the next attempt starts a new run.
+    """
+    return "local_missing" if isinstance(exc, FileNotFoundError) else "local_changed"
+
+
 def storage_error_code(exc: OSError) -> ErrorCode:
     """Map a storage exception (status and operation only) to the closed vocabulary."""
     text = str(exc)
@@ -141,7 +162,7 @@ class ReportPublisher:
         store: PublicStore,
         publications: PublicationStore,
         staging: StagingArea,
-        known: Callable[[Submission], KnownValues],
+        known: Callable[[Submission], KnownResult],
         writer: ReportWriter | None = None,
         deleter: ReportDeleter | None = None,
         sweeper=None,
@@ -244,6 +265,8 @@ class ReportPublisher:
                 self._periodic()
             except Exception as exc:  # noqa: BLE001 — the thread must survive
                 logger.error("report publisher error ({})", type(exc).__name__)
+                self._stop.wait(ERROR_PAUSE_SECONDS)
+                continue
             if not worked:
                 self._wake.wait(IDLE_SECONDS)
                 self._wake.clear()
@@ -312,15 +335,60 @@ class ReportPublisher:
             active.staging.close()
 
     def _publish(self, submission_id: str) -> None:
-        try:
-            active = self._begin(submission_id)
-            if active is None:
+        """One attempt, holding the write barrier from choosing the run to the end."""
+        with self.publications.write_barrier(submission_id) as held:
+            if not held:
+                self._defer(submission_id, "pending")
                 return
-            for item in active.prepared.files:
-                self._upload(submission_id, active.run_id, item)
-            self._commit(submission_id, active)
-        except PublishFailure as exc:
-            self._fail(submission_id, exc.code, exc.rule)
+            try:
+                self._attempt(submission_id)
+            except _RunInvalidated:
+                self._close(submission_id)
+            except PublishFailure as exc:
+                self._fail(submission_id, exc.code, exc.rule)
+            except Exception as exc:  # noqa: BLE001 — never retry without backoff
+                code = unexpected_error_code(exc)
+                logger.warning(
+                    "report publish attempt raised {} ({}): submission={}",
+                    type(exc).__name__,
+                    code,
+                    submission_id,
+                )
+                self._close(submission_id)
+                self._fail(submission_id, code, None, new_run=True)
+
+    def _attempt(self, submission_id: str) -> None:
+        active = self._begin(submission_id)
+        if active is None:
+            return
+        for item in active.prepared.files:
+            self._ensure_current(submission_id, active.run_id)
+            self._upload(submission_id, active.run_id, item)
+        self._commit(submission_id, active)
+
+    def _ensure_current(self, submission_id: str, run_id: str) -> None:
+        """Stop before the next object when the run was invalidated (expiry, a
+        newer run, a removed record or a submission that is no longer complete).
+        """
+        record = self.publications.get(submission_id)
+        if record is None or record.state != "pending" or record.attempt_run_id != run_id:
+            raise _RunInvalidated
+        submission = self.store.get(submission_id)
+        if submission is None or submission.status != "complete":
+            raise _RunInvalidated
+
+    def _defer(self, submission_id: str, state: str) -> None:
+        """Another holder has the write barrier: try again shortly. Not a failure."""
+
+        def change(record: ReportPublication | None) -> ReportPublication | None:
+            if record is None or record.state != state:
+                return None
+            later = self._clock() + timedelta(seconds=BARRIER_DEFER_SECONDS)
+            record.next_attempt_at = _stamp(later)
+            return record
+
+        self.publications.update(submission_id, change)
+        logger.info("report prefix busy, deferred: submission={}", submission_id)
 
     def _begin(self, submission_id: str) -> _ActiveRun | None:
         with self.publications.lock(submission_id):
@@ -352,12 +420,7 @@ class ReportPublisher:
         except (StagingUnsafe, OSError):
             raise PublishFailure("staging_unsafe") from None
         try:
-            known = self._known(submission)
-        except Exception as exc:  # noqa: BLE001 — unknown canaries: retry later
-            staging.close()
-            logger.warning("report canary lookup failed ({})", type(exc).__name__)
-            raise PublishFailure("network") from None
-        try:
+            known = self._known_values(submission)
             prepared = prepare_bundle(
                 Path(submission.analysis_dir or ""),
                 submission_id=submission.id,
@@ -377,6 +440,18 @@ class ReportPublisher:
         active = _ActiveRun(run_id=run_id, staging=staging, prepared=prepared)
         self._active[submission.id] = active
         return active
+
+    def _known_values(self, submission: Submission) -> KnownValues:
+        """The canaries, or ``network`` (retry later) when any group is unknown."""
+        result = self._known(submission)
+        if result.unchecked:
+            logger.warning(
+                "report canary values unavailable: submission={} groups={}",
+                submission.id,
+                ",".join(result.unchecked),
+            )
+            raise PublishFailure("network")
+        return result.known
 
     def _upload(self, submission_id: str, run_id: str, item: PreparedFile) -> None:
         assert self.writer is not None
@@ -490,8 +565,16 @@ class ReportPublisher:
         self.publications.save(record)
         self._close(record.submission_id)
 
-    def _fail(self, submission_id: str, code: ErrorCode, rule: str | None) -> None:
-        if code in _NEW_RUN_CODES or code in _BLOCKING_CODES:
+    def _fail(
+        self,
+        submission_id: str,
+        code: ErrorCode,
+        rule: str | None,
+        *,
+        new_run: bool = False,
+    ) -> None:
+        new_run = new_run or code in _NEW_RUN_CODES
+        if new_run or code in _BLOCKING_CODES:
             self._close(submission_id)
         now = self._clock()
         with self.publications.lock(submission_id):
@@ -506,7 +589,7 @@ class ReportPublisher:
                 record.next_attempt_at = None
             else:
                 record.attempts += 1
-                if code in _NEW_RUN_CODES:
+                if new_run:
                     record.attempt_run_id = None
                 record.next_attempt_at = _stamp(
                     now + timedelta(seconds=publish_backoff(record.attempts))
@@ -543,25 +626,41 @@ class ReportPublisher:
         )
 
     def _delete(self, submission_id: str) -> None:
+        """Expiry deletion. Never runs while a publication attempt holds the prefix."""
         assert self.deleter is not None
         self._close(submission_id)
-        with self.publications.lock(submission_id):
-            record = self.publications.get(submission_id)
-            if record is None or record.state != "delete_pending":
+        with self.publications.write_barrier(submission_id) as held:
+            if not held:
+                self._defer(submission_id, "delete_pending")
                 return
-            try:
-                empty = self.deleter.delete_submission(submission_id)
-            except (OSError, ValueError) as exc:
-                code = (
-                    storage_error_code(exc) if isinstance(exc, OSError) else "invalid_key"
-                )
-                self._delete_failed(record, code)
-                return
-            if not empty:
-                self._delete_failed(record, "network")
-                return
-            self.publications.remove(submission_id)
+            with self.publications.lock(submission_id):
+                record = self.publications.get(submission_id)
+                if record is None or record.state != "delete_pending":
+                    return
+                code = self._delete_prefix(submission_id)
+                if code is not None:
+                    self._delete_failed(record, code)
+                    return
+                self.publications.remove(submission_id)
         logger.info("report prefix deleted: submission={}", submission_id)
+
+    def _delete_prefix(self, submission_id: str) -> ErrorCode | None:
+        """Delete and verify the prefix empty. None on success, else the code."""
+        assert self.deleter is not None
+        try:
+            empty = self.deleter.delete_submission(submission_id)
+        except OSError as exc:
+            return storage_error_code(exc)
+        except ValueError:
+            return "invalid_key"
+        except Exception as exc:  # noqa: BLE001 — never retry without backoff
+            logger.warning(
+                "report prefix deletion raised {}: submission={}",
+                type(exc).__name__,
+                submission_id,
+            )
+            return "network"
+        return None if empty else "network"
 
     def _delete_failed(self, record: ReportPublication, code: ErrorCode) -> None:
         record.delete_attempts += 1
@@ -634,6 +733,7 @@ def build_report_publisher(
         )
     storage = storage or open_report_storage(settings)
     publications = PublicationStore(settings.root)
+    lookup = recordings_lookup(service) or database_lookup(settings)
     sweeper = None
     if settings.report_sweep:
         from public_site.report_sweep import ReportSweeper
@@ -648,23 +748,13 @@ def build_report_publisher(
         store=store,
         publications=publications,
         staging=StagingArea(settings.root),
-        known=lambda submission: _known_for(settings, store, service, submission),
+        known=lambda submission: submission_known_values(
+            settings, store, submission, lookup
+        ),
         writer=ReportWriter(storage) if settings.report_publish else None,
         deleter=ReportDeleter(ReportEraser(storage))
         if settings.report_expiry_delete
         else None,
         sweeper=sweeper,
         clock=clock,
-    )
-
-
-def _known_for(
-    settings, store: PublicStore, service, submission: Submission
-) -> KnownValues:
-    acquisition = None
-    recordings = getattr(service, "recordings", None)
-    if recordings is not None:
-        acquisition = recordings.database.get(submission.id)
-    return known_values(
-        settings, submission, store.get_video(submission.id), None, acquisition
     )

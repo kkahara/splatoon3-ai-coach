@@ -221,6 +221,71 @@ def test_jpeg_metadata_is_blocked_but_the_encoder_comment_is_allowed(
         scan_jpeg(iptc, KnownValues())
 
 
+def _progressive_jpeg() -> bytes:
+    import cv2
+    import numpy as np
+
+    noise = np.random.default_rng(7).integers(0, 256, (48, 64, 3), dtype=np.uint8)
+    ok, encoded = cv2.imencode(".jpg", noise, [cv2.IMWRITE_JPEG_PROGRESSIVE, 1])
+    assert ok
+    return encoded.tobytes()
+
+
+def _scan_starts(data: bytes) -> list[int]:
+    """SOS offsets (``FF DA`` never occurs inside entropy-coded data)."""
+    return [m.start() for m in re.finditer(rb"\xff\xda", data)]
+
+
+BETWEEN_SCANS = [
+    (b"\xff\xe1\x00\x08Exif\x00\x00", "jpeg_metadata"),
+    (b"\xff\xed\x00\x04ab", "jpeg_metadata"),
+    (b"\xff\xfe\x00\x0amy house", "jpeg_metadata"),
+    (b"\xff\xfe\x00\x0eLavc61.3.100", None),
+]
+
+
+@pytest.mark.parametrize(
+    ("segment", "rule"), BETWEEN_SCANS, ids=["app1", "app13", "comment", "encoder"]
+)
+def test_progressive_jpeg_segments_between_scans_are_inspected(segment, rule) -> None:
+    data = _progressive_jpeg()
+    starts = _scan_starts(data)
+    assert len(starts) >= 2
+    scan_jpeg(data, KnownValues())
+    for start in starts[1:]:
+        planted = data[:start] + segment + data[start:]
+        if rule is None:
+            scan_jpeg(planted, KnownValues())
+            continue
+        with pytest.raises(ContentFinding, match=rule):
+            scan_jpeg(planted, KnownValues())
+
+
+def test_jpeg_metadata_after_the_last_scan_is_blocked(tmp_path: Path) -> None:
+    still = tmp_path / "still.jpg"
+    lavfi_jpeg(still)
+    data = still.read_bytes()
+    assert data.endswith(b"\xff\xd9")
+    before_eoi = data[:-2] + b"\xff\xe1\x00\x08Exif\x00\x00" + data[-2:]
+    with pytest.raises(ContentFinding, match="jpeg_metadata"):
+        scan_jpeg(before_eoi, KnownValues())
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        lambda d: d[:-2],
+        lambda d: d + b"Exif\x00\x00trailing",
+        lambda d: d[:-2] + b"\xff\xd8" + d[-2:],
+        lambda d: d[: _scan_starts(d)[1] + 3],
+    ],
+    ids=["no_eoi", "after_eoi", "second_soi", "truncated_segment"],
+)
+def test_malformed_progressive_jpeg_is_invalid(damage) -> None:
+    with pytest.raises(ContentFinding, match="jpeg_invalid"):
+        scan_jpeg(damage(_progressive_jpeg()), KnownValues())
+
+
 def test_mp4_tags_chapters_and_extra_streams_are_blocked(tmp_path: Path) -> None:
     clean = tmp_path / "clean.mp4"
     lavfi_clip(clean)

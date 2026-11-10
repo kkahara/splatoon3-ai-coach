@@ -20,12 +20,16 @@ from pathlib import Path
 from public_site.report_bundle import (
     BundleError,
     key_paths,
-    known_values,
     prepare_file,
     run_key,
     select_files,
 )
 from public_site.report_content import KnownValues
+from public_site.report_known import (
+    AcquisitionLookup,
+    KnownResult,
+    submission_known_values,
+)
 from public_site.report_publications import PublicationStore
 from public_site.report_publisher import open_report_storage
 from public_site.report_staging import StagingArea
@@ -136,14 +140,26 @@ class ScanReport:
     findings: dict[str, int] = field(default_factory=dict)
     clips_with_metadata: int = 0
     inventory: dict[str, set[str]] = field(default_factory=dict)
+    analyses_unchecked: int = 0
+    unchecked: dict[str, int] = field(default_factory=dict)
 
     def add(self, rule: str) -> None:
         """Count one finding."""
         self.findings[rule] = self.findings.get(rule, 0) + 1
 
 
-def scan(settings: PublicSettings, analysis_root: Path | None = None) -> ScanReport:
-    """Run the content policy and transforms over every local analysis, file by file."""
+def scan(
+    settings: PublicSettings,
+    analysis_root: Path | None = None,
+    acquisitions: AcquisitionLookup | None = None,
+) -> ScanReport:
+    """Run the content policy and transforms over every local analysis, file by file.
+
+    Uses the publisher's known values (``submission_known_values``). An analysis
+    whose submission values or acquisition values could not be retrieved is still
+    scanned with what is known, and counted in ``analyses_unchecked`` /
+    ``unchecked`` by value group, never in ``analyses_clean``.
+    """
     root = analysis_root or settings.root / "analysis"
     store = PublicStore(settings.root)
     report = ScanReport()
@@ -153,17 +169,25 @@ def scan(settings: PublicSettings, analysis_root: Path | None = None) -> ScanRep
         if not (analysis / MANIFEST_PATH).is_file():
             continue
         report.analyses += 1
+        result = _scan_known(settings, store, analysis.name, acquisitions)
+        for group in result.unchecked:
+            report.unchecked[group] = report.unchecked.get(group, 0) + 1
+        report.analyses_unchecked += bool(result.unchecked)
         before = sum(report.findings.values())
-        _scan_one(analysis, _scan_known(settings, store, analysis.name), report)
-        if sum(report.findings.values()) == before:
+        _scan_one(analysis, result.known, report)
+        if sum(report.findings.values()) == before and not result.unchecked:
             report.analyses_clean += 1
     return report
 
 
-def _scan_known(settings: PublicSettings, store: PublicStore, name: str) -> KnownValues:
-    if not _HEX_ID.fullmatch(name):
-        return known_values(settings, None, None)
-    return known_values(settings, store.get(name), store.get_video(name))
+def _scan_known(
+    settings: PublicSettings,
+    store: PublicStore,
+    name: str,
+    acquisitions: AcquisitionLookup | None,
+) -> KnownResult:
+    submission = store.get(name) if _HEX_ID.fullmatch(name) else None
+    return submission_known_values(settings, store, submission, acquisitions)
 
 
 def _scan_one(analysis: Path, known: KnownValues, report: ScanReport) -> None:
@@ -177,7 +201,7 @@ def _scan_one(analysis: Path, known: KnownValues, report: ScanReport) -> None:
     except TransformError as exc:
         report.add(f"transform_failed:{exc}")
         return
-    run_known = KnownValues(list(known.tokens))
+    run_known = known.copy()
     run_known.add_secret("original_fingerprint", identity.video_identity)
     run_known.add_secret("original_fingerprint", identity.analysis_id)
     pseudonym = new_pseudonym(identity)

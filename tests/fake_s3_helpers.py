@@ -45,7 +45,19 @@ class FakeS3:
     fail_always: int | None = None
     put_delay_seconds: float = 0.0
     put_gate: threading.Event | None = None
+    put_gate_after: int = 0
     verify_payload: bool = True
+
+    def gated_put(self) -> bool:
+        """True when this PUT waits on ``put_gate`` (the first ``put_gate_after``
+        PUTs pass straight through).
+        """
+        if self.put_gate is None:
+            return False
+        if self.put_gate_after > 0:
+            self.put_gate_after -= 1
+            return False
+        return True
 
 
 def _iso(moment: datetime) -> str:
@@ -124,7 +136,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._error(self.state.fail_always, "InjectedFailure")
             return
         if method == "PUT":
-            if self.state.put_gate is not None:
+            if self.state.gated_put():
                 self.state.put_gate.wait(30)
             if self.state.put_delay_seconds:
                 time.sleep(self.state.put_delay_seconds)

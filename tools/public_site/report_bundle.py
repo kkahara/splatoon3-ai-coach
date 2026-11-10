@@ -217,8 +217,7 @@ def known_values(
         )
     if review is not None:
         known.add_personal("known_value:review_code", review.review_code)
-    for name in ("review_code", "target_player_name", "requested_email"):
-        known.add_personal(f"known_value:{name}", (acquisition or {}).get(name))
+    _add_acquisition(known, acquisition or {})
     for name in (
         "r2_access_key_id",
         "r2_secret_access_key",
@@ -231,6 +230,33 @@ def known_values(
     ):
         known.add_secret(f"secret:{name}", getattr(settings, name, None))
     return known
+
+
+ACQUISITION_FIELDS = (
+    "review_code",
+    "target_player_name",
+    "confirmed_player_name",
+    "requested_email",
+    "customer_message",
+    "handoff_reference",
+)
+SNAPSHOT_FIELDS = ("email", "display_name", "user_id")
+
+
+def _add_acquisition(known: KnownValues, acquisition: dict) -> None:
+    """Review-code acquisition values (P1-A ``review_code_acquisitions`` row)."""
+    for name in ACQUISITION_FIELDS:
+        value = acquisition.get(name)
+        known.add_personal(f"known_value:{name}", value if isinstance(value, str) else None)
+    snapshot = acquisition.get("submission_snapshot")
+    if isinstance(snapshot, dict):
+        for name in SNAPSHOT_FIELDS:
+            value = snapshot.get(name)
+            if isinstance(value, str):
+                known.add_personal(f"known_value:{name}", value)
+        token_hash = snapshot.get("access_token_hash")
+        if isinstance(token_hash, str):
+            known.add_secret("known_value:access_token_hash", token_hash)
 
 
 def prepare_bundle(
@@ -257,7 +283,7 @@ def prepare_bundle(
         identity = read_identity((analysis / MANIFEST_PATH).read_bytes())
     except TransformError as exc:
         raise BundleError("transform_failed", str(exc)) from None
-    run_known = KnownValues(list(known.tokens))
+    run_known = known.copy()
     run_known.add_secret("original_fingerprint", identity.video_identity)
     run_known.add_secret("original_fingerprint", identity.analysis_id)
     pseudonym = pseudonym or new_pseudonym(identity)

@@ -65,14 +65,34 @@ class ContentFinding(ValueError):
 
 @dataclass
 class KnownValues:
-    """Exact values that must never appear in any published byte."""
+    """Values that must never appear in any published byte.
+
+    ``tokens`` are matched against raw bytes. ``texts`` are matched against every
+    decoded JSON key and string, case-folded and also with whitespace and hyphens
+    removed, so JSON ``\\u`` escapes, case changes or separators cannot hide a value.
+    """
 
     tokens: list[tuple[str, bytes]] = field(default_factory=list)
+    texts: list[tuple[str, str]] = field(default_factory=list)
 
     def add(self, rule: str, value: str | None, *, minimum: int) -> None:
         """Register one value under ``rule`` when it is long enough to be meaningful."""
-        if value and len(value.strip()) >= minimum:
-            self.tokens.append((rule, value.strip().encode()))
+        if not value or len(value.strip()) < minimum:
+            return
+        value = value.strip()
+        self.tokens.append((rule, value.encode()))
+        escaped = json.dumps(value)[1:-1].encode()
+        if escaped != value.encode():
+            self.tokens.append((rule, escaped))
+        folded = value.casefold()
+        self.texts.append((rule, folded))
+        compact = _compact(folded)
+        if compact != folded and len(compact) >= minimum:
+            self.texts.append((rule, compact))
+
+    def copy(self) -> KnownValues:
+        """An independent copy (per-run additions never leak into the original)."""
+        return KnownValues(list(self.tokens), list(self.texts))
 
     def add_personal(self, rule: str, value: str | None) -> None:
         """A personal value (email, display name, filename, ...)."""
@@ -83,10 +103,22 @@ class KnownValues:
         self.add(rule, value, minimum=_MIN_SECRET)
 
     def check(self, data: bytes) -> None:
-        """Raise the first matching rule."""
+        """Raise the first rule whose raw bytes occur in ``data``."""
         for rule, token in self.tokens:
             if token in data:
                 raise ContentFinding(rule)
+
+    def check_text(self, text: str) -> None:
+        """Raise the first rule whose value occurs in one decoded string."""
+        folded = text.casefold()
+        compact = _compact(folded)
+        for rule, value in self.texts:
+            if value in folded or value in compact:
+                raise ContentFinding(rule)
+
+
+def _compact(text: str) -> str:
+    return re.sub(r"[\s\-]+", "", text)
 
 
 def scan_json(data: bytes, known: KnownValues) -> None:
@@ -101,6 +133,7 @@ def scan_json(data: bytes, known: KnownValues) -> None:
             raise ContentFinding(f"forbidden_key:{key}")
         for text in (key, value):
             if isinstance(text, str):
+                known.check_text(text)
                 _scan_text(text)
 
 
@@ -122,33 +155,75 @@ def _walk(payload: Any, key: str | None = None) -> Iterable[tuple[str | None, An
 
 
 def scan_jpeg(data: bytes, known: KnownValues) -> None:
-    """Reject EXIF/XMP (APP1), IPTC (APP13) and any comment segment other than
-    ffmpeg's encoder version (``Lavc<major>.<minor>.<micro>``).
+    """Walk every marker from SOI to EOI, across all scans (baseline and
+    progressive), and reject EXIF/XMP (APP1), IPTC (APP13) and any comment other
+    than ffmpeg's encoder version (``Lavc<major>.<minor>.<micro>``) wherever
+    they occur. A truncated or malformed structure, a second SOI or any byte
+    after EOI is ``jpeg_invalid``.
     """
     known.check(data)
     if data[:2] != b"\xff\xd8":
         raise ContentFinding("jpeg_invalid")
     index = 2
-    while index + 4 <= len(data):
-        if data[index] != 0xFF:
-            raise ContentFinding("jpeg_invalid")
-        marker = data[index + 1]
-        if marker == 0xFF:
-            index += 1
-            continue
+    while True:
+        marker, index = _jpeg_marker(data, index)
+        if marker == 0xD9:
+            if index != len(data):
+                raise ContentFinding("jpeg_invalid")
+            return
         if marker in _BLOCKED_JPEG_MARKERS:
             raise ContentFinding("jpeg_metadata")
-        if marker == 0xDA:
-            return
         if 0xD0 <= marker <= 0xD7 or marker == 0x01:
-            index += 2
             continue
-        length = int.from_bytes(data[index + 2 : index + 4], "big")
-        body = data[index + 4 : index + 2 + length]
+        if marker in (0x00, 0xD8):
+            raise ContentFinding("jpeg_invalid")
+        body, index = _jpeg_segment(data, index)
         if marker == _JPEG_COMMENT and not _ENCODER_COMMENT.fullmatch(body):
             raise ContentFinding("jpeg_metadata")
-        index += 2 + length
-    raise ContentFinding("jpeg_invalid")
+        if marker == 0xDA:
+            index = _skip_entropy_coded(data, index)
+
+
+def _jpeg_marker(data: bytes, index: int) -> tuple[int, int]:
+    """The marker at ``index`` (``FF`` plus code, fill ``FF`` bytes skipped)."""
+    if index >= len(data) or data[index] != 0xFF:
+        raise ContentFinding("jpeg_invalid")
+    while index < len(data) and data[index] == 0xFF:
+        index += 1
+    if index >= len(data):
+        raise ContentFinding("jpeg_invalid")
+    return data[index], index + 1
+
+
+def _jpeg_segment(data: bytes, index: int) -> tuple[bytes, int]:
+    """The body of the segment whose length field starts at ``index``."""
+    if index + 2 > len(data):
+        raise ContentFinding("jpeg_invalid")
+    length = int.from_bytes(data[index : index + 2], "big")
+    if length < 2 or index + length > len(data):
+        raise ContentFinding("jpeg_invalid")
+    return data[index + 2 : index + length], index + length
+
+
+def _skip_entropy_coded(data: bytes, index: int) -> int:
+    """Position of the first marker after a scan's entropy-coded data.
+
+    Inside the data ``FF 00`` is a stuffed byte and ``FF D0``–``FF D7`` are
+    restart markers; any other ``FF xx`` ends the scan.
+    """
+    while True:
+        index = data.find(b"\xff", index)
+        if index < 0:
+            raise ContentFinding("jpeg_invalid")
+        code = index + 1
+        while code < len(data) and data[code] == 0xFF:
+            code += 1
+        if code >= len(data):
+            raise ContentFinding("jpeg_invalid")
+        if data[code] == 0x00 or 0xD0 <= data[code] <= 0xD7:
+            index = code + 1
+            continue
+        return code - 1
 
 
 def scan_mp4(path: Path, data: bytes, known: KnownValues) -> None:
