@@ -12,6 +12,7 @@ import pytest
 from fake_s3_helpers import fake_s3
 from public_site.models import Submission
 from public_site.report_bundle import BundleError, prepare_bundle
+from public_site.report_canary import CanaryStore
 from public_site.report_known import (
     UNCHECKED_ACQUISITION,
     UNCHECKED_SUBMISSION,
@@ -90,7 +91,9 @@ def _plant(analysis: Path, value: str) -> None:
 
 
 def _publisher_rule(settings, store, analysis: Path, lookup) -> str | None:
-    result = submission_known_values(settings, store, store.get(SID), lookup)
+    result = submission_known_values(
+        settings, store, store.get(SID), lookup, CanaryStore(settings.root)
+    )
     assert result.unchecked == []
     try:
         prepare_bundle(
@@ -191,7 +194,9 @@ def test_review_code_without_acquisition_values_is_unchecked_never_clean(
     settings, store, analysis = _setup(tmp_path)
     _plant(analysis, "イカすプレイヤー")
     lookup = MISSING[case](monkeypatch, settings)
-    result = submission_known_values(settings, store, store.get(SID), lookup)
+    result = submission_known_values(
+        settings, store, store.get(SID), lookup, CanaryStore(settings.root)
+    )
     assert result.unchecked == [UNCHECKED_ACQUISITION]
     report = scan(settings, acquisitions=lookup)
     assert report.findings == {}
@@ -206,7 +211,10 @@ def test_upload_without_an_acquisition_row_is_fully_checked(
     settings, store, _analysis = _setup(tmp_path, input_type="video")
     lookup = MISSING[case](monkeypatch, settings)
     assert (
-        submission_known_values(settings, store, store.get(SID), lookup).unchecked == []
+        submission_known_values(
+            settings, store, store.get(SID), lookup, CanaryStore(settings.root)
+        ).unchecked
+        == []
     )
     report = scan(settings, acquisitions=lookup)
     assert (report.analyses_clean, report.analyses_unchecked) == (1, 0)
@@ -246,7 +254,7 @@ def test_publisher_fails_closed_for_a_review_code_without_acquisition_values(
         if case != "no_lookup":
             lookup = MISSING[case](monkeypatch, settings)
             publisher._known = lambda sub: submission_known_values(
-                settings, store, sub, lookup
+                settings, store, sub, lookup, CanaryStore(settings.root)
             )
         assert publisher.run_once() is True
         record = publisher.publications.get(submission.id)

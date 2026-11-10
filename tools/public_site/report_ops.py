@@ -7,6 +7,7 @@
   requested inventory file).
 - ``sweep``: dry-run plan by default; apply needs the plan digest.
 - ``retry_blocked``: moves one ``blocked`` record back to ``pending`` (local).
+- ``canary_status``: review-code canary counts (local; read-only database lookup).
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from public_site.report_bundle import (
     run_key,
     select_files,
 )
+from public_site.report_canary import CanaryStore
 from public_site.report_content import KnownValues
 from public_site.report_known import (
     AcquisitionLookup,
@@ -187,7 +189,9 @@ def _scan_known(
     acquisitions: AcquisitionLookup | None,
 ) -> KnownResult:
     submission = store.get(name) if _HEX_ID.fullmatch(name) else None
-    return submission_known_values(settings, store, submission, acquisitions)
+    return submission_known_values(
+        settings, store, submission, acquisitions, CanaryStore(settings.root)
+    )
 
 
 def _scan_one(analysis: Path, known: KnownValues, report: ScanReport) -> None:
@@ -276,3 +280,10 @@ def inventory_diff(report: ScanReport, inventory: dict[str, list[str]]) -> dict:
         if known - paths:
             unseen[name] = sorted(known - paths)
     return {"new": new, "unseen": unseen}
+
+
+def canary_status(
+    settings: PublicSettings, acquisitions: AcquisitionLookup | None = None
+) -> dict[str, int | bool]:
+    """Review-code canary counts only: never a code, HMAC, key or path."""
+    return CanaryStore(settings.root).status(PublicStore(settings.root), acquisitions)

@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 
 from public_site.models import Submission
 from public_site.report_bundle import known_values
+from public_site.report_canary import CANARY_RULE, UNCHECKED_CANARY, CanaryStore
 from public_site.report_content import KnownValues
 from public_site.settings import PublicSettings
 from public_site.store import PublicStore
@@ -35,8 +36,10 @@ def submission_known_values(
     store: PublicStore,
     submission: Submission | None,
     lookup: AcquisitionLookup | None,
+    canary: CanaryStore | None,
 ) -> KnownResult:
-    """Personal values, acquisition values and configured secrets for one submission.
+    """Personal values, acquisition values, the review-code canary and configured
+    secrets for one submission.
 
     - Without a submission projection, its personal values are ``unchecked``.
     - A lookup error marks the acquisition ``unchecked`` for any submission.
@@ -44,6 +47,9 @@ def submission_known_values(
       error or no row (including a database without the acquisition table) all
       mark its acquisition ``unchecked``.
     - An upload without an acquisition row is fully checked.
+    - A review-code submission's canary (``CanaryStore.matcher``) is required
+      from the canary epoch on; without a canary store, or when the canary
+      cannot be used, ``review_code_canary`` is ``unchecked``.
     """
     if submission is None:
         return KnownResult(known_values(settings, None, None), [UNCHECKED_SUBMISSION])
@@ -51,7 +57,24 @@ def submission_known_values(
     known = known_values(
         settings, submission, store.get_video(submission.id), None, acquisition
     )
-    return KnownResult(known, [] if available else [UNCHECKED_ACQUISITION])
+    unchecked = [] if available else [UNCHECKED_ACQUISITION]
+    if not _add_canary(known, submission, canary):
+        unchecked.append(UNCHECKED_CANARY)
+    return KnownResult(known, unchecked)
+
+
+def _add_canary(
+    known: KnownValues, submission: Submission, canary: CanaryStore | None
+) -> bool:
+    """Register the submission's canary matcher; False when the group is unchecked."""
+    if submission.input_type != "review_code":
+        return True
+    if canary is None:
+        return False
+    matcher, checked = canary.matcher(submission)
+    if matcher is not None:
+        known.add_code(CANARY_RULE, matcher)
+    return checked
 
 
 def _acquisition(

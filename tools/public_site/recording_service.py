@@ -16,10 +16,13 @@ from public_site.errors import EXPIRED, RequestRejected
 from public_site.models import Submission
 from public_site.recording_models import (
     AcquisitionView,
+    RecordingAction,
     ReviewCodeCreated,
     ReviewCodeDraft,
+    normalize_code,
 )
 from public_site.recording_store import RecordingStore
+from public_site.report_canary import CanaryStore, CanaryUnavailable
 from public_site.store import add_days, utc_now
 from public_site.tokens import hash_token, new_token
 
@@ -30,9 +33,15 @@ if TYPE_CHECKING:
 class RecordingService:
     """Reuse contact verification and checkout around a durable acquisition row."""
 
-    def __init__(self, service: SubmissionService, database: RecordingStore) -> None:
+    def __init__(
+        self,
+        service: SubmissionService,
+        database: RecordingStore,
+        canary: CanaryStore | None = None,
+    ) -> None:
         self.service = service
         self.database = database
+        self.canary = canary or CanaryStore(service.settings.root)
         self._published: dict[str, str] = {}
 
     def create(
@@ -62,6 +71,7 @@ class RecordingService:
                 403, "Verify your email before submitting a review code."
             )
         token, submission = self._new_submission(account, email)
+        self._capture_canary(submission.id, draft.review_code)
         retention_days = (
             svc.settings.account_retention_days
             if account
@@ -92,6 +102,69 @@ class RecordingService:
             )
         self.reconcile()
         return created, fresh
+
+    def _capture_canary(self, submission_id: str, review_code: str) -> None:
+        """Store the code's HMAC durably before the row exists; refuse without it."""
+        try:
+            self.canary.capture(submission_id, review_code)
+        except (CanaryUnavailable, ValueError) as exc:
+            logger.error("Review-code canary capture failed ({})", type(exc).__name__)
+            raise RequestRejected(
+                503, "Review-code submission is temporarily unavailable."
+            ) from None
+
+    def act(self, submission_id: str, actor_id: str, action: RecordingAction) -> None:
+        """Apply an operator action; ``correct_code`` keeps its canary in step.
+
+        The corrected code's HMAC is written as a pending file before the
+        database update and promoted over the record after it. A pending file
+        leaves the submission unchecked, so a failed promotion keeps publication
+        blocked until startup repair (or the operator) resolves it.
+        """
+        if action.action != "correct_code":
+            self.database.act(submission_id, actor_id, action)
+            return
+        try:
+            code = normalize_code(action.review_code or "")
+        except ValueError as exc:
+            raise RequestRejected(400, str(exc)) from exc
+        try:
+            self.canary.stage_correction(submission_id, code)
+        except (CanaryUnavailable, ValueError) as exc:
+            logger.error("Review-code canary staging failed ({})", type(exc).__name__)
+            raise RequestRejected(
+                503, "The review-code privacy check is unavailable."
+            ) from None
+        try:
+            self.database.act(submission_id, actor_id, action)
+        except BaseException:
+            self._discard_correction(submission_id)
+            raise
+        self._commit_correction(submission_id)
+
+    def _discard_correction(self, submission_id: str) -> None:
+        try:
+            self.canary.discard_correction(submission_id)
+        except OSError as exc:
+            logger.error("Review-code canary discard failed ({})", type(exc).__name__)
+
+    def _commit_correction(self, submission_id: str) -> None:
+        try:
+            self.canary.commit_correction(submission_id)
+        except OSError as exc:
+            logger.error("Review-code canary promotion failed ({})", type(exc).__name__)
+            raise RequestRejected(
+                500,
+                "The review code was corrected, but its privacy check could not be "
+                "finalized. Report publication stays blocked until it is repaired.",
+            ) from None
+
+    def repair_canaries(self) -> None:
+        """Startup repair of pending ``correct_code`` canaries (see ``CanaryStore.repair``)."""
+        try:
+            self.canary.repair(self.database.get)
+        except OSError as exc:
+            logger.error("Review-code canary repair unavailable ({})", type(exc).__name__)
 
     def _new_submission(
         self, account: Account | None, email: str

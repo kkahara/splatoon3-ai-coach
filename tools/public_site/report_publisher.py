@@ -30,6 +30,7 @@ from public_site.report_bundle import (
     prepare_bundle,
     run_key,
 )
+from public_site.report_canary import CanaryStore
 from public_site.report_content import CONTENT_POLICY_VERSION, KnownValues
 from public_site.report_known import (
     KnownResult,
@@ -167,8 +168,10 @@ class ReportPublisher:
         deleter: ReportDeleter | None = None,
         sweeper=None,
         clock: Clock | None = None,
+        canary: CanaryStore | None = None,
     ) -> None:
         self.store = store
+        self.canary = canary
         self.publications = publications
         self.staging = staging
         self.writer = writer
@@ -276,6 +279,7 @@ class ReportPublisher:
         if now - self._last_recovery >= STAGING_RECOVERY_SECONDS:
             self._last_recovery = now
             self.staging.recover()
+            self._prune_canaries()
         if self.sweeper is not None and now - self._last_sweep >= AUTO_SWEEP_SECONDS:
             self._last_sweep = now
             self.sweeper.run_automatic()
@@ -292,6 +296,26 @@ class ReportPublisher:
             submission = self.store.get(record.submission_id)
             if submission is not None and submission.status == "expired":
                 self.submission_expired(record.submission_id)
+        self._prune_canaries()
+
+    def _prune_canaries(self) -> None:
+        """Drop canaries no publication can need (expired without a record, orphans)."""
+        if self.canary is None:
+            return
+        try:
+            self.canary.prune(
+                self.store, lambda sid: self.publications.get(sid) is not None
+            )
+        except OSError as exc:
+            logger.warning("review-code canary cleanup failed ({})", type(exc).__name__)
+
+    def _remove_canary(self, submission_id: str) -> None:
+        if self.canary is None:
+            return
+        try:
+            self.canary.remove(submission_id)
+        except OSError as exc:
+            logger.warning("review-code canary removal failed ({})", type(exc).__name__)
 
     # Processing.
 
@@ -642,6 +666,7 @@ class ReportPublisher:
                     self._delete_failed(record, code)
                     return
                 self.publications.remove(submission_id)
+        self._remove_canary(submission_id)
         logger.info("report prefix deleted: submission={}", submission_id)
 
     def _delete_prefix(self, submission_id: str) -> ErrorCode | None:
@@ -734,6 +759,7 @@ def build_report_publisher(
     storage = storage or open_report_storage(settings)
     publications = PublicationStore(settings.root)
     lookup = recordings_lookup(service) or database_lookup(settings)
+    canary = CanaryStore(settings.root)
     sweeper = None
     if settings.report_sweep:
         from public_site.report_sweep import ReportSweeper
@@ -749,7 +775,7 @@ def build_report_publisher(
         publications=publications,
         staging=StagingArea(settings.root),
         known=lambda submission: submission_known_values(
-            settings, store, submission, lookup
+            settings, store, submission, lookup, canary
         ),
         writer=ReportWriter(storage) if settings.report_publish else None,
         deleter=ReportDeleter(ReportEraser(storage))
@@ -757,4 +783,5 @@ def build_report_publisher(
         else None,
         sweeper=sweeper,
         clock=clock,
+        canary=canary,
     )

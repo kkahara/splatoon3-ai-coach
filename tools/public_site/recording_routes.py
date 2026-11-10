@@ -106,7 +106,7 @@ def _register_operator(app, recordings, required_admin):
     ) -> JSONResponse:
         actor: Account = required_admin(request)
         try:
-            recordings.database.act(submission_id, actor.id, body)
+            recordings.act(submission_id, actor.id, body)
             recordings.refresh_projection(submission_id)
             return JSONResponse(
                 jsonable_encoder(recordings.database.detail(submission_id))

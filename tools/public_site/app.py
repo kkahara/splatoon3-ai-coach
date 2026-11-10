@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from public_site.accounts import Account, AccountStore, account_email
@@ -248,6 +249,7 @@ def create_app(
             settings.retention_days, settings.account_retention_days
         )
         service.recordings = RecordingService(service, recording_store)
+        _prepare_canary(service.recordings)
     service.reports = build_report_publisher(settings, store, service, report_storage)
     if service.reports is not None and start_worker:
         service.reports.start()
@@ -306,6 +308,19 @@ def create_app(
     )
     _mount_ui(app, settings, service)
     return app
+
+
+def _prepare_canary(recordings: RecordingService) -> None:
+    """Load (or, on a fresh install, create) the canary key before any review-code
+    submission, so the epoch precedes them; then repair pending corrections.
+    An unusable key is logged and makes every capture fail; the app still serves.
+    """
+    try:
+        recordings.canary.ensure_key()
+    except OSError as exc:
+        logger.error("Review-code canary key unavailable ({})", type(exc).__name__)
+        return
+    recordings.repair_canaries()
 
 
 def _capacity_reader(

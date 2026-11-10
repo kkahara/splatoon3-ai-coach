@@ -7,9 +7,12 @@ records, or exceptions.
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import re
 import subprocess
+import unicodedata
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -55,6 +58,60 @@ _EMAIL = re.compile(
 )
 
 
+CODE_LENGTH = 16
+_CODE_RUN = re.compile(rb"[A-Za-z0-9](?:[\s\-]*[A-Za-z0-9])*")
+_CODE_SEPARATORS = re.compile(rb"[\s\-]+")
+_CODE_SEEN_LIMIT = 200_000
+
+
+class CodeMatcher:
+    """Matches a review code by its HMAC-SHA-256, never by plaintext.
+
+    Runs of ASCII letters/digits, with whitespace and hyphens allowed between
+    characters, are compacted and uppercased; every 16-character window is
+    HMACed with the precomputed key state and compared in constant time.
+    Windows already found not to match are remembered (bounded), so repeated
+    identifiers are hashed once. ``repr`` reveals neither key nor digest.
+    """
+
+    __slots__ = ("_mac", "_digest", "_seen")
+
+    def __init__(self, key: bytes, digest: bytes) -> None:
+        self._mac = hmac.new(key, digestmod=hashlib.sha256)
+        self._digest = digest
+        self._seen: set[bytes] = set()
+
+    def __repr__(self) -> str:
+        return "CodeMatcher(<redacted>)"
+
+    def matches(self, data: bytes) -> bool:
+        """Whether any window of ``data`` is the code."""
+        for run in _CODE_RUN.finditer(data):
+            if run.end() - run.start() < CODE_LENGTH:
+                continue
+            compact = _CODE_SEPARATORS.sub(b"", run.group()).upper()
+            for start in range(len(compact) - CODE_LENGTH + 1):
+                if self._window(compact[start : start + CODE_LENGTH]):
+                    return True
+        return False
+
+    def matches_text(self, text: str) -> bool:
+        """Whether a decoded string (NFKC-normalized here) contains the code."""
+        return self.matches(unicodedata.normalize("NFKC", text).encode("utf-8"))
+
+    def _window(self, window: bytes) -> bool:
+        if window in self._seen:
+            return False
+        mac = self._mac.copy()
+        mac.update(window)
+        if hmac.compare_digest(mac.digest(), self._digest):
+            return True
+        if len(self._seen) >= _CODE_SEEN_LIMIT:
+            self._seen.clear()
+        self._seen.add(window)
+        return False
+
+
 class ContentFinding(ValueError):
     """A content policy violation. ``rule`` is the only detail ever exposed."""
 
@@ -74,6 +131,11 @@ class KnownValues:
 
     tokens: list[tuple[str, bytes]] = field(default_factory=list)
     texts: list[tuple[str, str]] = field(default_factory=list)
+    codes: list[tuple[str, CodeMatcher]] = field(default_factory=list)
+
+    def add_code(self, rule: str, matcher: CodeMatcher) -> None:
+        """Register a review-code canary, matched on raw bytes and decoded strings."""
+        self.codes.append((rule, matcher))
 
     def add(self, rule: str, value: str | None, *, minimum: int) -> None:
         """Register one value under ``rule`` when it is long enough to be meaningful."""
@@ -92,7 +154,7 @@ class KnownValues:
 
     def copy(self) -> KnownValues:
         """An independent copy (per-run additions never leak into the original)."""
-        return KnownValues(list(self.tokens), list(self.texts))
+        return KnownValues(list(self.tokens), list(self.texts), list(self.codes))
 
     def add_personal(self, rule: str, value: str | None) -> None:
         """A personal value (email, display name, filename, ...)."""
@@ -107,6 +169,9 @@ class KnownValues:
         for rule, token in self.tokens:
             if token in data:
                 raise ContentFinding(rule)
+        for rule, matcher in self.codes:
+            if matcher.matches(data):
+                raise ContentFinding(rule)
 
     def check_text(self, text: str) -> None:
         """Raise the first rule whose value occurs in one decoded string."""
@@ -114,6 +179,9 @@ class KnownValues:
         compact = _compact(folded)
         for rule, value in self.texts:
             if value in folded or value in compact:
+                raise ContentFinding(rule)
+        for rule, matcher in self.codes:
+            if matcher.matches_text(text):
                 raise ContentFinding(rule)
 
 

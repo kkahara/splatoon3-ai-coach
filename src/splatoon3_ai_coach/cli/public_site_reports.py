@@ -132,6 +132,38 @@ def _print_mapping(payload: dict, indent: str = "") -> None:
             typer.echo(f"{indent}{key}: {value}")
 
 
+@public_site_reports_app.command("canary-status")
+def canary_status(
+    as_json: bool = typer.Option(False, "--json", help="Machine-readable output."),
+) -> None:
+    """Review-code canary counts only (key, records, pending states, gaps).
+
+    Pending corrections are verified (SELECT only) against PUBLIC_DATABASE_URL
+    when set; never prints a code, HMAC, key or path. Exits 1 when any
+    review-code submission is unchecked, any correction is still pending
+    (``promotable`` and ``stale`` are finished by the next app start; every
+    other state needs the operator) or the key is unusable.
+    """
+    settings = _settings()
+    from public_site.report_known import database_lookup
+    from public_site.report_ops import canary_status as run_status
+
+    payload = run_status(settings, database_lookup(settings))
+    _echo_json(payload) if as_json else _print_mapping(payload)
+    if _canary_needs_attention(payload):
+        raise typer.Exit(1)
+
+
+def _canary_needs_attention(payload: dict) -> bool:
+    return bool(
+        payload["pending"]
+        or payload["unchecked_review_code_submissions"]
+        or not payload["directory_safe"]
+        or (payload["key_present"] and not payload["key_valid"])
+        or (payload["epoch_marker"] and not payload["key_valid"])
+    )
+
+
 @public_site_reports_app.command("sweep")
 def sweep(
     apply: bool = typer.Option(False, "--apply", help="Delete the planned prefixes."),
