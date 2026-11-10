@@ -36,6 +36,8 @@ def clip_argv(video: Path, dest: Path, anchor: float) -> list[str]:
 
     Near the beginning, shorten the lead rather than shifting the end.
     Preserve source audio when present using browser-compatible AAC.
+    Container, stream and chapter metadata from the upload (titles, comments,
+    GPS location, device names) are never copied into the clip.
     """
     start = max(0.0, anchor - 15.0)
     duration = anchor + 3.0 - start
@@ -43,6 +45,7 @@ def clip_argv(video: Path, dest: Path, anchor: float) -> list[str]:
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-ss", f"{start:.3f}", "-i", str(video), "-t", f"{duration:.3f}",
         "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn",
+        "-map_metadata", "-1", "-map_chapters", "-1",
         "-c:a", "aac", "-b:a", "128k",
         "-vf", "scale=w='min(1280,iw)':h='min(720,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1",
         "-c:v", "libx264", "-preset", "fast", "-crf", "23",
