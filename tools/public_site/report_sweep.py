@@ -419,7 +419,14 @@ def _past_expiry(store: PublicStore, record: ReportPublication, now: datetime) -
     return parse_utc(submission.expires_at) <= now
 
 
-_STATUS_ROWS = ("current", "superseded", "partial", "expired_holding", "other")
+_STATUS_ROWS = (
+    "current",
+    "superseded",
+    "partial",
+    "unrecorded",
+    "expired_holding",
+    "other",
+)
 
 
 def remote_status(
@@ -432,9 +439,12 @@ def remote_status(
 ) -> dict:
     """Per-run storage under ``reports/`` by category. LIST only.
 
-    Runs of expired submissions count only under ``expired_holding``; keys that
-    are not ``reports/<id>/<run_id>/...`` count under ``other``. The total row
-    is the sum of the rows above it.
+    Runs of expired submissions count only under ``expired_holding``. Runs of a
+    submission with no local projection or no publication record count under
+    ``unrecorded``: the sweep skips those (``projection_absent``,
+    ``complete_without_record``), so they are never ``superseded`` or
+    ``partial``. Keys that are not ``reports/<id>/<run_id>/...`` count under
+    ``other``. The total row is the sum of the rows above it.
     """
     grouped = group_objects(lister.list_objects("reports/"))
     table = {name: {"runs": 0, "objects": 0, "bytes": 0} for name in _STATUS_ROWS}
@@ -483,6 +493,8 @@ def _submission_status(
         "superseded_bytes": 0,
         "partial_runs": 0,
         "partial_bytes": 0,
+        "unrecorded_runs": 0,
+        "unrecorded_bytes": 0,
         "total_bytes": sum(g.size_bytes for g in runs.values()),
         "oldest_non_current_age_seconds": None,
     }
@@ -493,7 +505,7 @@ def _submission_status(
         return row
     ages = []
     for group in runs.values():
-        kind = _status_kind(group, record)
+        kind = "unrecorded" if submission is None else _status_kind(group, record)
         _add(table[kind], group.objects)
         row[f"{kind}_runs"] += 1
         if kind == "current":
@@ -507,8 +519,10 @@ def _submission_status(
 
 
 def _status_kind(group: RunGroup, record: ReportPublication | None) -> str:
+    if record is None:
+        return "unrecorded"
     if not group.committed:
         return "partial"
-    if record is not None and group.run_id == record.run_id:
+    if group.run_id == record.run_id:
         return "current"
     return "superseded"

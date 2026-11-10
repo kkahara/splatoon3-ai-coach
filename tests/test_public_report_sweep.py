@@ -234,11 +234,52 @@ def test_remote_status_totals_add_up(world, tmp_path: Path) -> None:
     for key in ("runs", "objects", "bytes"):
         assert table["total"][key] == sum(
             table[name][key]
-            for name in ("current", "superseded", "partial", "expired_holding", "other")
+            for name in (
+                "current",
+                "superseded",
+                "partial",
+                "unrecorded",
+                "expired_holding",
+                "other",
+            )
         )
     assert table["total"]["objects"] == len(fake.objects)
     assert {row["submission_id"] for row in payload["submissions"]} == {a.id, b.id}
     assert set(methods(fake)) <= {"GET", "HEAD", "PUT"}
+
+
+def test_remote_status_counts_runs_the_sweep_skips_as_unrecorded(
+    world, tmp_path: Path
+) -> None:
+    fake, client, a, b = world
+    root = tmp_path / "public"
+    publications = PublicationStore(root)
+    publications.remove(b.id)
+    absent = f"reports/{ABSENT}/20261101T000000Z-0000cccc/"
+    _plant(fake, absent + "vision_manifest.json")
+    _plant(fake, absent + "bundle.json")
+    _plant(fake, f"reports/{ABSENT}/20261102T000000Z-0000bbbb/vision_manifest.json")
+    _age_everything(fake)
+    payload = remote_status(
+        lister=ReportLister(r2_for(fake)),
+        store=client.app.state.store,
+        publications=publications,
+        now=datetime.now(UTC),
+        details=True,
+    )
+    table = payload["table"]
+    assert table["current"]["runs"] == 1
+    assert table["unrecorded"]["runs"] == 3
+    assert table["superseded"]["runs"] == table["partial"]["runs"] == 0
+    rows = {row["submission_id"]: row for row in payload["submissions"]}
+    assert rows[ABSENT]["unrecorded_runs"] == 2
+    assert rows[b.id]["unrecorded_runs"] == 1
+    assert rows[b.id]["unrecorded_bytes"] == rows[b.id]["total_bytes"]
+    plan = _sweeper(fake, root).plan()
+    assert plan.rows == []
+    skips = {(skip.submission_id, skip.reason) for skip in plan.skips}
+    assert (ABSENT, "projection_absent") in skips
+    assert (b.id, "complete_without_record") in skips
 
 
 def test_cli_sweep_dry_run_then_apply(world, tmp_path: Path, monkeypatch) -> None:
