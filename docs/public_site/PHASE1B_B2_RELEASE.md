@@ -128,6 +128,31 @@ Details and operator procedures are in `REPORT_PUBLISHING.md`
   `test_public_report_canary_db.py`, `test_public_report_privacy.py`,
   `test_public_report_lifecycle.py`. Existing expiry tests call `settle()`.
 
+## Gate 1 finding: upload confirmation race (fixed)
+
+The Gate 1 end-to-end run returned 500 from `POST
+/api/submissions/<token>/uploaded`. The request's `confirm` and the
+maintenance pass (`_recover_ready` on a paid site) probed one submission at
+the same time, and both downloads used `probe/.<id>.<ext>.part` and
+`probe/<id>.<ext>`.
+
+- `R2Storage.download` writes to a partial file unique to each call
+  (`mkstemp` in the destination directory), so concurrent downloads never
+  share or remove each other's partial data.
+- Each probe downloads to its own `probe/<id>.<random><ext>`, so one probe
+  can no longer delete the file another is still reading (which would have
+  failed a valid upload as invalid).
+- `attempt_queue` and the free-site `_probe_and_queue` run one at a time per
+  submission (in-process `KeyedLocks`). The later caller re-reads the
+  submission and returns the first caller's result without downloading or
+  probing again.
+- Tests: `test_public_probe_race.py`: concurrent downloads to one
+  destination (fake S3 holds the first GET mid-body), the paid-site
+  `confirm` racing `maintain` (database), the free-site `confirm` racing
+  `maintain`, and the lock helper. The first two fail on the previous code
+  (`FileNotFoundError`; two probes), and the paid-site test fails with the
+  lock disabled.
+
 ## Local verification (before any gate)
 
 ```bash

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
+import tempfile
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -367,14 +369,23 @@ class R2Storage:
     def download(self, key: str, dest: Path) -> int:
         """Stream the object to ``dest`` without holding it in memory. Returns bytes written.
 
+        Each call writes its own partial file, so concurrent downloads to one
+        ``dest`` never share or remove each other's partial data.
+
         Raises:
             FileNotFoundError: The object does not exist.
             OSError: Any other storage, network, or length failure. ``dest`` is untouched.
         """
         dest.parent.mkdir(parents=True, exist_ok=True)
-        partial = dest.with_name(f".{dest.name}.part")
+        fd, name = tempfile.mkstemp(
+            dir=dest.parent, prefix=f".{dest.name}.", suffix=".part"
+        )
+        partial = Path(name)
         try:
-            with self._stream("GET", self._uri(key)) as response, partial.open("wb") as out:
+            with (
+                os.fdopen(fd, "wb") as out,
+                self._stream("GET", self._uri(key)) as response,
+            ):
                 expected = _header(dict(response.headers), "content-length")
                 try:
                     shutil.copyfileobj(response, out, _CHUNK)

@@ -46,7 +46,18 @@ class FakeS3:
     put_delay_seconds: float = 0.0
     put_gate: threading.Event | None = None
     put_gate_after: int = 0
+    get_gate: threading.Event | None = None
+    get_gate_count: int = 0
     verify_payload: bool = True
+
+    def gated_get(self) -> bool:
+        """True when this GET sends half its body, then waits on ``get_gate``
+        (only the first ``get_gate_count`` GETs).
+        """
+        if self.get_gate is None or self.get_gate_count <= 0:
+            return False
+        self.get_gate_count -= 1
+        return True
 
     def gated_put(self) -> bool:
         """True when this PUT waits on ``put_gate`` (the first ``put_gate_after``
@@ -204,14 +215,21 @@ class _Handler(BaseHTTPRequestHandler):
             self._error(404, "NoSuchKey")
             return
         body = found.body
-        if self.state.truncate_next_get:
+        truncated = self.state.truncate_next_get
+        if truncated:
             self.state.truncate_next_get = False
             body = body[: len(body) // 2]
         self.send_response(200)
         self.send_header("Content-Length", str(len(found.body)))
         self.end_headers()
+        if self.state.gated_get():
+            half = len(body) // 2
+            self.wfile.write(body[:half])
+            self.wfile.flush()
+            self.state.get_gate.wait(30)
+            body = body[half:]
         self.wfile.write(body)
-        if len(body) != len(found.body):
+        if truncated:
             self.close_connection = True
 
     def _put(self, key: str, body: bytes) -> None:

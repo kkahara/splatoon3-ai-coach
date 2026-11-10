@@ -39,6 +39,7 @@ from public_site.errors import (
 )
 from public_site.frames import extract_frames, frame_path, missing_frames, ranked_entries
 from public_site.guest_notices import GuestNotices
+from public_site.keyed_locks import KeyedLocks
 from public_site.limits import RateLimiter
 from public_site.localize import Translator, localize_result
 from public_site.media_probe import ProbeFacts, ProbeRejected, probe_file
@@ -118,6 +119,7 @@ class SubmissionService:
         self.reports: ReportPublisher | None = None
         self.vouchers = vouchers
         self.probe = probe or (lambda path: probe_file(path, settings))
+        self._probe_locks = KeyedLocks()
         self.limiter = RateLimiter(
             store,
             limit=settings.submissions_per_hour,
@@ -396,6 +398,19 @@ class SubmissionService:
         video: VideoInput,
         token: str,
     ) -> PublicSubmissionResponse:
+        """Probe and queue a free upload once; a concurrent caller sees the first result."""
+        with self._probe_locks.hold(submission.id):
+            current = self.store.get(submission.id) or submission
+            if current.status != "received":
+                return self.project(current)
+            return self._probe_and_queue_locked(current, video, token)
+
+    def _probe_and_queue_locked(
+        self,
+        submission: Submission,
+        video: VideoInput,
+        token: str,
+    ) -> PublicSubmissionResponse:
         submission.status = "validating"
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
@@ -405,11 +420,7 @@ class SubmissionService:
                 self.telemetry.validation_started,
                 submission.id,
             )
-        dest = (
-            self.settings.root
-            / "probe"
-            / f"{submission.id}{Path(video.object_key).suffix}"
-        )
+        dest = self._probe_dest(submission.id, video.object_key)
         path, temporary = self.storage.local_file(video.object_key, dest)
         try:
             facts = self.probe(path)
@@ -987,7 +998,18 @@ class SubmissionService:
     def attempt_queue(
         self, submission: Submission, token: str
     ) -> PublicSubmissionResponse:
-        """Probe and queue when upload and payment are both already true."""
+        """Probe and queue when upload and payment are both already true.
+
+        The upload request and the maintenance pass may both call this for one
+        submission. They run one at a time; the later caller sees the first
+        caller's result instead of probing again.
+        """
+        with self._probe_locks.hold(submission.id):
+            return self._attempt_queue_locked(submission, token)
+
+    def _attempt_queue_locked(
+        self, submission: Submission, token: str
+    ) -> PublicSubmissionResponse:
         current = self.store.get(submission.id) or submission
         if current.input_type == "review_code":
             if self.recordings is not None:
@@ -1128,6 +1150,12 @@ class SubmissionService:
         self._require_owned(video)
         return video
 
+    def _probe_dest(self, submission_id: str, object_key: str) -> Path:
+        """A probe copy path unique to this call, so no other probe can replace or remove it."""
+        suffix = Path(object_key).suffix
+        name = f"{submission_id}.{uuid.uuid4().hex}{suffix}"
+        return self.settings.root / "probe" / name
+
     def _probe_facts(
         self, submission: Submission, video: VideoInput
     ) -> ProbeFacts | None:
@@ -1137,11 +1165,7 @@ class SubmissionService:
                 self.telemetry.validation_started,
                 submission.id,
             )
-        dest = (
-            self.settings.root
-            / "probe"
-            / f"{submission.id}{Path(video.object_key).suffix}"
-        )
+        dest = self._probe_dest(submission.id, video.object_key)
         path, temporary = self.storage.local_file(video.object_key, dest)
         try:
             return self.probe(path)
