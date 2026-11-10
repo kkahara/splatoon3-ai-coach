@@ -14,6 +14,58 @@ failure.
   build behaves like P1-A apart from D1 (clean new clips) and sends zero report
   R2 requests.
 
+## B2 review corrections (R1–R4): behavioral changes
+
+Each item changes behavior documented in the first B2 review package.
+
+- **R1, scan/publisher parity.**
+  - `scan` and the publisher build known values with one function.
+  - The acquisition fields checked grow from `review_code`,
+    `target_player_name` and `requested_email` to also include
+    `confirmed_player_name`, `customer_message`, `handoff_reference` and the
+    `submission_snapshot` email, display name, user ID and token hash.
+  - Known values are also matched after JSON decoding (catching `\uXXXX`
+    escapes), case-insensitively and ignoring whitespace and hyphens. This
+    is stricter, so more content can block.
+  - `scan` now reads acquisitions from `PUBLIC_DATABASE_URL` (SELECT only)
+    when it is set, and reports `analyses_unchecked` / `unchecked`.
+    `analyses_clean` no longer counts an analysis whose values could not
+    all be retrieved.
+  - The publisher now fails closed (`network`, backoff) when a value group
+    is unknown. Before, a review-code submission without the `recordings`
+    service was checked without its acquisition values. When review codes
+    are disabled, the publisher now reads the same row from
+    `PUBLIC_DATABASE_URL`.
+- **R2, in-flight write barrier.**
+  - A new non-blocking per-submission `flock`
+    (`report_publications/.writers/<id>.lock`) is held by each publication
+    attempt for its whole life, by expiry deletion and by each sweep row.
+  - Expiry deletion that finds it busy defers 60 s; a sweep row that finds
+    it busy is `skipped_on_recheck`; a publication attempt that finds it
+    busy defers 60 s. None of these counts as a failure.
+  - A publication attempt re-checks its run before every object and stops
+    without recording a failure when the run was invalidated.
+- **R3, unexpected exceptions.**
+  - An unexpected exception in a publication attempt is now `local_missing`
+    (`FileNotFoundError`) or `local_changed` (anything else), with backoff
+    and a new run. Before, it escaped the attempt, left the record due, and
+    a wake-up could retry it at once.
+  - An unexpected exception while deleting is `network`.
+  - The publisher thread pauses 60 s after any escaped exception, ignoring
+    wake-ups.
+  - Logs carry the exception type name only.
+- **R4, JPEG.**
+  - The whole marker structure is now walked, including segments between
+    progressive scans and after the last scan. Before, inspection stopped at
+    the first SOS.
+  - New `jpeg_invalid` cases: a truncated or malformed segment, a missing
+    EOI, a second SOI, or any byte after EOI.
+- **Test helper.** The fake S3 gains `put_gate_after` (gate only after N
+  PUTs).
+
+The real-data scan of the 28 local dev analyses (571 files) is still clean
+with these changes: 0 findings, 0 unchecked, empty inventory diff.
+
 ## Local verification (before any gate)
 
 ```bash
@@ -31,7 +83,8 @@ docker stop p1b-test-pg
       the tag and rerun.
 - [ ] `ruff check` is clean.
 - [ ] `public-site-reports scan --inventory tests/fixtures/report_bundle/key_inventory.json`
-      over the local dev analyses: zero findings, empty inventory diff.
+      over the local dev analyses: zero findings, zero unchecked, empty
+      inventory diff.
 
 ## Gate 1: Mac staging against `s3-coaching-dev`
 
@@ -68,8 +121,16 @@ Dev bucket credentials only (the Mac `.env` never holds the production key).
 
 - [ ] On the production host, inside the running image:
       `public-site-reports scan --inventory <inventory> --json` over the 143
-      stored reports. It reads local files only: no R2 request, no staging, no
-      writes, no settings change.
+      stored reports. No R2 request, no staging, no writes, no settings
+      change. With `PUBLIC_DATABASE_URL` set (as in the running container) it
+      also runs one read-only `SELECT` per analysis on
+      `review_code_acquisitions` to load acquisition canaries; the values stay
+      in memory and only counts are printed. Without the database,
+      review-code analyses are reported as `unchecked` instead of clean.
+      Whether the database read is acceptable for this gate belongs in the
+      Gate 3 clarification below.
+- [ ] `analyses_unchecked` is 0, or every unchecked analysis is explained
+      before the gate is considered passed.
 - [ ] Output is counts by rule plus the key-path inventory diff (key names,
       never values). It also gives B3 its count of historical clips with
       metadata.

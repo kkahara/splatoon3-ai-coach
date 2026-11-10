@@ -148,7 +148,35 @@ paths, and it passes the same content scanner as every other file.
 `PUBLIC_ROOT/report_publications/<submission_id>.json` (atomic writes; one
 lock per submission, a thread lock plus `flock` on
 `report_publications/.locks/<id>.lock`, shared by publishing, expiry deletion
-and the sweep).
+and the sweep, held only for short record changes).
+
+### In-flight write barrier
+
+A second per-submission `flock`, `report_publications/.writers/<id>.lock`,
+serializes every writer and eraser of `reports/<id>/` across threads and
+processes:
+
+- A publication attempt holds it from choosing its run until the attempt ends
+  (commit, failure or invalidation).
+- Expiry deletion holds it while it deletes and verifies the prefix empty.
+- The sweep holds it while it re-checks and deletes one row.
+- It is taken non-blocking: a busy barrier never waits. A publication attempt
+  or an expiry deletion that finds it busy is deferred 60 s without counting an
+  attempt or changing `last_error`; a sweep row that finds it busy is
+  `skipped_on_recheck`. So no deletion is declared complete while a writer can
+  still add objects under the prefix.
+- Lock order is always barrier, then record lock.
+- The kernel releases it when the holding process dies, so a crash never
+  leaves it held; crash recovery (staging leases, startup recovery) is
+  unchanged.
+- It carries no capability: the writer still cannot delete and the eraser
+  still cannot put.
+
+Before each object, a publication attempt re-reads its record and submission.
+If the record is no longer `pending` for this run (expired, re-queued, removed)
+or the submission is no longer `complete`, the attempt stops uploading,
+closes its staging and records nothing (not a failure). At most the one object
+PUT already in progress completes, while the attempt still holds the barrier.
 
 | State | Meaning |
 |---|---|
@@ -184,7 +212,19 @@ and the sweep).
     run on the next attempt.
   - `content_policy` and `transform_failed` set `blocked`; the operator
     retries with `public-site-reports publish --retry-blocked <id>`.
-- **Expiry deletion:** 1 min, 5 min, 15 min, then hourly, with no give-up.
+- **Unexpected exceptions** during an attempt (preparation, staging, upload,
+  commit) are mapped into the closed vocabulary and back off like any other
+  failure: a missing local file is `local_missing`, anything else
+  `local_changed`. Either closes the run and the next attempt starts a new run.
+  The WARNING carries the exception type name only, never its message.
+- **Unknown canary values:** when any value group could not be retrieved (see
+  Known values below) the attempt fails closed with `network` and backs off;
+  nothing is uploaded.
+- **Expiry deletion:** 1 min, 5 min, 15 min, then hourly, with no give-up. An
+  unexpected exception while deleting is `network`.
+- **Publisher thread:** after any exception that escapes a cycle it pauses
+  60 s and ignores wake-ups during the pause, so no error can turn into an
+  immediate retry loop. Only shutdown interrupts the pause.
 - One submission is processed at a time.
 
 ## Content policy (version 1)
@@ -196,17 +236,38 @@ Runs on the published bytes before the first PUT. A finding blocks the record
   `display_name`, `user_id`, `access_token`, `access_token_hash`,
   `review_code`, `original_filename`, `analysis_dir`, `ip`); absolute paths; a
   strict email pattern. Keys are scanned as well as values.
-- **Known values (raw bytes of every file):** the submission's email, display
-  name, user ID, original filename and its stem (8 characters or more), token
-  hash, review code, every configured secret of 8 characters or more, and the
-  original `video_identity` and `analysis_id`.
+- **Known values:** the submission's email, display name, user ID, original
+  filename and its stem (8 characters or more), token hash; the review-code
+  acquisition's `review_code`, `target_player_name`, `confirmed_player_name`,
+  `requested_email`, `customer_message`, `handoff_reference` and the
+  `submission_snapshot` email, display name, user ID and token hash; every
+  configured secret of 8 characters or more; and the original `video_identity`
+  and `analysis_id`.
+  - Matched in the raw bytes of every file, and in JSON-escaped form (so a
+    non-ASCII name written as `\uXXXX` escapes is still found).
+  - In JSON files, also matched against every decoded key and string value,
+    case-insensitively and ignoring whitespace and hyphens.
+  - One function (`report_known.submission_known_values`) builds them for both
+    the publisher and `scan`. Acquisition values come from the app's
+    `recordings` store, or, when review codes are disabled, from the same
+    read-only `RecordingStore.get` query on `PUBLIC_DATABASE_URL`. A database
+    without the acquisition table holds no acquisitions.
+  - A value group that cannot be retrieved is reported by name
+    (`submission_values`: no submission projection; `acquisition_values`: the
+    lookup failed, or a review-code submission has no lookup). The publisher
+    fails closed on it; `scan` reports it.
 - **MP4 (ffprobe):** format tags within `major_brand`, `minor_version`,
   `compatible_brands`, `encoder`; stream tags within `handler_name`,
   `vendor_id`, `language`, `encoder`; handler names `VideoHandler` and
   `SoundHandler`; only video and audio streams; no chapters. A file ffprobe
   cannot read is `mp4_unverifiable`.
-- **JPEG:** no APP1 (EXIF/XMP) or APP13 segment; a COM segment only when it is
-  exactly ffmpeg's encoder comment (`Lavc<version>`).
+- **JPEG:** the whole marker structure is walked from SOI to EOI, through
+  every scan's entropy-coded data (stuffed `FF 00`, restart markers, fill
+  bytes), so segments between progressive scans are inspected too. Anywhere in
+  the file: no APP1 (EXIF/XMP) or APP13 segment, and a COM segment only when it
+  is exactly ffmpeg's encoder comment (`Lavc<version>`) (`jpeg_metadata`). A
+  truncated or malformed segment, a missing EOI, a second SOI or any byte after
+  EOI is `jpeg_invalid`.
 
 ## Staging (`PUBLIC_ROOT/report_staging/<id>/<run_id>/`)
 
@@ -253,8 +314,10 @@ Never eligible (reported as skips): `projection_absent`,
   signatures or object contents.
 - **Apply:** `--apply --confirm <digest>` recomputes the plan and aborts (exit
   code 2, nothing deleted) if the digest differs. Each row is re-checked under
-  the per-submission lock just before deletion; a deletion counts only when the
-  following LIST is empty. Results: `deleted`, `failed`, `skipped_on_recheck`.
+  the write barrier and the per-submission lock just before deletion. A
+  submission whose publication attempt holds the barrier is
+  `skipped_on_recheck`. A deletion counts only when the following LIST is
+  empty. Results: `deleted`, `failed`, `skipped_on_recheck`.
 - **Threshold:** abort above max(5, 10% of prefixes). `--allow-large` lifts only
   this limit; every other rule still applies.
 - **Automatic sweep** (`SWEEP=1`, daily): the same planner and recheck, never
@@ -265,7 +328,7 @@ Never eligible (reported as skips): `projection_absent`,
 | Command | Effect |
 |---|---|
 | `status [--remote] [--details] [--json]` | Local: record counts by state, blocked rules, overdue `delete_pending`, superseded runs, settings (on/off), staging summary. `--remote` (LIST only): runs, objects and bytes for current, superseded and partial runs, expired submissions still holding objects, other keys, and a total row; `--details` adds one row per submission. |
-| `scan [--analysis-root DIR] [--inventory FILE] [--write-inventory FILE] [--json]` | Read-only, local only: runs the allowlist, transforms, consistency checks and content policy over every local analysis without staging or uploading. Prints counts by rule and, with `--inventory`, key paths that are new or unseen relative to the inventory (key names, never values). |
+| `scan [--analysis-root DIR] [--inventory FILE] [--write-inventory FILE] [--json]` | Read-only, no R2: runs the allowlist, transforms, consistency checks and content policy over every local analysis, with the publisher's known values, without staging or uploading. Acquisition values are read with one SELECT per analysis from `PUBLIC_DATABASE_URL` when set. Prints counts by rule; `analyses_unchecked` and `unchecked` (counts per value group that could not be retrieved); and, with `--inventory`, key paths that are new or unseen relative to the inventory (key names, never values). `analyses_clean` counts only analyses with no finding **and** every check performed. |
 | `sweep [--apply --confirm DIGEST] [--allow-large] [--json]` | Dry run by default; see Sweep. |
 | `publish --retry-blocked ID` | Moves one `blocked` record back to `pending` (local record only). |
 
@@ -279,9 +342,12 @@ contents, fingerprints, pseudonyms, filenames, emails or other personal values.
 
 ## Tests
 
-`tests/test_public_report_{bundle,transform,content,publisher,sweep,retention,rollback,staging}.py`,
+`tests/test_public_report_{bundle,transform,content,publisher,sweep,retention,rollback,staging,parity,barrier,backoff}.py`,
 additions to `tests/test_public_storage.py` and
 `tests/test_public_storage_logging.py`, the synthetic fixture
 `tests/report_bundle_fixture.py` and the key-path inventory
 `tests/fixtures/report_bundle/key_inventory.json`. All storage tests use the
-in-process fake S3 only. The rollback test is marked `rollback`.
+in-process fake S3 only. The rollback test is marked `rollback`. The barrier
+tests run a real publisher in a separate process, held at a chosen object PUT
+by the fake S3's `put_gate` / `put_gate_after`, and order every step by that
+gate and by process exit.
