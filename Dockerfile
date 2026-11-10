@@ -31,6 +31,8 @@ RUN pip install --no-cache-dir -e ".[web,cursor]"
 ARG GIT_SHA
 RUN echo "$GIT_SHA" | grep -Eqx '[0-9a-f]{40}' \
     || { echo "GIT_SHA build arg must be a full 40-character commit SHA" >&2; exit 1; }
+# The image has no .git: analysis provenance reads the commit from this file.
+RUN printf '%s\n' "$GIT_SHA" > src/splatoon3_ai_coach/BUILD_COMMIT
 LABEL org.opencontainers.image.revision=$GIT_SHA
 
 ENV PUBLIC_HOST=0.0.0.0 \

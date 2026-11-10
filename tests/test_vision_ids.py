@@ -165,3 +165,60 @@ def test_git_lookup_failure_yields_no_sha(monkeypatch: pytest.MonkeyPatch) -> No
 
     monkeypatch.setattr(provenance.subprocess, "run", missing_git)
     assert provenance.git_short_sha() is None
+
+
+FULL_SHA = "d8084c95519de439a29c98c46ebd969335ab39e9"
+
+
+def _bake(monkeypatch: pytest.MonkeyPatch, path: Path, text: str | None) -> list:
+    if text is not None:
+        path.write_text(text, encoding="ascii")
+    monkeypatch.setattr(provenance, "build_commit_file", lambda: path)
+    calls: list = []
+
+    def fake_run(argv: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
+        calls.append(argv)
+        return subprocess.CompletedProcess(argv, 0, stdout="abc1234\n", stderr="")
+
+    monkeypatch.setattr(provenance.subprocess, "run", fake_run)
+    return calls
+
+
+def test_build_commit_file_wins_without_calling_git(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    calls = _bake(monkeypatch, tmp_path / "BUILD_COMMIT", FULL_SHA + "\n")
+    assert provenance.git_short_sha() == FULL_SHA
+    assert calls == []
+
+
+@pytest.mark.parametrize("text", [None, "", "not-a-sha\n", FULL_SHA[:12] + "\n"])
+def test_absent_or_malformed_build_commit_falls_back_to_git(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, text: str | None
+) -> None:
+    calls = _bake(monkeypatch, tmp_path / "BUILD_COMMIT", text)
+    assert provenance.git_short_sha() == "abc1234"
+    assert len(calls) == 1
+
+
+def test_build_commit_reaches_the_manifest(
+    sample_video: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _bake(monkeypatch, tmp_path / "BUILD_COMMIT", FULL_SHA + "\n")
+    config = load_config(default_config_path())
+    config.vision.enabled_detectors = ["timer"]
+    manifest = vision_pipeline.run_vision(
+        sample_video,
+        config,
+        tmp_path / "a",
+        game_language=injected_outcome("en", config.vision),
+    )
+    assert manifest.analysis.git_sha == FULL_SHA
+
+
+def test_dockerfile_writes_the_checked_commit_into_the_package() -> None:
+    dockerfile = (Path(__file__).resolve().parents[1] / "Dockerfile").read_text()
+    check = dockerfile.index("grep -Eqx '[0-9a-f]{40}'")
+    write = dockerfile.index(f"> src/splatoon3_ai_coach/{provenance.BUILD_COMMIT_FILE}")
+    assert check < write
+    assert provenance.build_commit_file().name == provenance.BUILD_COMMIT_FILE

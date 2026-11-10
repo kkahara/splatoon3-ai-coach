@@ -115,7 +115,10 @@ one process reuse the run.
 ## `bundle.json` (`s3coach.report_bundle.v1`)
 
 - `format`, `submission_id`, `run_id`, `created_at`, `outcome`
-- `producer`: `pipeline_version`, `git_sha`, `evidence_version`
+- `producer`: `pipeline_version`, `git_sha`, `evidence_version`. `git_sha`
+  is the full commit an image was built from (the Dockerfile records
+  `GIT_SHA` in `src/splatoon3_ai_coach/BUILD_COMMIT`), a short SHA when run
+  from a git checkout, and `null` when neither is available.
 - `missing_media`, `content_policy_version`, `total_bytes`
 - `files[]`: `path`, `local_size`, `local_sha256`,
   `published_size`, `published_sha256`, `transforms` (empty when published
