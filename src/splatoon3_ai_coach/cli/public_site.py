@@ -40,8 +40,9 @@ def public_site(
     settings = PublicSettings.from_env()
     if not settings.turnstile_secret and not settings.dev_mode:
         raise typer.BadParameter("PUBLIC_TURNSTILE_SECRET is required")
-    if settings.storage == "r2" and not settings.r2_ready:
-        raise typer.BadParameter("R2 credentials are required when PUBLIC_STORAGE=r2")
+    storage_problem = settings.storage_problem()
+    if storage_problem is not None:
+        raise typer.BadParameter(storage_problem)
     try:
         build_verifier(settings)
     except RuntimeError as exc:

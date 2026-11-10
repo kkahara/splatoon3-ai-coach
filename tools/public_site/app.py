@@ -336,7 +336,14 @@ def _worker_capacity_routes(app, settings, worker, accounts, capacities) -> None
 
 
 def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
-    """Local disk, or R2 when configured. The dev upload route follows this choice."""
+    """Local disk, or R2 when configured. The dev upload route follows this choice.
+
+    Raises:
+        ValueError: The storage settings are unusable (see ``storage_problem``).
+    """
+    problem = settings.storage_problem()
+    if problem is not None:
+        raise ValueError(problem)
     if settings.storage == "r2":
         return R2Storage(
             account_id=settings.r2_account_id,

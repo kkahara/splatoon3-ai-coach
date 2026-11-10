@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from loguru import logger
@@ -12,6 +12,7 @@ from loguru import logger
 from splatoon3_ai_coach.config.paths import PROJECT_ROOT, default_config_path
 
 _MIB = 1024 * 1024
+STORAGE_BACKENDS = ("local", "r2")
 
 
 def _flag(name: str) -> bool:
@@ -79,28 +80,28 @@ class PublicSettings:
     review_codes_enabled: bool = False
     retention_days: int = 30
     account_retention_days: int = 365
-    database_url: str = ""
+    database_url: str = field(default="", repr=False)
     upload_url_seconds: int = 900
-    turnstile_secret: str | None = None
+    turnstile_secret: str | None = field(default=None, repr=False)
     turnstile_site_key: str | None = None
     dev_mode: bool = False
     public_base_url: str = "http://127.0.0.1:8770"
     trust_proxy: bool = False
     r2_account_id: str = ""
-    r2_access_key_id: str = ""
-    r2_secret_access_key: str = ""
+    r2_access_key_id: str = field(default="", repr=False)
+    r2_secret_access_key: str = field(default="", repr=False)
     r2_bucket: str = ""
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
-    smtp_password: str = ""
+    smtp_password: str = field(default="", repr=False)
     smtp_from: str = ""
     worker_id: str = ""
     llm_provider: str = ""
     admin_slow_seconds: int = 600
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-    voucher_hmac_secret: str = ""
+    stripe_secret_key: str = field(default="", repr=False)
+    stripe_webhook_secret: str = field(default="", repr=False)
+    voucher_hmac_secret: str = field(default="", repr=False)
     payment_hold_seconds: int = 24 * 60 * 60
     contact_to: str = ""
     contact_messages_per_hour: int = 5
@@ -114,6 +115,14 @@ class PublicSettings:
             and self.r2_secret_access_key
             and self.r2_bucket
         )
+
+    def storage_problem(self) -> str | None:
+        """Why the storage settings cannot start, or None. Never includes a value."""
+        if self.storage not in STORAGE_BACKENDS:
+            return "PUBLIC_STORAGE must be local or r2"
+        if self.storage == "r2" and not self.r2_ready:
+            return "R2 credentials are required when PUBLIC_STORAGE=r2"
+        return None
 
     @classmethod
     def from_env(cls) -> PublicSettings:
@@ -138,7 +147,7 @@ class PublicSettings:
             static_dir=PROJECT_ROOT / "web" / "public" / "dist",
             host=os.environ.get("PUBLIC_HOST", "127.0.0.1"),
             port=int(os.environ.get("PUBLIC_PORT", "8770")),
-            storage=os.environ.get("PUBLIC_STORAGE", "local"),
+            storage=os.environ.get("PUBLIC_STORAGE", "local").strip() or "local",
             max_video_bytes=int(os.environ.get("PUBLIC_MAX_VIDEO_BYTES", str(750 * _MIB))),
             max_duration_seconds=float(os.environ.get("PUBLIC_MAX_DURATION_SECONDS", "1800")),
             submissions_per_hour=submissions,
