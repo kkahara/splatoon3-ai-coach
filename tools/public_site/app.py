@@ -297,6 +297,8 @@ def create_app(
         start_thread=start_worker,
         capacity=_capacity_reader(settings, capacities),
     )
+    if service.recordings is not None:
+        service.recordings.bind_worker(is_running=worker.is_running, wake=worker.wake)
     app = FastAPI(title="Splatoon 3 AI Coach")
     app.state.settings = settings
     app.state.store = store

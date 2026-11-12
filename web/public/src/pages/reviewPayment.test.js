@@ -6,6 +6,7 @@ import {
   paymentOffered,
   reviewExpired,
   reviewHeadingKey,
+  showsAnalysisProgress,
   voucherFallbackKey,
   voucherPending,
 } from "./reviewPayment.js";
@@ -171,4 +172,30 @@ test("pending and redeemed vouchers never show the fallback", () => {
     const view = { voucher_state: voucherState, payment_state: "unpaid" };
     assert.equal(voucherFallbackKey(view), null);
   }
+});
+
+test("a verified recording in analysis says it is verified and shows progress", () => {
+  for (const status of ["queued", "processing"]) {
+    const view = { ...reviewCode(true, "paid", null, "uploading"), status };
+    assert.equal(acquisitionStateKey(view), "review_code.state.ready");
+    assert.equal(showsAnalysisProgress(view), true);
+  }
+});
+
+test("a verified recording outside analysis keeps its own status and no progress", () => {
+  for (const status of ["received", "failed"]) {
+    const view = { ...reviewCode(true, "paid", null, "uploading"), status };
+    assert.equal(acquisitionStateKey(view), "review_code.state.uploading");
+    assert.equal(showsAnalysisProgress(view), false);
+  }
+  for (const state of ["awaiting_recording", "recording", "recording_failed"]) {
+    const view = { ...reviewCode(true, "paid", null, state), status: "queued" };
+    assert.equal(acquisitionStateKey(view), `review_code.state.${state}`);
+    assert.equal(showsAnalysisProgress(view), false);
+  }
+});
+
+test("progress shows for uploads and handed-off recordings as before", () => {
+  assert.equal(showsAnalysisProgress({ status: "processing" }), true);
+  assert.equal(showsAnalysisProgress(reviewCode(true, "paid", null, "ready")), true);
 });

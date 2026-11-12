@@ -153,6 +153,7 @@ class RecordingAction(BaseModel):
     action: Literal[
         "recording_failed",
         "retry_recording",
+        "retry_analysis",
         "correct_code",
         "record_refund",
         "close_without_refund",

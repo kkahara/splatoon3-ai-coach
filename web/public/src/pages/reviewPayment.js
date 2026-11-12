@@ -48,6 +48,16 @@ export function reviewHeadingKey(view) {
   return "review.heading.processing";
 }
 
+/** A verified recording is queued for, or in, analysis but not yet handed off. */
+export function analysisInProgress(view) {
+  return view?.acquisition?.state === "uploading" && ["queued", "processing"].includes(view.status);
+}
+
+/** Analysis progress is shown without a review code, or once the recording is verified. */
+export function showsAnalysisProgress(view) {
+  return !view?.acquisition || view.acquisition.state === "ready" || analysisInProgress(view);
+}
+
 /**
  * Status key for a review-code request, naming only what is still outstanding
  * before recording: the email confirmation, the payment, or both.
@@ -57,6 +67,7 @@ export function acquisitionStateKey(view) {
   if (acquisition?.state === "expired" && acquisition.cancelled) {
     return "review_code.state.cancelled";
   }
+  if (analysisInProgress(view)) return "review_code.state.ready";
   if (acquisition?.state !== "pending_payment") {
     return `review_code.state.${acquisition?.state}`;
   }

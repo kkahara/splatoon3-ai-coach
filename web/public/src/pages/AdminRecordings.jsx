@@ -5,8 +5,8 @@ import {
 } from "../api.js";
 import { formatDate } from "./AdminUi.jsx";
 import {
-  RECORDING_ACCEPT, canCancelUpload, canCheckUpload, canUploadRecording, capturingJob,
-  fileMatchesAttempt, hydrationSelection, nextUploadDeadline, normalizedReviewCode,
+  RECORDING_ACCEPT, canCancelUpload, canCheckUpload, canRetryAnalysis, canUploadRecording, capturingJob,
+  fileMatchesAttempt, historyLine, hydrationSelection, nextUploadDeadline, normalizedReviewCode,
   recordingContentType, stationHoldsRecording, stationPoll, stripeReference, uploadPhase,
 } from "./recordingForm.js";
 
@@ -202,6 +202,7 @@ export function AdminRecordingsPage() {
         <p>Support reference: <code>{job.public_reference}</code></p>
         {job.review_code ? <p>Review code: <code>{job.review_code}</code></p> : null}
         <p>State: {job.state}</p>
+        {detail.analysis ? <p>Analysis: {detail.analysis.status} · {detail.analysis.step}{detail.analysis.error ? ` · ${detail.analysis.error}` : ""}</p> : null}
         <p>Verified contact: <a href={`mailto:${detail.verified_contact_email}`}>{detail.verified_contact_email}</a></p>
         <p>Stripe payment reference: {stripeReference(detail)}</p>
         {canUploadRecording(job) ? <p><strong>録画中は、リプレイの初期視点を変更しないでください。</strong></p> : null}
@@ -221,10 +222,14 @@ export function AdminRecordingsPage() {
         /> : null}
         {open ? <section>
           <h3>Recording exception</h3>
-          <p>The operator note is an internal audit record. It is required to flag an exception, return a flagged job to the queue, correct its review code, or close it. The customer does not see it.</p>
+          <p>The operator note is an internal audit record. It is required to flag an exception, return a flagged job to the queue, correct its review code, retry its analysis, or close it. The customer does not see it.</p>
           <label>Operator note<textarea value={note} maxLength={2000} onChange={(event) => setNote(event.target.value)} /></label>
-          <p>This message appears on the customer's status page after you flag an exception or close the job. It does not send email.</p>
+          <p>This message appears on the customer's status page after you flag an exception, retry analysis, or close the job. It does not send email.</p>
           <label>Message on the customer's status page (optional)<textarea value={message} maxLength={1000} onChange={(event) => setMessage(event.target.value)} /></label>
+          {canRetryAnalysis(detail) ? <>
+            <p>The recording is verified and still in storage, but its analysis failed. Retry analysis runs it again without a new upload, payment, or voucher.</p>
+            <button type="button" disabled={busy || !note.trim()} onClick={() => { if (window.confirm(RETRY_ANALYSIS_WARNING)) act("retry_analysis"); }}>Retry analysis</button>
+          </> : null}
           <button disabled={busy || !note.trim() || held} onClick={() => act("recording_failed")}>Flag recording exception</button>
           {held ? <p>Stop or discard the capture station take before flagging an exception.</p> : null}
           {job.state === "recording_failed" ? <FailedRecordingActions
@@ -233,11 +238,13 @@ export function AdminRecordingsPage() {
           /> : null}
         </section> : null}
         <h3>History</h3>
-        <ul>{detail.events.map((event, index) => <li key={index}>{event.created_at} · {event.kind}{event.details.note ? ` · ${event.details.note}` : ""}</li>)}</ul>
+        <ul>{detail.events.map((event, index) => <li key={index}>{historyLine(event)}</li>)}</ul>
       </section> : null}
     </section>
   );
 }
+
+const RETRY_ANALYSIS_WARNING = "Retry analysis using the verified recording already in storage? The previous partial analysis files will be replaced. The customer will not receive a new email notification, but their status page will update as analysis progresses.";
 
 const CLOSE_WARNING = "Closing purges the customer's contact details and review code. This cannot be undone. Close this job?";
 
@@ -277,6 +284,7 @@ const PHASE_TEXT = {
   waiting: "An earlier upload link can still be used until it expires.",
   verified: "Recording verified. Check it again to finish queueing it for analysis.",
   queued: "Recording verified and queued for analysis.",
+  analysis_failed: "Recording verified, but its analysis failed. Retry analysis below; no new upload is needed.",
 };
 
 const CANCELLED_TEXT = "This upload was cancelled. Its signed link cannot be revoked at storage before it expires, so a new upload can start only after the time below. The capture station can still be used now.";
@@ -308,7 +316,7 @@ function UploadPanel({ detail, transferring, busy, file, note, error, onFile, on
         {mismatch ? <p className="error" role="alert">{mismatchText(attempt)}</p> : null}
       </> : null}
       {status ? <p>Upload status: {status}</p> : null}
-      {attempt && phase !== "none" && phase !== "queued" ? <p>
+      {attempt && !["none", "queued", "analysis_failed"].includes(phase) ? <p>
         Upload attempt: {attempt.suffix || "file"}{attempt.size_bytes ? `, ${attempt.size_bytes} bytes` : ""}
         {" · "}link valid until {formatDate(attempt.link_expires_at)}
         {waitingOut ? ` · a new upload can start after ${formatDate(attempt.replace_after)}` : ""}

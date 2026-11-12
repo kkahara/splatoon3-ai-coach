@@ -828,6 +828,7 @@ def classify_error(message: str) -> tuple[ErrorCode, Diagnostic]:
         ),
         errors.COACHING_FAILED: (ErrorCode.COACHING_FAILED, Diagnostic.NONZERO_EXIT),
         errors.INTERRUPTED: (ErrorCode.INTERRUPTED, Diagnostic.INTERRUPTED),
+        errors.REVIEW_CODE_INTERRUPTED: (ErrorCode.INTERRUPTED, Diagnostic.INTERRUPTED),
         errors.UPLOAD_MISSING: (ErrorCode.UPLOAD_MISSING, Diagnostic.SOURCE_MISSING),
         errors.UPLOAD_MISMATCH: (ErrorCode.UPLOAD_MISMATCH, Diagnostic.SOURCE_MISSING),
         errors.UPLOAD_UNFINISHED: (

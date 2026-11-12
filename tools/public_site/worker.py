@@ -23,11 +23,12 @@ from public_site.errors import (
     COACHING_FAILED,
     GAME_LANGUAGE_UNDETERMINED,
     INTERRUPTED,
+    REVIEW_CODE_INTERRUPTED,
 )
 from public_site.frames import extract_frames
 from public_site.models import CoachingOutcome, Submission
 from public_site.recording_publish import MISMATCH, downloaded_matches
-from public_site.service import SubmissionService
+from public_site.service import SubmissionService, _remove_tree
 from public_site.settings import PublicSettings
 from public_site.store import PublicStore, copy_lifecycle, utc_now
 from public_site.telemetry import CoachingOutcome as TelemetryOutcome
@@ -156,6 +157,15 @@ class PublicWorker:
         with self._jobs_lock:
             return len(self._jobs)
 
+    def is_running(self, submission_id: str) -> bool:
+        """True while a job thread of this worker still owns ``submission_id``.
+
+        A thread leaves ``_jobs`` only after its source cleanup has run, so a
+        submission that is not running here has no cleanup left to happen.
+        """
+        with self._jobs_lock:
+            return submission_id in self._jobs
+
     def capacity(self) -> int:
         """This worker's current capacity, read fresh for every claim."""
         try:
@@ -193,7 +203,9 @@ class PublicWorker:
         Before a second worker exists, replace this with lease or heartbeat
         based recovery; a capacity row is not evidence that a worker is alive.
         """
-        failed = self.store.fail_in_flight(INTERRUPTED, utc_now())
+        failed = self.store.fail_in_flight(
+            INTERRUPTED, utc_now(), review_code_message=REVIEW_CODE_INTERRUPTED
+        )
         for submission in failed:
             self._capture_terminal(submission)
             if self.telemetry is not None:
@@ -290,6 +302,12 @@ class PublicWorker:
             )
             return
         analysis = self.settings.root / "analysis" / submission.id
+        try:
+            _remove_tree(analysis)
+        except OSError:
+            logger.exception("stale analysis cleanup failed for submission {}", submission.id)
+            self._fail(submission, ANALYSIS_FAILED, stage=Stage.ANALYZE)
+            return
         analysis.mkdir(parents=True, exist_ok=True)
         submission.analysis_dir = str(analysis)
         self._save(submission)

@@ -133,7 +133,7 @@ def _register_operator(app, recordings, required_admin):
         required_admin(request)
         try:
             return JSONResponse(
-                jsonable_encoder(recordings.database.detail(submission_id))
+                jsonable_encoder(recordings.detail(submission_id))
             )
         except RequestRejected as exc:
             return _rejected(exc)
@@ -147,7 +147,7 @@ def _register_operator(app, recordings, required_admin):
             recordings.act(submission_id, actor.id, body)
             recordings.refresh_projection(submission_id)
             return JSONResponse(
-                jsonable_encoder(recordings.database.detail(submission_id))
+                jsonable_encoder(recordings.detail(submission_id))
             )
         except RequestRejected as exc:
             return _rejected(exc)
@@ -196,7 +196,7 @@ def _register_intake(app, recordings, required_admin):
         try:
             recordings.intake.confirm_upload(submission_id, actor.id, body)
             return JSONResponse(
-                jsonable_encoder(recordings.database.detail(submission_id))
+                jsonable_encoder(recordings.detail(submission_id))
             )
         except RequestRejected as exc:
             return _rejected(exc)
@@ -209,7 +209,7 @@ def _register_intake(app, recordings, required_admin):
         try:
             recordings.intake.abandon_upload(submission_id, actor.id, body.expected_version)
             return JSONResponse(
-                jsonable_encoder(recordings.database.detail(submission_id))
+                jsonable_encoder(recordings.detail(submission_id))
             )
         except RequestRejected as exc:
             return _rejected(exc)

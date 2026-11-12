@@ -64,6 +64,28 @@ export function canUploadRecording(job) {
   return ["awaiting_recording", "recording"].includes(job?.state);
 }
 
+/** A verified review-code recording whose analysis failed. The server checks this again. */
+export function canRetryAnalysis(detail) {
+  return detail?.job?.state === "uploading"
+    && detail?.analysis?.status === "failed"
+    && detail?.analysis?.input_type === "review_code";
+}
+
+/** One audit history line; a retry names the failed run it replaced. */
+export function historyLine(event) {
+  const details = event.details || {};
+  const parts = [event.created_at, event.kind];
+  if (event.kind === "retry_analysis") {
+    const worker = details.worker_id ? ` on worker ${details.worker_id}` : "";
+    parts.push(
+      `previous run started ${details.processing_started_at}${worker}, `
+      + `failed at ${details.failed_step} (${details.failed_error_code})`,
+    );
+  }
+  if (details.note) parts.push(details.note);
+  return parts.join(" · ");
+}
+
 const RECORDING_TYPES = { mp4: "video/mp4", mov: "video/quicktime" };
 
 /** File picker filter for operator recordings. */
@@ -84,6 +106,7 @@ export function uploadPhase(detail, transferring = false, now = new Date()) {
   const job = detail?.job;
   const attempt = detail?.upload_attempt;
   if (!job) return "none";
+  if (canRetryAnalysis(detail)) return "analysis_failed";
   if (job.state === "uploading") {
     const queued = (detail.events || []).some((event) => event.kind === "recording_analysis_queued");
     return queued ? "queued" : "verified";

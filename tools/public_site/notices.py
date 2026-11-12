@@ -25,6 +25,9 @@ CANCELLED_EXPLANATION = (
     "No payment was taken. To get a review, submit a new request."
 )
 NO_DEATHS_EXPLANATION = "No deaths were detected in this recording."
+REVIEW_CODE_FAILED_HELP = (
+    "Please contact the administrator and include your support reference."
+)
 ACCOUNT_SUBJECTS = {
     "verify": "Confirm your Splatoon 3 coaching account",
     "reset": "Reset your Splatoon 3 coaching password",
@@ -70,7 +73,8 @@ class NoticeSender:
         """
         subject = SUBJECTS[kind]
         review_url = f"{self.settings.public_base_url}/review/{token}"
-        body = _body(kind, review_url, reference)
+        review_code = submission.input_type == "review_code"
+        body = _body(kind, review_url, reference, review_code=review_code)
         if self.settings.smtp_host:
             _smtp(self.settings, submission.email or "", subject, body)
         else:
@@ -138,8 +142,15 @@ def _account_body(kind: str, url: str) -> str:
     return f"{lead}\n\n{url}\n"
 
 
-def _body(kind: str, review_url: str, reference: str | None = None) -> str:
-    if kind == "received":
+def _body(
+    kind: str, review_url: str, reference: str | None = None, *, review_code: bool = False
+) -> str:
+    if kind == "failed" and review_code:
+        lead = (
+            "Your Splatoon 3 coaching review could not be completed."
+            f"\n\n{REVIEW_CODE_FAILED_HELP}"
+        )
+    elif kind == "received":
         lead = "We received your match."
     elif kind == "ready":
         lead = "Your Splatoon 3 coaching review is ready."

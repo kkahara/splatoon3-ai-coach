@@ -9,9 +9,11 @@ import {
   hydrationSelection,
   stationPoll,
   canCheckUpload,
+  canRetryAnalysis,
   canUploadRecording,
   fileMatchesAttempt,
   formatReviewCode,
+  historyLine,
   maskReviewCodeEdit,
   nextUploadDeadline,
   normalizedReviewCode,
@@ -235,4 +237,56 @@ test("a voucher job explains the empty Stripe reference", () => {
   );
   assert.equal(stripeReference({ authorization: "payment", payment_reference: "pi_1" }), "pi_1");
   assert.equal(stripeReference({ authorization: "payment", payment_reference: "" }), "No Stripe payment yet.");
+});
+
+function analysisDetail(state, status, inputType = "review_code") {
+  return {
+    job: { state },
+    analysis: { status, step: "coaching", error: "Analysis failed.", input_type: inputType },
+    events: [{ kind: "recording_analysis_queued", details: {} }],
+  };
+}
+
+test("analysis retry is offered only for a failed review-code run of a verified recording", () => {
+  assert.equal(canRetryAnalysis(analysisDetail("uploading", "failed")), true);
+  for (const status of ["queued", "processing", "complete", "expired"]) {
+    assert.equal(canRetryAnalysis(analysisDetail("uploading", status)), false);
+  }
+  for (const state of ["awaiting_recording", "recording", "recording_failed", "ready", "closed"]) {
+    assert.equal(canRetryAnalysis(analysisDetail(state, "failed")), false);
+  }
+  assert.equal(canRetryAnalysis(analysisDetail("uploading", "failed", "video")), false);
+  assert.equal(canRetryAnalysis({ job: { state: "uploading" } }), false);
+  assert.equal(canRetryAnalysis(null), false);
+});
+
+test("a failed analysis is its own upload phase and is never checked again", () => {
+  const failed = analysisDetail("uploading", "failed");
+  assert.equal(uploadPhase(failed), "analysis_failed");
+  assert.equal(canCheckUpload(failed), false);
+  assert.equal(uploadPhase(analysisDetail("uploading", "processing")), "queued");
+  assert.equal(uploadPhase(analysisDetail("uploading", "failed", "video")), "queued");
+});
+
+test("a retry history line names the failed run without raw error text", () => {
+  const line = historyLine({
+    created_at: "2026-11-12T00:00:00Z",
+    kind: "retry_analysis",
+    details: {
+      note: "Restarted the site.",
+      failed_error_code: "interrupted",
+      failed_step: "coaching",
+      processing_started_at: "2026-11-11T23:46:00Z",
+      worker_id: "w1",
+    },
+  });
+  assert.equal(
+    line,
+    "2026-11-12T00:00:00Z · retry_analysis · previous run started 2026-11-11T23:46:00Z on worker w1, "
+      + "failed at coaching (interrupted) · Restarted the site.",
+  );
+  assert.equal(
+    historyLine({ created_at: "t", kind: "capture_started", details: {} }),
+    "t · capture_started",
+  );
 });

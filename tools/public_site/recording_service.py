@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
@@ -28,9 +30,13 @@ from public_site.recording_station import RecordingStation
 from public_site.recording_store import RecordingStore, report_expires_at
 from public_site.report_canary import CanaryStore, CanaryUnavailable
 from public_site.store import add_days, utc_now
+from public_site.telemetry import classify_error
 from public_site.tokens import hash_token, new_token
 
 _ANALYSIS_STARTED = frozenset({"validating", "processing", "complete"})
+_WORKER_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
+RETRY_RUNNING = "Analysis is still stopping for this recording. Try again in a moment."
+RETRY_NOT_FAILED = "Only a failed analysis of a verified recording can be retried."
 _OPERATOR_STATES = frozenset({"awaiting_recording", "recording", "recording_failed"})
 STRIPE_UNCHECKED = (
     "Stripe could not confirm that this checkout can no longer be paid. "
@@ -56,6 +62,15 @@ class RecordingService:
         self.intake = RecordingIntake(self)
         self.station = _station(self)
         self._published: dict[str, str] = {}
+        self._is_running: Callable[[str], bool] | None = None
+        self._wake: Callable[[], None] | None = None
+
+    def bind_worker(
+        self, *, is_running: Callable[[str], bool], wake: Callable[[], None]
+    ) -> None:
+        """Give analysis retry the worker's job ownership check and wake-up."""
+        self._is_running = is_running
+        self._wake = wake
 
     def create(
         self,
@@ -195,6 +210,9 @@ class RecordingService:
         if action.action == "recording_failed":
             self._fail_recording(submission_id, actor_id, action)
             return
+        if action.action == "retry_analysis":
+            self._retry_analysis(submission_id, actor_id, action)
+            return
         if action.action != "correct_code":
             self.database.act(submission_id, actor_id, action)
             return
@@ -234,6 +252,63 @@ class RecordingService:
                 )
             self.database.act(submission_id, actor_id, action)
             self.refresh_projection(submission_id)
+
+    def _retry_analysis(
+        self, submission_id: str, actor_id: str, action: RecordingAction
+    ) -> None:
+        """Queue the verified recording again after its analysis failed.
+
+        The claim lock is held and no job thread may still own the submission,
+        so the failed run's cleanup can never touch the new run's files. A failed
+        run is identified by its ``processing_started_at``: when the latest retry
+        already names it, only the local requeue is completed (no new event).
+        """
+        svc, store = self.service, self.service.store
+        if not action.note.strip():
+            raise RequestRejected(400, "A note is required to retry analysis.")
+        with svc._probe_locks.hold(submission_id), store.claim_guard():
+            if self._is_running is None or self._is_running(submission_id):
+                raise RequestRejected(409, RETRY_RUNNING)
+            current = store.get(submission_id)
+            if not _failed_analysis(current):
+                raise RequestRejected(409, RETRY_NOT_FAILED)
+            self.intake.verified_for_retry(submission_id)
+            if self.database.retried_attempt(submission_id) != current.processing_started_at:
+                self.database.act(submission_id, actor_id, action, _failed_attempt(current))
+            elif not self._retry_committed(submission_id):
+                raise RequestRejected(409, RETRY_NOT_FAILED)
+            store.requeue_failed(submission_id, utc_now())
+        if self._wake is not None:
+            self._wake()
+
+    def detail(self, submission_id: str) -> dict:
+        """Operator detail plus the local analysis state; never paths or contact data.
+
+        ``analysis.error`` is the fixed public message the customer already sees.
+        """
+        detail = self.database.detail(submission_id)
+        current = self.service.store.get(submission_id)
+        detail["analysis"] = (
+            None
+            if current is None
+            else {
+                "status": current.status,
+                "step": current.step,
+                "error": current.error,
+                "input_type": current.input_type,
+            }
+        )
+        return detail
+
+    def _retry_committed(self, submission_id: str) -> bool:
+        """True while the database still allows the retry it recorded to run."""
+        row = self.database.get(submission_id)
+        return (
+            row is not None
+            and row["recording_handoff_at"] is None
+            and row["report_expired_at"] is None
+            and self.database.analysis_admitted(submission_id)
+        )
 
     def hand_off(self, submission: Submission) -> bool:
         """Record that analysis accepted the recording; True once durably handed off.
@@ -360,6 +435,7 @@ class RecordingService:
             current.status, current.error = "received", None
             svc.store.save_submission(current)
         self._sync_lifecycle(row, current)
+        self._finish_retry(row, current)
         if row["sensitive_data_purged_at"] or row["report_expired_at"]:
             self._scrub_projection(current)
             current = svc.store.get(snapshot.id) or current
@@ -401,6 +477,19 @@ class RecordingService:
             item.updated_at = utc_now()
 
         self.service.store.update(current.id, sync)
+
+    def _finish_retry(self, row: dict, current: Submission) -> None:
+        """Requeue locally when a committed analysis retry names this failed run.
+
+        Covers a crash or write failure between the retry event and the requeue.
+        The retry was refused while any job thread still owned the submission.
+        """
+        if row["state"] != "uploading" or not _failed_analysis(current):
+            return
+        if self.database.retried_attempt(current.id) != current.processing_started_at:
+            return
+        if self._retry_committed(current.id):
+            self.service.store.requeue_failed(current.id, utc_now())
 
     def _scrub_projection(self, submission: Submission) -> None:
         """Mirror durable privacy cleanup into the local status projection."""
@@ -689,6 +778,29 @@ def _station(recordings: RecordingService) -> RecordingStation | None:
         return None
     directory = settings.station_dir or (settings.root.parent / "station")
     return RecordingStation(recordings, directory)
+
+
+def _failed_analysis(current: Submission | None) -> bool:
+    """A review-code submission whose analysis ran and failed."""
+    return (
+        current is not None
+        and current.input_type == "review_code"
+        and current.status == "failed"
+        and bool(current.processing_started_at)
+    )
+
+
+def _failed_attempt(current: Submission) -> dict:
+    """Audit facts of the failed run: closed codes only, never its raw error text."""
+    code, _diagnostic = classify_error(current.error or "")
+    details = {
+        "failed_error_code": code.value,
+        "failed_step": current.step,
+        "processing_started_at": current.processing_started_at,
+    }
+    if current.worker_id and _WORKER_ID.fullmatch(current.worker_id):
+        details["worker_id"] = current.worker_id
+    return details
 
 
 def handoff_reference(submission: Submission) -> str:

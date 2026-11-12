@@ -6,6 +6,9 @@ ACCOUNT_RATE_LIMIT = "Your account has reached its hourly upload limit. Try agai
 SIGNUP_LIMIT = "Too many accounts have been created from this network."
 VERIFY = "Submission could not be verified."
 INTERRUPTED = "The analysis was interrupted. Submit the video again."
+REVIEW_CODE_INTERRUPTED = (
+    "The analysis could not be completed. Contact the administrator with your support reference."
+)
 UPLOAD_MISSING = "The upload was not found."
 UPLOAD_MISMATCH = "The uploaded file does not match this submission."
 UPLOAD_UNFINISHED = "The upload was not finished."

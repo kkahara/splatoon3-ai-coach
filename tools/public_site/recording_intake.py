@@ -29,6 +29,10 @@ BAD_INTAKE_FILE = "Upload one MP4 (video/mp4) or MOV (video/quicktime) recording
 STALE_GRANT = "The upload grant changed. Reload and upload again."
 ANALYSIS_ENDED = "Analysis for this submission has ended; it cannot be queued again."
 EARLIER_ATTEMPT = "The stored file belongs to an earlier upload attempt."
+RETRY_UNVERIFIED = (
+    "The stored recording no longer matches the verified upload. "
+    "Analysis cannot be retried."
+)
 
 
 _STATION_HOLD = frozenset(
@@ -197,6 +201,30 @@ class RecordingIntake:
                 type(exc).__name__,
             )
             return False
+
+    def verified_for_retry(self, submission_id: str) -> None:
+        """Refuse a retry unless storage still holds the recording that was verified.
+
+        Cheap checks only: size plus the stored digest, or the verified upload
+        attempt for a browser upload. Admission re-reads the full SHA-256 before
+        the new run is claimed.
+        """
+        video = self.service.store.get_video(submission_id)
+        if not _stored(video, submission_id):
+            raise RequestRejected(409, RETRY_UNVERIFIED)
+        try:
+            stat = self.service.storage.head(video.object_key)
+        except OSError as exc:
+            raise RequestRejected(503, "Storage could not be checked. Try again.") from exc
+        if stat is None or stat.size_bytes != video.size_bytes:
+            raise RequestRejected(409, RETRY_UNVERIFIED)
+        if stat.sha256:
+            if stat.sha256 != video.sha256:
+                raise RequestRejected(409, RETRY_UNVERIFIED)
+            return
+        attempt = self.database.upload_attempt(submission_id)
+        if attempt is None or attempt.status != "verified" or stat.attempt != attempt.attempt:
+            raise RequestRejected(409, RETRY_UNVERIFIED)
 
     def _verify(self, submission_id: str, actor_id: str, expected_version: int) -> None:
         video = self.service.store.get_video(submission_id)

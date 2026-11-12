@@ -31,6 +31,7 @@ import {
   paymentOffered,
   reviewExpired,
   reviewHeadingKey,
+  showsAnalysisProgress,
   voucherFallbackKey,
 } from "./reviewPayment.js";
 
@@ -149,7 +150,7 @@ export function ReviewPage() {
       {!view?.acquisition && (confirming || (view?.payment_state === "paid" && view.status === "received")) ? (
         <p className="note">{t("review.waiting_payment")}</p>
       ) : null}
-      {!view?.acquisition || view.acquisition.state === "ready" ? <ReviewProgress view={view} /> : null}
+      {showsAnalysisProgress(view) ? <ReviewProgress view={view} /> : null}
       {noDeaths(view) ? <p className="note">{t("review.no_deaths")}</p> : null}
       {view?.status === "complete" && !noDeaths(view) ? (
         <Result

@@ -53,6 +53,20 @@ def is_authorized(row: dict) -> bool:
     return row.get("payment_state") == "not_required" and row.get("voucher_state") == "redeemed"
 
 
+def analysis_retryable(row: dict) -> bool:
+    """A verified, still-queued recording that was never handed off or expired.
+
+    ``row`` must carry the gate status as ``gate_status``.
+    """
+    return (
+        row["state"] == "uploading"
+        and row["recording_handoff_at"] is None
+        and row["report_expired_at"] is None
+        and row.get("gate_status") == "queued"
+        and is_authorized(row)
+    )
+
+
 def report_expires_at(row: dict) -> str | None:
     """Report retention runs from the handoff, when the report becomes available."""
     handoff = row.get("recording_handoff_at")
@@ -766,11 +780,21 @@ class RecordingStore:
             "upload_attempt": self.upload_attempt(submission_id),
         }
 
-    def act(self, submission_id: str, actor_id: str, action: RecordingAction) -> None:
-        """Apply an audited operator action with a stale-write guard."""
+    def act(
+        self,
+        submission_id: str,
+        actor_id: str,
+        action: RecordingAction,
+        extra_details: dict | None = None,
+    ) -> None:
+        """Apply an audited operator action with a stale-write guard.
+
+        ``extra_details`` are server-built audit facts added to the event as given.
+        """
         with self._conn() as conn:
             row = conn.execute(
-                """SELECT a.*, g.payment_state, g.voucher_state FROM review_code_acquisitions a
+                """SELECT a.*, g.payment_state, g.voucher_state, g.status AS gate_status
+                   FROM review_code_acquisitions a
                    JOIN submission_gates g USING (submission_id)
                    WHERE a.submission_id = %s FOR UPDATE OF a""",
                 (submission_id,),
@@ -796,8 +820,21 @@ class RecordingStore:
                 submission_id,
                 action.action,
                 actor_id,
-                self._audit_details(action, row),
+                {**self._audit_details(action, row), **(extra_details or {})},
             )
+
+    def retried_attempt(self, submission_id: str) -> str | None:
+        """``processing_started_at`` of the failed run the latest analysis retry named."""
+        with self._conn() as conn:
+            event = conn.execute(
+                """SELECT details FROM review_code_acquisition_events
+                   WHERE submission_id = %s AND kind = 'retry_analysis'
+                   ORDER BY id DESC LIMIT 1""",
+                (submission_id,),
+            ).fetchone()
+        if event is None:
+            return None
+        return (event["details"] or {}).get("processing_started_at")
 
     def _apply_action(self, conn, row: dict, action: RecordingAction) -> None:
         fields = self._action_fields(row, action)
@@ -819,6 +856,12 @@ class RecordingStore:
                 "state": "recording_failed",
                 "customer_message": action.customer_message,
             }
+        if action.action == "retry_analysis":
+            if not analysis_retryable(row):
+                raise RequestRejected(
+                    409, "Only a verified recording whose analysis failed can be retried."
+                )
+            return {"customer_message": action.customer_message}
         if row["state"] != "recording_failed":
             raise RequestRejected(409, "Resolve a recording exception first.")
         if action.action == "retry_recording":
