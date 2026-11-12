@@ -650,6 +650,63 @@ def test_tax_added_by_stripe_still_counts_as_paid(
     assert client.app.state.store.get(submission.id).status == "queued"
 
 
+def _payment_events(payments: PaymentStore, submission_id: str) -> int:
+    with payments._conn() as conn:
+        return conn.execute(
+            """SELECT count(*) AS n FROM price_events
+               WHERE submission_id = %s AND kind = 'payment_completed'""",
+            (submission_id,),
+        ).fetchone()["n"]
+
+
+def test_checkout_records_a_session_stripe_shows_paid_without_a_webhook(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(199)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.post(f"/api/submissions/{token}/checkout")
+    session = checkout.created[0]
+    checkout.pay(session.id)
+    for _ in range(2):
+        again = client.post(f"/api/submissions/{token}/checkout")
+        assert again.status_code == 200, again.text
+        assert again.json() == {"url": None, "paid": True, "pending": False}
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "paid"
+    assert client.app.state.store.get(submission.id).status == "queued"
+    assert _payment_events(payments, submission.id) == 1
+    late = _webhook(client, _event(checkout.sessions[session.id]))
+    assert late.status_code == 200 and late.json()["result"] == "paid"
+    assert _payment_events(payments, submission.id) == 1
+    assert len(checkout.created) == 1
+
+
+def test_checkout_leaves_a_paid_session_with_a_wrong_amount_pending(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(199)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.post(f"/api/submissions/{token}/checkout")
+    session = checkout.created[0]
+    checkout.sessions[session.id] = replace(session, amount_subtotal=99, amount_total=99)
+    checkout.pay(session.id)
+    again = client.post(f"/api/submissions/{token}/checkout")
+    assert again.status_code == 200, again.text
+    assert again.json() == {"url": None, "paid": False, "pending": True}
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "checkout_created"
+    assert _payment_events(payments, submission.id) == 0
+    assert client.app.state.store.get(submission.id).status != "queued"
+
+
 def test_upload_and_payment_queue_exactly_once(payments: PaymentStore) -> None:
     payments.set_price(199)
     quote = payments.quote(admin=False)

@@ -188,6 +188,23 @@ def test_pending_submission_is_durable_but_cannot_checkout_or_queue(site) -> Non
     assert not svc.recordings.database.list_jobs()
 
 
+def test_paying_again_records_a_review_code_payment_the_webhook_missed(site) -> None:
+    created = _create(site)
+    _verify_guest(site)
+    session = _checkout(site, created)
+    site.fake_checkout.pay(session.id)
+    assert _view(site, created)["payment_state"] == "checkout_created"
+    again = site.post(f"/api/submissions/{created['token']}/checkout")
+    assert again.status_code == 200, again.text
+    assert again.json()["paid"] is True
+    site.app.state.service.maintain(datetime.now(UTC))
+    view = _view(site, created)
+    assert view["payment_state"] == "paid"
+    assert view["acquisition"]["state"] == "awaiting_recording"
+    jobs = site.app.state.service.recordings.database.list_jobs()
+    assert [job.submission_id for job in jobs] == [created["submission_id"]]
+
+
 def test_verified_guest_paid_retries_activate_one_job_and_never_analyze(site) -> None:
     created = _paid(site)
     session = site.fake_checkout.created[-1]

@@ -1222,6 +1222,8 @@ class SubmissionService:
             raise RequestRejected(409, VOUCHER_PENDING, reason="pending")
         self._require_open_window(gate)
         reusable = self._reusable_session(gate)
+        if reusable == "paid":
+            return {"url": None, "paid": True, "pending": False}
         if reusable == "pending":
             return {"url": None, "paid": False, "pending": True}
         if isinstance(reusable, CheckoutSession):
@@ -1304,6 +1306,11 @@ class SubmissionService:
                 path.unlink()
 
     def _reusable_session(self, gate: SubmissionGate) -> CheckoutSession | str | None:
+        """The open session, ``paid`` once a paid session is recorded, or ``pending``.
+
+        A session Stripe shows as paid is recorded here as the webhook would; one
+        the amount check refuses stays ``pending`` for the operator.
+        """
         if self.checkout is None or gate.payment_state != "checkout_created":
             return None
         if not gate.checkout_session_id:
@@ -1312,7 +1319,8 @@ class SubmissionService:
         if session.status == "open":
             return session
         if session.payment_status == "paid":
-            return "pending"
+            recorded = self.record_paid_session(gate.submission_id, session)
+            return "paid" if recorded == "paid" else "pending"
         return None
 
     def _open_next_session(

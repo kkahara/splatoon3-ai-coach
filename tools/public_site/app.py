@@ -544,6 +544,8 @@ def _routes(
             started = service.start_checkout(token)
         except RequestRejected as exc:
             return _rejected(exc)
+        if started["paid"]:
+            worker.wake()
         return started
 
     @app.post("/api/stripe/webhook")
@@ -875,9 +877,12 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
         try:
-            return service.start_owned_checkout(submission)
+            started = service.start_owned_checkout(submission)
         except RequestRejected as exc:
             return _rejected(exc)
+        if started["paid"]:
+            request.app.state.worker.wake()
+        return started
 
     @app.post("/api/me/submissions/{submission_id}/feedback")
     def post_owned_feedback(
