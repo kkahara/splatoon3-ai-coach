@@ -13,6 +13,7 @@ import {
 export function AdminRecordingsPage() {
   const [jobs, setJobs] = useState([]);
   const [unpaid, setUnpaid] = useState([]);
+  const [tab, setTab] = useState("queue");
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
@@ -60,7 +61,7 @@ export function AdminRecordingsPage() {
         setUploadNote(""); setUploadError(""); setFile(null);
         setNote(""); setCode(""); setWrongCode(false); setMessage(""); setRefund("");
       }
-      setDetail(next); setError("");
+      setDetail(next); setError(""); setTab("queue");
       if (withStation) {
         const view = await stationStatus(id);
         setStation(view); rememberTake(id, view);
@@ -192,11 +193,13 @@ export function AdminRecordingsPage() {
         {capturingId !== job?.submission_id ? <button type="button" onClick={() => select(capturingId)}>Open recording</button> : null}
       </p> : null}
       {error ? <p className="error" role="alert">{error}</p> : null}
+      <RecordingTabs tab={tab} onChange={setTab} queued={jobs.length} unpaid={unpaid.length} />
+      {tab === "unpaid" ? <section id="recordings-panel-unpaid" role="tabpanel" aria-labelledby="recordings-tab-unpaid">
+        <p>These customers have not paid. Cancelling one first expires its Stripe checkout, then closes the request and emails a confirmed address. If Stripe shows a payment, the payment is recorded and the request is not cancelled. The reason is an internal audit note; the customer does not see it.</p>
+        {closedNote ? <p role="status">{closedNote}</p> : null}
+        <UnpaidTable jobs={unpaid} busy={busy} onClose={closeUnpaid} />
+      </section> : <section id="recordings-panel-queue" role="tabpanel" aria-labelledby="recordings-tab-queue">
       <JobTable jobs={jobs} takes={stationTakes} selected={job?.submission_id} onSelect={select} />
-      <h2>Unpaid requests</h2>
-      <p>These customers have not paid. Cancelling one first expires its Stripe checkout, then closes the request and emails a confirmed address. If Stripe shows a payment, the payment is recorded and the request is not cancelled. The reason is an internal audit note; the customer does not see it.</p>
-      {closedNote ? <p role="status">{closedNote}</p> : null}
-      <UnpaidTable jobs={unpaid} busy={busy} onClose={closeUnpaid} />
       {job ? <section>
         <h2>Job {job.submission_id}</h2>
         <p>Support reference: <code>{job.public_reference}</code></p>
@@ -240,7 +243,36 @@ export function AdminRecordingsPage() {
         <h3>History</h3>
         <ul>{detail.events.map((event, index) => <li key={index}>{historyLine(event)}</li>)}</ul>
       </section> : null}
+      </section>}
     </section>
+  );
+}
+
+const RECORDING_TABS = [["queue", "Recording queue"], ["unpaid", "Unpaid requests"]];
+
+function RecordingTabs({ tab, onChange, queued, unpaid }) {
+  const counts = { queue: queued, unpaid };
+  function onKeyDown(event) {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const index = RECORDING_TABS.findIndex(([id]) => id === tab);
+    const [next] = RECORDING_TABS[(index + step + RECORDING_TABS.length) % RECORDING_TABS.length];
+    onChange(next);
+    document.getElementById(`recordings-tab-${next}`)?.focus();
+  }
+  return (
+    <div className="method-tabs" role="tablist" aria-label="Recording requests">
+      {RECORDING_TABS.map(([id, label]) => (
+        <button
+          key={id} id={`recordings-tab-${id}`} type="button" role="tab"
+          aria-selected={tab === id} aria-controls={`recordings-panel-${id}`}
+          tabIndex={tab === id ? 0 : -1} onClick={() => onChange(id)} onKeyDown={onKeyDown}
+        >
+          {label} ({counts[id]})
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -421,16 +453,15 @@ function StationPanel({ busy, devices, device, setDevice, station, job, otherCap
       {station?.size_warning ? <p className="note">This recording is near the size limit.</p> : null}
       {phase === "absent" || (job.state === "awaiting_recording" && phase !== "capturing") ? (
         <>
-          <label>Capture device
-            <select value={device} onChange={(event) => setDevice(event.target.value)}>
+          <label htmlFor="capture-device">
+            <span className="label-row">Capture device <button type="button" className="linkish" onClick={onRefresh}>Refresh the device list</button></span>
+            <select id="capture-device" value={device} onChange={(event) => setDevice(event.target.value)}>
               <option value="">Choose a device</option>
               {devices.map((name) => <option key={name} value={name}>{name}</option>)}
             </select>
           </label>
-          <button type="button" onClick={onRefresh}>Refresh devices</button>
           <button disabled={busy || !device || !waiting || Boolean(otherCapturing)} onClick={onStart}>Start recording</button>
-          {otherCapturing ? <p>Another job ({otherCapturing}) is currently recording. Open it to stop that capture first.</p> : null}
-        </>
+          {otherCapturing ? <p>Another job ({otherCapturing}) is currently recording. Open it to stop that capture first.</p> : null}        </>
       ) : null}
       {phase === "capturing" ? <button disabled={busy} onClick={onStop}>Stop recording</button> : null}
       {phase === "interrupted" ? <>

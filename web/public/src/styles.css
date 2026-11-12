@@ -177,6 +177,17 @@ label {
   gap: 0.3rem;
 }
 
+.label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.label-row button.linkish {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
 .check {
   display: flex;
   gap: 0.6rem;
