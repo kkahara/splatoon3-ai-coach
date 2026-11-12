@@ -16,7 +16,10 @@ from psycopg import sql
 from psycopg.rows import dict_row
 
 from public_site.errors import PAYMENT_UNAVAILABLE, RequestRejected
+from public_site.public_reference import ALPHABET as REFERENCE_ALPHABET
+from public_site.public_reference import LENGTH as REFERENCE_LENGTH
 from public_site.public_reference import PATTERN as REFERENCE_PATTERN
+from public_site.public_reference import PREFIX as REFERENCE_PREFIX
 from public_site.public_reference import new_reference
 
 PaymentState = Literal["not_required", "unpaid", "checkout_created", "paid"]
@@ -35,6 +38,7 @@ PaidResult = Literal["paid", "queued", "stale", "amount", "expired", "missing"]
 
 _SCHEMA_LOCK = 8_273_341_904
 _REFERENCE_ATTEMPTS = 10
+_UNBIASED_BYTES = 256 - 256 % len(REFERENCE_ALPHABET)
 _SCHEMA = (
     """
     CREATE TABLE IF NOT EXISTS analysis_price (
@@ -197,6 +201,30 @@ _SCHEMA = (
     """
     CREATE UNIQUE INDEX IF NOT EXISTS submission_gates_public_reference
         ON submission_gates (public_reference)
+    """,
+    # P1-A inserts gates without public_reference; after a rollback to it the
+    # NOT NULL column must still fill itself.
+    f"""
+    CREATE OR REPLACE FUNCTION s3_new_public_reference() RETURNS text
+    LANGUAGE plpgsql VOLATILE AS $$
+    DECLARE
+        alphabet constant text := '{REFERENCE_ALPHABET}';
+        reference text := '{REFERENCE_PREFIX}';
+        drawn int;
+    BEGIN
+        WHILE length(reference) < {len(REFERENCE_PREFIX) + REFERENCE_LENGTH} LOOP
+            drawn := get_byte(uuid_send(gen_random_uuid()), 0);
+            IF drawn < {_UNBIASED_BYTES} THEN
+                reference := reference
+                    || substr(alphabet, drawn % length(alphabet) + 1, 1);
+            END IF;
+        END LOOP;
+        RETURN reference;
+    END $$
+    """,
+    """
+    ALTER TABLE submission_gates
+        ALTER COLUMN public_reference SET DEFAULT s3_new_public_reference()
     """,
 )
 _QUEUE = """

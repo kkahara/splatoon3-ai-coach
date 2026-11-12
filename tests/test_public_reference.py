@@ -6,7 +6,10 @@ The reference identifies one submission for support. It never grants access.
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -34,6 +37,7 @@ from test_public_recordings import (
     site,  # noqa: F401
 )
 from test_public_recordings import _create as _create_review
+from test_public_report_rollback import p1a_worktree  # noqa: F401
 from test_public_review_vouchers import _issue, _pending_guest, review  # noqa: F401
 
 REFERENCE = re.compile(r"^S3-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$")
@@ -148,6 +152,76 @@ def test_migration_backfills_missing_references_and_keeps_existing_ones(
     assert len(set(backfilled.values())) == 4
     payments.ensure_schema()
     assert _references(payments) == backfilled
+
+
+# Rollback: P1-A inserts gates without a reference
+
+P1A_INSERT = """INSERT INTO submission_gates (
+    submission_id, status, uploaded, payment_state, checkout_attempt,
+    price_cents, currency, pricing_version, expires_at,
+    voucher_id, voucher_state
+) VALUES (%s, 'received', false, 'unpaid', 0, 199, 'usd', 1, %s, NULL, NULL)"""
+
+P1A_OPEN_GATE = """
+import json, sys
+from datetime import UTC, datetime, timedelta
+import public_site
+from public_site.payments import PaymentStore, PriceQuote
+
+store = PaymentStore(sys.argv[1])
+expires = datetime.now(UTC) + timedelta(hours=1)
+store.open_gate(sys.argv[2], PriceQuote(199, "usd", 1, "unpaid"), expires)
+print(json.dumps({"public_site": public_site.__file__}))
+"""
+
+
+def test_an_insert_without_a_reference_gets_one_from_the_database(
+    payments: PaymentStore,  # noqa: F811
+) -> None:
+    kept = _open(payments, "a" * 32)
+    expires = datetime.now(UTC) + timedelta(hours=1)
+    with payments._conn() as conn:
+        for name in "bc":
+            conn.execute(P1A_INSERT, (name * 32, expires))
+    payments.ensure_schema()
+    references = _references(payments)
+    assert references["a" * 32] == kept
+    assert all(REFERENCE.fullmatch(value) for value in references.values())
+    assert len(set(references.values())) == 3
+    with payments._conn() as conn:
+        drawn = conn.execute(
+            "SELECT s3_new_public_reference() AS r FROM generate_series(1, 2000)"
+        ).fetchall()
+    assert all(REFERENCE.fullmatch(row["r"]) for row in drawn)
+    assert set("".join(row["r"][3:] for row in drawn)) == set(ALPHABET)
+
+
+@pytest.mark.rollback
+def test_frozen_p1a_opens_a_gate_after_p1b_migrated_the_database(
+    payments: PaymentStore, p1a_worktree: Path  # noqa: F811
+) -> None:
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(("PUBLIC_", "PYTHONPATH"))
+    }
+    env.update(
+        PYTHONPATH=f"{p1a_worktree / 'src'}{os.pathsep}{p1a_worktree / 'tools'}",
+        PUBLIC_LOAD_DOTENV="0",
+    )
+    done = subprocess.run(
+        [sys.executable, "-c", P1A_OPEN_GATE, payments.database_url, "e" * 32],
+        capture_output=True,
+        text=True,
+        env=env,
+        cwd=p1a_worktree,
+        timeout=120,
+        check=False,
+    )
+    assert done.returncode == 0, done.stderr[-2000:]
+    module = json.loads(done.stdout.strip().splitlines()[-1])["public_site"]
+    assert Path(module).resolve().is_relative_to(p1a_worktree.resolve())
+    assert REFERENCE.fullmatch(payments.get("e" * 32).public_reference)
 
 
 # Lifecycle: video upload
