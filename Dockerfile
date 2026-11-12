@@ -17,14 +17,14 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md constraints.txt ./
 COPY src ./src
 COPY tools ./tools
 COPY configs ./configs
 COPY calibration/templates ./calibration/templates
 COPY --from=web /web/dist ./web/public/dist
 
-RUN pip install --no-cache-dir -e ".[web,cursor]"
+RUN pip install --no-cache-dir -c constraints.txt -e ".[web,cursor]"
 
 # The image must say which commit it was built from: pass the full SHA of the
 # commit whose tree is the build context (GIT_SHA=$(git rev-parse HEAD)).

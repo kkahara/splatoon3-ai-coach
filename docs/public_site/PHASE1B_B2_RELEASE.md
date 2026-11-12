@@ -285,10 +285,16 @@ Dev bucket credentials only (the Mac `.env` never holds the production key).
 
 ### Candidate
 
-- The candidate is the `p1b/r2-storage` commit that adds this checklist. Its
-  full SHA is recorded in the release report and, at deploy, in
-  `DEPLOYED_SHA`. Do not deploy a later commit without re-running
+- The candidate is the `p1b/r2-storage` commit that pins the image's
+  dependencies (`constraints.txt`), directly after the commit that adds this
+  checklist. Its full SHA is recorded in the release report and, at deploy,
+  in `DEPLOYED_SHA`. Do not deploy a later commit without re-running
   "Local verification".
+- Dependencies: the Dockerfile installs under `constraints.txt`, the exact
+  package set of the production P1-A image (Stripe SDK 16.1.0, loguru 0.7.3,
+  FastAPI 0.162.2, ...). An unpinned build resolved Stripe 17.0.0 and loguru
+  0.8.0; loguru 0.8.0 fails `test_public_storage_logging.py`. Upgrades are
+  separate, tested changes.
 - Build off-host for `linux/amd64` with `--build-arg GIT_SHA=<full sha>` and
   label `org.opencontainers.image.revision=<full sha>`, deliver as a tarball,
   `docker load`, tag `s3-coaching-app:candidate-<sha12>` and
