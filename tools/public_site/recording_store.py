@@ -750,6 +750,25 @@ class RecordingStore:
             ).fetchone()
         return row is not None
 
+    def status_facts(self, submission_ids: list[str]) -> dict[str, tuple[str, bool, bool]]:
+        """State, contact confirmed and operator-cancelled per request, in one query."""
+        if not submission_ids:
+            return {}
+        with self._conn() as conn:
+            rows = conn.execute(
+                """SELECT a.submission_id, a.state, a.contact_verified_at IS NOT NULL AS verified,
+                          EXISTS (SELECT 1 FROM review_code_acquisition_events e
+                                  WHERE e.submission_id = a.submission_id
+                                    AND e.kind = 'unpaid_closed') AS cancelled
+                   FROM review_code_acquisitions a
+                   WHERE a.submission_id = ANY(%s)""",
+                (submission_ids,),
+            ).fetchall()
+        return {
+            str(row["submission_id"]): (row["state"], row["verified"], row["cancelled"])
+            for row in rows
+        }
+
     def _unpaid_for_update(self, conn, submission_id: str, expected_version: int) -> dict:
         row = conn.execute(
             """SELECT a.version, a.state, a.contact_verified_at, a.review_code,

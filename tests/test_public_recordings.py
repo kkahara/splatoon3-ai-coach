@@ -255,6 +255,53 @@ def test_verified_account_email_is_forced_for_review_without_changing_preference
     assert len(site.get("/api/me/submissions").json()) == 1
 
 
+def _history(site: TestClient, created: dict) -> dict:
+    listed = site.get("/api/me/submissions")
+    assert listed.status_code == 200, listed.text
+    return next(item for item in listed.json() if item["id"] == created["submission_id"])
+
+
+def test_history_status_follows_payment_recording_and_operator_flags(site) -> None:
+    _login(site)
+    created = _create(site)
+    assert _history(site, created)["display_status"] == "payment_required"
+    session = _checkout(site, created)
+    assert _webhook(site, _event(session)).status_code == 200
+    site.app.state.service.maintain(datetime.now(UTC))
+    assert _history(site, created)["display_status"] == "awaiting_recording"
+    site.app.state.accounts.set_role("owner@example.com", "admin")
+    _flagged(site, created)
+    item = _history(site, created)
+    assert item["display_status"] == "needs_attention"
+    assert set(item) == {
+        "id", "created_at", "expires_at", "status", "step", "display_status",
+        "display_name", "outcome", "battle_mode_id", "stage_id", "moment_count",
+    }
+    listed = site.get("/api/me/submissions").text
+    for private in (
+        "ABCD-1234", "owner@example.com", session.url, session.id, "pi_test",
+        "Replay unavailable", "voucher", "payment_state", "acquisition",
+    ):
+        assert private not in listed
+
+
+def test_history_shows_an_unconfirmed_review_code_as_email_confirmation(site) -> None:
+    """Account requests are confirmed at creation, so the row is edited to get here."""
+    _login(site)
+    created = _create(site)
+    with site.app.state.service.recordings.database._conn() as conn:
+        conn.execute(
+            "UPDATE submission_gates SET payment_state='paid' WHERE submission_id=%s",
+            (created["submission_id"],),
+        )
+        conn.execute(
+            """UPDATE review_code_acquisitions SET contact_verified_at = NULL
+               WHERE submission_id = %s""",
+            (created["submission_id"],),
+        )
+    assert _history(site, created)["display_status"] == "email_confirmation"
+
+
 def test_payment_before_contact_stays_blocked_until_verified(site) -> None:
     created = _create(site)
     svc = site.app.state.service

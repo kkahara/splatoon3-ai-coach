@@ -15,6 +15,7 @@ from loguru import logger
 
 from public_site.accounts import AccountStore
 from public_site.clips import clip_path, extract_clips, missing_clips
+from public_site.display_status import DisplayStatus, display_status
 from public_site.errors import (
     ACCOUNT_RATE_LIMIT,
     BAD_EMAIL,
@@ -357,6 +358,24 @@ class SubmissionService:
             notice_pending=self._notice_pending(submission),
             public_reference=None if gate is None else gate.public_reference,
         )
+
+    def display_statuses(self, submissions: list[Submission]) -> dict[str, DisplayStatus]:
+        """Customer-facing status per submission, from one payment and one recording query."""
+        ids = [submission.id for submission in submissions]
+        gates = {} if self.payments is None else self.payments.states(ids)
+        review_ids = [s.id for s in submissions if s.input_type == "review_code"]
+        acquisitions = (
+            {} if self.recordings is None
+            else self.recordings.database.status_facts(review_ids)
+        )
+        found: dict[str, DisplayStatus] = {}
+        for submission in submissions:
+            payment_state, voucher_state = gates.get(submission.id, (None, None))
+            state, verified, cancelled = acquisitions.get(submission.id, (None, None, False))
+            found[submission.id] = display_status(
+                submission.status, payment_state, voucher_state, state, verified, cancelled
+            )
+        return found
 
     def moment_frame(self, token: str, index: int) -> Path:
         """JPEG for one ranked moment. A missing still is a 404."""

@@ -854,7 +854,7 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
     @app.get("/api/me/submissions")
     def get_mine(request: Request) -> list[dict]:
         user = _required_user(request, accounts)
-        return _history_items(accounts, service.store, user.id)
+        return _history_items(accounts, service, user.id)
 
     @app.post("/api/me/submissions/{submission_id}/share")
     def post_share(submission_id: str, request: Request) -> dict:
@@ -1001,13 +1001,16 @@ def _owned(
 
 
 def _history_items(
-    accounts: AccountStore, store: PublicStore, user_id: str
+    accounts: AccountStore, service: SubmissionService, user_id: str
 ) -> list[dict]:
-    items = []
+    owned = []
     for row in accounts.list_history(user_id):
-        submission = store.get(row.submission_id)
-        if submission is None or submission.user_id != user_id:
-            continue
+        submission = service.store.get(row.submission_id)
+        if submission is not None and submission.user_id == user_id:
+            owned.append(submission)
+    statuses = service.display_statuses(owned)
+    items = []
+    for submission in owned:
         mode_id, stage_id = match_identity(submission.analysis_dir)
         items.append(
             HistoryItem(
@@ -1016,6 +1019,7 @@ def _history_items(
                 expires_at=submission.expires_at,
                 status=submission.status,
                 step=submission.step,
+                display_status=statuses[submission.id],
                 display_name=submission.display_name,
                 outcome=submission.outcome,
                 battle_mode_id=mode_id,

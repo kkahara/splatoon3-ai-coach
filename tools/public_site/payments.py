@@ -549,6 +549,23 @@ class PaymentStore:
             ).fetchone()
         return None if row is None else _gate(row)
 
+    def states(self, submission_ids: list[str]) -> dict[str, tuple[str, str | None]]:
+        """Payment and voucher state per billed submission, in one query."""
+        if not submission_ids:
+            return {}
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT submission_id, payment_state, voucher_state FROM submission_gates
+                WHERE submission_id = ANY(%s)
+                """,
+                (submission_ids,),
+            ).fetchall()
+        return {
+            str(row["submission_id"]): (row["payment_state"], row["voucher_state"])
+            for row in rows
+        }
+
     def get_by_session(self, session_id: str) -> SubmissionGate | None:
         """Load the gate that currently owns this Checkout Session id."""
         if not session_id:

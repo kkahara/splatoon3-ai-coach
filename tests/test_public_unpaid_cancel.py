@@ -308,6 +308,7 @@ def test_account_history_marks_a_cancelled_request_expired(site) -> None:
     history = site.get("/api/me/submissions").json()
     item = next(entry for entry in history if entry["id"] == created["submission_id"])
     assert item["status"] == "expired"
+    assert item["display_status"] == "cancelled"
     assert len(_mail(site, created)) == 1
     text = _mail(site, created)[0].read_text(encoding="utf-8")
     assert "To: owner@example.com" in text

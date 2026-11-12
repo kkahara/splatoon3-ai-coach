@@ -9,6 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from public_site.display_status import DisplayStatus
 from public_site.recording_models import AcquisitionView
 
 PublicStatus = Literal[
@@ -229,6 +230,7 @@ class HistoryItem(BaseModel):
     expires_at: str
     status: PublicStatus
     step: PublicStep
+    display_status: DisplayStatus
     display_name: str | None = None
     outcome: CoachingOutcome | None = None
     battle_mode_id: str | None = None

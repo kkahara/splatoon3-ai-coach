@@ -20,8 +20,10 @@ from public_site.errors import (
     UNVERIFIED,
 )
 from public_site.media_probe import ProbeFacts
+from public_site.payments import PaymentStore
 from public_site.settings import PublicSettings
 from public_site.store import parse_utc
+from test_public_payments import FakeCheckout
 
 from splatoon3_ai_coach.config.paths import default_config_path
 
@@ -63,7 +65,12 @@ def _probe_ok(_path: Path) -> ProbeFacts:
     return ProbeFacts(12.0, 1920, 1080, "mp4")
 
 
-def _client(tmp_path: Path, accounts: AccountStore) -> TestClient:
+def _client(
+    tmp_path: Path,
+    accounts: AccountStore,
+    payments: PaymentStore | None = None,
+    checkout: FakeCheckout | None = None,
+) -> TestClient:
     root = tmp_path / "public"
     root.mkdir(parents=True, exist_ok=True)
     settings = PublicSettings(
@@ -78,6 +85,8 @@ def _client(tmp_path: Path, accounts: AccountStore) -> TestClient:
     app = create_app(
         settings,
         accounts=accounts,
+        payments=payments,
+        checkout=checkout,
         verifier=lambda token: token == "ok",
         probe=_probe_ok,
         run_command=lambda _argv: 0,
@@ -241,6 +250,50 @@ def test_logged_in_submit_hides_guest_email_and_keeps_a_year(
     assert "other@example.com" not in client.app.state.settings.root.joinpath(
         "submissions", f"{stored.id}.json"
     ).read_text()
+
+
+def test_history_status_is_payment_required_then_awaiting_analysis(
+    tmp_path: Path, accounts: AccountStore
+) -> None:
+    payments = PaymentStore(accounts.database_url)
+    payments.ensure_schema()
+    payments.clear()
+    try:
+        payments.set_price(199)
+        checkout = FakeCheckout()
+        client = _client(tmp_path, accounts, payments, checkout)
+        _register(client, "rin@example.com")
+        _verify(client)
+        created = client.post(
+            "/api/submissions",
+            json={
+                "turnstile_token": "ok",
+                "filename": "match.mp4",
+                "size_bytes": 8,
+                "content_type": "video/mp4",
+                "language": "en",
+            },
+        )
+        assert created.status_code == 200, created.text
+        token, upload = created.json()["token"], created.json()["upload"]
+        put = client.put(upload["url"], content=b"12345678", headers=upload["headers"])
+        assert put.status_code == 200, put.text
+        client.post(f"/api/submissions/{token}/uploaded")
+        [unpaid] = client.get("/api/me/submissions").json()
+        assert unpaid["status"] == "received"
+        assert unpaid["display_status"] == "payment_required"
+        client.post(f"/api/submissions/{token}/checkout")
+        session = checkout.created[0]
+        checkout.pay(session.id)
+        assert client.post(f"/api/submissions/{token}/checkout").json()["paid"] is True
+        listed = client.get("/api/me/submissions")
+        [paid] = listed.json()
+        assert (paid["status"], paid["display_status"]) == ("queued", "awaiting_analysis")
+        private = ("rin@example.com", session.url, session.id, "pi_test", "payment_state")
+        for text in private:
+            assert text not in listed.text
+    finally:
+        payments.clear()
 
 
 def test_owner_share_link_opens_without_logging_in(
