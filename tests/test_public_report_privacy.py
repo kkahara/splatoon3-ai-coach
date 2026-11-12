@@ -191,6 +191,29 @@ def test_short_display_name_and_acquisition_names_are_known(tmp_path: Path) -> N
     assert _scan(known, {"a": "mobo is fine"}) is None
 
 
+def test_acquisition_without_player_names_keeps_other_checks(tmp_path: Path) -> None:
+    settings = report_settings(tmp_path, None)
+    known = known_values(
+        settings,
+        None,
+        None,
+        None,
+        {
+            "review_code": "ABCD-EFGH-JKLM-NPQR",
+            "target_player_name": None,
+            "confirmed_player_name": None,
+            "requested_email": "player@example.test",
+            "handoff_reference": "handoff-ref-0001",
+            "submission_snapshot": {"display_name": "Squidkid", "email": None},
+        },
+    )
+    assert _scan(known, {"a": "ABCD-EFGH-JKLM-NPQR"}) == "known_value:review_code"
+    assert _scan(known, {"a": "player@example.test"}) == "known_value:requested_email"
+    assert _scan(known, {"a": "handoff-ref-0001"}) == "known_value:handoff_reference"
+    assert _scan(known, {"a": "squidkid"}) == "known_value:display_name"
+    assert _scan(known, {"note": "None"}) is None
+
+
 def test_non_string_snapshot_user_id_is_known(tmp_path: Path) -> None:
     settings = report_settings(tmp_path, None)
     known = known_values(

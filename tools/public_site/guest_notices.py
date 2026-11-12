@@ -94,6 +94,48 @@ class GuestNotices:
                 return str(row["id"]), None
         return self._create_browser(now)
 
+    def live_browser_id(self, raw_token: str, now: datetime) -> str | None:
+        """The browser a cookie names, without creating or refreshing one."""
+        if not raw_token:
+            return None
+        row = self._live_browser(hash_token(raw_token), now)
+        return None if row is None else str(row["id"])
+
+    def browser_cooldown(self, browser_id: str, now: datetime) -> timedelta | None:
+        """Time left before this browser may start another confirmation challenge.
+
+        Mirrors the browser check in ``begin_challenge``, which stays authoritative.
+        The per-address limit is deliberately not reported.
+        """
+        with self._conn() as conn:
+            row = conn.execute(
+                """SELECT max(created_at) AS latest FROM guest_email_challenges
+                   WHERE browser_id = %s""",
+                (browser_id,),
+            ).fetchone()
+        if row is None or row["latest"] is None:
+            return None
+        remaining = row["latest"] + _RATE_WINDOW - now
+        return remaining if remaining > timedelta(0) else None
+
+    def rebind_request(self, submission_id: str, email: str, now: datetime) -> None:
+        """Move an unconfirmed request to a corrected address.
+
+        Earlier links for this request stop working. Their rows stay, so they
+        still count toward the rate limits.
+        """
+        with self._conn() as conn:
+            conn.execute(
+                """UPDATE guest_notice_requests SET normalized_email = %s
+                   WHERE submission_id = %s AND confirmed_at IS NULL""",
+                (email, submission_id),
+            )
+            conn.execute(
+                """UPDATE guest_email_challenges SET used_at = %s
+                   WHERE submission_id = %s AND used_at IS NULL""",
+                (now, submission_id),
+            )
+
     def is_verified(self, browser_id: str, email: str) -> bool:
         """True when this browser has already confirmed this exact address."""
         with self._conn() as conn:

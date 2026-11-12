@@ -23,6 +23,7 @@ from public_site.s3sign import authorization_headers, canonical_query, presign
 
 OBJECT_PREFIXES = ("submissions/", "processing/", "reports/", "exports/")
 SHA256_METADATA = "x-amz-meta-sha256"
+ATTEMPT_METADATA = "x-amz-meta-attempt"
 _GRANT = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
 _SEGMENT = re.compile(r"^[A-Za-z0-9._-]+$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -63,7 +64,8 @@ def is_folder_marker(key: str) -> bool:
 class ObjectStat:
     """Size, and the recorded SHA-256 when the object has one. The key is the one asked for.
 
-    ``last_modified`` is filled by listings only.
+    ``last_modified`` is filled by listings only. ``attempt`` is the upload
+    attempt id an operator grant signed into the object, when it has one.
     """
 
     def __init__(
@@ -72,11 +74,26 @@ class ObjectStat:
         size_bytes: int,
         sha256: str | None = None,
         last_modified: datetime | None = None,
+        attempt: str | None = None,
     ) -> None:
         self.key = key
         self.size_bytes = size_bytes
         self.sha256 = sha256
         self.last_modified = last_modified
+        self.attempt = attempt
+
+
+class ObjectExists(Exception):
+    """A conditional PUT found an object already at the key."""
+
+
+def _attempt_headers(attempt: str | None) -> dict[str, str]:
+    """Headers that make a PUT create-only and stamp it with its attempt id."""
+    if attempt is None:
+        return {}
+    if not _GRANT.fullmatch(attempt):
+        raise ValueError("invalid upload attempt")
+    return {"If-None-Match": "*", ATTEMPT_METADATA: attempt}
 
 
 class HashingReader:
@@ -129,17 +146,31 @@ class LocalStorage:
         self.objects.mkdir(parents=True, exist_ok=True)
         self.grants.mkdir(parents=True, exist_ok=True)
 
-    def presign_put(self, key: str, content_type: str, size_bytes: int) -> PresignedUpload:
-        """Issue a one-object PUT grant. The review token is not part of the URL."""
+    def presign_put(
+        self,
+        key: str,
+        content_type: str,
+        size_bytes: int,
+        *,
+        attempt: str | None = None,
+        issued_at: datetime | None = None,
+    ) -> PresignedUpload:
+        """Issue a one-object PUT grant. The review token is not part of the URL.
+
+        With ``attempt`` the grant is create-only and stamps the object with that
+        id; the grant id is the attempt, so the same attempt yields the same URL.
+        """
         import secrets
 
-        grant_id = secrets.token_urlsafe(24)
-        expires = datetime.now(UTC) + timedelta(seconds=self.url_seconds)
+        extra = _attempt_headers(attempt)
+        grant_id = attempt or secrets.token_urlsafe(24)
+        expires = (issued_at or datetime.now(UTC)) + timedelta(seconds=self.url_seconds)
         payload = {
             "object_key": key,
             "size_bytes": size_bytes,
             "content_type": content_type,
             "expires_at": expires.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "attempt": attempt,
         }
         (self.grants / f"{grant_id}.json").write_text(
             json.dumps(payload, sort_keys=True) + "\n",
@@ -148,26 +179,41 @@ class LocalStorage:
         return PresignedUpload(
             url=f"/api/dev-upload/{grant_id}",
             method="PUT",
-            headers={"Content-Type": content_type},
+            headers={"Content-Type": content_type, **extra},
             expires_at=payload["expires_at"],
         )
 
     def write_grant(self, grant_id: str, body: bytes) -> str:
-        """Store bytes for a live grant. Returns the object key."""
+        """Store bytes for a live grant. Returns the object key.
+
+        An attempt grant never replaces an existing object (``ObjectExists``).
+        """
         grant = self._grant(grant_id)
         if grant is None:
             raise KeyError(grant_id)
         if len(body) > int(grant["size_bytes"]):
             raise ValueError("upload too large")
-        self._write(str(grant["object_key"]), body)
-        return str(grant["object_key"])
+        key = str(grant["object_key"])
+        attempt = grant.get("attempt")
+        path = self._path(key)
+        if attempt and path is not None and path.is_file():
+            raise ObjectExists(key)
+        self._write(key, body)
+        if attempt and path is not None:
+            _attempt_sidecar(path).write_text(f"{attempt}\n", encoding="utf-8")
+        return key
 
     def head(self, key: str) -> ObjectStat | None:
         """Return the stored size, or None when the object is absent."""
         path = self._path(key)
         if path is None or not path.is_file():
             return None
-        return ObjectStat(key, path.stat().st_size, self._recorded_sha256(path))
+        return ObjectStat(
+            key,
+            path.stat().st_size,
+            self._recorded_sha256(path),
+            attempt=_read_sidecar(_attempt_sidecar(path)),
+        )
 
     def local_file(self, key: str, dest: Path) -> tuple[Path, bool]:
         """Return a local path. The second value is True when ``dest`` is a copy."""
@@ -207,6 +253,7 @@ class LocalStorage:
             raise
         partial.replace(path)
         _sha_sidecar(path).write_text(digest + "\n", encoding="utf-8")
+        _attempt_sidecar(path).unlink(missing_ok=True)
         return ObjectStat(key, path.stat().st_size, digest)
 
     def read_sha256(self, key: str) -> tuple[int, str]:
@@ -247,6 +294,7 @@ class LocalStorage:
         if path is not None and path.is_file():
             path.unlink()
             _sha_sidecar(path).unlink(missing_ok=True)
+            _attempt_sidecar(path).unlink(missing_ok=True)
 
     def _recorded_sha256(self, path: Path) -> str | None:
         sidecar = _sha_sidecar(path)
@@ -274,6 +322,7 @@ class LocalStorage:
             raise ValueError("invalid object key")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(body)
+        _attempt_sidecar(path).unlink(missing_ok=True)
 
     def _path(self, key: str) -> Path | None:
         if not valid_key(key):
@@ -287,6 +336,17 @@ class LocalStorage:
 
 def _sha_sidecar(path: Path) -> Path:
     return path.with_name(f".{path.name}.sha256")
+
+
+def _attempt_sidecar(path: Path) -> Path:
+    return path.with_name(f".{path.name}.attempt")
+
+
+def _read_sidecar(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    value = path.read_text(encoding="utf-8").strip()
+    return value if _GRANT.fullmatch(value) else None
 
 
 class R2Storage:
@@ -322,10 +382,23 @@ class R2Storage:
     def __repr__(self) -> str:
         return f"R2Storage(bucket={self.bucket!r}, host={self.host!r})"
 
-    def presign_put(self, key: str, content_type: str, size_bytes: int) -> PresignedUpload:
-        """Presign a PUT for this key only."""
-        now = datetime.now(UTC)
+    def presign_put(
+        self,
+        key: str,
+        content_type: str,
+        size_bytes: int,
+        *,
+        attempt: str | None = None,
+        issued_at: datetime | None = None,
+    ) -> PresignedUpload:
+        """Presign a PUT for this key only.
+
+        With ``attempt`` the PUT is create-only (``If-None-Match: *``) and stamps
+        the object with that id. The same ``issued_at`` gives the same URL.
+        """
+        now = issued_at or datetime.now(UTC)
         expires_at = (now + timedelta(seconds=self.url_seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        extra = _attempt_headers(attempt)
         url = presign(
             method="PUT",
             host=self.host,
@@ -339,13 +412,18 @@ class R2Storage:
             signed_headers={
                 "content-type": content_type,
                 "content-length": str(size_bytes),
+                **extra,
             },
             scheme=self.scheme,
         )
         return PresignedUpload(
             url=url,
             method="PUT",
-            headers={"Content-Type": content_type, "Content-Length": str(size_bytes)},
+            headers={
+                "Content-Type": content_type,
+                "Content-Length": str(size_bytes),
+                **extra,
+            },
             expires_at=expires_at,
         )
 
@@ -359,7 +437,9 @@ class R2Storage:
         length = int(_header(headers, "content-length") or "0")
         recorded = _header(headers, SHA256_METADATA)
         sha256 = recorded if recorded and _SHA256.fullmatch(recorded) else None
-        return ObjectStat(key, length, sha256)
+        stamped = _header(headers, ATTEMPT_METADATA)
+        attempt = stamped if stamped and _GRANT.fullmatch(stamped) else None
+        return ObjectStat(key, length, sha256, attempt=attempt)
 
     def local_file(self, key: str, dest: Path) -> tuple[Path, bool]:
         """Download the object to ``dest``. The caller deletes that copy."""

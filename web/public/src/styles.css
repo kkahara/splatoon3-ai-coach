@@ -590,6 +590,15 @@ details summary {
   border-bottom: 0;
 }
 
+.admin-table tbody tr.clickable {
+  cursor: pointer;
+}
+
+.admin-table tbody tr.clickable:hover td,
+.admin-table tbody tr.clickable:focus-visible td {
+  background: rgba(198, 161, 91, 0.12);
+}
+
 .admin-table a,
 .admin-sheet section > p a {
   color: #c6a15b;
@@ -1446,6 +1455,39 @@ dialog.share-panel {
 
 .admin-volume span:nth-child(4n + 4) {
   background: var(--s3-pink);
+}
+
+.method-tabs {
+  display: flex;
+  gap: 0.35rem;
+  border-bottom: 2px solid var(--s3-yellow);
+}
+
+.method-tabs button {
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--s3-border);
+  border-bottom: 0;
+  border-radius: 0.6rem 0.6rem 0 0;
+  background: var(--s3-surface);
+  color: var(--s3-muted);
+}
+
+.method-tabs button:hover {
+  background: var(--s3-surface-raised);
+  color: var(--s3-text);
+}
+
+.method-tabs button[aria-selected="true"] {
+  border-color: var(--s3-yellow);
+  background: var(--s3-yellow);
+  color: var(--s3-void);
+}
+
+.method-tabs ~ .upload-card {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 @media (max-width: 640px) {

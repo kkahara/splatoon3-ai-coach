@@ -17,7 +17,12 @@ from fastapi.testclient import TestClient
 from psycopg import sql
 from public_site.accounts import AccountStore
 from public_site.app import SESSION_COOKIE, create_app
-from public_site.errors import PAYMENT_UNAVAILABLE, PROBE_DURATION
+from public_site.errors import (
+    PAYMENT_UNAVAILABLE,
+    PROBE_DURATION,
+    RATE_LIMIT,
+    RequestRejected,
+)
 from public_site.media_probe import ProbeFacts, ProbeRejected
 from public_site.payments import PaymentStore, PriceQuote
 from public_site.recording_store import RecordingStore
@@ -117,6 +122,23 @@ class FakeCheckout:
 
     def expire(self, session_id: str) -> None:
         self.sessions[session_id] = replace(self.sessions[session_id], status="expired")
+
+    def expire_session(self, session_id: str) -> CheckoutSession:
+        """Like Stripe: only an open session can be expired."""
+        self.expire_calls = getattr(self, "expire_calls", 0) + 1
+        if self.sessions[session_id].status != "open":
+            raise RuntimeError("session is not open")
+        self.expire(session_id)
+        return self.sessions[session_id]
+
+    def pay(self, session_id: str, intent: str = "pi_test") -> None:
+        """The customer completes payment at Stripe."""
+        self.sessions[session_id] = replace(
+            self.sessions[session_id],
+            status="complete",
+            payment_status="paid",
+            payment_intent_id=intent,
+        )
 
 
 def _probe_ok(_path: Path) -> ProbeFacts:
@@ -247,7 +269,8 @@ def test_admin_can_change_the_account_upload_limit(
     assert current.json()["account_uploads_per_hour"] == 5
     saved = client.put("/api/admin/upload-limit", json={"account_uploads_per_hour": 8})
     assert saved.status_code == 200
-    assert saved.json() == {"account_uploads_per_hour": 8}
+    assert saved.json()["account_uploads_per_hour"] == 8
+    assert saved.json()["account_uploads_per_hour_source"] == "saved"
     assert payments.account_upload_limit() == 8
     priced = client.put("/api/admin/price", json={"price_cents": 200})
     assert priced.status_code == 200
@@ -263,6 +286,182 @@ def test_admin_can_change_the_account_upload_limit(
         assert bad.status_code == 422
     assert payments.account_upload_limit() == 8
     accounts.clear()
+
+
+def _admin_client(tmp_path: Path, payments: PaymentStore) -> TestClient:
+    accounts = AccountStore(payments.database_url)
+    accounts.ensure_schema()
+    accounts.clear()
+    client = _client(tmp_path, payments, FakeCheckout(), accounts=accounts)
+    client.cookies.set(SESSION_COOKIE, _admin_session(accounts))
+    return client
+
+
+def _limits(response) -> dict:
+    assert response.status_code == 200, response.text
+    body = response.json()
+    return {
+        name: (body[f"{name}_uploads_per_hour"], body[f"{name}_uploads_per_hour_source"])
+        for name in ("account", "guest", "network")
+    }
+
+
+def test_guest_and_network_limits_start_from_the_environment(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    client = _admin_client(tmp_path, payments)
+    assert _limits(client.get("/api/admin/price")) == {
+        "account": (5, "saved"),
+        "guest": (2, "environment"),
+        "network": (6, "environment"),
+    }
+
+
+def test_partial_limit_updates_leave_the_other_limits_alone(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    client = _admin_client(tmp_path, payments)
+    both = client.put(
+        "/api/admin/upload-limit",
+        json={"account_uploads_per_hour": 10, "network_uploads_per_hour": 7},
+    )
+    assert _limits(both) == {
+        "account": (10, "saved"),
+        "guest": (2, "environment"),
+        "network": (7, "saved"),
+    }
+    guest = client.put("/api/admin/upload-limit", json={"guest_uploads_per_hour": 9})
+    assert _limits(guest) == {
+        "account": (10, "saved"),
+        "guest": (9, "saved"),
+        "network": (7, "saved"),
+    }
+    network = client.put("/api/admin/upload-limit", json={"network_uploads_per_hour": 20})
+    assert _limits(network)["account"] == (10, "saved")
+    assert _limits(network)["guest"] == (9, "saved")
+    assert _limits(client.get("/api/admin/price"))["network"] == (20, "saved")
+
+
+def test_explicit_null_restores_only_that_environment_default(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    client = _admin_client(tmp_path, payments)
+    client.put(
+        "/api/admin/upload-limit",
+        json={
+            "account_uploads_per_hour": 10,
+            "guest_uploads_per_hour": 9,
+            "network_uploads_per_hour": 8,
+        },
+    )
+    reset = client.put("/api/admin/upload-limit", json={"guest_uploads_per_hour": None})
+    assert _limits(reset) == {
+        "account": (10, "saved"),
+        "guest": (2, "environment"),
+        "network": (8, "saved"),
+    }
+    assert payments.upload_limits().guest is None
+    assert payments.upload_limits().network == 8
+    reset = client.put("/api/admin/upload-limit", json={"network_uploads_per_hour": None})
+    assert _limits(reset)["network"] == (6, "environment")
+    assert _limits(reset)["account"] == (10, "saved")
+
+
+def test_bad_limit_requests_save_nothing(tmp_path: Path, payments: PaymentStore) -> None:
+    client = _admin_client(tmp_path, payments)
+    client.put("/api/admin/upload-limit", json={"guest_uploads_per_hour": 9})
+    before = payments.upload_limits()
+    bodies = [
+        {},
+        {"unrelated": 3},
+        {"account_uploads_per_hour": None},
+        {"guest_uploads_per_hour": 0},
+        {"network_uploads_per_hour": 101},
+        {"guest_uploads_per_hour": 3.5},
+        {"network_uploads_per_hour": "7"},
+        {"guest_uploads_per_hour": True},
+        {"guest_uploads_per_hour": 4, "network_uploads_per_hour": 0},
+    ]
+    for body in bodies:
+        response = client.put("/api/admin/upload-limit", json=body)
+        assert response.status_code == 422, body
+    assert payments.upload_limits() == before
+
+
+def test_store_refuses_bad_limits_before_writing(payments: PaymentStore) -> None:
+    payments.set_upload_limits(guest=9)
+    for kwargs in (
+        {"account": None},
+        {"guest": 0},
+        {"network": 101},
+        {"guest": True},
+        {"network": 4, "guest": 200},
+        {},
+    ):
+        with pytest.raises(ValueError):
+            payments.set_upload_limits(**kwargs)
+    assert payments.upload_limits().guest == 9
+    assert payments.upload_limits().network is None
+
+
+def test_limit_schema_is_idempotent_and_keeps_saved_limits(
+    payments: PaymentStore,
+) -> None:
+    payments.set_upload_limits(account=11, guest=12, network=13)
+    payments.ensure_schema()
+    payments.ensure_schema()
+    saved = payments.upload_limits()
+    assert (saved.account, saved.guest, saved.network) == (11, 12, 13)
+
+
+def _service_create(client: TestClient, ip: str, user_id: str | None) -> None:
+    client.app.state.service.create(
+        turnstile_token="ok",
+        filename="match.mp4",
+        size_bytes=8,
+        content_type="video/mp4",
+        email=None,
+        notify=False,
+        display_name=None,
+        ip=ip,
+        verifier=lambda token: token == "ok",
+        user_id=user_id,
+    )
+
+
+def _limited(client: TestClient, ip: str, user_id: str | None) -> str:
+    with pytest.raises(RequestRejected) as excinfo:
+        _service_create(client, ip, user_id)
+    assert excinfo.value.status_code == 429
+    return excinfo.value.detail
+
+
+@pytest.mark.parametrize("seventh", [None, "account-7"])
+def test_saved_network_limit_applies_across_guests_and_accounts(
+    tmp_path: Path, payments: PaymentStore, seventh: str | None
+) -> None:
+    payments.set_price(199)
+    payments.set_upload_limits(account=10, guest=10, network=6)
+    client = _client(tmp_path, payments, FakeCheckout())
+    ip = "203.0.113.50"
+    for user_id in (None, None, None, "account-a", "account-a", "account-b"):
+        _service_create(client, ip, user_id)
+    assert _limited(client, ip, seventh) == RATE_LIMIT
+    _service_create(client, "198.51.100.50", seventh)
+
+
+def test_saved_guest_limit_is_enforced_and_null_falls_back(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(199)
+    payments.set_upload_limits(guest=1, network=50)
+    client = _client(tmp_path, payments, FakeCheckout())
+    _service_create(client, "203.0.113.60", None)
+    assert _limited(client, "203.0.113.60", None) == RATE_LIMIT
+    payments.set_upload_limits(guest=None)
+    _service_create(client, "203.0.113.61", None)
+    _service_create(client, "203.0.113.61", None)
+    assert _limited(client, "203.0.113.61", None) == RATE_LIMIT
 
 
 def test_guest_is_refused_until_a_price_exists(

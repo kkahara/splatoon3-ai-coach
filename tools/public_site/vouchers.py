@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Literal, NoReturn
 
 import psycopg
+from loguru import logger
 from psycopg.errors import UniqueViolation
 from psycopg.rows import dict_row
 
@@ -26,20 +27,30 @@ from public_site.errors import (
     VOUCHER_EXPIRED,
     VOUCHER_INACTIVE,
     VOUCHER_INVALID,
+    VOUCHER_NOT_READY,
     VOUCHER_REVOKED,
     VOUCHER_UNAVAILABLE,
+    VOUCHER_WINDOW,
+    VOUCHER_WRONG_SCOPE,
     VOUCHER_WRONG_SERVICE,
     RequestRejected,
 )
 
 MATCH_ANALYSIS_SERVICE_ID = "match_analysis"
 VOUCHER_ATTEMPTS_PER_HOUR = 20
+REDEMPTION_SCOPES = ("video_upload", "review_code", "both")
+DEFAULT_REDEMPTION_SCOPE = "video_upload"
+SubmissionScope = Literal["video_upload", "review_code"]
 _CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 _SCHEMA_LOCK = 8_273_341_906
 _SOURCES = frozenset({"skilltown", "youtube"})
 _BENEFITS = {
     "skilltown": "externally_prepaid",
     "youtube": "complimentary",
+}
+_GATE_SCOPES: dict[str, SubmissionScope] = {
+    "upload": "video_upload",
+    "nintendo_review_code": "review_code",
 }
 _DETAILS = {
     "invalid": VOUCHER_INVALID,
@@ -48,6 +59,9 @@ _DETAILS = {
     "revoked": VOUCHER_REVOKED,
     "inactive": VOUCHER_INACTIVE,
     "wrong_service": VOUCHER_WRONG_SERVICE,
+    "wrong_scope": VOUCHER_WRONG_SCOPE,
+    "not_ready": VOUCHER_NOT_READY,
+    "window": VOUCHER_WINDOW,
     "conflict": VOUCHER_CONFLICT,
 }
 _FAILURES = frozenset({"expired", "revoked", "exhausted", "inactive", "wrong_service"})
@@ -82,6 +96,11 @@ _SCHEMA = (
     """
     CREATE INDEX IF NOT EXISTS voucher_redemptions_voucher
         ON voucher_redemptions (voucher_id)
+    """,
+    """
+    ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS redemption_scope text NOT NULL
+        DEFAULT 'video_upload'
+        CHECK (redemption_scope IN ('video_upload', 'review_code', 'both'))
     """,
 )
 
@@ -118,6 +137,7 @@ class VoucherIssue:
     code: str | None = None
     starts_at: datetime | None = None
     note: str | None = None
+    redemption_scope: str = DEFAULT_REDEMPTION_SCOPE
 
 
 @dataclass(frozen=True)
@@ -153,6 +173,7 @@ class VoucherStatus:
     note: str | None
     created_at: datetime
     redemptions: tuple[VoucherRedemption, ...]
+    redemption_scope: str = DEFAULT_REDEMPTION_SCOPE
 
 
 class VoucherStore:
@@ -176,10 +197,14 @@ class VoucherStore:
             conn.execute("DELETE FROM voucher_redemptions")
             conn.execute("DELETE FROM vouchers")
 
-    def preview(self, raw: str, now: datetime) -> VoucherPreview:
-        """Check a code without inserting a redemption or changing a gate."""
+    def preview(self, raw: str, now: datetime, scope: SubmissionScope) -> VoucherPreview:
+        """Check a code without inserting a redemption or changing a gate.
+
+        ``scope`` is fixed by the route the code arrived on. The result is
+        advisory; redemption re-derives the scope from the stored gate.
+        """
         row = self._row_for_code(raw)
-        reason = _rejection(row, now, self._count(str(row["id"])))
+        reason = _rejection(row, now, self._count(str(row["id"])), scope)
         if reason is not None:
             _reject(400, reason)
         return VoucherPreview(benefit_type=row["benefit_type"])
@@ -197,9 +222,9 @@ class VoucherStore:
                     INSERT INTO vouchers (
                         id, code_hash, source, campaign, eligible_service_id,
                         benefit_type, max_redemptions, starts_at, expires_at,
-                        status, note, created_at
+                        status, note, created_at, redemption_scope
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', %s, %s, %s)
                     """,
                     (
                         voucher_id,
@@ -213,6 +238,7 @@ class VoucherStore:
                         spec.expires_at,
                         spec.note,
                         now,
+                        spec.redemption_scope,
                     ),
                 )
         except UniqueViolation:
@@ -281,10 +307,14 @@ class VoucherStore:
             grouped.setdefault(str(item["voucher_id"]), []).append(item)
         return [_status(row, grouped.get(str(row["id"]), [])) for row in rows]
 
-    def attached_id(self, raw: str, now: datetime) -> str:
-        """Revalidate a code and return its id. This does not redeem it."""
+    def attached_id(self, raw: str, now: datetime, scope: SubmissionScope) -> str:
+        """Revalidate a code for one submission path and return its id.
+
+        This does not redeem it. ``scope`` comes from the server route that
+        creates the submission, never from the request body.
+        """
         row = self._row_for_code(raw)
-        reason = _rejection(row, now, self._count(str(row["id"])))
+        reason = _rejection(row, now, self._count(str(row["id"])), scope)
         if reason is not None:
             _reject(400, reason)
         return str(row["id"])
@@ -377,8 +407,9 @@ def generate_skilltown_code() -> str:
 def voucher_state(found: VoucherStatus, now: datetime) -> str:
     """Operator label from the same rules redemption applies.
 
-    ``active`` means a redemption at ``now`` would pass. Otherwise the
-    rejection reason, with ``exhausted`` shown as ``fully_used``.
+    ``active`` means a redemption at ``now`` would pass on a path its scope
+    allows. Otherwise the rejection reason, with ``exhausted`` shown as
+    ``fully_used``.
     """
     row = {
         "eligible_service_id": found.eligible_service_id,
@@ -386,8 +417,9 @@ def voucher_state(found: VoucherStatus, now: datetime) -> str:
         "starts_at": found.starts_at,
         "expires_at": found.expires_at,
         "max_redemptions": found.max_redemptions,
+        "redemption_scope": found.redemption_scope,
     }
-    reason = _rejection(row, now, found.redemption_count)
+    reason = _rejection(row, now, found.redemption_count, None)
     if reason is None:
         return "active"
     return _STATE_LABELS.get(reason, reason)
@@ -410,6 +442,8 @@ def validate_issue(spec: VoucherIssue, now: datetime) -> None:
         raise ValueError("service is not a current S3 Coach service")
     if spec.max_redemptions < 1:
         raise ValueError("max redemptions must be at least 1")
+    if spec.redemption_scope not in REDEMPTION_SCOPES:
+        raise ValueError("scope must be video_upload, review_code, or both")
     if spec.expires_at <= now:
         raise ValueError("expiration must be in the future")
     if spec.starts_at is not None and spec.starts_at >= spec.expires_at:
@@ -436,18 +470,20 @@ class _LeaveUnchanged(Exception):
 
 
 def _finalize(conn: psycopg.Connection, submission_id: str, now: datetime) -> VoucherDecision:
+    """Lock order: gate, then voucher, then (review codes) the acquisition."""
     gate = conn.execute(
         "SELECT * FROM submission_gates WHERE submission_id = %s FOR UPDATE",
         (submission_id,),
     ).fetchone()
     if gate is None or gate["voucher_id"] is None:
         return VoucherDecision("absent")
+    scope = _gate_scope(gate)
     existing = conn.execute(
         "SELECT * FROM voucher_redemptions WHERE submission_id = %s",
         (submission_id,),
     ).fetchone()
     if existing is not None:
-        return _idempotent(gate, existing)
+        return _idempotent(gate, existing, scope)
     if gate["voucher_state"] != "pending":
         raise _LeaveUnchanged(VoucherDecision("conflict"))
     voucher = conn.execute(
@@ -456,22 +492,64 @@ def _finalize(conn: psycopg.Connection, submission_id: str, now: datetime) -> Vo
     ).fetchone()
     if voucher is None:
         raise _LeaveUnchanged(VoucherDecision("conflict"))
-    count = _locked_count(conn, str(voucher["id"]))
-    reason = _rejection(voucher, now, count)
+    if scope == "review_code":
+        _require_review_ready(conn, gate, now)
+    reason = _rejection(voucher, now, _locked_count(conn, str(voucher["id"])), scope)
+    if reason == "wrong_scope":
+        raise _LeaveUnchanged(VoucherDecision("conflict", "wrong_scope"))
     if reason is not None:
         _mark_failed(conn, gate, reason)
         return VoucherDecision("failed", reason)
-    _redeem(conn, gate, voucher, now)
+    _redeem(conn, gate, voucher, now, scope)
     return VoucherDecision("redeemed")
 
 
-def _idempotent(gate: dict, existing: dict) -> VoucherDecision:
-    """Success only for the state the redemption transaction commits together."""
+def _gate_scope(gate: dict) -> SubmissionScope:
+    """The submission path, from the stored gate only. Unknown sources fail closed.
+
+    A row without a ``source`` key comes from a database that predates review
+    codes, where every gate is a video upload.
+    """
+    source = gate.get("source", "upload")
+    scope = _GATE_SCOPES.get(source)
+    if scope is None:
+        logger.warning("voucher refused for a gate with an unsupported source")
+        raise _LeaveUnchanged(VoucherDecision("conflict"))
+    return scope
+
+
+def _require_review_ready(conn: psycopg.Connection, gate: dict, now: datetime) -> None:
+    """A review-code voucher is used only for a verified, unpurged, unpaid request."""
+    acquisition = conn.execute(
+        """
+        SELECT state, contact_verified_at, sensitive_data_purged_at
+        FROM review_code_acquisitions WHERE submission_id = %s FOR UPDATE
+        """,
+        (gate["submission_id"],),
+    ).fetchone()
+    if (
+        acquisition is None
+        or acquisition["state"] != "pending_payment"
+        or acquisition["sensitive_data_purged_at"] is not None
+    ):
+        raise _LeaveUnchanged(VoucherDecision("conflict"))
+    if acquisition["contact_verified_at"] is None:
+        raise _LeaveUnchanged(VoucherDecision("conflict", "not_ready"))
+    if gate["expires_at"] <= now:
+        raise _LeaveUnchanged(VoucherDecision("conflict", "window"))
+
+
+def _idempotent(gate: dict, existing: dict, scope: SubmissionScope) -> VoucherDecision:
+    """Success only for the state the redemption transaction commits together.
+
+    The stored redemption must name the gate's own voucher. A video gate is
+    queued in the same transaction; a review-code gate waits for recording.
+    """
     established = (
         str(existing["voucher_id"]) == str(gate["voucher_id"])
         and gate["payment_state"] == "not_required"
         and gate["voucher_state"] == "redeemed"
-        and gate["status"] == "queued"
+        and (scope == "review_code" or gate["status"] == "queued")
     )
     if established:
         return VoucherDecision("redeemed")
@@ -500,7 +578,18 @@ def _mark_failed(conn: psycopg.Connection, gate: dict, reason: str) -> None:
         raise _LeaveUnchanged(VoucherDecision("conflict"))
 
 
-def _redeem(conn: psycopg.Connection, gate: dict, voucher: dict, now: datetime) -> None:
+def _redeem(
+    conn: psycopg.Connection,
+    gate: dict,
+    voucher: dict,
+    now: datetime,
+    scope: SubmissionScope,
+) -> None:
+    """Insert the redemption and authorize the gate together.
+
+    A video gate is also queued here. A review-code gate stays ``received``:
+    recording has not happened yet, and activation is ``RecordingStore.reconcile``.
+    """
     if not _still_pending(gate):
         raise _LeaveUnchanged(VoucherDecision("conflict"))
     conn.execute(
@@ -526,6 +615,8 @@ def _redeem(conn: psycopg.Connection, gate: dict, voucher: dict, now: datetime) 
     )
     if authorized.rowcount != 1:
         raise _LeaveUnchanged(VoucherDecision("conflict"))
+    if scope == "review_code":
+        return
     queued = conn.execute(
         """
         UPDATE submission_gates
@@ -560,8 +651,32 @@ def _locked_count(conn: psycopg.Connection, voucher_id: str) -> int:
     return int(row["n"])
 
 
-def _rejection(row: dict, now: datetime, count: int) -> str | None:
-    reason = _state_reason(row, now)
+def scope_allows(redemption_scope: str, scope: SubmissionScope) -> bool:
+    """A voucher fits a path when its scope names that path or is ``both``."""
+    return redemption_scope in REDEMPTION_SCOPES and redemption_scope in (scope, "both")
+
+
+def preview_payload(preview: VoucherPreview) -> dict:
+    """Public response for an accepted advisory check."""
+    return {
+        "accepted": True,
+        "benefit_type": preview.benefit_type,
+        "amount_due_cents": preview.amount_due_cents,
+        "currency": preview.currency,
+    }
+
+
+def raise_voucher_conflict(decision: VoucherDecision) -> NoReturn:
+    """409 for a redemption that changed nothing, with its specific reason."""
+    reason = decision.reason or "conflict"
+    raise RequestRejected(409, _DETAILS.get(reason, VOUCHER_CONFLICT), reason=reason)
+
+
+def _rejection(
+    row: dict, now: datetime, count: int, scope: SubmissionScope | None
+) -> str | None:
+    """The one eligibility rule. ``scope`` None skips only the path check."""
+    reason = _state_reason(row, now, scope)
     if reason is not None:
         return reason
     if count >= int(row["max_redemptions"]):
@@ -569,9 +684,12 @@ def _rejection(row: dict, now: datetime, count: int) -> str | None:
     return None
 
 
-def _state_reason(row: dict, now: datetime) -> str | None:
+def _state_reason(row: dict, now: datetime, scope: SubmissionScope | None) -> str | None:
     if row["eligible_service_id"] != MATCH_ANALYSIS_SERVICE_ID:
         return "wrong_service"
+    stored_scope = row.get("redemption_scope", DEFAULT_REDEMPTION_SCOPE)
+    if scope is not None and not scope_allows(stored_scope, scope):
+        return "wrong_scope"
     if row["status"] == "revoked":
         return "revoked"
     if row["status"] != "active":
@@ -620,6 +738,7 @@ def _status(row: dict, uses: list[dict]) -> VoucherStatus:
         redemptions=tuple(
             VoucherRedemption(str(item["submission_id"]), item["redeemed_at"]) for item in uses
         ),
+        redemption_scope=str(row.get("redemption_scope", DEFAULT_REDEMPTION_SCOPE)),
     )
 
 

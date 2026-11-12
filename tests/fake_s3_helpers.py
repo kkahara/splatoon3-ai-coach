@@ -247,6 +247,9 @@ class _Handler(BaseHTTPRequestHandler):
             self.state.objects[key] = FakeObject(found.body, dict(found.metadata))
             self._xml(200, '<CopyObjectResult><ETag>"x"</ETag></CopyObjectResult>')
             return
+        if self.headers.get("if-none-match") == "*" and key in self.state.objects:
+            self._error(412, "PreconditionFailed")
+            return
         metadata = {
             name.lower(): value
             for name, value in self.headers.items()

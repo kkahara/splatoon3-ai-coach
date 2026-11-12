@@ -190,7 +190,7 @@ class PublicStore:
         another host needs the claim moved into the shared database as one
         atomic operation.
         """
-        with _CLAIM_LOCK, self._claim_file_lock():
+        with self.claim_guard():
             for candidate in self._queued_oldest_first(admit):
                 claimed = self._claim_one(candidate.id, worker_id, now)
                 if claimed is not None:
@@ -219,6 +219,12 @@ class PublicStore:
     ) -> list[Submission]:
         queued = [item for item in self.list_submissions() if _claimable(item, admit)]
         return sorted(queued, key=lambda item: item.created_at)
+
+    @contextmanager
+    def claim_guard(self) -> Iterator[None]:
+        """Hold the worker claim lock; no queued record can be claimed meanwhile."""
+        with _CLAIM_LOCK, self._claim_file_lock():
+            yield
 
     @contextmanager
     def _claim_file_lock(self) -> Iterator[None]:

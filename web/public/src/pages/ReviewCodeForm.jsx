@@ -1,17 +1,49 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createReviewCodeSubmission, openCheckout } from "../api.js";
+import { createReviewCodeSubmission, openCheckout, validateReviewVoucher } from "../api.js";
 import { useT } from "../i18n/LocaleContext.jsx";
-import { normalizedReviewCode } from "./recordingForm.js";
+import { maskReviewCodeEdit, normalizedReviewCode } from "./recordingForm.js";
+import { voucherErrorKey } from "./submitForm.js";
+import { useVoucher, VoucherField } from "./VoucherField.jsx";
+
+function ReviewCodeInput({ value, onChange }) {
+  const t = useT();
+  const input = useRef(null);
+  const caret = useRef(null);
+
+  useLayoutEffect(() => {
+    if (caret.current !== null && input.current === document.activeElement) {
+      input.current.setSelectionRange(caret.current, caret.current);
+    }
+    caret.current = null;
+  }, [value]);
+
+  function edit(event) {
+    const next = maskReviewCodeEdit({
+      previous: value,
+      raw: event.target.value,
+      caret: event.target.selectionStart ?? event.target.value.length,
+      inputType: event.nativeEvent?.inputType,
+    });
+    caret.current = next.caret;
+    onChange(next.value);
+  }
+
+  return (
+    <input ref={input} value={value} onChange={edit} required autoComplete="off"
+      autoCapitalize="characters" spellCheck="false"
+      placeholder={t("review_code.placeholder")} />
+  );
+}
 
 export function ReviewCodeForm({ account, config, turnstileToken }) {
   const t = useT();
   const navigate = useNavigate();
   const [code, setCode] = useState("");
-  const [player, setPlayer] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const voucher = useVoucher(validateReviewVoucher);
 
   async function submit(event) {
     event.preventDefault();
@@ -19,17 +51,20 @@ export function ReviewCodeForm({ account, config, turnstileToken }) {
     if (!normalized) { setError(t("review_code.invalid")); return; }
     setBusy(true);
     setError("");
+    const voucherCode = voucher.code.trim();
     let created;
     try {
       created = await createReviewCodeSubmission({
         turnstile_token: config?.dev_mode ? "dev" : turnstileToken,
-        review_code: normalized, target_player_name: player.trim(),
+        review_code: normalized,
         ...(account ? {} : { email }),
+        ...(voucherCode ? { voucher_code: voucherCode } : {}),
       });
     } catch (exc) {
-      setError(exc.message); setBusy(false); return;
+      const key = voucherErrorKey(exc.reason);
+      setError(key ? t(key) : exc.message); setBusy(false); return;
     }
-    if (!created.notice_pending && created.price_cents === config?.price_cents) {
+    if (!voucherCode && !created.notice_pending && created.price_cents === config?.price_cents) {
       try {
         const checkout = await openCheckout(created.token);
         if (checkout.url) { window.location.assign(checkout.url); return; }
@@ -39,26 +74,24 @@ export function ReviewCodeForm({ account, config, turnstileToken }) {
   }
 
   return (
-    <section className="upload-card">
+    <section id="method-panel-review_code" role="tabpanel"
+      aria-labelledby="method-tab-review_code" className="upload-card">
       <h2>{t("review_code.heading")}</h2>
-      <p>{t("review_code.intro")}</p>
       <p>{t("review_code.manual")}</p>
-      <p>{t("review_code.notify")}</p>
       <form onSubmit={submit}>
-        <label>{t("review_code.code")}<input value={code} maxLength={100}
-          onChange={(event) => setCode(event.target.value)} required autoComplete="off" /></label>
-        <p className="note">{t("review_code.syntax")}</p>
-        <label>{t("review_code.player")}<input value={player} maxLength={100}
-          onChange={(event) => setPlayer(event.target.value)} required /></label>
-        <p className="note">{t("review_code.player_hint")}</p>
-        {!account ? <label>{t("common.email")}<input type="email" value={email}
-          onChange={(event) => setEmail(event.target.value)} required /></label> : null}
-        <p>{t("review_code.verified_email")}</p>
-        <p>{t("review_code.price", { amount: ((config?.price_cents || 0) / 100).toFixed(2) })}</p>
-        <p className="note">{t("submit.terms")}</p>
+        <p>{t("review_code.own_match")}</p>
+        <label>{t("review_code.code")}<ReviewCodeInput value={code} onChange={setCode} /></label>
+        {!account ? <>
+          <p>{t("review_code.email_notice")}</p>
+          <label>{t("common.email")}<input type="email" autoComplete="email" value={email}
+            onChange={(event) => setEmail(event.target.value)} required /></label>
+        </> : null}
+        <VoucherField voucher={voucher} disabled={busy} inputId="review-voucher-code" />
         {error ? <p className="error" role="alert">{error}</p> : null}
-        <button disabled={busy || !player.trim() || (!turnstileToken && !config?.dev_mode)}>
-          {busy ? t("submit.submitting") : t("review_code.continue")}
+        <button disabled={busy || voucher.checking || !normalizedReviewCode(code)
+          || (!turnstileToken && !config?.dev_mode)}>
+          {busy ? t("submit.submitting")
+            : t(voucher.accepted ? "submit.submit" : "review_code.continue")}
         </button>
       </form>
     </section>

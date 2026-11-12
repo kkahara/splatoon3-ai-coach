@@ -166,6 +166,23 @@ def test_accounts_and_guests_share_the_network_cap(tmp_path: Path) -> None:
     assert "account-a" not in rate
 
 
+@pytest.mark.parametrize("seventh", [None, "account-7"])
+def test_network_cap_is_checked_independently_of_guest_and_account(
+    tmp_path: Path, seventh: str | None
+) -> None:
+    client = _client(
+        tmp_path,
+        submissions_per_hour=6,
+        guest_submissions_per_hour=10,
+        account_submissions_per_hour=10,
+    )
+    ip = "203.0.113.70"
+    for user_id in (None, None, None, "account-a", "account-a", "account-b"):
+        _service_create(client, ip, user_id)
+    assert _rejected_detail(client, ip, seventh) == RATE_LIMIT
+    assert len(_submission_files(client)) == 6
+
+
 class _Roles:
     """Session lookup for the administrator exemption test. Not a database."""
 

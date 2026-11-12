@@ -26,6 +26,7 @@ from public_site.errors import (
 )
 from public_site.frames import extract_frames
 from public_site.models import CoachingOutcome, Submission
+from public_site.recording_publish import MISMATCH, downloaded_matches
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.store import PublicStore, copy_lifecycle, utc_now
@@ -243,6 +244,12 @@ class PublicWorker:
         recordings = self.service.recordings
         return recordings is not None and recordings.intake.admits(submission)
 
+    def _hand_off_recording(self, submission: Submission) -> None:
+        """Hand off an accepted review-code recording; reconcile retries a failure."""
+        recordings = self.service.recordings
+        if recordings is not None:
+            recordings.hand_off(submission)
+
     def _run_job(self, submission: Submission) -> None:
         """Run one claimed submission. The slot is released on every path."""
         try:
@@ -296,6 +303,16 @@ class PublicWorker:
                 stage=Stage.ANALYZE,
                 diagnostic=Diagnostic.SOURCE_MISSING,
             )
+            return
+        if submission.input_type == "review_code" and not downloaded_matches(path, video.sha256):
+            self._fail(
+                submission,
+                MISMATCH,
+                stage=Stage.ANALYZE,
+                diagnostic=Diagnostic.SOURCE_MISSING,
+            )
+            if temporary and path.is_file():
+                path.unlink()
             return
         try:
             self._stages(submission, analysis, path)
@@ -391,6 +408,8 @@ class PublicWorker:
         notice = "no_moments" if outcome == "no_deaths" else "ready"
         self.service.note_analysis_completed(submission.id)
         self.service.note_report_completed(submission.id)
+        if submission.input_type == "review_code":
+            self._hand_off_recording(submission)
         self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
         self._stage_seconds.pop(submission.id, None)

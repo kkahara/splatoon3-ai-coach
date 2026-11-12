@@ -16,7 +16,8 @@ voucher_app = typer.Typer(
 )
 public_admin_app.add_typer(voucher_app, name="voucher")
 _LIST_HEADER = (
-    "CREATED", "CAMPAIGN", "SOURCE", "SERVICE", "STATE", "USED", "LIMIT", "EXPIRES", "ID",
+    "CREATED", "CAMPAIGN", "SOURCE", "SERVICE", "SCOPE", "STATE", "USED", "LIMIT",
+    "EXPIRES", "ID",
 )
 
 
@@ -131,6 +132,11 @@ def issue_voucher(
     benefit: str | None = typer.Option(None, "--benefit"),
     starts_at: str | None = typer.Option(None, "--starts-at"),
     note: str | None = typer.Option(None, "--note"),
+    scope: str = typer.Option(
+        "video_upload",
+        "--scope",
+        help="Submission path: video_upload (default), review_code, or both.",
+    ),
 ) -> None:
     """Create one voucher and print its plaintext code once."""
     require_repo_tools("public-admin")
@@ -155,6 +161,7 @@ def issue_voucher(
         code=code,
         starts_at=None if starts_at is None else _aware(starts_at, "start"),
         note=note,
+        redemption_scope=scope,
     )
     try:
         issued = store.issue(spec, datetime.now(UTC))
@@ -164,6 +171,7 @@ def issue_voucher(
     typer.echo(f"voucher_id={issued.voucher_id}")
     typer.echo(f"source={spec.source} campaign={spec.campaign}")
     typer.echo(f"service={spec.eligible_service_id} benefit={spec.benefit_type}")
+    typer.echo(f"scope={spec.redemption_scope}")
     typer.echo(f"max_redemptions={spec.max_redemptions}")
     typer.echo(f"expires_at={spec.expires_at.isoformat()}")
     typer.echo("The next line is the only copy of this code. It is not stored.")
@@ -224,6 +232,7 @@ def list_vouchers() -> None:
             item.campaign,
             item.source,
             item.eligible_service_id,
+            item.redemption_scope,
             voucher_state(item, now),
             str(item.redemption_count),
             str(item.max_redemptions),
@@ -246,6 +255,7 @@ def _echo_status(found) -> None:
     typer.echo(f"voucher_id={found.voucher_id} state={state}")
     typer.echo(f"source={found.source} campaign={found.campaign}")
     typer.echo(f"service={found.eligible_service_id} benefit={found.benefit_type}")
+    typer.echo(f"scope={found.redemption_scope}")
     typer.echo(
         f"uses={found.redemption_count}/{found.max_redemptions} "
         f"expires_at={_utc(found.expires_at)}"

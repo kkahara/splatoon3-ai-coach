@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadAdminRequests } from "../api.js";
+import { loadAdminReference, loadAdminRequests } from "../api.js";
 import { AdminError, AdminLoading, formatDate, listPayload } from "./AdminUi.jsx";
+import { looksLikeReference } from "./supportReference.js";
 
 const PAGE_SIZE = 25;
 
@@ -12,7 +13,21 @@ export function AdminRequestsPage() {
   const [cursors, setCursors] = useState([""]);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [reference, setReference] = useState(null);
   const cursor = cursors.at(-1);
+
+  useEffect(() => {
+    let stopped = false;
+    setReference(null);
+    if (looksLikeReference(search)) {
+      loadAdminReference(search.replace(/\s+/g, ""))
+        .then((payload) => { if (!stopped) setReference(payload); })
+        .catch((exc) => { if (!stopped) setReference({ missing: exc.message }); });
+    }
+    return () => {
+      stopped = true;
+    };
+  }, [search]);
 
   useEffect(() => {
     let stopped = false;
@@ -50,7 +65,7 @@ export function AdminRequestsPage() {
       <h1>Requests</h1>
       <form className="admin-filters" onSubmit={submit}>
         <label>
-          Search
+          Search (id, email or support reference)
           <input value={query} onChange={(event) => setQuery(event.target.value)} />
         </label>
         <label>
@@ -69,6 +84,7 @@ export function AdminRequestsPage() {
         <button type="submit">Search</button>
       </form>
       <AdminError message={error} />
+      {reference ? <ReferenceMatch match={reference} /> : null}
       {!result && !error ? <AdminLoading /> : null}
       {result ? <RequestTable items={result.items} /> : null}
       {result ? (
@@ -90,6 +106,33 @@ export function AdminRequestsPage() {
         </div>
       ) : null}
     </section>
+  );
+}
+
+function ReferenceMatch({ match }) {
+  if (match.missing) {
+    return <p className="muted">Support reference: {match.missing}</p>;
+  }
+  const id = match.submission_id;
+  const reviewCode = match.source === "nintendo_review_code";
+  return (
+    <div className="admin-table-wrap">
+      <table className="admin-table">
+        <thead>
+          <tr><th>Support reference</th><th>Request</th><th>Source</th><th>Status</th><th>Payment</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>{match.public_reference}</code></td>
+            <td><code>{id}</code> · <Link to={`/admin/requests/${encodeURIComponent(id)}`}>analysis runs</Link></td>
+            <td>{reviewCode ? `Review code (${match.acquisition_state || "unknown"})` : "Video upload"}</td>
+            <td>{match.status || "—"}</td>
+            <td>{match.payment_state}{match.voucher_state ? ` · voucher ${match.voucher_state}` : ""}</td>
+            <td>{formatDate(match.created_at)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 

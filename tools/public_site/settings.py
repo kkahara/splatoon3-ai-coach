@@ -26,6 +26,13 @@ def _flag(name: str) -> bool:
     return os.environ.get(name, "").strip() == "1"
 
 
+def _station_dir() -> Path | None:
+    raw = os.environ.get("PUBLIC_STATION_DIR", "").strip()
+    if not raw:
+        return None
+    return Path(raw).expanduser()
+
+
 def _strict_flag(name: str) -> bool | None:
     """``0``/unset is off, ``1`` is on, anything else is ``None`` (invalid)."""
     value = os.environ.get(name, "").strip()
@@ -95,6 +102,8 @@ class PublicSettings:
     # Configuration identity a capacity is stored under. Not a process id; see worker_id.
     worker_key: str = "default"
     review_codes_enabled: bool = False
+    recording_station_enabled: bool = False
+    station_dir: Path | None = None
     retention_days: int = 30
     account_retention_days: int = 365
     database_url: str = field(default="", repr=False)
@@ -201,6 +210,8 @@ class PublicSettings:
             max_concurrent_jobs=_worker_capacity(),
             worker_key=os.environ.get("PUBLIC_WORKER_KEY", "").strip() or "default",
             review_codes_enabled=_flag("PUBLIC_REVIEW_CODES_ENABLED"),
+            recording_station_enabled=_flag("PUBLIC_RECORDING_STATION"),
+            station_dir=_station_dir(),
             retention_days=int(os.environ.get("PUBLIC_RETENTION_DAYS", "30")),
             account_retention_days=int(os.environ.get("PUBLIC_ACCOUNT_RETENTION_DAYS", "365")),
             database_url=os.environ.get("PUBLIC_DATABASE_URL", "").strip(),

@@ -113,6 +113,26 @@ export function voucherStateAfterCodeChange() {
   return { voucherPreview: null, voucherError: "" };
 }
 
+/** True only when the preview accepted exactly the trimmed code now in the field. */
+export function voucherAcceptedFor(preview, code) {
+  return Boolean(preview?.accepted) && preview.code === String(code || "").trim();
+}
+
+/** Apply is usable only for a non-blank code with no request in flight. */
+export function voucherApplyAllowed({ code, checking, disabled }) {
+  return !disabled && !checking && Boolean(String(code || "").trim());
+}
+
+/** A validation response applies only if no later request or edit has replaced it. */
+export function voucherResponseIsCurrent(request, latest) {
+  return request.sequence === latest.sequence && request.code === latest.code;
+}
+
+/** i18n key for a voucher error reason, or null when the error has no reason. */
+export function voucherErrorKey(reason) {
+  return reason ? `submit.voucher.${reason}` : null;
+}
+
 /** Button label. A priced analysis shows the amount before any upload starts. */
 export function submitButtonLabel(t, config, voucher = null) {
   if (voucher?.accepted) {

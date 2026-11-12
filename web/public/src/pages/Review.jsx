@@ -7,6 +7,7 @@ import {
   loadOwnedSubmission,
   loadSubmission,
   openCheckout,
+  openOwnedCheckout,
   sendFeedback,
   shareOwnedReview,
 } from "../api.js";
@@ -25,7 +26,13 @@ import {
   splitMoments,
 } from "./reviewMoments.js";
 import { ReviewCodeStatus } from "./ReviewCodeStatus.jsx";
-import { awaitingPayment, voucherFallbackKey } from "./reviewPayment.js";
+import {
+  awaitingPayment,
+  paymentOffered,
+  reviewExpired,
+  reviewHeadingKey,
+  voucherFallbackKey,
+} from "./reviewPayment.js";
 
 export function ReviewPage() {
   const { token, id } = useParams();
@@ -79,12 +86,12 @@ export function ReviewPage() {
   }, [token, id, owned, locale]);
 
   async function pay() {
-    if (!token) {
+    if (!token && !owned) {
       return;
     }
     setPayError("");
     try {
-      const checkout = await openCheckout(token);
+      const checkout = owned ? await openOwnedCheckout(id) : await openCheckout(token);
       if (checkout.url) {
         window.location.assign(checkout.url);
         return;
@@ -112,9 +119,9 @@ export function ReviewPage() {
     <main className="sheet">
       <AccountBar account={account} onChange={setAccount} />
       <p className="brand">{t("brand")}</p>
-      <h1>{t(headingKey(view))}</h1>
+      <h1>{t(reviewHeadingKey(view))}</h1>
       {view?.notice_pending ? <p className="note">{t("review.notice_pending")}</p> : null}
-      {view?.status === "expired" ? null : (
+      {reviewExpired(view) ? null : (
         <ReviewLink
           view={view}
           locale={locale}
@@ -125,7 +132,7 @@ export function ReviewPage() {
       )}
       {error ? <p className="error">{error}</p> : null}
       {payError ? <p className="error">{payError}</p> : null}
-      {view?.error ? (
+      {view?.error && view.acquisition?.state !== "expired" ? (
         <p className="error">
           {failureMessageKey(view) ? t(failureMessageKey(view)) : view.error}
         </p>
@@ -133,7 +140,7 @@ export function ReviewPage() {
       {voucherFallbackKey(view) ? (
         <p className="error">{t(voucherFallbackKey(view))}</p>
       ) : null}
-      {token && awaitingPayment(view) && (!view?.acquisition || view.acquisition.contact_verified) ? (
+      {(token || owned) && paymentOffered(view) && (!view?.acquisition || view.acquisition.contact_verified) ? (
         <p>
           <button type="button" onClick={pay}>{t("review.pay")}</button>
         </p>
@@ -164,6 +171,7 @@ export function ReviewPage() {
           id={id}
         />
       ) : null}
+      <SupportReference reference={view?.public_reference} />
       <p className="again">
         {owned ? (
           <>
@@ -370,6 +378,36 @@ function ReviewLink({ view, locale, copied, onCopy, shared }) {
           {t("share.anyone")}
         </span>
       ) : null}
+    </p>
+  );
+}
+
+function SupportReference({ reference }) {
+  const t = useT();
+  const [copied, setCopied] = useState(false);
+  if (!reference) {
+    return null;
+  }
+
+  function copy() {
+    if (copyWithSelection(reference)) {
+      setCopied(true);
+      return;
+    }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(reference).then(() => setCopied(true)).catch(() => {});
+    }
+  }
+
+  return (
+    <p className="review-link support-reference">
+      <span>
+        {t("review.support_reference")}: <code>{reference}</code>
+      </span>
+      <button type="button" className="linkish" onClick={copy}>
+        {copied ? t("review.copied") : t("review.copy_reference")}
+      </button>
+      <span className="review-link-note">{t("review.support_reference_note")}</span>
     </p>
   );
 }
@@ -817,25 +855,6 @@ function copyWithSelection(link) {
 
 function noDeaths(view) {
   return view?.status === "complete" && view.outcome === "no_deaths";
-}
-
-function headingKey(view) {
-  if (!view) {
-    return "review.heading.default";
-  }
-  if (awaitingPayment(view)) {
-    return "review.heading.payment";
-  }
-  if (view.status === "complete") {
-    return noDeaths(view) ? "review.heading.no_moments" : "review.heading.complete";
-  }
-  if (view.status === "failed") {
-    return "review.heading.failed";
-  }
-  if (view.status === "expired") {
-    return "review.heading.expired";
-  }
-  return "review.heading.processing";
 }
 
 function titleCase(value) {

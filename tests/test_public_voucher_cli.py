@@ -127,6 +127,33 @@ def test_issue_defaults_to_one_use_and_prints_code_once(vouchers: VoucherStore) 
     assert found.expires_at == datetime(2099, 1, 1, 0, 0, tzinfo=UTC)
 
 
+def test_issue_without_scope_is_video_upload(vouchers: VoucherStore) -> None:
+    voucher_id, _code, output = _issue()
+    assert "scope=video_upload" in output
+    assert vouchers.status(voucher_id).redemption_scope == "video_upload"
+
+
+@pytest.mark.parametrize("scope", ["video_upload", "review_code", "both"])
+def test_issue_records_an_explicit_scope(vouchers: VoucherStore, scope: str) -> None:
+    voucher_id, code, output = _issue("--scope", scope)
+    assert f"scope={scope}" in output
+    assert vouchers.status(voucher_id).redemption_scope == scope
+    status = _cli("status", code)
+    assert f"scope={scope}" in status.output
+
+
+@pytest.mark.parametrize("scope", ["", "all", "Review_Code", "video"])
+def test_issue_rejects_an_unknown_scope(vouchers: VoucherStore, scope: str) -> None:
+    result = _cli(
+        "issue", "--source", "skilltown", "--campaign", "cli_test",
+        "--expires-at", _EXPIRY, "--scope", scope,
+    )
+    assert result.exit_code == 2
+    assert "scope must be" in result.output
+    assert "code=" not in result.output
+    assert vouchers.overview() == []
+
+
 def test_issued_code_resolves_through_the_application_hmac(
     vouchers: VoucherStore,
 ) -> None:
@@ -290,11 +317,12 @@ def test_list_states_counts_and_newest_first(
     assert result.exit_code == 0, result.output
     lines = result.output.strip().splitlines()
     assert lines[0].split() == [
-        "CREATED", "CAMPAIGN", "SOURCE", "SERVICE", "STATE",
+        "CREATED", "CAMPAIGN", "SOURCE", "SERVICE", "SCOPE", "STATE",
         "USED", "LIMIT", "EXPIRES", "ID",
     ]
     rows = [line.split() for line in lines[1:]]
-    assert [(row[1], row[4], row[5], row[6], row[8]) for row in rows] == [
+    assert {row[4] for row in rows} == {"video_upload"}
+    assert [(row[1], row[5], row[6], row[7], row[9]) for row in rows] == [
         ("cli_revoked", "revoked", "0", "1", revoked_id),
         ("cli_expired", "expired", "0", "1", expired_id),
         ("cli_used", "fully_used", "1", "1", used_id),

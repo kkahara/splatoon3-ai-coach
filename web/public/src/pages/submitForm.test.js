@@ -14,7 +14,11 @@ import {
   submitError,
   submitReady,
   videoProblem,
+  voucherAcceptedFor,
+  voucherApplyAllowed,
+  voucherErrorKey,
   voucherPreviewSuccessKeys,
+  voucherResponseIsCurrent,
   voucherStateAfterCodeChange,
 } from "./submitForm.js";
 
@@ -213,4 +217,38 @@ test("a priced submit button shows the amount before upload", () => {
   );
   assert.equal(centsFromDollars("1.99"), 199);
   assert.equal(centsFromDollars("1.999"), null);
+});
+
+test("a voucher counts as accepted only for the exact code it validated", () => {
+  const preview = { accepted: true, code: "SKT-ABCD-EFGH" };
+  assert.equal(voucherAcceptedFor(preview, "SKT-ABCD-EFGH"), true);
+  assert.equal(voucherAcceptedFor(preview, "  SKT-ABCD-EFGH "), true);
+  assert.equal(voucherAcceptedFor(preview, "SKT-ABCD-EFGX"), false);
+  assert.equal(voucherAcceptedFor(preview, "SKT-ABCD-EFG"), false);
+  assert.equal(voucherAcceptedFor(preview, ""), false);
+  assert.equal(voucherAcceptedFor({ accepted: false, code: "X" }, "X"), false);
+  assert.equal(voucherAcceptedFor(null, "X"), false);
+  assert.equal(voucherAcceptedFor({ accepted: true }, "X"), false);
+});
+
+test("a validation response is discarded after an edit or a newer request", () => {
+  const request = { sequence: 3, code: "SKT-ABCD-EFGH" };
+  assert.equal(voucherResponseIsCurrent(request, { sequence: 3, code: "SKT-ABCD-EFGH" }), true);
+  assert.equal(voucherResponseIsCurrent(request, { sequence: 4, code: "SKT-ABCD-EFGH" }), false);
+  assert.equal(voucherResponseIsCurrent(request, { sequence: 3, code: "SKT-ABCD-EFGX" }), false);
+});
+
+test("voucher error reasons map to submit.voucher keys", () => {
+  for (const reason of ["wrong_scope", "conflict", "pending", "not_ready", "window", "expired"]) {
+    assert.equal(voucherErrorKey(reason), `submit.voucher.${reason}`);
+  }
+  assert.equal(voucherErrorKey(""), null);
+  assert.equal(voucherErrorKey(undefined), null);
+});
+
+test("Apply is blocked while a validation is in flight or the code is blank", () => {
+  assert.equal(voucherApplyAllowed({ code: "SKT-ABCD-EFGH", checking: false }), true);
+  assert.equal(voucherApplyAllowed({ code: "SKT-ABCD-EFGH", checking: true }), false);
+  assert.equal(voucherApplyAllowed({ code: "   ", checking: false }), false);
+  assert.equal(voucherApplyAllowed({ code: "SKT-ABCD-EFGH", checking: false, disabled: true }), false);
 });

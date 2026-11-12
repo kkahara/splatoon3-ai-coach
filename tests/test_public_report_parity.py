@@ -275,9 +275,16 @@ def test_publisher_fails_closed_for_a_review_code_without_acquisition_values(
 
 
 def test_scan_reads_acquisition_values_from_the_database(site) -> None:  # noqa: F811
-    created = _create(site, target_player_name="イカすプレイヤー")
+    created = _create(site)
     settings = site.app.state.settings
     submission_id = created["submission_id"]
+    # New requests no longer collect a name; rows created before the policy may hold one.
+    with site.app.state.service.recordings.database._conn() as conn:
+        conn.execute(
+            "UPDATE review_code_acquisitions SET target_player_name = %s "
+            "WHERE submission_id = %s",
+            ("イカすプレイヤー", submission_id),
+        )
     analysis = settings.root / "analysis" / submission_id
     write_report_fixture(analysis)
     add_media(analysis)

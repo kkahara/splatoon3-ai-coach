@@ -12,19 +12,18 @@ import {
   validateVoucher,
 } from "../api.js";
 import { ReviewCodeForm } from "./ReviewCodeForm.jsx";
+import { useVoucher, VoucherField } from "./VoucherField.jsx";
 import heroBannerEn from "../assets/splatoon3-ai-coach-banner-en.jpg";
 import heroBannerJa from "../assets/splatoon3-ai-coach-banner-ja.jpg";
 import { useLocale, useT } from "../i18n/LocaleContext.jsx";
 import {
   formatFileSize,
-  showVoucherApplyButton,
   submissionBody,
   submitButtonLabel,
   submitError,
   submitReady,
   videoProblem,
-  voucherPreviewSuccessKeys,
-  voucherStateAfterCodeChange,
+  voucherErrorKey,
 } from "./submitForm.js";
 
 const REGULAR_MAX_BYTES = 750 * 1024 * 1024;
@@ -146,6 +145,44 @@ function UploadFacts({ config }) {
   );
 }
 
+const METHODS = [
+  ["video", "review_code.upload_method"],
+  ["review_code", "review_code.code_method"],
+];
+
+function MethodTabs({ method, onChange }) {
+  const t = useT();
+  function onKeyDown(event) {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    if (!step) {
+      return;
+    }
+    const index = METHODS.findIndex(([id]) => id === method);
+    const [next] = METHODS[(index + step + METHODS.length) % METHODS.length];
+    onChange(next);
+    document.getElementById(`method-tab-${next}`)?.focus();
+  }
+  return (
+    <div className="method-tabs" role="tablist" aria-label={t("review_code.method")}>
+      {METHODS.map(([id, label]) => (
+        <button
+          key={id}
+          id={`method-tab-${id}`}
+          type="button"
+          role="tab"
+          aria-selected={method === id}
+          aria-controls={`method-panel-${id}`}
+          tabIndex={method === id ? 0 : -1}
+          onClick={() => onChange(id)}
+          onKeyDown={onKeyDown}
+        >
+          {t(label)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function SubmitPage() {
   const navigate = useNavigate();
   const { locale } = useLocale();
@@ -161,9 +198,7 @@ export function SubmitPage() {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [voucherCode, setVoucherCode] = useState("");
-  const [voucherPreview, setVoucherPreview] = useState(null);
-  const [voucherError, setVoucherError] = useState("");
+  const voucher = useVoucher(validateVoucher);
 
   const sessionKey = account ? `${account.role}:${account.email}` : "";
 
@@ -260,7 +295,7 @@ export function SubmitPage() {
     setBusy(true);
     try {
       const created = await createSubmission(
-        submissionBody({ token, file, account, notify, email, voucherCode }),
+        submissionBody({ token, file, account, notify, email, voucherCode: voucher.code }),
       );
       await uploadVideo(created.upload, file);
       await markUploaded(created.token);
@@ -277,26 +312,9 @@ export function SubmitPage() {
       }
       navigate(created.review_path);
     } catch (exc) {
-      setError(exc.reason ? t(`submit.voucher.${exc.reason}`) : exc.message);
+      const key = voucherErrorKey(exc.reason);
+      setError(key ? t(key) : exc.message);
       setBusy(false);
-    }
-  }
-
-  function changeVoucher(value) {
-    setVoucherCode(value);
-    const reset = voucherStateAfterCodeChange();
-    setVoucherPreview(reset.voucherPreview);
-    setVoucherError(reset.voucherError);
-  }
-
-  async function applyVoucher() {
-    setVoucherError("");
-    setError("");
-    try {
-      setVoucherPreview(await validateVoucher(voucherCode));
-    } catch (exc) {
-      setVoucherPreview(null);
-      setVoucherError(exc.reason ? t(`submit.voucher.${exc.reason}`) : exc.message);
     }
   }
 
@@ -313,13 +331,17 @@ export function SubmitPage() {
       <SampleReview />
       {config?.review_codes_enabled && config?.turnstile_site_key ? <div id="turnstile-slot" /> : null}
       {config?.review_codes_enabled ? <>
-        <div role="group" aria-label={t("review_code.method")}>
-          <button type="button" aria-pressed={method === "video"} onClick={() => setMethod("video")}>{t("review_code.upload_method")}</button>
-          <button type="button" aria-pressed={method === "review_code"} onClick={() => setMethod("review_code")}>{t("review_code.code_method")}</button>
-        </div>
+        <MethodTabs method={method} onChange={setMethod} />
         {method === "review_code" ? <ReviewCodeForm account={account} config={config} turnstileToken={turnstileToken} /> : null}
       </> : null}
-      <section hidden={method !== "video"} className="upload-card" aria-labelledby="upload-heading">
+      <section
+        hidden={method !== "video"}
+        className="upload-card"
+        aria-labelledby="upload-heading"
+        {...(config?.review_codes_enabled
+          ? { id: "method-panel-video", role: "tabpanel" }
+          : {})}
+      >
         <h2 id="upload-heading">{t("submit.upload_heading")}</h2>
         <UploadFlow />
         <form onSubmit={onSubmit}>
@@ -358,43 +380,19 @@ export function SubmitPage() {
               <p className="note">{t("submit.terms")}</p>
             </>
           ) : null}
-          <details className="voucher">
-            <summary>{t("submit.voucher_prompt")}</summary>
-            <label htmlFor="voucher-code">
-              {t("submit.voucher_code")}
-            </label>
-            <div className="voucher-controls">
-              <input
-                id="voucher-code"
-                value={voucherCode}
-                autoComplete="off"
-                spellCheck="false"
-                onChange={(event) => changeVoucher(event.target.value)}
-              />
-              {showVoucherApplyButton(voucherPreview) ? (
-                <button type="button" onClick={applyVoucher} disabled={busy || !voucherCode.trim()}>
-                  {t("submit.voucher_apply")}
-                </button>
-              ) : null}
-            </div>
-            {voucherError ? <p className="error">{voucherError}</p> : null}
-            {voucherPreview?.accepted ? (
-              <div className="voucher-ok" aria-live="polite">
-                {voucherPreviewSuccessKeys().map((key) => (
-                  <p key={key}>{t(key)}</p>
-                ))}
-              </div>
-            ) : null}
-          </details>
+          <VoucherField voucher={voucher} disabled={busy} />
           <button
             type="submit"
             disabled={
               busy
+              || voucher.checking
               || (config?.payment_required && config.price_cents == null)
               || !submitReady({ file })
             }
           >
-            {busy ? t("submit.submitting") : submitButtonLabel(t, config, voucherPreview)}
+            {busy
+              ? t("submit.submitting")
+              : submitButtonLabel(t, config, { accepted: voucher.accepted })}
           </button>
           <UploadFacts config={config} />
         </form>

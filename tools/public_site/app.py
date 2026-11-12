@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from public_site.accounts import Account, AccountStore, account_email
 from public_site.contact import ContactDraft, accept_contact
@@ -26,6 +26,7 @@ from public_site.localize import Translator, build_translator
 from public_site.models import DisplayLocale, HistoryItem, PublicConfig, Submission
 from public_site.notices import NoticeSender
 from public_site.payments import PaymentStore
+from public_site.public_reference import normalize_reference
 from public_site.recording_routes import register_recording_routes
 from public_site.recording_service import RecordingService
 from public_site.recording_store import RecordingStore
@@ -33,7 +34,7 @@ from public_site.report_publisher import build_report_publisher
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
-from public_site.storage import LocalStorage, R2Storage
+from public_site.storage import LocalStorage, ObjectExists, R2Storage
 from public_site.store import PublicStore
 from public_site.stripe_checkout import (
     CheckoutGateway,
@@ -43,7 +44,7 @@ from public_site.stripe_checkout import (
 from public_site.telemetry import TelemetryStore
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
-from public_site.vouchers import VoucherStore
+from public_site.vouchers import VoucherStore, preview_payload
 from public_site.worker import Command, PublicWorker, subprocess_run
 from public_site.worker_capacity import MAX_CAPACITY, MIN_CAPACITY, WorkerCapacityStore
 
@@ -69,7 +70,10 @@ class CreateBody(BaseModel):
 
 
 class VoucherBody(BaseModel):
-    """A voucher code. It is not accepted in a query string."""
+    """A voucher code. It is not accepted in a query string.
+
+    There is no scope field: this route always checks the video-upload path.
+    """
 
     model_config = ConfigDict(extra="ignore")
 
@@ -120,19 +124,51 @@ class PriceBody(BaseModel):
 
 
 class UploadLimitBody(BaseModel):
-    """How many logged-in submissions one account may start per hour."""
+    """Per-hour submission limits. Only the fields sent are changed.
+
+    An omitted field is left as it is. ``null`` restores the environment
+    default for the guest or network limit. The account limit cannot be null.
+    """
 
     model_config = ConfigDict(extra="ignore")
 
-    account_uploads_per_hour: int = Field(ge=1, le=100)
+    account_uploads_per_hour: int | None = Field(default=None, ge=1, le=100)
+    guest_uploads_per_hour: int | None = Field(default=None, ge=1, le=100)
+    network_uploads_per_hour: int | None = Field(default=None, ge=1, le=100)
 
-    @field_validator("account_uploads_per_hour", mode="before")
+    @field_validator(
+        "account_uploads_per_hour",
+        "guest_uploads_per_hour",
+        "network_uploads_per_hour",
+        mode="before",
+    )
     @classmethod
     def require_whole_number(cls, value: object) -> object:
-        """Reject decimals, booleans, and strings. Only a JSON integer is valid."""
-        if type(value) is not int:
-            raise ValueError("account uploads per hour must be a whole number")
+        """Reject decimals, booleans, and strings. Only a JSON integer or null is valid."""
+        if value is not None and type(value) is not int:
+            raise ValueError("uploads per hour must be a whole number")
         return value
+
+    @model_validator(mode="after")
+    def require_one_limit(self) -> UploadLimitBody:
+        """At least one limit, and never a null account limit."""
+        if not self.model_fields_set:
+            raise ValueError("give at least one upload limit")
+        if (
+            "account_uploads_per_hour" in self.model_fields_set
+            and self.account_uploads_per_hour is None
+        ):
+            raise ValueError("account uploads per hour cannot be reset")
+        return self
+
+    def changes(self) -> dict[str, int | None]:
+        """Store keyword arguments for the fields that were sent."""
+        names = {
+            "account_uploads_per_hour": "account",
+            "guest_uploads_per_hour": "guest",
+            "network_uploads_per_hour": "network",
+        }
+        return {names[field]: getattr(self, field) for field in self.model_fields_set}
 
 
 class WorkerCapacityBody(BaseModel):
@@ -244,7 +280,7 @@ def create_app(
     if verifier is None:
         verifier = build_verifier(settings)
     if settings.review_codes_enabled and payments is not None and accounts is not None:
-        recording_store = RecordingStore(payments)
+        recording_store = RecordingStore(payments, storage.url_seconds)
         recording_store.ensure_schema(
             settings.retention_days, settings.account_retention_days
         )
@@ -484,15 +520,12 @@ def _routes(
     @app.post("/api/vouchers/validate")
     def post_voucher(body: VoucherBody, request: Request) -> dict:
         try:
-            preview = service.preview_voucher(body.code, _client_ip(request, settings))
+            preview = service.preview_voucher(
+                body.code, _client_ip(request, settings), "video_upload"
+            )
         except RequestRejected as exc:
             return _rejected(exc)
-        return {
-            "accepted": True,
-            "benefit_type": preview.benefit_type,
-            "amount_due_cents": preview.amount_due_cents,
-            "currency": preview.currency,
-        }
+        return preview_payload(preview)
 
     @app.post("/api/submissions/{token}/uploaded")
     def post_uploaded(token: str) -> dict:
@@ -518,7 +551,7 @@ def _routes(
     @app.get("/api/admin/price")
     def get_price(request: Request) -> dict:
         _required_admin(request, accounts)
-        return _price_payload(payments)
+        return _price_payload(payments, service)
 
     @app.put("/api/admin/price")
     def put_price(body: PriceBody, request: Request) -> dict:
@@ -530,22 +563,32 @@ def _routes(
             "price_cents": price.price_cents,
             "currency": price.currency,
             "pricing_version": price.pricing_version,
-            "account_uploads_per_hour": payments.account_upload_limit(),
+            **_limit_payload(service),
             "events": _event_rows(payments),
         }
+
+    @app.get("/api/admin/reference/{reference}")
+    def get_reference(reference: str, request: Request) -> dict:
+        _required_admin(request, accounts)
+        if payments is None:
+            raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
+        payload = _reference_payload(payments, service, reference[:64])
+        if payload is None:
+            raise HTTPException(status_code=404, detail="No submission has that reference.")
+        return payload
 
     @app.put("/api/admin/upload-limit")
     def put_upload_limit(body: UploadLimitBody, request: Request) -> dict:
         _required_admin(request, accounts)
         if payments is None:
             raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
-        saved = payments.set_account_upload_limit(body.account_uploads_per_hour)
-        return {"account_uploads_per_hour": saved}
+        payments.set_upload_limits(**body.changes())
+        return _limit_payload(service)
 
     @app.get("/api/submissions/{token}")
-    def get_submission(token: str, locale: DisplayLocale = "en") -> dict:
+    def get_submission(token: str, request: Request, locale: DisplayLocale = "en") -> dict:
         try:
-            view = service.view(token, locale)
+            view = service.view(token, locale, request.cookies.get(NOTICE_COOKIE, ""))
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return view.model_dump()
@@ -603,7 +646,7 @@ def _public_config(request: Request, settings, accounts, payments) -> PublicConf
     )
 
 
-def _price_payload(payments: PaymentStore | None) -> dict:
+def _price_payload(payments: PaymentStore | None, service: SubmissionService) -> dict:
     if payments is None:
         raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
     price = payments.current_price()
@@ -611,9 +654,52 @@ def _price_payload(payments: PaymentStore | None) -> dict:
         "price_cents": None if price is None else price.price_cents,
         "currency": None if price is None else price.currency,
         "pricing_version": None if price is None else price.pricing_version,
-        "account_uploads_per_hour": payments.account_upload_limit(),
+        **_limit_payload(service),
         "events": _event_rows(payments),
     }
+
+
+def _reference_payload(
+    payments: PaymentStore, service: SubmissionService, text: str
+) -> dict | None:
+    """Which submission a support reference names, for operators only.
+
+    The reference identifies a submission; it grants no customer access.
+    """
+    reference = normalize_reference(text)
+    gate = None if reference is None else payments.get_by_reference(reference)
+    if gate is None:
+        return None
+    submission = service.store.get(gate.submission_id)
+    acquisition = (
+        service.recordings.database.get(gate.submission_id)
+        if service.recordings is not None and gate.source == "nintendo_review_code"
+        else None
+    )
+    return {
+        "public_reference": gate.public_reference,
+        "submission_id": gate.submission_id,
+        "source": gate.source,
+        "created_at": None if submission is None else submission.created_at,
+        "status": None if submission is None else submission.status,
+        "payment_state": gate.payment_state,
+        "voucher_state": gate.voucher_state,
+        "acquisition_state": None if acquisition is None else acquisition["state"],
+    }
+
+
+def _limit_payload(service: SubmissionService) -> dict:
+    """Each enforced limit and whether it is a saved setting or the environment default."""
+    limits = service.effective_upload_limits()
+    payload: dict = {}
+    for name, value, saved in (
+        ("account", limits.account, limits.account_saved),
+        ("guest", limits.guest, limits.guest_saved),
+        ("network", limits.network, limits.network_saved),
+    ):
+        payload[f"{name}_uploads_per_hour"] = value
+        payload[f"{name}_uploads_per_hour_source"] = "saved" if saved else "environment"
+    return payload
 
 
 def _event_rows(payments: PaymentStore) -> list[dict]:
@@ -659,6 +745,8 @@ def _register_dev_upload(app: FastAPI, storage) -> None:
             storage.write_grant(grant_id, body)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="not found") from exc
+        except ObjectExists as exc:
+            raise HTTPException(status_code=412, detail="An object already exists.") from exc
         except ValueError as exc:
             raise HTTPException(
                 status_code=413, detail="That video is too large."
@@ -779,6 +867,15 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
         return service.project(submission, locale).model_dump()
+
+    @app.post("/api/me/submissions/{submission_id}/checkout")
+    def post_owned_checkout(submission_id: str, request: Request) -> dict:
+        user = _required_user(request, accounts)
+        submission = _owned(accounts, service.store, user, submission_id)
+        try:
+            return service.start_owned_checkout(submission)
+        except RequestRejected as exc:
+            return _rejected(exc)
 
     @app.post("/api/me/submissions/{submission_id}/feedback")
     def post_owned_feedback(

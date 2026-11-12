@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import uuid
 from collections.abc import Callable
@@ -32,7 +33,6 @@ from public_site.errors import (
     UPLOAD_MISSING,
     UPLOAD_UNFINISHED,
     VERIFY,
-    VOUCHER_CONFLICT,
     VOUCHER_PENDING,
     VOUCHER_UNAVAILABLE,
     RequestRejected,
@@ -51,8 +51,15 @@ from public_site.models import (
     VideoInput,
 )
 from public_site.notices import NoticeSender
-from public_site.payments import FailureCategory, PaymentStore, PriceQuote, SubmissionGate
+from public_site.payments import (
+    EffectiveUploadLimits,
+    FailureCategory,
+    PaymentStore,
+    PriceQuote,
+    SubmissionGate,
+)
 from public_site.recording_models import ReviewCodeCreated
+from public_site.recording_store import report_expires_at
 from public_site.results import load_result
 from public_site.settings import PublicSettings
 from public_site.storage import LocalStorage, R2Storage
@@ -67,8 +74,10 @@ from public_site.telemetry import TelemetryStore, best_effort, classify_error
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.vouchers import (
     VOUCHER_ATTEMPTS_PER_HOUR,
+    SubmissionScope,
     VoucherPreview,
     VoucherStore,
+    raise_voucher_conflict,
 )
 
 if TYPE_CHECKING:
@@ -77,7 +86,10 @@ if TYPE_CHECKING:
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _CLAIM_STALE = timedelta(minutes=2)
-_TERMINAL_NOTICES = frozenset({"ready", "no_moments", "failed"})
+_TERMINAL_NOTICES = frozenset({"ready", "no_moments", "failed", "cancelled"})
+# Sent to the verified request address whatever the notify preference.
+_SERVICE_NOTICES = frozenset({"cancelled"})
+_REPORT_NOTICES = frozenset({"ready", "no_moments"})
 _BURST_WINDOW = timedelta(hours=24)
 _TYPES = frozenset({"video/mp4", "video/quicktime"})
 _SUFFIXES = frozenset({".mp4", ".mov"})
@@ -153,7 +165,7 @@ class SubmissionService:
             raise RequestRejected(400, VERIFY)
         moment = now or datetime.now(UTC)
         code = _blank_to_none(voucher_code)
-        voucher_id = self._attach_voucher(code, ip, moment)
+        voucher_id = self.attach_voucher(code, ip, moment, "video_upload")
         quote = self._quote(user_id)
         if voucher_id is not None and quote is not None:
             quote = replace(quote, payment_state="unpaid")
@@ -203,13 +215,14 @@ class SubmissionService:
     def _check_limits(self, ip: str, user_id: str | None, now: datetime) -> None:
         """Network cap for everyone, plus a per-account or per-network guest cap."""
         ip_key = hash_ip(ip)
+        limits = self.effective_upload_limits()
         if user_id is None:
             own_key = "guest:" + ip_key
-            own_limit = self.settings.guest_submissions_per_hour
+            own_limit = limits.guest
         else:
             own_key = "user:" + hash_token(user_id)
-            own_limit = self._account_upload_limit()
-        checks = [(ip_key, self.settings.submissions_per_hour), (own_key, own_limit)]
+            own_limit = limits.account
+        checks = [(ip_key, limits.network), (own_key, own_limit)]
         full = self.limiter.allow_all(checks, now)
         if full is None:
             return
@@ -217,11 +230,26 @@ class SubmissionService:
             raise RequestRejected(429, ACCOUNT_RATE_LIMIT)
         raise RequestRejected(429, RATE_LIMIT)
 
-    def _account_upload_limit(self) -> int:
-        """Logged-in cap. The database value wins when payments are configured."""
+    def effective_upload_limits(self) -> EffectiveUploadLimits:
+        """Saved limits, with the environment setting wherever none is saved."""
         if self.payments is None:
-            return self.settings.account_submissions_per_hour
-        return self.payments.account_upload_limit()
+            return EffectiveUploadLimits(
+                account=self.settings.account_submissions_per_hour,
+                guest=self.settings.guest_submissions_per_hour,
+                network=self.settings.submissions_per_hour,
+                account_saved=False,
+                guest_saved=False,
+                network_saved=False,
+            )
+        saved = self.payments.upload_limits()
+        return EffectiveUploadLimits(
+            account=saved.account,
+            guest=_or_default(saved.guest, self.settings.guest_submissions_per_hour),
+            network=_or_default(saved.network, self.settings.submissions_per_hour),
+            account_saved=True,
+            guest_saved=saved.guest is not None,
+            network_saved=saved.network is not None,
+        )
 
     def confirm(self, token: str) -> PublicSubmissionResponse:
         """Record the upload, then queue when payment is already satisfied."""
@@ -250,9 +278,40 @@ class SubmissionService:
         self._require_owned(video, submission.user_id)
         return self._probe_and_queue(submission, video, token)
 
-    def view(self, token: str, locale: DisplayLocale = "en") -> PublicSubmissionResponse:
-        """Project one submission. Unknown tokens are a 404."""
-        return self.project(self._require(token), locale)
+    def view(
+        self, token: str, locale: DisplayLocale = "en", browser_cookie: str = ""
+    ) -> PublicSubmissionResponse:
+        """Project one submission. Unknown tokens are a 404.
+
+        ``browser_cookie`` only adds this browser's confirmation-email cooldown
+        to an unverified review-code request.
+        """
+        submission = self._require(token)
+        response = self.project(submission, locale)
+        acquisition = response.acquisition
+        if acquisition is not None and not acquisition.contact_verified:
+            acquisition.resend_retry_after_seconds = self.recordings.contact_cooldown(
+                submission.id, browser_cookie
+            )
+        return response
+
+    def guest_cooldown(
+        self, browser_cookie: str, email: str, now: datetime | None = None
+    ) -> int | None:
+        """Seconds before this browser may request another confirmation email.
+
+        Only the browser's own limit is reported; the per-address limit stays
+        silent. None when this browser already verified the address, since no
+        email is needed then.
+        """
+        if self.guest is None or not browser_cookie:
+            return None
+        moment = now or datetime.now(UTC)
+        browser_id = self.guest.live_browser_id(browser_cookie, moment)
+        if browser_id is None or self.guest.is_verified(browser_id, email):
+            return None
+        remaining = self.guest.browser_cooldown(browser_id, moment)
+        return None if remaining is None else math.ceil(remaining.total_seconds())
 
     def project(
         self, submission: Submission, locale: DisplayLocale = "en"
@@ -296,6 +355,7 @@ class SubmissionService:
             voucher_state=None if gate is None else gate.voucher_state,
             voucher_failure_reason=None if gate is None else gate.voucher_failure_reason,
             notice_pending=self._notice_pending(submission),
+            public_reference=None if gate is None else gate.public_reference,
         )
 
     def moment_frame(self, token: str, index: int) -> Path:
@@ -336,6 +396,7 @@ class SubmissionService:
             self.recordings.database.reconcile()
             self.recordings.database.purge_expired_unpaid(now)
             self.recordings.reconcile()
+            self.recordings.send_pending_cancellations()
         self._recover_ready()
         self._expire(now)
         self.retry_notices(now)
@@ -589,13 +650,21 @@ class SubmissionService:
         current = self.store.get(submission.id)
         if current is None or kind in current.notices_sent:
             return
-        if not current.notify or not current.email:
+        recipient = self._notice_recipient(current, kind)
+        if not recipient:
+            return
+        if kind in _REPORT_NOTICES and not self._report_released(current):
             return
         token = self.notices.read_sealed(current.id)
         if not token or not self._claim_notice(current, kind):
             return
         try:
-            self.notices.deliver(current, kind, token)
+            self.notices.deliver(
+                current.model_copy(update={"email": recipient}),
+                kind,
+                token,
+                self._public_reference(current.id),
+            )
         except Exception as exc:
             logger.warning(
                 "notice {} failed for submission {} ({})",
@@ -605,6 +674,27 @@ class SubmissionService:
             )
             return
         self._mark_notice_sent(current.id, kind)
+
+    def _notice_recipient(self, submission: Submission, kind: str) -> str | None:
+        """The opted-in address, or for a service notice the verified request address."""
+        if kind in _SERVICE_NOTICES:
+            if self.recordings is None:
+                return None
+            return self.recordings.verified_contact(submission.id)
+        return submission.email if submission.notify else None
+
+    def _public_reference(self, submission_id: str) -> str | None:
+        """The support reference on this submission's gate, if it has one."""
+        gate = None if self.payments is None else self.payments.get(submission_id)
+        return None if gate is None else gate.public_reference
+
+    def _report_released(self, submission: Submission) -> bool:
+        """A review-code report is announced only after its durable handoff."""
+        if submission.input_type != "review_code":
+            return True
+        return self.recordings is not None and self.recordings.report_available(
+            submission.id
+        )
 
     def retry_notices(self, now: datetime) -> None:
         """Retry claims that were left behind by a failed send."""
@@ -651,6 +741,7 @@ class SubmissionService:
                 return False
             if acquisition["contact_verified_at"] is not None:
                 self.guest.mark_confirmed(submission_id, now)
+                self.recordings.redeem_pending_vouchers()
                 return True
         elif submission.email is not None or submission.notify:
             return submission.email == email and submission.notify
@@ -666,6 +757,7 @@ class SubmissionService:
                 submission.id, email
             ):
                 return False
+            self.recordings.redeem_pending_vouchers()
         submission.email = email
         submission.notify = True
         submission.updated_at = utc_now()
@@ -837,7 +929,7 @@ class SubmissionService:
                                 self._expire_one(submission)
                         elif (
                             submission.status != "expired"
-                            and parse_utc(submission.expires_at) <= now
+                            and parse_utc(report_expires_at(acquisition)) <= now
                             and self.recordings.database.mark_report_expired(
                                 submission.id, now
                             )
@@ -1038,14 +1130,21 @@ class SubmissionService:
         return self.project(self.store.get(current.id) or current)
 
     def preview_voucher(
-        self, code: str, ip: str, now: datetime | None = None
+        self,
+        code: str,
+        ip: str,
+        scope: SubmissionScope,
+        now: datetime | None = None,
     ) -> VoucherPreview:
-        """Validate a code for the form. Does not attach it or redeem it."""
+        """Validate a code for one form. Does not attach it or redeem it.
+
+        ``scope`` is chosen by the route, not by the request body.
+        """
         moment = now or datetime.now(UTC)
         self._watch_voucher(ip, moment)
         if self.vouchers is None:
             raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
-        return self.vouchers.preview(code, moment)
+        return self.vouchers.preview(code, moment, scope)
 
     def _finish_voucher(
         self, submission: Submission, token: str
@@ -1064,19 +1163,24 @@ class SubmissionService:
         if decision.outcome == "failed":
             return self.project(current)
         if decision.outcome != "redeemed":
-            raise RequestRejected(409, VOUCHER_CONFLICT, reason="conflict")
+            raise_voucher_conflict(decision)
         sealed = token or self.notices.read_sealed(submission.id) or ""
         self._queue(submission, video, facts, sealed)
         return self.project(self.store.get(submission.id) or submission)
 
-    def _attach_voucher(self, code: str | None, ip: str, now: datetime) -> str | None:
-        """Revalidate before any submission is written. Still not a redemption."""
+    def attach_voucher(
+        self, code: str | None, ip: str, now: datetime, scope: SubmissionScope
+    ) -> str | None:
+        """Revalidate before any submission is written. Still not a redemption.
+
+        Each submission route passes its own fixed ``scope``.
+        """
         if code is None:
             return None
         self._watch_voucher(ip, now)
         if self.vouchers is None or self.payments is None:
             raise RequestRejected(503, VOUCHER_UNAVAILABLE, reason="unavailable")
-        return self.vouchers.attached_id(code, now)
+        return self.vouchers.attached_id(code, now, scope)
 
     def _watch_voucher(self, ip: str, now: datetime) -> None:
         if self.voucher_limiter.allow("voucher:" + hash_ip(ip), now):
@@ -1094,6 +1198,17 @@ class SubmissionService:
         if self.payments is None or self.checkout is None:
             raise RequestRejected(503, PAYMENT_UNAVAILABLE)
         submission = self._require(token)
+        return self._begin_checkout(submission, f"/review/{token}")
+
+    def start_owned_checkout(self, submission: Submission) -> dict[str, str | bool | None]:
+        """Open checkout for a signed-in owner. Stripe returns to the account page."""
+        if self.payments is None or self.checkout is None:
+            raise RequestRejected(503, PAYMENT_UNAVAILABLE)
+        return self._begin_checkout(submission, f"/coaching/{submission.id}")
+
+    def _begin_checkout(
+        self, submission: Submission, return_path: str
+    ) -> dict[str, str | bool | None]:
         if submission.input_type == "review_code" and self.recordings is not None:
             self.recordings.require_verified_contact(submission.id)
         gate = self.payments.get(submission.id)
@@ -1115,7 +1230,7 @@ class SubmissionService:
                 "paid": False,
                 "pending": False,
             }
-        return self._open_next_session(submission, token, gate)
+        return self._open_next_session(submission, return_path, gate)
 
     def apply_webhook(self, event: CheckoutEvent) -> str:
         """Record a synchronously paid card session, then try to queue."""
@@ -1127,8 +1242,20 @@ class SubmissionService:
         gate = self.payments.get_by_session(session.id)
         if gate is None or gate.submission_id != (session.client_reference_id or ""):
             return "association"
+        return self.record_paid_session(gate.submission_id, session)
+
+    def record_paid_session(self, submission_id: str, session: CheckoutSession) -> str:
+        """Apply a paid session through the amount-checked transition, then try to queue.
+
+        Shared by the webhook and by operator reconciliation. Idempotent: a
+        session already recorded as paid returns ``paid`` and changes nothing.
+        """
+        if self.payments is None or session.payment_status != "paid":
+            return "ignored"
+        if session.client_reference_id != submission_id:
+            return "association"
         result = self.payments.apply_paid(
-            submission_id=gate.submission_id,
+            submission_id=submission_id,
             session_id=session.id,
             amount_subtotal=session.amount_subtotal,
             amount_total=session.amount_total,
@@ -1137,10 +1264,10 @@ class SubmissionService:
         )
         if result != "paid":
             return result
-        submission = self.store.get(gate.submission_id)
+        submission = self.store.get(submission_id)
         if submission is not None:
             self.attempt_queue(submission, "")
-        self._note_paid_past_window(gate.submission_id)
+        self._note_paid_past_window(submission_id)
         return "paid"
 
     def _owned_video(self, submission: Submission) -> VideoInput:
@@ -1189,7 +1316,7 @@ class SubmissionService:
         return None
 
     def _open_next_session(
-        self, submission: Submission, token: str, gate: SubmissionGate
+        self, submission: Submission, return_path: str, gate: SubmissionGate
     ) -> dict[str, str | bool | None]:
         if self.payments is None or self.checkout is None:
             raise RequestRejected(503, PAYMENT_UNAVAILABLE)
@@ -1201,7 +1328,7 @@ class SubmissionService:
             self._raise_unclaimed(submission.id)
         self._require_stripe_lifetime(gate)
         try:
-            created = self._create_checkout_session(submission, token, gate, attempt)
+            created = self._create_checkout_session(submission, return_path, gate, attempt)
         except CheckoutRequestError as exc:
             self.payments.abandon_checkout_attempt(submission.id, attempt)
             raise RequestRejected(502, exc.message) from exc
@@ -1212,16 +1339,17 @@ class SubmissionService:
         return {"url": created.url, "paid": False, "pending": False}
 
     def _create_checkout_session(
-        self, submission: Submission, token: str, gate: SubmissionGate, attempt: int
+        self, submission: Submission, return_path: str, gate: SubmissionGate, attempt: int
     ) -> CheckoutSession:
         """Ask Stripe for one session. The idempotency key is the attempt number."""
+        return_url = f"{self.settings.public_base_url}{return_path}"
         return self.checkout.create_session(
             submission_id=submission.id,
             price_cents=gate.price_cents,
             currency=gate.currency,
             expires_at=gate.expires_at,
-            success_url=f"{self.settings.public_base_url}/review/{token}",
-            cancel_url=f"{self.settings.public_base_url}/review/{token}",
+            success_url=return_url,
+            cancel_url=return_url,
             idempotency_key=f"{submission.id}:{attempt}",
         )
 
@@ -1323,6 +1451,10 @@ class SubmissionService:
                 submission.created_at,
                 submission.expires_at,
             )
+
+
+def _or_default(saved: int | None, default: int) -> int:
+    return default if saved is None else saved
 
 
 def _blank_to_none(value: str | None) -> str | None:

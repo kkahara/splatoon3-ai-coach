@@ -344,12 +344,12 @@ class _Flaky(NoticeSender):
         self.failures_left = 1
         self.attempts = 0
 
-    def deliver(self, submission, kind: str, token: str) -> None:
+    def deliver(self, submission, kind: str, token: str, reference=None) -> None:
         self.attempts += 1
         if self.failures_left:
             self.failures_left -= 1
             raise OSError("smtp down")
-        super().deliver(submission, kind, token)
+        super().deliver(submission, kind, token, reference)
 
 
 def test_failed_notice_claim_can_be_retried(tmp_path: Path) -> None:

@@ -16,6 +16,7 @@ from public_site.app import create_app
 from public_site.models import Submission
 from public_site.payments import PaymentStore
 from public_site.recording_models import ReviewCodeDraft, normalize_code
+from public_site.recording_store import report_expires_at
 from public_site.settings import PublicSettings
 from public_site.tokens import hash_token
 from test_public_payments import FakeCheckout, _event, _webhook
@@ -68,7 +69,6 @@ def _draft(**changes) -> dict:
     return {
         "turnstile_token": "ok",
         "review_code": "abcd 1234 efgh 5678",
-        "target_player_name": "プレイヤー",
         "email": "player@example.com",
         **changes,
     }
@@ -164,9 +164,9 @@ def test_bad_code_is_rejected_without_silent_repair(raw: str) -> None:
         normalize_code(raw)
 
 
-def test_player_hint_required_and_no_language_or_slot_override() -> None:
+def test_draft_takes_no_player_name_language_or_slot() -> None:
     with pytest.raises(ValueError):
-        ReviewCodeDraft(**_draft(target_player_name="   "))
+        ReviewCodeDraft(**_draft(target_player_name="Ika"))
     with pytest.raises(ValueError):
         ReviewCodeDraft(**_draft(target_slot=0))
     with pytest.raises(ValueError):
@@ -200,7 +200,7 @@ def test_verified_guest_paid_retries_activate_one_job_and_never_analyze(site) ->
     assert view["status"] == "received"
     assert view["acquisition"]["state"] == "awaiting_recording"
     assert view["acquisition"]["contact_verified"]
-    assert not view["acquisition"]["target_confirmed"]
+    assert "target_confirmed" not in view["acquisition"]
     assert not svc.payments.mark_uploaded(created["submission_id"])
     assert not svc.payments.try_queue(created["submission_id"])
     assert site.post(f"/api/submissions/{created['token']}/uploaded").status_code == 409
@@ -209,6 +209,18 @@ def test_verified_guest_paid_retries_activate_one_job_and_never_analyze(site) ->
     assert [e["kind"] for e in events] == ["paid_recording_queued"]
     svc.recordings.database.reconcile()
     assert len(svc.recordings.database.list_jobs()) == 1
+
+
+def test_review_code_request_never_stores_a_player_name(site) -> None:
+    created = _create(site)
+    row = site.app.state.service.recordings.database.get(created["submission_id"])
+    assert row["target_player_name"] is None
+    assert row["review_code"] == "ABCD-1234-EFGH-5678"
+    assert "target_player_name" not in _view(site, created)["acquisition"]
+    named = site.post(
+        "/api/review-code-submissions", json=_draft(target_player_name="Ika")
+    )
+    assert named.status_code == 422
 
 
 def test_verified_account_email_is_forced_for_review_without_changing_preferences(
@@ -224,10 +236,6 @@ def test_verified_account_email_is_forced_for_review_without_changing_preference
     assert _view(site, created)["acquisition"]["contact_verified"]
     assert site.get("/api/me").json()["notify_by_email"] is False
     assert len(site.get("/api/me/submissions").json()) == 1
-    assert svc.recordings.database.get(submission.id)["target_confirmed_at"] is None
-    assert (
-        svc.recordings.database.get(submission.id)["target_player_name"] == "プレイヤー"
-    )
 
 
 def test_payment_before_contact_stays_blocked_until_verified(site) -> None:
@@ -473,7 +481,7 @@ def test_browser_return_cancel_or_unpaid_webhook_cannot_authorize_recording(site
     assert not site.app.state.service.recordings.database.list_jobs()
 
 
-def test_admin_exception_correction_and_target_confirmation_are_audited(site) -> None:
+def test_admin_exception_and_correction_are_audited_without_target_action(site) -> None:
     created = _paid(site)
     endpoint = f"/api/admin/recordings/{created['submission_id']}"
     assert site.get("/api/admin/recordings").status_code == 401
@@ -494,28 +502,20 @@ def test_admin_exception_correction_and_target_confirmation_are_audited(site) ->
             },
         )
 
-    confirmed = act("confirm_target", confirmed_player_name="Observed player")
-    assert confirmed.status_code == 200
-    assert confirmed.json()["job"]["target_confirmed_at"]
-    assert (
-        act("confirm_target", confirmed_player_name="Wrong stale edit").status_code == 409
-    )
-    job = confirmed.json()["job"]
+    assert act("confirm_target").status_code == 422
+    assert act("recording_failed", confirmed_player_name="Ika").status_code == 422
     failed = act(
         "recording_failed", customer_message="Please contact us to confirm your code."
     )
+    assert failed.status_code == 200
+    assert act("recording_failed").status_code == 409
     job = failed.json()["job"]
     corrected = act("correct_code", review_code="1111-2222-3333-4444")
     assert corrected.status_code == 200
     job = corrected.json()["job"]
-    assert job["state"] == "awaiting_recording" and not job["target_confirmed_at"]
+    assert job["state"] == "awaiting_recording"
+    assert "target_confirmed_at" not in job and "confirmed_player_name" not in job
     assert not site.app.state.worker.tick()
-    assert (
-        site.app.state.service.recordings.database.get(created["submission_id"])[
-            "target_confirmed_by"
-        ]
-        is None
-    )
     assert any(str(e["actor_id"]) == actor for e in corrected.json()["events"])
     corrected_event = next(
         e for e in corrected.json()["events"] if e["kind"] == "correct_code"
@@ -550,6 +550,72 @@ def test_external_refund_is_only_an_audited_operator_resolution(site) -> None:
     assert acquisition["review_code"] is None
     assert acquisition["requested_email"] is None
     assert acquisition["sensitive_data_purged_at"] is not None
+
+
+def _flagged(site: TestClient, created: dict, **extra) -> dict:
+    endpoint = f"/api/admin/recordings/{created['submission_id']}"
+    job = site.get(endpoint).json()["job"]
+    response = site.post(
+        endpoint + "/actions",
+        json={
+            "action": "recording_failed",
+            "expected_version": job["version"],
+            "note": "Replay unavailable",
+            **extra,
+        },
+    )
+    assert response.status_code == 200, response.text
+    return response.json()["job"]
+
+
+def _act(site: TestClient, created: dict, action: str, version: int, **extra):
+    return site.post(
+        f"/api/admin/recordings/{created['submission_id']}/actions",
+        json={"action": action, "expected_version": version, "note": "Checked", **extra},
+    )
+
+
+def test_record_again_returns_a_flagged_job_with_the_same_code(site) -> None:
+    created = _paid(site)
+    _login(site, admin=True)
+    before = site.app.state.service.recordings.database.get(created["submission_id"])
+    queued = site.get(f"/api/admin/recordings/{created['submission_id']}").json()["job"]
+    assert _act(site, created, "retry_recording", queued["version"]).status_code == 409
+    job = _flagged(site, created, customer_message="We could not open the replay.")
+    assert _act(site, created, "retry_recording", job["version"], note=" ").status_code == 400
+    assert _act(site, created, "retry_recording", job["version"] - 1).status_code == 409
+    response = _act(site, created, "retry_recording", job["version"])
+    assert response.status_code == 200, response.text
+    job = response.json()["job"]
+    assert job["state"] == "awaiting_recording"
+    assert job["review_code"] == before["review_code"]
+    assert job["customer_message"] is None
+    kinds = [event["kind"] for event in response.json()["events"]]
+    assert kinds.count("retry_recording") == 1
+    assert _act(site, created, "retry_recording", job["version"]).status_code == 409
+    grant = site.post(
+        f"/api/admin/recordings/{created['submission_id']}/upload",
+        json={
+            "expected_version": job["version"],
+            "filename": "take.mp4",
+            "content_type": "video/mp4",
+            "size_bytes": 1000,
+        },
+    )
+    assert grant.status_code == 200, grant.text
+
+
+def test_a_card_paid_job_cannot_close_without_a_refund(site) -> None:
+    created = _paid(site)
+    _login(site, admin=True)
+    assert site.get("/api/admin/recordings").json()["station_takes"] == {}
+    job = _flagged(site, created)
+    refused = _act(site, created, "close_without_refund", job["version"])
+    assert refused.status_code == 400
+    assert "paid by card" in refused.json()["detail"]
+    acquisition = site.app.state.service.recordings.database.get(created["submission_id"])
+    assert acquisition["state"] == "recording_failed"
+    assert acquisition["requested_email"] is not None
 
 
 def test_parallel_reconciliation_creates_one_recording_event(site) -> None:
@@ -723,6 +789,39 @@ def test_paid_recording_states_keep_code_past_checkout_and_report_expiry(
     assert row["recording_handoff_at"] is None
 
 
+def test_schema_drops_target_confirmation_and_handoff_needs_none(site) -> None:
+    svc = site.app.state.service
+    database = svc.recordings.database
+    with database._conn() as conn:
+        conn.execute(
+            "ALTER TABLE review_code_acquisitions ADD CONSTRAINT legacy_target_check "
+            "CHECK (state NOT IN ('recording', 'uploading', 'ready') "
+            "OR target_confirmed_at IS NOT NULL) NOT VALID"
+        )
+    settings = svc.settings
+    for _ in range(2):
+        database.ensure_schema(settings.retention_days, settings.account_retention_days)
+    with database._conn() as conn:
+        remaining = conn.execute(
+            """SELECT count(*) AS n FROM pg_constraint con
+               JOIN pg_class rel ON rel.oid = con.conrelid
+               WHERE rel.relname = 'review_code_acquisitions'
+                 AND pg_get_constraintdef(con.oid) ILIKE '%target_confirmed_at%'"""
+        ).fetchone()["n"]
+    assert remaining == 0
+    created = _paid(site)
+    submission_id = created["submission_id"]
+    for state in ("recording", "uploading"):
+        with database._conn() as conn:
+            conn.execute(
+                "UPDATE review_code_acquisitions SET state = %s WHERE submission_id = %s",
+                (state, submission_id),
+            )
+    assert database.confirm_recording_handoff(submission_id, "handoff-no-target")
+    row = database.get(submission_id)
+    assert row["state"] == "ready" and row["target_confirmed_at"] is None
+
+
 def test_verified_handoff_clears_code_then_existing_report_retention_applies(
     site,
 ) -> None:
@@ -736,8 +835,7 @@ def test_verified_handoff_clears_code_then_existing_report_retention_applies(
     svc.store.save_submission(submission)
     with svc.recordings.database._conn() as conn:
         conn.execute(
-            "UPDATE review_code_acquisitions SET state='uploading', "
-            "target_confirmed_at=now() "
+            "UPDATE review_code_acquisitions SET state='uploading' "
             "WHERE submission_id=%s",
             (created["submission_id"],),
         )
@@ -757,7 +855,13 @@ def test_verified_handoff_clears_code_then_existing_report_retention_applies(
         and row["handoff_reference"] == "handoff-1"
     )
     assert (analysis_dir / "report.txt").exists()
-    expired_at = datetime.fromisoformat(submission.expires_at.replace("Z", "+00:00"))
+    expired_at = datetime.fromisoformat(
+        report_expires_at(row).replace("Z", "+00:00")
+    )
+    svc.maintain(expired_at - timedelta(seconds=1))
+    assert analysis_dir.exists()
+    row = svc.recordings.database.get(created["submission_id"])
+    assert row["report_expired_at"] is None
     svc.maintain(expired_at + timedelta(seconds=1))
     row = svc.recordings.database.get(created["submission_id"])
     assert row["report_expired_at"] is not None
@@ -785,17 +889,20 @@ def test_report_directory_deletion_failure_retries_after_durable_expiry(
     svc.store.save_submission(submission)
     with svc.recordings.database._conn() as conn:
         conn.execute(
-            "UPDATE review_code_acquisitions SET state='uploading', "
-            "target_confirmed_at=now() WHERE submission_id=%s",
+            "UPDATE review_code_acquisitions SET state='uploading' "
+            "WHERE submission_id=%s",
             (created["submission_id"],),
         )
     assert svc.recordings.database.confirm_recording_handoff(
         created["submission_id"], "handoff-retry"
     )
-    submission.expires_at = (datetime.now(UTC) - timedelta(seconds=1)).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
-    svc.store.save_submission(submission)
+    with svc.recordings.database._conn() as conn:
+        conn.execute(
+            "UPDATE review_code_acquisitions SET recording_handoff_at = "
+            "now() - make_interval(days => retention_days, secs => 1) "
+            "WHERE submission_id=%s",
+            (created["submission_id"],),
+        )
 
     from public_site import service as service_module
 
@@ -1017,3 +1124,42 @@ def test_settled_rows_do_not_add_per_pass_database_work(site, monkeypatch) -> No
         _expire_unpaid_review(site, _create(site, email=f"p{index}@example.com"), now)
     site.app.state.service.maintain(later)
     assert _connections_per_maintain(site, monkeypatch, later) == baseline
+
+
+def test_admin_can_close_an_unpaid_request(site) -> None:
+    created = _create(site)
+    _verify_guest(site)
+    _login(site, admin=True)
+    listed = site.get("/api/admin/recordings").json()["unpaid"]
+    job = next(
+        item for item in listed if item["submission_id"] == created["submission_id"]
+    )
+    closed = site.post(
+        f"/api/admin/recordings/{created['submission_id']}/close-unpaid",
+        json={"expected_version": job["version"], "reason": "Customer asked to stop"},
+    )
+    assert closed.status_code == 200, closed.text
+    again = site.get("/api/admin/recordings").json()["unpaid"]
+    assert created["submission_id"] not in {item["submission_id"] for item in again}
+    assert _view(site, created)["acquisition"]["state"] == "expired"
+
+
+def test_a_paid_request_cannot_be_closed_as_unpaid(site) -> None:
+    created = _paid(site)
+    _login(site, admin=True)
+    job = site.get(f"/api/admin/recordings/{created['submission_id']}").json()["job"]
+    refused = site.post(
+        f"/api/admin/recordings/{created['submission_id']}/close-unpaid",
+        json={"expected_version": job["version"], "reason": "Duplicate"},
+    )
+    assert refused.status_code == 409
+
+
+def test_owned_checkout_returns_to_the_account_page(site) -> None:
+    _login(site)
+    created = _create(site)
+    response = site.post(f"/api/me/submissions/{created['submission_id']}/checkout")
+    assert response.status_code == 200, response.text
+    target = f"/coaching/{created['submission_id']}"
+    assert site.fake_checkout.success_url.endswith(target)
+    assert site.fake_checkout.cancel_url == site.fake_checkout.success_url

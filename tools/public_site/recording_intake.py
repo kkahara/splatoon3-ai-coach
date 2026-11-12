@@ -12,9 +12,10 @@ from typing import TYPE_CHECKING
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 
-from public_site.errors import RequestRejected
+from public_site.errors import UPLOAD_MISMATCH, UPLOAD_MISSING, RequestRejected
 from public_site.media_probe import ProbeFacts, ProbeRejected
 from public_site.models import PresignedUpload, Submission, VideoInput
+from public_site.recording_models import UploadAttempt
 from public_site.service import _declared_file
 
 if TYPE_CHECKING:
@@ -23,14 +24,39 @@ if TYPE_CHECKING:
 INTAKE_SUFFIX = ".mp4"
 INTAKE_TYPE = "video/mp4"
 INTAKE_FILENAME = "source.mp4"
-BAD_INTAKE_FILE = "Upload one MP4 recording (video/mp4)."
+INTAKE_TYPES = {".mp4": "video/mp4", ".mov": "video/quicktime"}
+BAD_INTAKE_FILE = "Upload one MP4 (video/mp4) or MOV (video/quicktime) recording."
 STALE_GRANT = "The upload grant changed. Reload and upload again."
 ANALYSIS_ENDED = "Analysis for this submission has ended; it cannot be queued again."
+EARLIER_ATTEMPT = "The stored file belongs to an earlier upload attempt."
 
 
-def intake_key(submission_id: str) -> str:
-    """The one source key for a review-code submission; never derived from input."""
-    return f"submissions/{submission_id}/{INTAKE_FILENAME}"
+_STATION_HOLD = frozenset(
+    {"capturing", "interrupted", "finalized", "upload_uncertain"}
+)
+
+
+def _require_station_clear(station, submission_id: str) -> None:
+    """A file upload must not replace a take the station is still holding."""
+    if station is None:
+        return
+    phase = station.status(submission_id).get("phase")
+    if phase in _STATION_HOLD:
+        raise RequestRejected(
+            409, "Finish or discard the station recording before uploading a file."
+        )
+
+
+def intake_key(submission_id: str, suffix: str = INTAKE_SUFFIX) -> str:
+    """The source key for a review-code submission; only the suffix comes from input."""
+    if suffix not in INTAKE_TYPES:
+        raise ValueError("unsupported recording suffix")
+    return f"submissions/{submission_id}/source{suffix}"
+
+
+def intake_keys(submission_id: str) -> tuple[str, ...]:
+    """Every key an operator recording for this submission may occupy."""
+    return tuple(intake_key(submission_id, suffix) for suffix in INTAKE_TYPES)
 
 
 class RecordingUploadRequest(BaseModel):
@@ -55,6 +81,7 @@ class RecordingUploadGrant(BaseModel):
 
     upload: PresignedUpload
     version: int
+    attempt: UploadAttempt
 
 
 class RecordingIntake:
@@ -68,30 +95,70 @@ class RecordingIntake:
     def request_upload(
         self, submission_id: str, actor_id: str, body: RecordingUploadRequest
     ) -> RecordingUploadGrant:
-        """Validate the declared file, grant the upload, and presign the fixed key."""
+        """Validate the declared file, then return the job's one upload attempt.
+
+        The same declaration returns the same attempt and the same URL. The URL
+        only creates an object, so it never replaces one that is already stored.
+        """
         suffix, mime = _declared_file(
             body.filename,
             body.content_type,
             body.size_bytes,
             self.service.settings.max_video_bytes,
         )
-        if suffix != INTAKE_SUFFIX or mime != INTAKE_TYPE:
+        if INTAKE_TYPES.get(suffix) != mime:
             raise RequestRejected(400, BAD_INTAKE_FILE)
-        version = self.database.grant_upload(
-            submission_id, actor_id, body.expected_version
+        _require_station_clear(self.recordings.station, submission_id)
+        declared = {"suffix": suffix, "content_type": mime, "size_bytes": body.size_bytes}
+        attempt, version = self.database.grant_upload(
+            submission_id, actor_id, body.expected_version, declared
         )
-        key = intake_key(submission_id)
+        key = intake_key(submission_id, suffix)
+        self._clear_foreign(submission_id, attempt.attempt)
+        self._remember_grant(submission_id, key, mime, body.size_bytes)
+        upload = self.service.storage.presign_put(
+            key, mime, body.size_bytes, attempt=attempt.attempt, issued_at=attempt.issued_at
+        )
+        return RecordingUploadGrant(upload=upload, version=version, attempt=attempt)
+
+    def abandon_upload(self, submission_id: str, actor_id: str, expected_version: int) -> None:
+        """Close the open attempt; its link still expires on its own schedule."""
+        with self.service._probe_locks.hold(submission_id):
+            self.database.abandon_upload(submission_id, actor_id, expected_version)
+
+    def _clear_foreign(self, submission_id: str, attempt: str | None) -> None:
+        """Delete unverified objects left by earlier attempts, before this attempt's PUT.
+
+        Only reached once every earlier link has expired; a verified recording
+        never gets here because its job is no longer open for upload.
+        """
+        storage = self.service.storage
+        for key in intake_keys(submission_id):
+            try:
+                stat = storage.head(key)
+                if stat is not None and stat.attempt != attempt:
+                    storage.delete(key)
+            except OSError as exc:
+                raise RequestRejected(503, "Storage could not be checked. Try again.") from exc
+
+    def _remember_grant(self, submission_id: str, key: str, mime: str, size: int) -> None:
+        current = self.service.store.get_video(submission_id)
+        if (
+            current is not None
+            and current.object_key == key
+            and current.content_type == mime
+            and current.size_bytes == size
+        ):
+            return
         self.service.store.save_video(
             VideoInput(
                 submission_id=submission_id,
                 object_key=key,
-                original_filename=INTAKE_FILENAME,
-                size_bytes=body.size_bytes,
-                content_type=INTAKE_TYPE,
+                original_filename=key.rsplit("/", 1)[1],
+                size_bytes=size,
+                content_type=mime,
             )
         )
-        upload = self.service.storage.presign_put(key, INTAKE_TYPE, body.size_bytes)
-        return RecordingUploadGrant(upload=upload, version=version)
 
     def confirm_upload(
         self, submission_id: str, actor_id: str, body: RecordingUploadConfirm
@@ -101,6 +168,9 @@ class RecordingIntake:
             row = self.database.get(submission_id)
             if row is None:
                 raise RequestRejected(404, "Recording job not found.")
+            current = self.service.store.get(submission_id)
+            if current is not None and current.status in {"failed", "expired"}:
+                raise RequestRejected(409, ANALYSIS_ENDED)
             if row["state"] == "recording":
                 self._verify(submission_id, actor_id, body.expected_version)
             elif row["state"] != "uploading":
@@ -114,6 +184,10 @@ class RecordingIntake:
         video = self.service.store.get_video(submission.id)
         if not _stored(video, submission.id):
             return False
+        from public_site.recording_publish import remote_agrees
+
+        if not remote_agrees(self.service.storage, video):
+            return False
         try:
             return self.database.analysis_admitted(submission.id)
         except Exception as exc:
@@ -126,11 +200,26 @@ class RecordingIntake:
 
     def _verify(self, submission_id: str, actor_id: str, expected_version: int) -> None:
         video = self.service.store.get_video(submission_id)
-        if video is None or video.object_key != intake_key(submission_id):
+        attempt = self.database.upload_attempt(submission_id)
+        if (
+            video is None
+            or video.object_key not in intake_keys(submission_id)
+            or attempt is None
+            or attempt.status not in {"live", "expired"}
+        ):
             raise RequestRejected(400, "No recording upload was granted.")
         try:
+            stat = self.service.storage.head(video.object_key)
+        except OSError as exc:
+            raise RequestRejected(503, "Storage could not be checked. Try again.") from exc
+        if stat is None:
+            raise RequestRejected(400, UPLOAD_MISSING)
+        try:
+            if stat.attempt != attempt.attempt:
+                raise RequestRejected(409, EARLIER_ATTEMPT)
             self.service._require_owned(video)
             facts = self._probe(video)
+            video.sha256 = self._fingerprint(video)
         except RequestRejected as exc:
             self.database.record_upload_rejected(submission_id, actor_id, exc.detail)
             raise
@@ -140,6 +229,7 @@ class RecordingIntake:
         self.service.store.save_video(video)
         audit = {
             "size_bytes": video.size_bytes,
+            "sha256": video.sha256,
             "duration_seconds": facts.duration_seconds,
             "width": facts.width,
             "height": facts.height,
@@ -148,6 +238,16 @@ class RecordingIntake:
             submission_id, actor_id, expected_version, audit
         ):
             raise RequestRejected(409, STALE_GRANT)
+
+    def _fingerprint(self, video: VideoInput) -> str:
+        """SHA-256 of the object that just passed the size check."""
+        try:
+            size, digest = self.service.storage.read_sha256(video.object_key)
+        except (OSError, FileNotFoundError) as exc:
+            raise RequestRejected(400, "The upload was not found.") from exc
+        if size != video.size_bytes:
+            raise RequestRejected(400, UPLOAD_MISMATCH)
+        return digest
 
     def _probe(self, video: VideoInput) -> ProbeFacts:
         """Probe the stored object; a rejected file is deleted, as on the upload path."""
@@ -175,8 +275,6 @@ class RecordingIntake:
         svc = self.service
         submission = svc.store.get(submission_id)
         video = svc.store.get_video(submission_id)
-        if submission is not None and submission.status in {"failed", "expired"}:
-            raise RequestRejected(409, ANALYSIS_ENDED)
         if submission is None or video is None or submission.status != "received":
             return
         facts = _facts(video)
@@ -188,8 +286,9 @@ class RecordingIntake:
 def _stored(video: VideoInput | None, submission_id: str) -> bool:
     return (
         video is not None
-        and video.object_key == intake_key(submission_id)
+        and video.object_key in intake_keys(submission_id)
         and video.upload_state == "stored"
+        and bool(video.sha256)
         and _facts(video) is not None
     )
 

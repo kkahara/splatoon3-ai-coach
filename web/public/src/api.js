@@ -23,11 +23,7 @@ export async function createSubmission(body) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload.detail || "The submission was not accepted.");
-  }
-  return payload;
+  return read(response, "The submission was not accepted.");
 }
 
 export async function uploadVideo(upload, file) {
@@ -53,6 +49,17 @@ export async function openCheckout(token) {
   const response = await fetch(`/api/submissions/${encodeURIComponent(token)}/checkout`, {
     method: "POST",
   });
+  return readCheckout(response);
+}
+
+export async function openOwnedCheckout(id) {
+  const response = await fetch(`/api/me/submissions/${encodeURIComponent(id)}/checkout`, {
+    method: "POST",
+  });
+  return readCheckout(response);
+}
+
+async function readCheckout(response) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(payload.detail || "Checkout could not be opened.");
@@ -305,13 +312,14 @@ export async function saveAdminPrice(priceCents) {
   return read(response, "The analysis price was not saved.");
 }
 
-export async function saveAdminUploadLimit(perHour) {
+/** Only the fields present are changed; null restores a guest or network default. */
+export async function saveAdminUploadLimits(changes) {
   const response = await fetch("/api/admin/upload-limit", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ account_uploads_per_hour: perHour }),
+    body: JSON.stringify(changes),
   });
-  return read(response, "The upload limit was not saved.");
+  return read(response, "The upload limits were not saved.");
 }
 
 export async function loadAdminWorkerCapacity() {
@@ -339,6 +347,11 @@ export async function loadAdminRequest(id) {
   return read(response, "This request was not found.");
 }
 
+export async function loadAdminReference(reference) {
+  const response = await fetch(`/api/admin/reference/${encodeURIComponent(reference)}`);
+  return read(response, "No submission has that reference.");
+}
+
 export async function loadAdminUsers(options = {}) {
   const query = boundedAdminQuery(options);
   const response = await fetch(`/api/admin/users?${query}`);
@@ -356,14 +369,47 @@ export async function createReviewCodeSubmission(body) {
   }), "The review-code submission was not accepted.");
 }
 
+export async function validateReviewVoucher(code) {
+  return read(await fetch("/api/review-code-submissions/validate-voucher", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }),
+  }), "That voucher code was not recognized.");
+}
+
 export async function resendReviewContact(token) {
-  return read(await fetch(`/api/submissions/${encodeURIComponent(token)}/verify-contact`, {
+  const response = await fetch(`/api/submissions/${encodeURIComponent(token)}/verify-contact`, {
     method: "POST",
-  }), "The verification message could not be sent.");
+  });
+  if (response.status === 429) {
+    const payload = await response.clone().json().catch(() => ({}));
+    if (payload.reason === "confirm_cooldown") {
+      return { cooldown_seconds: Number(payload.retry_after_seconds) || 0 };
+    }
+  }
+  return read(response, "The verification message could not be sent.");
+}
+
+export async function changeReviewContact(token, email) {
+  return read(await fetch(`/api/submissions/${encodeURIComponent(token)}/contact-email`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }),
+  }), "The email address could not be changed.");
 }
 
 export async function loadRecordings() {
   return read(await fetch("/api/admin/recordings"), "Recording queue unavailable.");
+}
+
+export async function loadCaptureDevices() {
+  return read(await fetch("/api/admin/recording-station/devices"), "Capture devices are unavailable.");
+}
+
+export async function stationStatus(id) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/station`), "Recording status is unavailable.");
+}
+
+export async function stationAction(id, action, body) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/station/${action}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}),
+  }), "The recording station could not do that.");
 }
 
 export async function loadRecording(id) {
@@ -376,10 +422,35 @@ export async function requestRecordingUpload(id, body) {
   }), "The recording upload was not granted.");
 }
 
+/** PUT an operator recording. "already_stored": this attempt's file is already in storage. */
+export async function putRecording(upload, file) {
+  let response;
+  try {
+    response = await fetch(upload.url, { method: upload.method, headers: upload.headers, body: file });
+  } catch {
+    throw new Error("The browser lost contact with storage, so it cannot tell whether the file arrived. Storage may not allow uploads from this site. Until the link expires, choose Check upload again, or retry with a file of the same type and size.");
+  }
+  if (response.status === 412) return "already_stored";
+  if (!response.ok) throw new Error(`Storage refused the upload (HTTP ${response.status}).`);
+  return "stored";
+}
+
+export async function cancelRecordingUpload(id, body) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/upload/cancel`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), "The upload could not be cancelled.");
+}
+
 export async function confirmRecordingUpload(id, body) {
   return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/upload/confirm`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   }), "The uploaded recording could not be verified.");
+}
+
+export async function closeUnpaidRecording(id, body) {
+  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/close-unpaid`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }), "The unpaid request could not be closed.");
 }
 
 export async function recordingAction(id, body) {

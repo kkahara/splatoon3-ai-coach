@@ -84,6 +84,7 @@ class VideoInput(BaseModel):
     width: int | None = None
     height: int | None = None
     upload_state: UploadState = "pending"
+    sha256: str | None = None
 
 
 class ReviewCodeInput(BaseModel):
@@ -216,6 +217,8 @@ class PublicSubmissionResponse(BaseModel):
         Literal["expired", "revoked", "exhausted", "inactive", "wrong_service"] | None
     ) = None
     notice_pending: bool = False
+    # Support reference for contacting us; identifies, never authorizes.
+    public_reference: str | None = None
 
 
 class HistoryItem(BaseModel):

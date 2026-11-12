@@ -1,6 +1,73 @@
+/**
+ * True once the review or its review-code request has expired. An expired
+ * review is never payable, whatever its stored payment state. A voucher whose
+ * failure reason is `expired` is a different fact and is not read here.
+ */
+export function reviewExpired(view) {
+  return view?.status === "expired" || view?.acquisition?.state === "expired";
+}
+
 /** True while the review still needs a card payment before analysis can start. */
 export function awaitingPayment(view) {
+  if (reviewExpired(view)) {
+    return false;
+  }
   return view?.payment_state === "unpaid" || view?.payment_state === "checkout_created";
+}
+
+/** True while an attached voucher has not yet been used or refused. */
+export function voucherPending(view) {
+  return awaitingPayment(view) && view?.voucher_state === "pending";
+}
+
+/** True when the pay button may show: payment is due and no voucher is still pending. */
+export function paymentOffered(view) {
+  return awaitingPayment(view) && !voucherPending(view);
+}
+
+/** Page heading key. Expiry is checked before payment, so a closed request never asks for payment. */
+export function reviewHeadingKey(view) {
+  if (!view) {
+    return "review.heading.default";
+  }
+  if (reviewExpired(view)) {
+    return "review.heading.expired";
+  }
+  if (voucherPending(view)) {
+    return "review.heading.default";
+  }
+  if (awaitingPayment(view)) {
+    return "review.heading.payment";
+  }
+  if (view.status === "complete") {
+    return view.outcome === "no_deaths" ? "review.heading.no_moments" : "review.heading.complete";
+  }
+  if (view.status === "failed") {
+    return "review.heading.failed";
+  }
+  return "review.heading.processing";
+}
+
+/**
+ * Status key for a review-code request, naming only what is still outstanding
+ * before recording: the email confirmation, the payment, or both.
+ */
+export function acquisitionStateKey(view) {
+  const acquisition = view?.acquisition;
+  if (acquisition?.state === "expired" && acquisition.cancelled) {
+    return "review_code.state.cancelled";
+  }
+  if (acquisition?.state !== "pending_payment") {
+    return `review_code.state.${acquisition?.state}`;
+  }
+  if (!acquisition.contact_verified) {
+    return paymentOffered(view)
+      ? "review_code.state.pending_payment"
+      : "review_code.state.pending_voucher";
+  }
+  return awaitingPayment(view)
+    ? "review_code.state.pending_payment_only"
+    : "review_code.state.awaiting_recording";
 }
 
 /**

@@ -14,18 +14,28 @@ from loguru import logger
 from public_site.accounts import Account, account_email
 from public_site.errors import EXPIRED, RequestRejected
 from public_site.models import Submission
+from public_site.payments import PriceQuote
 from public_site.recording_intake import RecordingIntake
 from public_site.recording_models import (
     AcquisitionView,
     RecordingAction,
+    RecordingJob,
     ReviewCodeCreated,
     ReviewCodeDraft,
     normalize_code,
 )
-from public_site.recording_store import RecordingStore
+from public_site.recording_station import RecordingStation
+from public_site.recording_store import RecordingStore, report_expires_at
 from public_site.report_canary import CanaryStore, CanaryUnavailable
 from public_site.store import add_days, utc_now
 from public_site.tokens import hash_token, new_token
+
+_ANALYSIS_STARTED = frozenset({"validating", "processing", "complete"})
+_OPERATOR_STATES = frozenset({"awaiting_recording", "recording", "recording_failed"})
+STRIPE_UNCHECKED = (
+    "Stripe could not confirm that this checkout can no longer be paid. "
+    "Nothing was changed. Try again."
+)
 
 if TYPE_CHECKING:
     from public_site.service import SubmissionService, Verifier
@@ -44,6 +54,7 @@ class RecordingService:
         self.database = database
         self.canary = canary or CanaryStore(service.settings.root)
         self.intake = RecordingIntake(self)
+        self.station = _station(self)
         self._published: dict[str, str] = {}
 
     def create(
@@ -54,13 +65,20 @@ class RecordingService:
         verifier: Verifier,
         browser_cookie: str,
     ) -> tuple[ReviewCodeCreated, str | None]:
-        """Persist before checkout; verification gates both checkout and recording."""
+        """Persist before checkout; verification gates checkout, voucher use and recording.
+
+        A voucher code is checked for the review-code path here and attached as
+        pending. It is used only once the contact is verified (see
+        ``redeem_pending_vouchers``), which for a signed-in user is right away.
+        """
         if not verifier(draft.turnstile_token):
             raise RequestRejected(400, "Complete the verification challenge.")
         svc = self.service
         if svc.accounts is None or svc.guest is None or svc.checkout is None:
             raise RequestRejected(503, "Review-code submission is unavailable.")
         now = datetime.now(UTC)
+        code = (draft.voucher_code or "").strip() or None
+        voucher_id = svc.attach_voucher(code, ip, now, "review_code")
         svc._check_limits(ip, account.id if account else None, now)
         if self.database.open_count() >= svc.settings.max_queued:
             raise RequestRejected(429, "The queue is full. Try again later.")
@@ -74,22 +92,7 @@ class RecordingService:
             )
         token, submission = self._new_submission(account, email)
         self._capture_canary(submission.id, draft.review_code)
-        retention_days = (
-            svc.settings.account_retention_days
-            if account
-            else svc.settings.retention_days
-        )
-        self.database.create(
-            submission,
-            draft.review_code,
-            draft.target_player_name,
-            email,
-            quote,
-            now + timedelta(seconds=svc.settings.payment_hold_seconds),
-            verified=account is not None,
-            retention_days=retention_days,
-        )
-        self.publish(self.database.get(submission.id))
+        self._persist(submission, draft, email, quote, now, account, voucher_id)
         svc.notices.seal(submission.id, token)
         created = ReviewCodeCreated(
             token=token,
@@ -103,7 +106,73 @@ class RecordingService:
                 created, email, browser_cookie
             )
         self.reconcile()
+        if voucher_id is not None:
+            created.voucher_state = svc.payments.get(submission.id).voucher_state
         return created, fresh
+
+    def _persist(
+        self,
+        submission: Submission,
+        draft: ReviewCodeDraft,
+        email: str,
+        quote: PriceQuote,
+        now: datetime,
+        account: Account | None,
+        voucher_id: str | None,
+    ) -> None:
+        settings = self.service.settings
+        self.database.create(
+            submission,
+            draft.review_code,
+            email,
+            quote,
+            now + timedelta(seconds=settings.payment_hold_seconds),
+            verified=account is not None,
+            retention_days=(
+                settings.account_retention_days if account else settings.retention_days
+            ),
+            voucher_id=voucher_id,
+        )
+        self.publish(self.database.get(submission.id))
+
+    def redeem_pending_vouchers(self) -> int:
+        """Use each verified request's pending voucher, then activate what was redeemed.
+
+        Called after create, after guest verification, and on every reconcile
+        pass, so a redemption interrupted before it ran is retried. Redemption
+        itself is ``VoucherStore.finalize``; activation is ``database.reconcile``.
+        Returns how many vouchers were redeemed by this call.
+        """
+        vouchers = self.service.vouchers
+        if vouchers is None:
+            return 0
+        try:
+            pending = self.database.pending_voucher_ids()
+        except psycopg.Error as exc:
+            logger.warning("Review-code voucher scan deferred ({})", type(exc).__name__)
+            return 0
+        redeemed = 0
+        for submission_id in pending:
+            try:
+                decision = vouchers.finalize(submission_id, datetime.now(UTC))
+            except psycopg.Error as exc:
+                logger.warning(
+                    "Review-code voucher redemption deferred for {} ({})",
+                    submission_id,
+                    type(exc).__name__,
+                )
+                continue
+            if decision.outcome == "redeemed":
+                redeemed += 1
+            elif decision.outcome != "failed":
+                logger.warning(
+                    "Review-code voucher not redeemed for {} ({})",
+                    submission_id,
+                    decision.reason or decision.outcome,
+                )
+        if redeemed:
+            self.database.reconcile()
+        return redeemed
 
     def _capture_canary(self, submission_id: str, review_code: str) -> None:
         """Store the code's HMAC durably before the row exists; refuse without it."""
@@ -123,6 +192,9 @@ class RecordingService:
         leaves the submission unchecked, so a failed promotion keeps publication
         blocked until startup repair (or the operator) resolves it.
         """
+        if action.action == "recording_failed":
+            self._fail_recording(submission_id, actor_id, action)
+            return
         if action.action != "correct_code":
             self.database.act(submission_id, actor_id, action)
             return
@@ -143,6 +215,76 @@ class RecordingService:
             self._discard_correction(submission_id)
             raise
         self._commit_correction(submission_id)
+
+    def _fail_recording(
+        self, submission_id: str, actor_id: str, action: RecordingAction
+    ) -> None:
+        """Flag a recording exception without leaving a verified job queued locally.
+
+        The worker claim lock is held throughout: a queued recording is either
+        claimed first (then refused here) or returned to ``received`` before any
+        claim can see it.
+        """
+        store = self.service.store
+        with store.claim_guard():
+            current = store.get(submission_id)
+            if current is not None and current.status in _ANALYSIS_STARTED:
+                raise RequestRejected(
+                    409, "Analysis has started for this recording. Wait for it to finish."
+                )
+            self.database.act(submission_id, actor_id, action)
+            self.refresh_projection(submission_id)
+
+    def hand_off(self, submission: Submission) -> bool:
+        """Record that analysis accepted the recording; True once durably handed off.
+
+        Idempotent: a repeat with the same reference records nothing new. A
+        failure leaves the code stored and the reconcile pass retries.
+        """
+        if (
+            submission.input_type != "review_code"
+            or submission.status != "complete"
+            or not submission.processing_started_at
+        ):
+            return False
+        try:
+            accepted = self.database.confirm_recording_handoff(
+                submission.id, handoff_reference(submission)
+            )
+        except (psycopg.Error, OSError) as exc:
+            logger.warning(
+                "Review-code handoff deferred for {} ({})", submission.id, type(exc).__name__
+            )
+            return False
+        if accepted:
+            try:
+                self.refresh_projection(submission.id)
+            except psycopg.Error:
+                logger.warning("Review-code projection unavailable: {}", submission.id)
+        return accepted
+
+    def report_available(self, submission_id: str) -> bool:
+        """True only after a durable handoff; unknown or unreadable means not yet."""
+        try:
+            row = self.database.get(submission_id)
+        except (psycopg.Error, OSError):
+            return False
+        return row is not None and row["recording_handoff_at"] is not None
+
+    def _finish_handoff(self, row: dict) -> None:
+        """Retry a missing handoff for a completed analysis, then its held notice.
+
+        Uses the same reference as the worker. Notice delivery is idempotent and
+        reads nothing from the database once the notice was sent.
+        """
+        svc = self.service
+        current = svc.store.get(row["submission_id"])
+        if current is None or current.status != "complete":
+            return
+        if row["recording_handoff_at"] is None and not self.hand_off(current):
+            return
+        kind = "no_moments" if current.outcome == "no_deaths" else "ready"
+        svc.note_terminal(current, kind)
 
     def _discard_correction(self, submission_id: str) -> None:
         try:
@@ -217,6 +359,7 @@ class RecordingService:
         ):
             current.status, current.error = "received", None
             svc.store.save_submission(current)
+        self._sync_lifecycle(row, current)
         if row["sensitive_data_purged_at"] or row["report_expired_at"]:
             self._scrub_projection(current)
             current = svc.store.get(snapshot.id) or current
@@ -233,6 +376,31 @@ class RecordingService:
 
             svc.store.update(snapshot.id, enable)
         return svc.store.get(snapshot.id)
+
+    def _sync_lifecycle(self, row: dict, current: Submission) -> None:
+        """Mirror durable recording state the worker and customer view depend on.
+
+        Only a verified (``uploading``) recording may stay locally ``queued``;
+        a handed-off report expires ``retention_days`` after its handoff.
+        """
+        expires = report_expires_at(row)
+        stale_expiry = (
+            expires is not None
+            and row["report_expired_at"] is None
+            and current.expires_at != expires
+        )
+        unqueue = row["state"] != "uploading" and current.status == "queued"
+        if not stale_expiry and not unqueue:
+            return
+
+        def sync(item: Submission) -> None:
+            if stale_expiry:
+                item.expires_at = expires
+            if unqueue and item.status == "queued":
+                item.status, item.step = "received", "received"
+            item.updated_at = utc_now()
+
+        self.service.store.update(current.id, sync)
 
     def _scrub_projection(self, submission: Submission) -> None:
         """Mirror durable privacy cleanup into the local status projection."""
@@ -263,9 +431,15 @@ class RecordingService:
         A row is republished only when its committed state changed since its last
         successful publish in this process; failures are retried on the next pass.
         """
+        self.redeem_pending_vouchers()
         self.database.reconcile()
         for row in self.database.snapshots():
             submission_id = row["submission_id"]
+            if row["state"] in {"uploading", "ready"} and row["report_expired_at"] is None:
+                try:
+                    self._finish_handoff(row)
+                except (OSError, psycopg.Error):
+                    logger.warning("Review-code handoff retry unavailable: {}", submission_id)
             fingerprint = _row_fingerprint(row)
             if self._published.get(submission_id) == fingerprint:
                 continue
@@ -288,21 +462,238 @@ class RecordingService:
         row = self.database.get(submission_id)
         if row is None:
             return None
+        verified = row["contact_verified_at"] is not None
+        email = row["requested_email"]
         return AcquisitionView(
-            job_reference=submission_id,
             price_cents=self.service.payments.get(submission_id).price_cents,
             state=row["state"],
-            target_player_name=row["target_player_name"],
-            contact_verified=row["contact_verified_at"] is not None,
-            target_confirmed=row["target_confirmed_at"] is not None,
+            contact_verified=verified,
             customer_message=row["customer_message"],
+            contact_email_masked=None if verified or not email else mask_email(email),
+            cancelled=row["state"] == "expired" and self.database.was_cancelled(submission_id),
         )
+
+    def contact_cooldown(self, submission_id: str, browser_cookie: str) -> int | None:
+        """This browser's confirmation cooldown for an unverified request, if any."""
+        row = self.database.get(submission_id)
+        if row is None or row["contact_verified_at"] is not None or not row["requested_email"]:
+            return None
+        return self.service.guest_cooldown(browser_cookie, row["requested_email"])
+
+    def resend_contact(
+        self, token: str, browser_cookie: str
+    ) -> tuple[bool, str | None, int | None]:
+        """Send another confirmation link unless this browser is cooling down.
+
+        Returns notice pending, a new browser cookie, and the cooldown seconds
+        when nothing was sent because of this browser's own limit.
+        """
+        submission, row, price_cents = self._contact_request(token)
+        email = row["requested_email"]
+        retry = self.service.guest_cooldown(browser_cookie, email)
+        if retry is not None:
+            return True, None, retry
+        pending, fresh = self.service.arrange_guest_notice(
+            _created(token, submission.id, price_cents), email, browser_cookie
+        )
+        return pending, fresh, None
+
+    def change_contact(
+        self, token: str, raw_email: str, browser_cookie: str
+    ) -> tuple[bool, str | None, int | None]:
+        """Correct the address of an unconfirmed request, then send a new link.
+
+        The request, its reference, voucher and payment state stay as they are.
+        The new link follows the same limits as any other confirmation email.
+        """
+        submission, _row, price_cents = self._contact_request(token)
+        email = account_email(raw_email)
+        if not self.database.change_contact(submission.id, email):
+            raise RequestRejected(409, "This request's email address can no longer be changed.")
+        svc = self.service
+        now = datetime.now(UTC)
+        if svc.guest is not None:
+            svc.guest.rebind_request(submission.id, email, now)
+        retry = svc.guest_cooldown(browser_cookie, email, now)
+        pending, fresh = svc.arrange_guest_notice(
+            _created(token, submission.id, price_cents), email, browser_cookie
+        )
+        return pending, fresh, retry if pending else None
+
+    def _contact_request(self, token: str) -> tuple[Submission, dict, int]:
+        """The review-code request behind a review link, while checkout is still open."""
+        svc = self.service
+        submission = svc._require(token)
+        row = self.database.get(submission.id)
+        if row is None:
+            raise RequestRejected(404, "Review-code submission not found.")
+        gate = svc.payments.get(submission.id)
+        if gate is None or gate.status == "expired":
+            raise RequestRejected(409, "Checkout has expired. Submit a new request.")
+        return submission, row, gate.price_cents
+
+    def queue_jobs(self) -> list[RecordingJob]:
+        """Jobs that still need the operator.
+
+        Waiting, recording and flagged jobs stay. A verified recording stays only
+        when its analysis failed or expired, or its status cannot be read.
+        Ready, closed and expired jobs leave the queue.
+        """
+        return [job for job in self.database.list_jobs() if self._needs_operator(job)]
+
+    def _needs_operator(self, job: RecordingJob) -> bool:
+        if job.state in _OPERATOR_STATES:
+            return True
+        if job.state != "uploading":
+            return False
+        try:
+            current = self.service.store.get(job.submission_id)
+        except OSError:
+            return True
+        return current is None or current.status in {"failed", "expired"}
+
+    def close_unpaid(
+        self, submission_id: str, actor_id: str, expected_version: int, reason: str
+    ) -> dict:
+        """Cancel an unpaid request after Stripe confirms no payment can still complete.
+
+        Stripe is settled first; a paid session is recorded through the shared
+        paid transition and the cancel is refused. Unknown or unreachable Stripe
+        state changes nothing. The cancellation email failing never undoes it.
+        """
+        row = self.database.get(submission_id)
+        if row is None:
+            raise RequestRejected(404, "Recording job not found.")
+        if row["version"] != expected_version:
+            raise RequestRejected(409, "Job changed. Reload before applying this action.")
+        stripe = self._settle_checkout(submission_id)
+        details = self.database.close_unpaid(
+            submission_id, actor_id, expected_version, reason, stripe
+        )
+        self.refresh_projection(submission_id)
+        if details["cancellation_email"] == "pending":
+            try:
+                self.send_cancellation(submission_id)
+            except (OSError, psycopg.Error) as exc:
+                logger.warning(
+                    "Cancellation email deferred for {} ({})", submission_id, type(exc).__name__
+                )
+        current = self.service.store.get(submission_id)
+        sent = current is not None and "cancelled" in current.notices_sent
+        return {**details, "email_sent": sent}
+
+    def _settle_checkout(self, submission_id: str) -> dict:
+        """Make sure no Checkout session for this request can still be paid."""
+        svc = self.service
+        gate = svc.payments.get(submission_id)
+        if gate is None or gate.payment_state == "paid":
+            raise RequestRejected(409, "A payment has already been recorded for this request.")
+        if gate.payment_state != "checkout_created" or not gate.checkout_session_id:
+            return {"observed": "no_session"}
+        if svc.checkout is None:
+            raise RequestRejected(503, STRIPE_UNCHECKED)
+        session_id = gate.checkout_session_id
+        session = self._retrieve(session_id)
+        if session.status == "open":
+            try:
+                svc.checkout.expire_session(session_id)
+            except Exception as exc:
+                logger.info("Checkout expire refused for {} ({})", submission_id, type(exc).__name__)
+            session = self._retrieve(session_id)
+            observed = "expired_by_operator"
+        else:
+            observed = f"already_{session.status}"
+        if session.payment_status == "paid":
+            result = svc.record_paid_session(submission_id, session)
+            self.refresh_projection(submission_id)
+            raise RequestRejected(
+                409,
+                f"Stripe shows this request as paid (recorded: {result}). It was not cancelled.",
+                "paid_at_stripe",
+            )
+        if session.status != "expired":
+            raise RequestRejected(503, STRIPE_UNCHECKED)
+        return {"observed": observed, "session_id": session_id, "session_status": session.status}
+
+    def _retrieve(self, session_id: str):
+        try:
+            return self.service.checkout.retrieve_session(session_id)
+        except Exception as exc:
+            logger.warning("Checkout lookup failed ({})", type(exc).__name__)
+            raise RequestRejected(503, STRIPE_UNCHECKED) from None
+
+    def verified_contact(self, submission_id: str) -> str | None:
+        """The request's address, only once the customer has confirmed it."""
+        row = self.database.get(submission_id)
+        if row is None or row["contact_verified_at"] is None:
+            return None
+        return row["requested_email"]
+
+    def send_cancellation(self, submission_id: str) -> None:
+        """Send the cancellation email once and audit it; a failure is retried later."""
+        svc = self.service
+        submission = svc.store.get(submission_id)
+        if submission is None:
+            return
+        svc.deliver_notice(submission, "cancelled")
+        current = svc.store.get(submission_id)
+        if current is not None and "cancelled" in current.notices_sent:
+            self.database.note_cancellation_sent(submission_id)
+
+    def send_pending_cancellations(self) -> None:
+        """Maintenance: finish cancellation emails left behind by a failure or crash."""
+        try:
+            pending = self.database.pending_cancellation_notices()
+        except psycopg.Error as exc:
+            logger.warning("Cancellation email scan deferred ({})", type(exc).__name__)
+            return
+        for submission_id in pending:
+            try:
+                self.send_cancellation(submission_id)
+            except (OSError, psycopg.Error) as exc:
+                logger.warning(
+                    "Cancellation email deferred for {} ({})", submission_id, type(exc).__name__
+                )
 
     def require_verified_contact(self, submission_id: str) -> None:
         """Refuse checkout until the requested mailbox is verified."""
         row = self.database.get(submission_id)
         if row is None or row["contact_verified_at"] is None:
             raise RequestRejected(409, "Confirm your email before opening checkout.")
+
+
+def mask_email(email: str) -> str:
+    """Enough of an address to spot a typo: ``ke•••a@gmail.com``.
+
+    The domain stays whole because domain typos are the common mistake.
+    """
+    local, _, domain = email.partition("@")
+    if len(local) <= 3:
+        return f"{local[:1]}•••@{domain}"
+    return f"{local[:2]}•••{local[-1]}@{domain}"
+
+
+def _created(token: str, submission_id: str, price_cents: int) -> ReviewCodeCreated:
+    return ReviewCodeCreated(
+        token=token,
+        submission_id=submission_id,
+        review_path=f"/review/{token}",
+        price_cents=price_cents,
+    )
+
+
+def _station(recordings: RecordingService) -> RecordingStation | None:
+    """The capture tool, only when this process is the operator station."""
+    settings = recordings.service.settings
+    if not settings.recording_station_enabled:
+        return None
+    directory = settings.station_dir or (settings.root.parent / "station")
+    return RecordingStation(recordings, directory)
+
+
+def handoff_reference(submission: Submission) -> str:
+    """Deterministic, code-free reference; a retry always repeats it exactly."""
+    return f"analysis:{submission.id}:{submission.processing_started_at}"
 
 
 def _row_fingerprint(row: dict) -> str:

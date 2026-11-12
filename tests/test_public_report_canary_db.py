@@ -27,8 +27,8 @@ def _hand_off(site, submission_id: str) -> None:  # noqa: F811
     database = site.app.state.service.recordings.database
     with database._conn() as conn:
         conn.execute(
-            "UPDATE review_code_acquisitions SET state='uploading', "
-            "target_confirmed_at=now() WHERE submission_id=%s",
+            "UPDATE review_code_acquisitions SET state='uploading' "
+            "WHERE submission_id=%s",
             (submission_id,),
         )
     assert database.confirm_recording_handoff(submission_id, "handoff-canary")
@@ -74,7 +74,6 @@ def test_capture_failure_refuses_the_submission(site, monkeypatch) -> None:  # n
         json={
             "turnstile_token": "ok",
             "review_code": CODE,
-            "target_player_name": "プレイヤー",
             "email": "player@example.com",
         },
     )

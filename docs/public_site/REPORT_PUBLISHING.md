@@ -294,6 +294,10 @@ Runs on the published bytes before the first PUT. A finding blocks the record
     shorter than 4 characters are matched only as an entire decoded JSON
     string value (after NFKC, case-folding and removing whitespace and
     hyphens), never as a substring and never against keys.
+  - New review-code requests no longer store `target_player_name` or
+    `confirmed_player_name` (see `REVIEW_CODE_RECORDING.md`). Both stay in the
+    known values because rows created before that policy may hold them; a
+    missing value adds no matcher and changes no other check.
   - The review-code canary (below) adds an HMAC matcher.
   - One function (`report_known.submission_known_values`) builds them for both
     the publisher and `scan`. Acquisition values come from the app's

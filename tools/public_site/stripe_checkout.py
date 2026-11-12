@@ -65,6 +65,9 @@ class CheckoutGateway(Protocol):
     def retrieve_session(self, session_id: str) -> CheckoutSession:
         """Read one session back, including whether it is still open."""
 
+    def expire_session(self, session_id: str) -> CheckoutSession:
+        """Expire one open session so it can no longer be paid."""
+
     def construct_event(self, payload: bytes, signature: str, secret: str) -> CheckoutEvent:
         """Verify a webhook and return its session."""
 
@@ -119,6 +122,12 @@ class StripeCheckout:
         stripe = _stripe()
         stripe.api_key = self.secret_key
         return _session(stripe.checkout.Session.retrieve(session_id))
+
+    def expire_session(self, session_id: str) -> CheckoutSession:
+        """Expire one open session. Stripe refuses when it is no longer open."""
+        stripe = _stripe()
+        stripe.api_key = self.secret_key
+        return _session(stripe.checkout.Session.expire(session_id))
 
     def construct_event(self, payload: bytes, signature: str, secret: str) -> CheckoutEvent:
         """Verify the signature, then keep only a completed session's fields."""

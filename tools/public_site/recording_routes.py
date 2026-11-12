@@ -12,11 +12,16 @@ from public_site.accounts import Account
 from public_site.errors import RequestRejected
 from public_site.recording_intake import RecordingUploadConfirm, RecordingUploadRequest
 from public_site.recording_models import (
+    ContactCorrection,
     RecordingAction,
-    ReviewCodeCreated,
     ReviewCodeDraft,
+    ReviewVoucherCheck,
+    StationStart,
+    StationVersion,
+    UnpaidClose,
 )
 from public_site.recording_service import RecordingService
+from public_site.vouchers import preview_payload
 
 
 def register_recording_routes(
@@ -53,35 +58,60 @@ def _register_creation(app, recordings, current_user, client_ip, notice_cookie, 
         except RequestRejected as exc:
             return _rejected(exc)
 
+    @app.post("/api/review-code-submissions/validate-voucher")
+    def validate_voucher(body: ReviewVoucherCheck, request: Request) -> JSONResponse:
+        try:
+            preview = recordings.service.preview_voucher(
+                body.code, client_ip(request), "review_code"
+            )
+        except RequestRejected as exc:
+            return _rejected(exc)
+        return JSONResponse(preview_payload(preview))
+
 
 def _register_verification(app, recordings, notice_cookie):
     @app.post("/api/submissions/{token}/verify-contact")
     def resend(token: str, request: Request) -> JSONResponse:
         try:
-            svc = recordings.service
-            submission = svc._require(token)
-            row = recordings.database.get(submission.id)
-            if row is None:
-                raise RequestRejected(404, "Review-code submission not found.")
-            gate = svc.payments.get(submission.id)
-            if gate is None or gate.status == "expired":
-                raise RequestRejected(409, "Checkout has expired. Submit a new request.")
-            pending, fresh = svc.arrange_guest_notice(
-                ReviewCodeCreated(
-                    token=token,
-                    submission_id=submission.id,
-                    review_path=f"/review/{token}",
-                    price_cents=gate.price_cents,
-                ),
-                row["requested_email"],
-                request.cookies.get("notice_browser", ""),
+            pending, fresh, retry = recordings.resend_contact(
+                token, request.cookies.get("notice_browser", "")
             )
-            response = JSONResponse({"notice_pending": pending})
-            if fresh:
-                notice_cookie(response, fresh)
-            return response
         except RequestRejected as exc:
             return _rejected(exc)
+        if retry is not None:
+            return _cooldown(retry)
+        response = JSONResponse({"notice_pending": pending})
+        if fresh:
+            notice_cookie(response, fresh)
+        return response
+
+    @app.post("/api/submissions/{token}/contact-email")
+    def change(token: str, body: ContactCorrection, request: Request) -> JSONResponse:
+        try:
+            pending, fresh, retry = recordings.change_contact(
+                token, body.email, request.cookies.get("notice_browser", "")
+            )
+        except RequestRejected as exc:
+            return _rejected(exc)
+        response = JSONResponse(
+            {"notice_pending": pending, "retry_after_seconds": retry}
+        )
+        if fresh:
+            notice_cookie(response, fresh)
+        return response
+
+
+def _cooldown(seconds: int) -> JSONResponse:
+    """This browser asked for a confirmation email too recently. Nothing was sent."""
+    return JSONResponse(
+        {
+            "detail": "Another confirmation email cannot be sent yet.",
+            "reason": "confirm_cooldown",
+            "retry_after_seconds": seconds,
+        },
+        status_code=429,
+        headers={"Retry-After": str(seconds)},
+    )
 
 
 def _register_operator(app, recordings, required_admin):
@@ -89,7 +119,14 @@ def _register_operator(app, recordings, required_admin):
     def queue(request: Request) -> dict:
         required_admin(request)
         recordings.database.reconcile()
-        return {"jobs": recordings.database.list_jobs()}
+        return {
+            "jobs": recordings.queue_jobs(),
+            "unpaid": recordings.database.list_unpaid(),
+            "station_enabled": recordings.station is not None,
+            "station_takes": (
+                recordings.station.active_takes() if recordings.station is not None else {}
+            ),
+        }
 
     @app.get("/api/admin/recordings/{submission_id}")
     def detail(submission_id: str, request: Request) -> JSONResponse:
@@ -115,7 +152,28 @@ def _register_operator(app, recordings, required_admin):
         except RequestRejected as exc:
             return _rejected(exc)
 
+    @app.post("/api/admin/recordings/{submission_id}/close-unpaid")
+    def close_unpaid(
+        submission_id: str, body: UnpaidClose, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        try:
+            closed = recordings.close_unpaid(
+                submission_id, actor.id, body.expected_version, body.reason
+            )
+        except RequestRejected as exc:
+            return _rejected(exc)
+        return JSONResponse(
+            {
+                "state": "expired",
+                "cancellation_email": closed["cancellation_email"],
+                "email_sent": closed["email_sent"],
+            }
+        )
+
     _register_intake(app, recordings, required_admin)
+    if recordings.station is not None:
+        _register_station(app, recordings, required_admin)
 
 
 def _register_intake(app, recordings, required_admin):
@@ -143,6 +201,82 @@ def _register_intake(app, recordings, required_admin):
         except RequestRejected as exc:
             return _rejected(exc)
 
+    @app.post("/api/admin/recordings/{submission_id}/upload/cancel")
+    def cancel_upload(
+        submission_id: str, body: StationVersion, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        try:
+            recordings.intake.abandon_upload(submission_id, actor.id, body.expected_version)
+            return JSONResponse(
+                jsonable_encoder(recordings.database.detail(submission_id))
+            )
+        except RequestRejected as exc:
+            return _rejected(exc)
+
+
+def _register_station(app, recordings, required_admin):
+    station = recordings.station
+
+    @app.get("/api/admin/recording-station/devices")
+    def devices(request: Request) -> dict:
+        required_admin(request)
+        return {"devices": station.devices()}
+
+    @app.get("/api/admin/recordings/{submission_id}/station")
+    def station_status(submission_id: str, request: Request) -> dict:
+        required_admin(request)
+        return station.status(submission_id)
+
+    @app.post("/api/admin/recordings/{submission_id}/station/start")
+    def station_start(
+        submission_id: str, body: StationStart, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        return _station_call(
+            lambda: station.start(
+                submission_id, actor.id, body.device_name, body.expected_version
+            )
+        )
+
+    @app.post("/api/admin/recordings/{submission_id}/station/stop")
+    def station_stop(submission_id: str, request: Request) -> JSONResponse:
+        required_admin(request)
+        return _station_call(lambda: station.stop(submission_id))
+
+    @app.post("/api/admin/recordings/{submission_id}/station/accept")
+    def station_accept(submission_id: str, request: Request) -> JSONResponse:
+        required_admin(request)
+        return _station_call(lambda: station.accept(submission_id))
+
+    @app.post("/api/admin/recordings/{submission_id}/station/discard")
+    def station_discard(
+        submission_id: str, body: StationVersion, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        return _station_call(
+            lambda: station.discard(submission_id, actor.id, body.expected_version)
+        )
+
+    @app.post("/api/admin/recordings/{submission_id}/station/upload")
+    def station_upload(
+        submission_id: str, body: StationVersion, request: Request
+    ) -> JSONResponse:
+        actor: Account = required_admin(request)
+        return _station_call(
+            lambda: station.upload(submission_id, actor.id, body.expected_version)
+        )
+
+
+def _station_call(action) -> JSONResponse:
+    try:
+        return JSONResponse(jsonable_encoder(action()))
+    except RequestRejected as exc:
+        return _rejected(exc)
+
 
 def _rejected(exc: RequestRejected) -> JSONResponse:
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+    body = {"detail": exc.detail}
+    if exc.reason:
+        body["reason"] = exc.reason
+    return JSONResponse(body, status_code=exc.status_code)

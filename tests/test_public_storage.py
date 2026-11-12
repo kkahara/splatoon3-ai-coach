@@ -239,6 +239,54 @@ def test_presigned_put_is_accepted_by_the_store(tmp_path: Path) -> None:
         assert rejected.value.code == 403
 
 
+def _put_status(url: str, headers: dict[str, str], body: bytes) -> int:
+    request = urllib.request.Request(url, data=body, method="PUT", headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            return response.status
+    except urllib.error.HTTPError as exc:
+        return exc.code
+
+
+def test_attempt_put_is_create_only_stamped_and_repeatable(tmp_path: Path) -> None:
+    key = f"submissions/{ID}/source.mov"
+    issued = datetime(2026, 11, 11, 4, 0, tzinfo=UTC)
+    attempt = "0123456789abcdef0123456789abcdef"
+    with fake_s3() as state:
+        first = _r2(state).presign_put(
+            key, "video/quicktime", 8, attempt=attempt, issued_at=issued
+        )
+        again = _r2(state).presign_put(
+            key, "video/quicktime", 8, attempt=attempt, issued_at=issued
+        )
+        assert first == again
+        assert first.headers["If-None-Match"] == "*"
+        assert first.headers["x-amz-meta-attempt"] == attempt
+        unsigned = {k: v for k, v in first.headers.items() if k != "x-amz-meta-attempt"}
+        assert _put_status(first.url, unsigned, b"12345678") == 403
+        assert key not in state.objects
+        assert _put_status(first.url, first.headers, b"12345678") == 200
+        assert _r2(state).head(key).attempt == attempt
+        assert _put_status(first.url, first.headers, b"87654321") == 412
+        assert state.objects[key].body == b"12345678"
+
+
+def test_local_attempt_grant_is_create_only_and_stamped(tmp_path: Path) -> None:
+    local = LocalStorage(tmp_path / "root")
+    key = f"submissions/{ID}/source.mp4"
+    attempt = "0123456789abcdef0123456789abcdef"
+    upload = local.presign_put(key, "video/mp4", 8, attempt=attempt)
+    assert upload.url.endswith(f"/{attempt}")
+    assert local.write_grant(attempt, b"12345678") == key
+    assert local.head(key).attempt == attempt
+    with pytest.raises(storage_module.ObjectExists):
+        local.write_grant(attempt, b"87654321")
+    assert local.read_sha256(key)[1] == hashlib.sha256(b"12345678").hexdigest()
+    local.delete(key)
+    local.put_file(key, _file(tmp_path, "station.mp4", b"abcdefgh"), "video/mp4")
+    assert local.head(key).attempt is None
+
+
 def test_local_storage_matches_the_r2_operations(tmp_path: Path) -> None:
     local = LocalStorage(tmp_path / "root")
     source = _file(tmp_path, "bundle.json", b'{"a": 1}')
