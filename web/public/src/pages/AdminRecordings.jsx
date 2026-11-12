@@ -5,9 +5,10 @@ import {
 } from "../api.js";
 import { formatDate } from "./AdminUi.jsx";
 import {
-  RECORDING_ACCEPT, canCancelUpload, canCheckUpload, canRetryAnalysis, canUploadRecording, capturingJob,
-  fileMatchesAttempt, historyLine, hydrationSelection, nextUploadDeadline, normalizedReviewCode,
-  recordingContentType, stationHoldsRecording, stationPoll, stripeReference, uploadPhase,
+  RECORDING_ACCEPT, analysisSummary, canCancelUpload, canCheckUpload, canRetryAnalysis, canUploadRecording,
+  capturingJob, fileMatchesAttempt, historyLine, hydrationSelection, nextUploadDeadline, normalizedReviewCode,
+  recordingContentType, stationHoldsRecording, stationPoll, stripeReference, uploadIndicator, uploadPanelVisible,
+  uploadPhase,
 } from "./recordingForm.js";
 
 export function AdminRecordingsPage() {
@@ -33,6 +34,7 @@ export function AdminRecordingsPage() {
   const [device, setDevice] = useState("");
   const [station, setStation] = useState(null);
   const [stationTakes, setStationTakes] = useState({});
+  const [stationWork, setStationWork] = useState("");
   async function refresh({ initial = false } = {}) {
     try {
       const listed = await loadRecordings();
@@ -114,14 +116,14 @@ export function AdminRecordingsPage() {
     return () => clearTimeout(timer);
   }, [selectedId, attemptId, uploadDeadline]);
   async function runStation(action, body) {
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setStationWork(action);
     try {
       const id = detail.job.submission_id;
       const view = await stationAction(id, action, body);
       setStation(view); rememberTake(id, view);
       await select(id);
     } catch (exc) { setError(exc.message); await refresh(); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setStationWork(""); }
   }
   async function uploadRecording() {
     if (uploadInFlight.current || !file) return;
@@ -202,15 +204,16 @@ export function AdminRecordingsPage() {
       <JobTable jobs={jobs} takes={stationTakes} selected={job?.submission_id} onSelect={select} />
       {job ? <section>
         <h2>Job {job.submission_id}</h2>
-        <p>Support reference: <code>{job.public_reference}</code></p>
-        {job.review_code ? <p>Review code: <code>{job.review_code}</code></p> : null}
-        <p>State: {job.state}</p>
-        {detail.analysis ? <p>Analysis: {detail.analysis.status} · {detail.analysis.step}{detail.analysis.error ? ` · ${detail.analysis.error}` : ""}</p> : null}
-        <p>Verified contact: <a href={`mailto:${detail.verified_contact_email}`}>{detail.verified_contact_email}</a></p>
-        <p>Stripe payment reference: {stripeReference(detail)}</p>
-        {canUploadRecording(job) ? <p><strong>録画中は、リプレイの初期視点を変更しないでください。</strong></p> : null}
+        <dl className="admin-details job-facts">
+          <div><dt>Support reference</dt><dd><code>{job.public_reference}</code></dd></div>
+          {job.review_code ? <div><dt>Review code</dt><dd><code>{job.review_code}</code></dd></div> : null}
+          <div><dt>State</dt><dd>{job.state}</dd></div>
+          {detail.analysis ? <div><dt>Analysis</dt><dd>{analysisSummary(detail.analysis)}</dd></div> : null}
+          <div><dt>Verified contact</dt><dd><a href={`mailto:${detail.verified_contact_email}`}>{detail.verified_contact_email}</a></dd></div>
+          <div><dt>Stripe payment reference</dt><dd>{stripeReference(detail)}</dd></div>
+        </dl>
         {stationEnabled ? <StationPanel
-          busy={busy} devices={devices} device={device} setDevice={setDevice}
+          busy={busy} uploading={stationWork === "upload"} devices={devices} device={device} setDevice={setDevice}
           station={station} job={job} otherCapturing={otherCapturing} onRefresh={reloadDevices}
           onStart={() => runStation("start", { device_name: device, expected_version: job.version })}
           onStop={() => runStation("stop")}
@@ -218,7 +221,7 @@ export function AdminRecordingsPage() {
           onDiscard={() => runStation("discard", { expected_version: station?.version ?? job.version })}
           onUpload={() => runStation("upload", { expected_version: station?.version ?? job.version })}
         /> : null}
-        {(canUploadRecording(job) || job.state === "uploading") && !held ? <UploadPanel
+        {uploadPanelVisible(detail, station?.phase) ? <UploadPanel
           detail={detail} transferring={transferring} busy={busy} file={file} note={uploadNote}
           error={uploadError} onFile={setFile} onUpload={uploadRecording} onCheck={checkUpload}
           onCancel={cancelUpload}
@@ -338,22 +341,24 @@ function UploadPanel({ detail, transferring, busy, file, note, error, onFile, on
   const retrying = phase === "permitted";
   const mismatch = retrying && file && !fileMatchesAttempt(file, attempt);
   const status = phaseText(phase, attempt);
+  const indicator = uploadIndicator(phase, note);
   return (
     <section>
       <h3>Upload a recording</h3>
-      {canSend ? <>
+      {canSend && indicator !== "working" ? <>
         <p>Use this for a file recorded in OBS or QuickTime. Choose one MP4 or MOV file, up to the 750 MiB upload limit. The site checks it and queues this same job.</p>
         <label>Recording (MP4 or MOV)<input type="file" accept={RECORDING_ACCEPT} onChange={(event) => onFile(event.target.files?.[0] || null)} /></label>
         <button type="button" disabled={busy || !file || mismatch} onClick={onUpload}>{retrying ? "Retry upload" : "Upload recording"}</button>
         {mismatch ? <p className="error" role="alert">{mismatchText(attempt)}</p> : null}
       </> : null}
-      {status ? <p>Upload status: {status}</p> : null}
-      {attempt && !["none", "queued", "analysis_failed"].includes(phase) ? <p>
+      {indicator === "working" ? <Working text={note} /> : null}
+      {indicator === "done" ? <Done text={status} /> : null}
+      {status && !indicator ? <p>Upload status: {status}</p> : null}
+      {attempt && !indicator && !["none", "queued", "analysis_failed"].includes(phase) ? <p>
         Upload attempt: {attempt.suffix || "file"}{attempt.size_bytes ? `, ${attempt.size_bytes} bytes` : ""}
         {" · "}link valid until {formatDate(attempt.link_expires_at)}
         {waitingOut ? ` · a new upload can start after ${formatDate(attempt.replace_after)}` : ""}
       </p> : null}
-      {note ? <p role="status">{note}</p> : null}
       {error ? <p className="error" role="alert">{error}</p> : null}
       {canCheckUpload(detail) ? <button type="button" disabled={busy} onClick={onCheck}>Check upload again</button> : null}
       {canCancelUpload(detail) ? <button type="button" disabled={busy} onClick={onCancel}>Cancel upload</button> : null}
@@ -440,16 +445,28 @@ function UnpaidTable({ jobs, busy, onClose }) {
   );
 }
 
-function StationPanel({ busy, devices, device, setDevice, station, job, otherCapturing, onRefresh, onStart, onStop, onAccept, onDiscard, onUpload }) {
+const CAPTURE_REMINDER = "Keep the replay on its opening perspective while recording.";
+
+function Working({ text }) {
+  return <p className="status-line" role="status"><span className="spinner" aria-hidden="true" />{text}</p>;
+}
+
+function Done({ text }) {
+  return <p className="status-line" role="status"><span className="done-mark" aria-hidden="true">✓</span>{text}</p>;
+}
+
+function StationPanel({ busy, uploading, devices, device, setDevice, station, job, otherCapturing, onRefresh, onStart, onStop, onAccept, onDiscard, onUpload }) {
   const phase = station?.phase || "absent";
   const seconds = station?.elapsed_seconds;
   const waiting = job.state === "awaiting_recording" || job.state === "recording";
+  const showMessage = station?.message && !["capturing", "verified"].includes(phase) && !uploading;
   return (
     <section>
       <h3>Capture station</h3>
+      {phase === "capturing" ? <p><strong>{CAPTURE_REMINDER}</strong></p> : null}
       <p>Capture status: {phase}{seconds != null ? ` · ${Math.round(seconds)}s` : ""}</p>
       {station?.capture_mode ? <p>Capture mode: {station.capture_mode}</p> : null}
-      {station?.message ? <p>{station.message}</p> : null}
+      {showMessage ? <p>{station.message}</p> : null}
       {station?.size_warning ? <p className="note">This recording is near the size limit.</p> : null}
       {phase === "absent" || (job.state === "awaiting_recording" && phase !== "capturing") ? (
         <>
@@ -469,11 +486,12 @@ function StationPanel({ busy, devices, device, setDevice, station, job, otherCap
         {station?.acceptable ? <button disabled={busy} onClick={onAccept}>Keep this file for upload</button> : null}
         <button disabled={busy} onClick={onDiscard}>Discard recording</button>
       </> : null}
-      {phase === "finalized" || phase === "upload_uncertain" ? <>
+      {uploading ? <Working text="Uploading to storage… keep this page open." /> : null}
+      {(phase === "finalized" || phase === "upload_uncertain") && !uploading ? <>
         <button disabled={busy} onClick={onUpload}>Upload to storage</button>
         <button disabled={busy} onClick={onDiscard}>Discard recording</button>
       </> : null}
-      {phase === "verified" ? <p>Published and queued for analysis.</p> : null}
+      {phase === "verified" && !uploading ? <Done text="Uploaded and queued for analysis." /> : null}
     </section>
   );
 }

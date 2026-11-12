@@ -685,7 +685,7 @@ def _blank(submission_id: str, device: str, output: Path, pid: int, version: int
         "size_warning": False,
         "size_stop": False,
         "started_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "message": "録画中は、リプレイの初期視点を変更しないでください。",
+        "message": "",
     }
 
 

@@ -4,6 +4,7 @@ import {
   ACTIVE_POLL_MS,
   IDLE_POLL_MS,
   RECORDING_ACCEPT,
+  analysisSummary,
   canCancelUpload,
   capturingJob,
   hydrationSelection,
@@ -22,6 +23,8 @@ import {
   recordingQueued,
   stationHoldsRecording,
   stripeReference,
+  uploadIndicator,
+  uploadPanelVisible,
   uploadPhase,
 } from "./recordingForm.js";
 
@@ -270,6 +273,38 @@ test("a failed analysis is its own upload phase and is never checked again", () 
   assert.equal(canCheckUpload(failed), false);
   assert.equal(uploadPhase(analysisDetail("uploading", "processing")), "queued");
   assert.equal(uploadPhase(analysisDetail("uploading", "failed", "video")), "queued");
+});
+
+test("the file-upload panel steps aside for a station take and after a station upload", () => {
+  const waiting = uploadDetail("awaiting_recording", null);
+  assert.equal(uploadPanelVisible(waiting, "absent"), true);
+  for (const phase of ["capturing", "interrupted", "finalized", "upload_uncertain", "verified"]) {
+    assert.equal(uploadPanelVisible(waiting, phase), false, phase);
+  }
+  assert.equal(uploadPanelVisible(analysisDetail("uploading", "processing"), "verified"), false);
+  assert.equal(uploadPanelVisible(analysisDetail("uploading", "processing"), "absent"), true);
+  assert.equal(uploadPanelVisible(analysisDetail("uploading", "failed"), "verified"), true);
+  for (const state of ["recording_failed", "ready", "closed"]) {
+    assert.equal(uploadPanelVisible(uploadDetail(state, null), "absent"), false, state);
+  }
+});
+
+test("an upload step in flight spins, and a queued recording shows the check", () => {
+  assert.equal(uploadIndicator("transferring", "Uploading… keep this page open."), "working");
+  assert.equal(uploadIndicator("permitted", "Upload finished. Checking the file…"), "working");
+  assert.equal(uploadIndicator("queued", ""), "done");
+  for (const phase of ["none", "permitted", "verified", "rejected", "analysis_failed"]) {
+    assert.equal(uploadIndicator(phase, ""), null, phase);
+  }
+});
+
+test("the analysis summary drops a step that repeats the status", () => {
+  assert.equal(analysisSummary({ status: "received", step: "received" }), "received");
+  assert.equal(analysisSummary({ status: "processing", step: "coaching" }), "processing · coaching");
+  assert.equal(
+    analysisSummary({ status: "failed", step: "analyzing", error: "Analysis failed." }),
+    "failed · analyzing · Analysis failed.",
+  );
 });
 
 test("a retry history line names the failed run without raw error text", () => {

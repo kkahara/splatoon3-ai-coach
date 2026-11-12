@@ -166,6 +166,31 @@ export function stationHoldsRecording(phase) {
   return STATION_HOLD.has(phase);
 }
 
+/**
+ * The file-upload panel shows while a file may be sent or is being checked, but not while a
+ * station take holds the job or after a station take was published. A failed analysis keeps it.
+ */
+export function uploadPanelVisible(detail, stationPhase) {
+  const job = detail?.job;
+  if (!canUploadRecording(job) && job?.state !== "uploading") return false;
+  if (stationHoldsRecording(stationPhase)) return false;
+  return stationPhase !== "verified" || canRetryAnalysis(detail);
+}
+
+/** `working` while an upload step runs, `done` once the recording is queued, else null. */
+export function uploadIndicator(phase, note) {
+  if (note) return "working";
+  return phase === "queued" ? "done" : null;
+}
+
+/** Analysis status, with the step only when it adds something, and any public error. */
+export function analysisSummary(analysis) {
+  const parts = [analysis.status];
+  if (analysis.step && analysis.step !== analysis.status) parts.push(analysis.step);
+  if (analysis.error) parts.push(analysis.error);
+  return parts.join(" · ");
+}
+
 /** The job whose capture is running, from the queue's station summary. */
 export function capturingJob(takes) {
   return Object.keys(takes || {}).find((id) => takes[id]?.phase === "capturing") || null;

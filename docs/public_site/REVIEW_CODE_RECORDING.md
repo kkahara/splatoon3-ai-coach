@@ -29,9 +29,9 @@ The submission form says:
 4. Keep that perspective for the whole recording.
 5. Stop recording and upload the video.
 
-The admin recording page and the recording station show the reminder
-「録画中は、リプレイの初期視点を変更しないでください。」 The station has no
-player-selection function.
+While a capture is running, the capture station panel on the admin recording
+page shows the reminder "Keep the replay on its opening perspective while
+recording." The station has no player-selection function.
 
 ## Workflow and database
 

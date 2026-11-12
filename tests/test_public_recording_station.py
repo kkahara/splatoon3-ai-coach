@@ -425,6 +425,7 @@ def test_capture_can_be_stopped_discarded_and_redone_at_the_chosen_mode(site) ->
     started = _start(site, created, _version(site, created)).json()
     assert started["phase"] == "capturing"
     assert started["capture_mode"] == "1920x1080 at 60 fps"
+    assert started["message"] == ""
     assert station.stop(created["submission_id"])["phase"] == "finalized"
     discarded = site.post(
         f"/api/admin/recordings/{created['submission_id']}/station/discard",
