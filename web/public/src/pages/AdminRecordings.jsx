@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  cancelRecordingUpload, closeUnpaidRecording, confirmRecordingUpload, loadCaptureDevices, loadRecording,
-  loadRecordings, putRecording, recordingAction, requestRecordingUpload, stationAction, stationStatus,
+  cancelRecordingUpload, closeUnpaidRecording, confirmRecordingUpload, loadRecording,
+  loadRecordings, putRecording, recordingAction, requestRecordingUpload,
 } from "../api.js";
 import { formatDate } from "./AdminUi.jsx";
 import {
   RECORDING_ACCEPT, analysisSummary, canCancelUpload, canCheckUpload, canRetryAnalysis, canUploadRecording,
-  capturingJob, fileMatchesAttempt, historyLine, hydrationSelection, nextUploadDeadline, normalizedReviewCode,
-  recordingContentType, stationHoldsRecording, stationPoll, stripeReference, uploadIndicator, uploadPanelVisible,
+  fileMatchesAttempt, historyLine, nextUploadDeadline, normalizedReviewCode,
+  recordingContentType, stripeReference, uploadIndicator, uploadPanelVisible,
   uploadPhase,
 } from "./recordingForm.js";
 
@@ -29,34 +29,15 @@ export function AdminRecordingsPage() {
   const [uploadError, setUploadError] = useState("");
   const uploadInFlight = useRef(false);
   const [closedNote, setClosedNote] = useState("");
-  const [stationEnabled, setStationEnabled] = useState(false);
-  const [devices, setDevices] = useState([]);
-  const [device, setDevice] = useState("");
-  const [station, setStation] = useState(null);
-  const [stationTakes, setStationTakes] = useState({});
-  const [stationWork, setStationWork] = useState("");
-  async function refresh({ initial = false } = {}) {
+  async function refresh() {
     try {
       const listed = await loadRecordings();
       setJobs(listed.jobs);
       setUnpaid(listed.unpaid || []);
-      setStationEnabled(Boolean(listed.station_enabled));
-      setStationTakes(listed.station_takes || {});
-      const opened = hydrationSelection(listed.station_takes, null, initial);
-      if (opened) await select(opened, Boolean(listed.station_enabled));
     } catch (exc) { setError(exc.message); }
   }
-  useEffect(() => { refresh({ initial: true }); }, []);
-  function rememberTake(id, view) {
-    setStationTakes((takes) => {
-      const rest = { ...takes };
-      delete rest[id];
-      if (!stationHoldsRecording(view?.phase)) return rest;
-      const { phase, elapsed_seconds, capture_mode, size_warning } = view;
-      return { ...rest, [id]: { phase, elapsed_seconds, capture_mode, size_warning } };
-    });
-  }
-  async function select(id, withStation = stationEnabled) {
+  useEffect(() => { refresh(); }, []);
+  async function select(id) {
     try {
       const next = await loadRecording(id);
       if (next.job.submission_id !== detail?.job.submission_id) {
@@ -64,10 +45,6 @@ export function AdminRecordingsPage() {
         setNote(""); setCode(""); setWrongCode(false); setMessage(""); setRefund("");
       }
       setDetail(next); setError(""); setTab("queue");
-      if (withStation) {
-        const view = await stationStatus(id);
-        setStation(view); rememberTake(id, view);
-      }
     } catch (exc) { setError(exc.message); }
   }
   async function act(action) {
@@ -81,33 +58,7 @@ export function AdminRecordingsPage() {
     } catch (exc) { setError(exc.message); }
     finally { setBusy(false); }
   }
-  async function reloadDevices() {
-    try {
-      const payload = await loadCaptureDevices();
-      setDevices(payload.devices || []);
-    } catch (exc) { setError(exc.message); }
-  }
-  useEffect(() => {
-    if (!stationEnabled) return undefined;
-    let stop = false;
-    loadCaptureDevices().then((payload) => {
-      if (!stop) setDevices(payload.devices || []);
-    }).catch((exc) => setError(exc.message));
-    return () => { stop = true; };
-  }, [stationEnabled]);
   const selectedId = detail?.job.submission_id;
-  const poll = stationPoll(stationTakes, selectedId, station?.phase);
-  useEffect(() => {
-    if (!stationEnabled) return undefined;
-    const timer = setInterval(() => {
-      if (poll.kind === "queue") { refresh(); return; }
-      stationStatus(poll.id).then((view) => {
-        rememberTake(poll.id, view);
-        if (poll.id === selectedId) setStation(view);
-      }).catch(() => {});
-    }, poll.ms);
-    return () => clearInterval(timer);
-  }, [stationEnabled, poll.kind, poll.id, selectedId]);
   const attemptId = detail?.upload_attempt?.attempt ?? detail?.upload_attempt?.issued_at;
   const uploadDeadline = nextUploadDeadline(detail);
   useEffect(() => {
@@ -115,16 +66,6 @@ export function AdminRecordingsPage() {
     const timer = setTimeout(() => select(selectedId), Math.max(0, uploadDeadline - Date.now()) + 250);
     return () => clearTimeout(timer);
   }, [selectedId, attemptId, uploadDeadline]);
-  async function runStation(action, body) {
-    setBusy(true); setError(""); setStationWork(action);
-    try {
-      const id = detail.job.submission_id;
-      const view = await stationAction(id, action, body);
-      setStation(view); rememberTake(id, view);
-      await select(id);
-    } catch (exc) { setError(exc.message); await refresh(); }
-    finally { setBusy(false); setStationWork(""); }
-  }
   async function uploadRecording() {
     if (uploadInFlight.current || !file) return;
     const contentType = recordingContentType(file);
@@ -178,22 +119,12 @@ export function AdminRecordingsPage() {
     finally { setBusy(false); }
   }
   const job = detail?.job;
-  const held = stationHoldsRecording(station?.phase);
   const open = job && !["closed", "ready", "expired"].includes(job.state);
-  const capturingId = capturingJob(stationTakes);
-  const capturingTake = capturingId ? stationTakes[capturingId] : null;
-  const referenceOf = (id) => jobs.find((item) => item.submission_id === id)?.public_reference || id.slice(0, 8);
-  const otherCapturing = capturingId && capturingId !== job?.submission_id ? referenceOf(capturingId) : null;
   return (
     <section>
       <h1>Manual recording queue</h1>
       <p>Paid requests with verified contact addresses. Pending recording: {jobs.filter((item) => item.state === "awaiting_recording").length}</p>
       <button onClick={() => refresh()}>Refresh</button>
-      {capturingTake ? <p role="status">
-        Recording in progress: <code>{referenceOf(capturingId)}</code> · {Math.round(capturingTake.elapsed_seconds ?? 0)}s
-        {capturingTake.capture_mode ? ` · ${capturingTake.capture_mode}` : ""}{" "}
-        {capturingId !== job?.submission_id ? <button type="button" onClick={() => select(capturingId)}>Open recording</button> : null}
-      </p> : null}
       {error ? <p className="error" role="alert">{error}</p> : null}
       <RecordingTabs tab={tab} onChange={setTab} queued={jobs.length} unpaid={unpaid.length} />
       {tab === "unpaid" ? <section id="recordings-panel-unpaid" role="tabpanel" aria-labelledby="recordings-tab-unpaid">
@@ -201,7 +132,7 @@ export function AdminRecordingsPage() {
         {closedNote ? <p role="status">{closedNote}</p> : null}
         <UnpaidTable jobs={unpaid} busy={busy} onClose={closeUnpaid} />
       </section> : <section id="recordings-panel-queue" role="tabpanel" aria-labelledby="recordings-tab-queue">
-      <JobTable jobs={jobs} takes={stationTakes} selected={job?.submission_id} onSelect={select} />
+      <JobTable jobs={jobs} selected={job?.submission_id} onSelect={select} />
       {job ? <section>
         <h2>Job {job.submission_id}</h2>
         <dl className="admin-details job-facts">
@@ -212,16 +143,7 @@ export function AdminRecordingsPage() {
           <div><dt>Verified contact</dt><dd><a href={`mailto:${detail.verified_contact_email}`}>{detail.verified_contact_email}</a></dd></div>
           <div><dt>Stripe payment reference</dt><dd>{stripeReference(detail)}</dd></div>
         </dl>
-        {stationEnabled ? <StationPanel
-          busy={busy} uploading={stationWork === "upload"} devices={devices} device={device} setDevice={setDevice}
-          station={station} job={job} otherCapturing={otherCapturing} onRefresh={reloadDevices}
-          onStart={() => runStation("start", { device_name: device, expected_version: job.version })}
-          onStop={() => runStation("stop")}
-          onAccept={() => runStation("accept")}
-          onDiscard={() => runStation("discard", { expected_version: station?.version ?? job.version })}
-          onUpload={() => runStation("upload", { expected_version: station?.version ?? job.version })}
-        /> : null}
-        {uploadPanelVisible(detail, station?.phase) ? <UploadPanel
+        {uploadPanelVisible(detail) ? <UploadPanel
           detail={detail} transferring={transferring} busy={busy} file={file} note={uploadNote}
           error={uploadError} onFile={setFile} onUpload={uploadRecording} onCheck={checkUpload}
           onCancel={cancelUpload}
@@ -236,8 +158,7 @@ export function AdminRecordingsPage() {
             <p>The recording is verified and still in storage, but its analysis failed. Retry analysis runs it again without a new upload, payment, or voucher.</p>
             <button type="button" disabled={busy || !note.trim()} onClick={() => { if (window.confirm(RETRY_ANALYSIS_WARNING)) act("retry_analysis"); }}>Retry analysis</button>
           </> : null}
-          <button disabled={busy || !note.trim() || held} onClick={() => act("recording_failed")}>Flag recording exception</button>
-          {held ? <p>Stop or discard the capture station take before flagging an exception.</p> : null}
+          <button disabled={busy || !note.trim()} onClick={() => act("recording_failed")}>Flag recording exception</button>
           {job.state === "recording_failed" ? <FailedRecordingActions
             detail={detail} busy={busy} noted={Boolean(note.trim())} code={code} setCode={setCode}
             wrongCode={wrongCode} setWrongCode={setWrongCode} refund={refund} setRefund={setRefund} onAct={act}
@@ -315,14 +236,14 @@ const PHASE_TEXT = {
   permitted: "An upload link is open for this file. If the transfer may have finished, choose Check upload again. If it failed, choose a file with the same type and size and click Retry upload. No cancel is needed.",
   transferring: "Uploading… keep this page open.",
   link_expired: "The upload link expired before the file was checked. If the transfer finished, check it; otherwise cancel this upload.",
-  rejected: "The last upload was rejected. Cancel it to use the capture station, or wait to upload a new file.",
+  rejected: "The last upload was rejected. Cancel it, or wait to upload a new file.",
   waiting: "An earlier upload link can still be used until it expires.",
   verified: "Recording verified. Check it again to finish queueing it for analysis.",
   queued: "Recording verified and queued for analysis.",
   analysis_failed: "Recording verified, but its analysis failed. Retry analysis below; no new upload is needed.",
 };
 
-const CANCELLED_TEXT = "This upload was cancelled. Its signed link cannot be revoked at storage before it expires, so a new upload can start only after the time below. The capture station can still be used now.";
+const CANCELLED_TEXT = "This upload was cancelled. Its signed link cannot be revoked at storage before it expires, so a new upload can start only after the time below.";
 
 function phaseText(phase, attempt) {
   if (phase === "waiting" && attempt?.status === "abandoned") return CANCELLED_TEXT;
@@ -366,18 +287,13 @@ function UploadPanel({ detail, transferring, busy, file, note, error, onFile, on
   );
 }
 
-function takeLabel(take) {
-  if (!take) return "—";
-  return take.phase === "capturing" ? `capturing · ${Math.round(take.elapsed_seconds ?? 0)}s` : `take ${take.phase}`;
-}
-
-function JobTable({ jobs, takes, selected, onSelect }) {
+function JobTable({ jobs, selected, onSelect }) {
   if (!jobs.length) return <p>No recording jobs.</p>;
   return (
     <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
-          <tr><th>Support reference</th><th>Submission</th><th>Status</th><th>Capture</th><th>Created</th></tr>
+          <tr><th>Support reference</th><th>Submission</th><th>Status</th><th>Created</th></tr>
         </thead>
         <tbody>
           {jobs.map((item) => (
@@ -397,7 +313,6 @@ function JobTable({ jobs, takes, selected, onSelect }) {
               <td><code>{item.public_reference}</code></td>
               <td><code>{item.submission_id}</code></td>
               <td>{item.state}</td>
-              <td>{takeLabel(takes[item.submission_id])}</td>
               <td>{formatDate(item.created_at)}</td>
             </tr>
           ))}
@@ -445,53 +360,10 @@ function UnpaidTable({ jobs, busy, onClose }) {
   );
 }
 
-const CAPTURE_REMINDER = "Keep the replay on its opening perspective while recording.";
-
 function Working({ text }) {
   return <p className="status-line" role="status"><span className="spinner" aria-hidden="true" />{text}</p>;
 }
 
 function Done({ text }) {
   return <p className="status-line" role="status"><span className="done-mark" aria-hidden="true">✓</span>{text}</p>;
-}
-
-function StationPanel({ busy, uploading, devices, device, setDevice, station, job, otherCapturing, onRefresh, onStart, onStop, onAccept, onDiscard, onUpload }) {
-  const phase = station?.phase || "absent";
-  const seconds = station?.elapsed_seconds;
-  const waiting = job.state === "awaiting_recording" || job.state === "recording";
-  const showMessage = station?.message && !["capturing", "verified"].includes(phase) && !uploading;
-  return (
-    <section>
-      <h3>Capture station</h3>
-      {phase === "capturing" ? <p><strong>{CAPTURE_REMINDER}</strong></p> : null}
-      <p>Capture status: {phase}{seconds != null ? ` · ${Math.round(seconds)}s` : ""}</p>
-      {station?.capture_mode ? <p>Capture mode: {station.capture_mode}</p> : null}
-      {showMessage ? <p>{station.message}</p> : null}
-      {station?.size_warning ? <p className="note">This recording is near the size limit.</p> : null}
-      {phase === "absent" || (job.state === "awaiting_recording" && phase !== "capturing") ? (
-        <>
-          <label htmlFor="capture-device">
-            <span className="label-row">Capture device <button type="button" className="linkish" onClick={onRefresh}>Refresh the device list</button></span>
-            <select id="capture-device" value={device} onChange={(event) => setDevice(event.target.value)}>
-              <option value="">Choose a device</option>
-              {devices.map((name) => <option key={name} value={name}>{name}</option>)}
-            </select>
-          </label>
-          <button disabled={busy || !device || !waiting || Boolean(otherCapturing)} onClick={onStart}>Start recording</button>
-          {otherCapturing ? <p>Another job ({otherCapturing}) is currently recording. Open it to stop that capture first.</p> : null}        </>
-      ) : null}
-      {phase === "capturing" ? <button disabled={busy} onClick={onStop}>Stop recording</button> : null}
-      {phase === "interrupted" ? <>
-        <p>The capture stopped before a clean finish. Discard it, or keep the file when it is a valid video. Keeping it does not upload it.</p>
-        {station?.acceptable ? <button disabled={busy} onClick={onAccept}>Keep this file for upload</button> : null}
-        <button disabled={busy} onClick={onDiscard}>Discard recording</button>
-      </> : null}
-      {uploading ? <Working text="Uploading to storage… keep this page open." /> : null}
-      {(phase === "finalized" || phase === "upload_uncertain") && !uploading ? <>
-        <button disabled={busy} onClick={onUpload}>Upload to storage</button>
-        <button disabled={busy} onClick={onDiscard}>Discard recording</button>
-      </> : null}
-      {phase === "verified" && !uploading ? <Done text="Uploaded and queued for analysis." /> : null}
-    </section>
-  );
 }

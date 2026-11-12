@@ -159,22 +159,10 @@ export function canCancelUpload(detail) {
   return detail?.job?.state === "recording" && ["live", "expired", "rejected"].includes(status);
 }
 
-const STATION_HOLD = new Set(["capturing", "interrupted", "finalized", "upload_uncertain"]);
-
-/** True while a station take still owns the recording and a file upload must wait. */
-export function stationHoldsRecording(phase) {
-  return STATION_HOLD.has(phase);
-}
-
-/**
- * The file-upload panel shows while a file may be sent or is being checked, but not while a
- * station take holds the job or after a station take was published. A failed analysis keeps it.
- */
-export function uploadPanelVisible(detail, stationPhase) {
+/** The file-upload panel shows while a file may be sent or its verified upload is in analysis. */
+export function uploadPanelVisible(detail) {
   const job = detail?.job;
-  if (!canUploadRecording(job) && job?.state !== "uploading") return false;
-  if (stationHoldsRecording(stationPhase)) return false;
-  return stationPhase !== "verified" || canRetryAnalysis(detail);
+  return canUploadRecording(job) || job?.state === "uploading";
 }
 
 /** `working` while an upload step runs, `done` once the recording is queued, else null. */
@@ -189,34 +177,6 @@ export function analysisSummary(analysis) {
   if (analysis.step && analysis.step !== analysis.status) parts.push(analysis.step);
   if (analysis.error) parts.push(analysis.error);
   return parts.join(" · ");
-}
-
-/** The job whose capture is running, from the queue's station summary. */
-export function capturingJob(takes) {
-  return Object.keys(takes || {}).find((id) => takes[id]?.phase === "capturing") || null;
-}
-
-export const ACTIVE_POLL_MS = 1000;
-export const IDLE_POLL_MS = 5000;
-
-/**
- * What the queue page polls. A running capture is followed every second whichever job is
- * selected; otherwise the queue is reloaded every five seconds so a capture started
- * elsewhere appears.
- */
-export function stationPoll(takes, selectedId, selectedPhase) {
-  const running = capturingJob(takes);
-  if (running) return { kind: "station", id: running, ms: ACTIVE_POLL_MS };
-  if (selectedId && selectedPhase === "upload_uncertain") {
-    return { kind: "station", id: selectedId, ms: ACTIVE_POLL_MS };
-  }
-  return { kind: "queue", id: null, ms: IDLE_POLL_MS };
-}
-
-/** Only the first load may open a running capture, and never over an existing selection. */
-export function hydrationSelection(takes, selectedId, initial) {
-  if (!initial || selectedId) return null;
-  return capturingJob(takes);
 }
 
 /** Stripe id for a card payment, or an explanation when the job has none. */

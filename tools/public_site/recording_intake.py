@@ -35,22 +35,6 @@ RETRY_UNVERIFIED = (
 )
 
 
-_STATION_HOLD = frozenset(
-    {"capturing", "interrupted", "finalized", "upload_uncertain"}
-)
-
-
-def _require_station_clear(station, submission_id: str) -> None:
-    """A file upload must not replace a take the station is still holding."""
-    if station is None:
-        return
-    phase = station.status(submission_id).get("phase")
-    if phase in _STATION_HOLD:
-        raise RequestRejected(
-            409, "Finish or discard the station recording before uploading a file."
-        )
-
-
 def intake_key(submission_id: str, suffix: str = INTAKE_SUFFIX) -> str:
     """The source key for a review-code submission; only the suffix comes from input."""
     if suffix not in INTAKE_TYPES:
@@ -112,7 +96,6 @@ class RecordingIntake:
         )
         if INTAKE_TYPES.get(suffix) != mime:
             raise RequestRejected(400, BAD_INTAKE_FILE)
-        _require_station_clear(self.recordings.station, submission_id)
         declared = {"suffix": suffix, "content_type": mime, "size_bytes": body.size_bytes}
         attempt, version = self.database.grant_upload(
             submission_id, actor_id, body.expected_version, declared

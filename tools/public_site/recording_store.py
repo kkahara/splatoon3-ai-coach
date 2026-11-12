@@ -35,7 +35,7 @@ UPLOAD_OPEN = (
 )
 
 MIGRATION = Path(__file__).parent / "migrations" / "001_review_code_acquisitions.sql"
-MIGRATION_STATION = (
+MIGRATION_TARGET_CHECK = (
     Path(__file__).parent / "migrations" / "002_drop_target_confirmation_check.sql"
 )
 # A review-code gate is authorized by a Stripe payment, by a redeemed voucher, or
@@ -161,7 +161,7 @@ class RecordingStore:
         with self._conn() as conn:
             conn.execute("SELECT pg_advisory_xact_lock(8273341907)")
             conn.execute(MIGRATION.read_text())
-            conn.execute(MIGRATION_STATION.read_text())
+            conn.execute(MIGRATION_TARGET_CHECK.read_text())
             conn.execute(
                 """UPDATE review_code_acquisitions
                    SET retention_days = CASE
@@ -470,40 +470,6 @@ class RecordingStore:
             size_bytes=details.get("size_bytes"),
             status=_attempt_status(details.get("attempt"), kind, now < expires),
         )
-
-    def begin_capture(
-        self, submission_id: str, actor_id: str, expected_version: int
-    ) -> int:
-        """Move a paid job from awaiting a recording to capturing. No player confirmation."""
-        with self._conn() as conn:
-            row = self._paid_for_update(conn, submission_id, expected_version)
-            if row["state"] != "awaiting_recording":
-                raise RequestRejected(409, "This job is not waiting for a recording.")
-            version = conn.execute(
-                """UPDATE review_code_acquisitions
-                   SET state = 'recording', version = version + 1
-                   WHERE submission_id = %s RETURNING version""",
-                (submission_id,),
-            ).fetchone()["version"]
-            self._event(conn, submission_id, "capture_started", actor_id, {})
-        return version
-
-    def release_capture(
-        self, submission_id: str, actor_id: str, expected_version: int
-    ) -> int:
-        """Return a capture that was discarded, before anything was queued."""
-        with self._conn() as conn:
-            row = self._paid_for_update(conn, submission_id, expected_version)
-            if row["state"] != "recording":
-                raise RequestRejected(409, "This recording can no longer be discarded.")
-            version = conn.execute(
-                """UPDATE review_code_acquisitions
-                   SET state = 'awaiting_recording', version = version + 1
-                   WHERE submission_id = %s RETURNING version""",
-                (submission_id,),
-            ).fetchone()["version"]
-            self._event(conn, submission_id, "capture_discarded", actor_id, {})
-        return version
 
     def verify_upload(
         self, submission_id: str, actor_id: str, expected_version: int, facts: dict

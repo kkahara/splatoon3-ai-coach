@@ -16,6 +16,7 @@ from public_site.app import create_app
 from public_site.media_probe import ProbeFacts, ProbeRejected
 from public_site.models import Submission
 from public_site.payments import PaymentStore
+from public_site.recording_publish import MISMATCH
 from public_site.recording_service import handoff_reference
 from public_site.recording_store import report_expires_at
 from public_site.settings import PublicSettings
@@ -717,6 +718,22 @@ def test_worker_completes_verified_recording_through_existing_pipeline(
     assert log == ["notice:no_moments"]
     assert "no_moments" in done.notices_sent
     assert _view(site, created)["status"] == "complete"
+
+
+def test_worker_refuses_a_swapped_object(site, tmp_path: Path) -> None:
+    created = _verified(site)
+    svc = site.app.state.service
+    video = svc.store.get_video(created["submission_id"])
+    swapped = tmp_path / "swap.mp4"
+    swapped.write_bytes(b"not-the-verified-recording")
+    svc.storage.put_file(video.object_key, swapped, "video/mp4")
+    submission = svc.store.get(created["submission_id"])
+    assert svc.recordings.intake.admits(submission) is False
+    site.app.state.worker._execute(submission)
+    failed = svc.store.get(created["submission_id"])
+    assert failed.status == "failed"
+    assert failed.error == MISMATCH
+    assert site.pipeline.calls == []
 
 
 def test_coached_completion_hands_off_then_announces_ready(site, monkeypatch) -> None:

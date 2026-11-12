@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import fields, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import Barrier
@@ -669,10 +670,92 @@ def test_record_again_returns_a_flagged_job_with_the_same_code(site) -> None:
     assert grant.status_code == 200, grant.text
 
 
+def test_no_code_reads_the_retired_station_settings() -> None:
+    root = Path(__file__).resolve().parents[1]
+    names = ("PUBLIC_RECORDING_STATION", "PUBLIC_STATION_DIR")
+    readers = [
+        str(path.relative_to(root))
+        for base in ("tools", "src")
+        for path in (root / base).rglob("*.py")
+        if any(name in path.read_text(encoding="utf-8") for name in names)
+    ]
+    assert readers == []
+
+
+def test_retired_station_settings_are_ignored(tmp_path: Path, monkeypatch) -> None:
+    url = os.environ.get("PUBLIC_DATABASE_URL", "")
+    if "coach_test" not in url:
+        pytest.skip("An isolated coach_test database is required")
+    station_dir = tmp_path / "station"
+    for name, value in {
+        "PUBLIC_RECORDING_STATION": "1",
+        "PUBLIC_STATION_DIR": str(station_dir),
+        "PUBLIC_ROOT": str(tmp_path / "public"),
+        "PUBLIC_DEV_MODE": "1",
+        "PUBLIC_REVIEW_CODES_ENABLED": "1",
+    }.items():
+        monkeypatch.setenv(name, value)
+    settings = PublicSettings.from_env()
+    assert [item.name for item in fields(settings) if "station" in item.name] == []
+    settings = replace(
+        settings,
+        static_dir=tmp_path / "no-dist",
+        public_base_url="http://testserver",
+        stripe_webhook_secret="whsec",
+    )
+    accounts, payments = AccountStore(url), PaymentStore(url)
+    accounts.ensure_schema()
+    accounts.clear()
+    payments.ensure_schema()
+    payments.clear()
+    payments.set_price(500)
+    app = create_app(
+        settings,
+        accounts=accounts,
+        payments=payments,
+        checkout=FakeCheckout(),
+        verifier=lambda token: token == "ok",
+        start_worker=False,
+        run_command=lambda args: pytest.fail(f"Unexpected pipeline call: {args}"),
+    )
+    paths = [getattr(route, "path", "") for route in app.routes]
+    assert "/api/admin/recordings/{submission_id}/upload" in paths
+    assert [path for path in paths if "station" in path] == []
+    with TestClient(app) as client:
+        assert client.get("/api/config").status_code == 200
+        assert not hasattr(app.state.service.recordings, "station")
+    payments.clear()
+    accounts.clear()
+    assert not station_dir.exists()
+
+
+def test_removed_station_routes_are_not_served_and_upload_remains(site) -> None:
+    created = _paid(site)
+    _login(site, admin=True)
+    listed = site.get("/api/admin/recordings").json()
+    assert "station_enabled" not in listed and "station_takes" not in listed
+    base = f"/api/admin/recordings/{created['submission_id']}"
+    assert site.get("/api/admin/recording-station/devices").status_code == 404
+    assert site.get(f"{base}/station").status_code == 404
+    for action in ("start", "stop", "accept", "discard", "upload"):
+        response = site.post(f"{base}/station/{action}", json={"expected_version": 0})
+        assert response.status_code == 404, action
+    job = site.get(base).json()["job"]
+    grant = site.post(
+        f"{base}/upload",
+        json={
+            "expected_version": job["version"],
+            "filename": "take.mp4",
+            "content_type": "video/mp4",
+            "size_bytes": 1000,
+        },
+    )
+    assert grant.status_code == 200, grant.text
+
+
 def test_a_card_paid_job_cannot_close_without_a_refund(site) -> None:
     created = _paid(site)
     _login(site, admin=True)
-    assert site.get("/api/admin/recordings").json()["station_takes"] == {}
     job = _flagged(site, created)
     refused = _act(site, created, "close_without_refund", job["version"])
     assert refused.status_code == 400

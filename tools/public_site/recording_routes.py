@@ -13,11 +13,10 @@ from public_site.errors import RequestRejected
 from public_site.recording_intake import RecordingUploadConfirm, RecordingUploadRequest
 from public_site.recording_models import (
     ContactCorrection,
+    ExpectedVersion,
     RecordingAction,
     ReviewCodeDraft,
     ReviewVoucherCheck,
-    StationStart,
-    StationVersion,
     UnpaidClose,
 )
 from public_site.recording_service import RecordingService
@@ -122,10 +121,6 @@ def _register_operator(app, recordings, required_admin):
         return {
             "jobs": recordings.queue_jobs(),
             "unpaid": recordings.database.list_unpaid(),
-            "station_enabled": recordings.station is not None,
-            "station_takes": (
-                recordings.station.active_takes() if recordings.station is not None else {}
-            ),
         }
 
     @app.get("/api/admin/recordings/{submission_id}")
@@ -172,8 +167,6 @@ def _register_operator(app, recordings, required_admin):
         )
 
     _register_intake(app, recordings, required_admin)
-    if recordings.station is not None:
-        _register_station(app, recordings, required_admin)
 
 
 def _register_intake(app, recordings, required_admin):
@@ -203,7 +196,7 @@ def _register_intake(app, recordings, required_admin):
 
     @app.post("/api/admin/recordings/{submission_id}/upload/cancel")
     def cancel_upload(
-        submission_id: str, body: StationVersion, request: Request
+        submission_id: str, body: ExpectedVersion, request: Request
     ) -> JSONResponse:
         actor: Account = required_admin(request)
         try:
@@ -213,66 +206,6 @@ def _register_intake(app, recordings, required_admin):
             )
         except RequestRejected as exc:
             return _rejected(exc)
-
-
-def _register_station(app, recordings, required_admin):
-    station = recordings.station
-
-    @app.get("/api/admin/recording-station/devices")
-    def devices(request: Request) -> dict:
-        required_admin(request)
-        return {"devices": station.devices()}
-
-    @app.get("/api/admin/recordings/{submission_id}/station")
-    def station_status(submission_id: str, request: Request) -> dict:
-        required_admin(request)
-        return station.status(submission_id)
-
-    @app.post("/api/admin/recordings/{submission_id}/station/start")
-    def station_start(
-        submission_id: str, body: StationStart, request: Request
-    ) -> JSONResponse:
-        actor: Account = required_admin(request)
-        return _station_call(
-            lambda: station.start(
-                submission_id, actor.id, body.device_name, body.expected_version
-            )
-        )
-
-    @app.post("/api/admin/recordings/{submission_id}/station/stop")
-    def station_stop(submission_id: str, request: Request) -> JSONResponse:
-        required_admin(request)
-        return _station_call(lambda: station.stop(submission_id))
-
-    @app.post("/api/admin/recordings/{submission_id}/station/accept")
-    def station_accept(submission_id: str, request: Request) -> JSONResponse:
-        required_admin(request)
-        return _station_call(lambda: station.accept(submission_id))
-
-    @app.post("/api/admin/recordings/{submission_id}/station/discard")
-    def station_discard(
-        submission_id: str, body: StationVersion, request: Request
-    ) -> JSONResponse:
-        actor: Account = required_admin(request)
-        return _station_call(
-            lambda: station.discard(submission_id, actor.id, body.expected_version)
-        )
-
-    @app.post("/api/admin/recordings/{submission_id}/station/upload")
-    def station_upload(
-        submission_id: str, body: StationVersion, request: Request
-    ) -> JSONResponse:
-        actor: Account = required_admin(request)
-        return _station_call(
-            lambda: station.upload(submission_id, actor.id, body.expected_version)
-        )
-
-
-def _station_call(action) -> JSONResponse:
-    try:
-        return JSONResponse(jsonable_encoder(action()))
-    except RequestRejected as exc:
-        return _rejected(exc)
 
 
 def _rejected(exc: RequestRejected) -> JSONResponse:

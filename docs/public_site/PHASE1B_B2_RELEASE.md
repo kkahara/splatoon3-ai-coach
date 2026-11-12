@@ -14,6 +14,10 @@ failure.
 - All three `PUBLIC_REPORT_*` settings default to off. With them absent the
   build sends zero report R2 requests. What still differs from P1-A with every
   flag off is listed under Gate 4.
+- After Gate 4 the capture station was removed ("Remove experimental recording
+  station"); its settings `PUBLIC_RECORDING_STATION` and `PUBLIC_STATION_DIR`
+  are no longer read. Mentions of them below are the Gate 4 record. See
+  `docs/follow-ups/sclc-recording-integration.md`.
 
 ## Rollback image (verified on the host, 2026-11-12)
 

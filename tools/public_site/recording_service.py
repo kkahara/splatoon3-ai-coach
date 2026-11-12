@@ -26,7 +26,6 @@ from public_site.recording_models import (
     ReviewCodeDraft,
     normalize_code,
 )
-from public_site.recording_station import RecordingStation
 from public_site.recording_store import RecordingStore, report_expires_at
 from public_site.report_canary import CanaryStore, CanaryUnavailable
 from public_site.store import add_days, utc_now
@@ -60,7 +59,6 @@ class RecordingService:
         self.database = database
         self.canary = canary or CanaryStore(service.settings.root)
         self.intake = RecordingIntake(self)
-        self.station = _station(self)
         self._published: dict[str, str] = {}
         self._is_running: Callable[[str], bool] | None = None
         self._wake: Callable[[], None] | None = None
@@ -784,15 +782,6 @@ def _created(token: str, submission_id: str, price_cents: int) -> ReviewCodeCrea
         review_path=f"/review/{token}",
         price_cents=price_cents,
     )
-
-
-def _station(recordings: RecordingService) -> RecordingStation | None:
-    """The capture tool, only when this process is the operator station."""
-    settings = recordings.service.settings
-    if not settings.recording_station_enabled:
-        return None
-    directory = settings.station_dir or (settings.root.parent / "station")
-    return RecordingStation(recordings, directory)
 
 
 def _failed_analysis(current: Submission | None) -> bool:

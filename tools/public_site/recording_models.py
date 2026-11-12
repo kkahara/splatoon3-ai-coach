@@ -89,15 +89,7 @@ class AcquisitionView(BaseModel):
     cancelled: bool = False
 
 
-class StationStart(BaseModel):
-    """Device name chosen from the current ffmpeg list. The index is not accepted."""
-
-    model_config = ConfigDict(extra="forbid")
-    device_name: str = Field(min_length=1, max_length=200)
-    expected_version: int = Field(ge=0)
-
-
-class StationVersion(BaseModel):
+class ExpectedVersion(BaseModel):
     """Version of the acquisition row the operator is acting on."""
 
     model_config = ConfigDict(extra="forbid")

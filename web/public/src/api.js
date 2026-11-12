@@ -398,20 +398,6 @@ export async function loadRecordings() {
   return read(await fetch("/api/admin/recordings"), "Recording queue unavailable.");
 }
 
-export async function loadCaptureDevices() {
-  return read(await fetch("/api/admin/recording-station/devices"), "Capture devices are unavailable.");
-}
-
-export async function stationStatus(id) {
-  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/station`), "Recording status is unavailable.");
-}
-
-export async function stationAction(id, action, body) {
-  return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}/station/${action}`, {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}),
-  }), "The recording station could not do that.");
-}
-
 export async function loadRecording(id) {
   return read(await fetch(`/api/admin/recordings/${encodeURIComponent(id)}`), "Recording job unavailable.");
 }

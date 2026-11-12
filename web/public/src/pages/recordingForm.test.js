@@ -1,14 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  ACTIVE_POLL_MS,
-  IDLE_POLL_MS,
   RECORDING_ACCEPT,
   analysisSummary,
   canCancelUpload,
-  capturingJob,
-  hydrationSelection,
-  stationPoll,
   canCheckUpload,
   canRetryAnalysis,
   canUploadRecording,
@@ -21,7 +16,6 @@ import {
   recordingAuthorized,
   recordingContentType,
   recordingQueued,
-  stationHoldsRecording,
   stripeReference,
   uploadIndicator,
   uploadPanelVisible,
@@ -192,47 +186,6 @@ test("operator upload is available before verification", () => {
   }
 });
 
-test("a station take blocks a file upload until it is gone", () => {
-  for (const phase of ["capturing", "interrupted", "finalized", "upload_uncertain"]) {
-    assert.equal(stationHoldsRecording(phase), true);
-  }
-  assert.equal(stationHoldsRecording("absent"), false);
-  assert.equal(stationHoldsRecording("verified"), false);
-});
-
-const CAPTURING = { phase: "capturing", elapsed_seconds: 12, capture_mode: "1920x1080 at 60 fps", size_warning: false };
-
-test("a running capture is followed every second whichever job is selected", () => {
-  const takes = { other: CAPTURING, mine: { ...CAPTURING, phase: "finalized" } };
-  assert.equal(capturingJob(takes), "other");
-  for (const selected of [null, "mine", "other", "unrelated"]) {
-    assert.deepEqual(stationPoll(takes, selected, "absent"), { kind: "station", id: "other", ms: ACTIVE_POLL_MS });
-  }
-  assert.equal(ACTIVE_POLL_MS, 1000);
-});
-
-test("with no capture running the queue is reloaded within five seconds", () => {
-  for (const takes of [{}, undefined, { a: { ...CAPTURING, phase: "interrupted" } }]) {
-    assert.deepEqual(stationPoll(takes, "a", "interrupted"), { kind: "queue", id: null, ms: IDLE_POLL_MS });
-  }
-  assert.ok(IDLE_POLL_MS <= 5000);
-  assert.equal(capturingJob({}), null);
-});
-
-test("an uncertain station upload on the selected job is still followed every second", () => {
-  assert.deepEqual(stationPoll({}, "mine", "upload_uncertain"), { kind: "station", id: "mine", ms: ACTIVE_POLL_MS });
-  assert.equal(stationPoll({}, null, "upload_uncertain").kind, "queue");
-});
-
-test("only the first load opens a running capture, and never over a selection", () => {
-  const takes = { running: CAPTURING };
-  assert.equal(hydrationSelection(takes, null, true), "running");
-  assert.equal(hydrationSelection(takes, "chosen", true), null);
-  assert.equal(hydrationSelection(takes, null, false), null);
-  assert.equal(hydrationSelection(takes, "chosen", false), null);
-  assert.equal(hydrationSelection({ done: { ...CAPTURING, phase: "finalized" } }, null, true), null);
-});
-
 test("a voucher job explains the empty Stripe reference", () => {
   assert.equal(
     stripeReference({ authorization: "voucher", payment_reference: "" }),
@@ -275,18 +228,15 @@ test("a failed analysis is its own upload phase and is never checked again", () 
   assert.equal(uploadPhase(analysisDetail("uploading", "failed", "video")), "queued");
 });
 
-test("the file-upload panel steps aside for a station take and after a station upload", () => {
-  const waiting = uploadDetail("awaiting_recording", null);
-  assert.equal(uploadPanelVisible(waiting, "absent"), true);
-  for (const phase of ["capturing", "interrupted", "finalized", "upload_uncertain", "verified"]) {
-    assert.equal(uploadPanelVisible(waiting, phase), false, phase);
+test("the file-upload panel shows while a file may be sent or its upload is in analysis", () => {
+  assert.equal(uploadPanelVisible(uploadDetail("awaiting_recording", null)), true);
+  assert.equal(uploadPanelVisible(uploadDetail("recording", "live")), true);
+  assert.equal(uploadPanelVisible(analysisDetail("uploading", "processing")), true);
+  assert.equal(uploadPanelVisible(analysisDetail("uploading", "failed")), true);
+  for (const state of ["recording_failed", "ready", "closed", "expired"]) {
+    assert.equal(uploadPanelVisible(uploadDetail(state, null)), false, state);
   }
-  assert.equal(uploadPanelVisible(analysisDetail("uploading", "processing"), "verified"), false);
-  assert.equal(uploadPanelVisible(analysisDetail("uploading", "processing"), "absent"), true);
-  assert.equal(uploadPanelVisible(analysisDetail("uploading", "failed"), "verified"), true);
-  for (const state of ["recording_failed", "ready", "closed"]) {
-    assert.equal(uploadPanelVisible(uploadDetail(state, null), "absent"), false, state);
-  }
+  assert.equal(uploadPanelVisible(null), false);
 });
 
 test("an upload step in flight spins, and a queued recording shows the check", () => {
@@ -325,7 +275,7 @@ test("a retry history line names the failed run without raw error text", () => {
       + "failed at coaching (interrupted) · Restarted the site.",
   );
   assert.equal(
-    historyLine({ created_at: "t", kind: "capture_started", details: {} }),
-    "t · capture_started",
+    historyLine({ created_at: "t", kind: "recording_upload_granted", details: {} }),
+    "t · recording_upload_granted",
   );
 });

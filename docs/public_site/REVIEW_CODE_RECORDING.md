@@ -29,9 +29,9 @@ The submission form says:
 4. Keep that perspective for the whole recording.
 5. Stop recording and upload the video.
 
-While a capture is running, the capture station panel on the admin recording
-page shows the reminder "Keep the replay on its opening perspective while
-recording." The station has no player-selection function.
+The operator records with OBS on the capture Mac and uploads the finished
+MP4 or MOV file with the upload panel on the admin recording page. Nothing in
+the site selects or records a player.
 
 ## Workflow and database
 
