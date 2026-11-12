@@ -38,19 +38,35 @@ MIGRATION = Path(__file__).parent / "migrations" / "001_review_code_acquisitions
 MIGRATION_STATION = (
     Path(__file__).parent / "migrations" / "002_drop_target_confirmation_check.sql"
 )
-# A review-code gate is authorized by a Stripe payment or by a redeemed voucher.
+# A review-code gate is authorized by a Stripe payment, by a redeemed voucher, or
+# by an administrator's request: ``not_required`` with no voucher. Only an admin
+# create opens a review-code gate that is ``not_required`` without a voucher.
 # ``is_authorized`` is the Python form of the same rule; keep them identical.
 AUTHORIZED = """(g.payment_state = 'paid'
-    OR (g.payment_state = 'not_required' AND g.voucher_state = 'redeemed'))"""
+    OR (g.payment_state = 'not_required'
+        AND (g.voucher_state = 'redeemed' OR g.voucher_state IS NULL)))"""
 _ANALYSIS_READY = f"""g.source = 'nintendo_review_code' AND {AUTHORIZED}
     AND a.state = 'uploading' AND a.queued_at IS NOT NULL"""
 
 
 def is_authorized(row: dict) -> bool:
-    """True when a gate row was paid by card or authorized by a redeemed voucher."""
+    """True when a gate row was paid by card, by a redeemed voucher, or for an admin.
+
+    ``row`` must carry ``voucher_state``; a row without it is never authorized
+    as an admin request.
+    """
     if row.get("payment_state") == "paid":
         return True
-    return row.get("payment_state") == "not_required" and row.get("voucher_state") == "redeemed"
+    if row.get("payment_state") != "not_required" or "voucher_state" not in row:
+        return False
+    return row["voucher_state"] in {"redeemed", None}
+
+
+def _authorization(payment_state: str, voucher_state: str | None) -> str:
+    """How an authorized review-code job was authorized, for the operator."""
+    if payment_state != "not_required":
+        return "payment"
+    return "voucher" if voucher_state == "redeemed" else "admin"
 
 
 def analysis_retryable(row: dict) -> bool:
@@ -768,14 +784,13 @@ class RecordingStore:
                 (submission_id,),
             ).fetchall()
         gate = self.payments.get(submission_id)
-        voucher = gate.payment_state == "not_required" and gate.voucher_state == "redeemed"
         return {
             "job": RecordingJob.model_validate(
                 {**row, "public_reference": gate.public_reference}
             ),
             "events": events,
             "verified_contact_email": row["requested_email"],
-            "authorization": "voucher" if voucher else "payment",
+            "authorization": _authorization(gate.payment_state, gate.voucher_state),
             "payment_reference": gate.payment_intent_id or gate.checkout_session_id,
             "upload_attempt": self.upload_attempt(submission_id),
         }

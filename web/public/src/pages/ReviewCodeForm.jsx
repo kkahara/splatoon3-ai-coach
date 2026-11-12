@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createReviewCodeSubmission, openCheckout, validateReviewVoucher } from "../api.js";
 import { useT } from "../i18n/LocaleContext.jsx";
 import { maskReviewCodeEdit, normalizedReviewCode } from "./recordingForm.js";
-import { voucherErrorKey } from "./submitForm.js";
+import { reviewCodeButtonKey, voucherErrorKey } from "./submitForm.js";
 import { useVoucher, VoucherField } from "./VoucherField.jsx";
 
 function ReviewCodeInput({ value, onChange }) {
@@ -64,7 +64,8 @@ export function ReviewCodeForm({ account, config, turnstileToken }) {
       const key = voucherErrorKey(exc.reason);
       setError(key ? t(key) : exc.message); setBusy(false); return;
     }
-    if (!voucherCode && !created.notice_pending && created.price_cents === config?.price_cents) {
+    if (created.payment_required && !voucherCode && !created.notice_pending
+      && created.price_cents === config?.price_cents) {
       try {
         const checkout = await openCheckout(created.token);
         if (checkout.url) { window.location.assign(checkout.url); return; }
@@ -90,8 +91,7 @@ export function ReviewCodeForm({ account, config, turnstileToken }) {
         {error ? <p className="error" role="alert">{error}</p> : null}
         <button disabled={busy || voucher.checking || !normalizedReviewCode(code)
           || (!turnstileToken && !config?.dev_mode)}>
-          {busy ? t("submit.submitting")
-            : t(voucher.accepted ? "submit.submit" : "review_code.continue")}
+          {busy ? t("submit.submitting") : t(reviewCodeButtonKey(account, config, voucher))}
         </button>
       </form>
     </section>

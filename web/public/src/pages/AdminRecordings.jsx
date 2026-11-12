@@ -264,8 +264,8 @@ function FailedRecordingActions({ detail, busy, noted, code, setCode, wrongCode,
         <label>Corrected review code<input value={code} maxLength={100} onChange={(event) => setCode(event.target.value)} /></label>
         <button type="button" disabled={busy || !noted || !correctionReady} onClick={() => onAct("correct_code")}>Save correction and return to queue</button>
       </> : null}
-      {detail.authorization === "voucher" ? <>
-        <p>Paid by voucher. No refund to record.</p>
+      {detail.authorization !== "payment" ? <>
+        <p>{detail.authorization === "admin" ? "Requested by an administrator without payment." : "Paid by voucher."} No refund to record.</p>
         <button type="button" disabled={busy || !noted} onClick={() => closeAfterConfirm("close_without_refund")}>Close without refund</button>
       </> : <>
         <p>First issue the refund in Stripe. Then enter its refund reference (re_…) here to record it in this system. This button does not send money back.</p>

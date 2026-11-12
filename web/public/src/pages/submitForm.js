@@ -148,6 +148,15 @@ export function submitButtonLabel(t, config, voucher = null) {
   return t("submit.price_button", { price });
 }
 
+/**
+ * Review-code button key. An admin is not charged; a guest still confirms an email.
+ * The server decides payment again when the request is created.
+ */
+export function reviewCodeButtonKey(account, config, voucher = null) {
+  if (voucher?.accepted || !config?.payment_required) return "submit.submit";
+  return account ? "review_code.continue_payment" : "review_code.continue";
+}
+
 /** Whole cents from an admin dollar field. More than two decimal places is rejected. */
 export function centsFromDollars(text) {
   const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(String(text).trim());

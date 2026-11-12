@@ -97,9 +97,7 @@ class RecordingService:
         svc._check_limits(ip, account.id if account else None, now)
         if self.database.open_count() >= svc.settings.max_queued:
             raise RequestRejected(429, "The queue is full. Try again later.")
-        quote = svc.payments.quote(admin=False)
-        if quote.payment_state != "unpaid" or quote.price_cents <= 0:
-            raise RequestRejected(503, "Review-code recording requires a paid checkout.")
+        quote = self._quote(account, voucher_id)
         email = account_email(account.email if account else draft.email or "")
         if account is not None and not account.verified:
             raise RequestRejected(
@@ -113,6 +111,7 @@ class RecordingService:
             token=token,
             submission_id=submission.id,
             review_path=f"/review/{token}",
+            payment_required=quote.payment_state != "not_required",
             price_cents=quote.price_cents,
         )
         fresh = None
@@ -124,6 +123,22 @@ class RecordingService:
         if voucher_id is not None:
             created.voucher_state = svc.payments.get(submission.id).voucher_state
         return created, fresh
+
+    def _quote(self, account: Account | None, voucher_id: str | None) -> PriceQuote:
+        """An admin without a voucher pays nothing; everyone else needs a paid checkout.
+
+        A voucher keeps the voucher flow, as on the upload path.
+        """
+        svc = self.service
+        if account is not None and voucher_id is None and svc._is_admin(account.id):
+            quote = svc.payments.quote(admin=True)
+            if quote.payment_state != "not_required":
+                raise RequestRejected(503, "Review-code submission is unavailable.")
+            return quote
+        quote = svc.payments.quote(admin=False)
+        if quote.payment_state != "unpaid" or quote.price_cents <= 0:
+            raise RequestRejected(503, "Review-code recording requires a paid checkout.")
+        return quote
 
     def _persist(
         self,

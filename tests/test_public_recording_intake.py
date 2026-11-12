@@ -21,7 +21,7 @@ from public_site.recording_store import report_expires_at
 from public_site.settings import PublicSettings
 from public_site.worker import NO_COACHING_UNITS_EXIT_CODE
 from test_public_payments import FakeCheckout
-from test_public_recordings import _login, _paid, _view
+from test_public_recordings import _create, _login, _paid, _view
 from test_public_site import _write_assessment, _write_coaching
 
 from splatoon3_ai_coach.config.paths import default_config_path
@@ -285,16 +285,9 @@ def test_mov_upload_uses_its_own_key_and_queues(site) -> None:
 
 def test_upload_needs_a_paid_job_and_not_a_confirmed_target(site) -> None:
     created = _paid(site)
+    other = _create(site, review_code="1111 2222 3333 4444", email="other@example.com")
     _login(site, admin=True)
     assert _request(site, created).status_code == 200
-    other = site.post(
-        "/api/review-code-submissions",
-        json={
-            "turnstile_token": "ok",
-            "review_code": "1111 2222 3333 4444",
-            "email": "other@example.com",
-        },
-    ).json()
     body = {
         "expected_version": 0,
         "filename": "a.mp4",

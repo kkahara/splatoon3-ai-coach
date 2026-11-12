@@ -261,6 +261,7 @@
   "review_code.own_match": "Enter the review code of a match you played yourself. We analyze the replay from its opening viewpoint.",
   "review_code.price": "One review-code analysis: US${amount}.",
   "review_code.continue": "Continue to email verification or payment",
+  "review_code.continue_payment": "Continue to payment",
   "review_code.invalid": "Enter 16 letters/digits. Only spaces and hyphens may separate them.",
   "review_code.received": "Your review code has been received!",
   "review_code.queue_confirmation": "Your match is now in our recording queue. We'll record your gameplay, analyze your match, and prepare your personalized coaching report. You don't need to do anything else. We'll notify you when your report is ready.",

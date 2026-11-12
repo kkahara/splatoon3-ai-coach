@@ -7,6 +7,7 @@ import {
   formatUsd,
   isAcceptedVideo,
   removeObsoleteStorage,
+  reviewCodeButtonKey,
   reviewCodeComplete,
   submissionBody,
   showVoucherApplyButton,
@@ -251,4 +252,15 @@ test("Apply is blocked while a validation is in flight or the code is blank", ()
   assert.equal(voucherApplyAllowed({ code: "SKT-ABCD-EFGH", checking: true }), false);
   assert.equal(voucherApplyAllowed({ code: "   ", checking: false }), false);
   assert.equal(voucherApplyAllowed({ code: "SKT-ABCD-EFGH", checking: false, disabled: true }), false);
+});
+
+test("the review-code button names what each user still has to do", () => {
+  const priced = { payment_required: true, price_cents: 500 };
+  const admin = { payment_required: false, price_cents: 500 };
+  const account = { email: "a@example.com" };
+  assert.equal(reviewCodeButtonKey(null, priced), "review_code.continue");
+  assert.equal(reviewCodeButtonKey(account, priced), "review_code.continue_payment");
+  assert.equal(reviewCodeButtonKey(account, admin), "submit.submit");
+  assert.equal(reviewCodeButtonKey(null, priced, { accepted: true }), "submit.submit");
+  assert.equal(reviewCodeButtonKey(account, priced, { accepted: false }), "review_code.continue_payment");
 });

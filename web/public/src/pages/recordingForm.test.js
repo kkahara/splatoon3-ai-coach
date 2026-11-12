@@ -235,6 +235,10 @@ test("a voucher job explains the empty Stripe reference", () => {
     stripeReference({ authorization: "voucher", payment_reference: "" }),
     "No Stripe payment (paid by voucher).",
   );
+  assert.equal(
+    stripeReference({ authorization: "admin", payment_reference: "" }),
+    "No Stripe payment (administrator request).",
+  );
   assert.equal(stripeReference({ authorization: "payment", payment_reference: "pi_1" }), "pi_1");
   assert.equal(stripeReference({ authorization: "payment", payment_reference: "" }), "No Stripe payment yet.");
 });

@@ -199,5 +199,8 @@ export function stripeReference(detail) {
   if (detail?.authorization === "voucher") {
     return "No Stripe payment (paid by voucher).";
   }
+  if (detail?.authorization === "admin") {
+    return "No Stripe payment (administrator request).";
+  }
   return detail?.payment_reference || "No Stripe payment yet.";
 }

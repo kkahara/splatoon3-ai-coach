@@ -261,6 +261,7 @@
   "review_code.own_match": "ご自身がプレイした試合のバトルメモリーコードを入力してください。ご提出いただいたリプレイの初期視点をもとに分析します。",
   "review_code.price": "バトルメモリーコードの分析1件：US${amount}。",
   "review_code.continue": "メール確認・お支払いへ進む",
+  "review_code.continue_payment": "お支払いへ進む",
   "review_code.invalid": "英数字16文字を入力してください。区切りにはスペースとハイフンのみ使用できます。",
   "review_code.received": "バトルメモリーコードを受け付けました！",
   "review_code.queue_confirmation": "録画待ちのキューに登録しました。ゲームプレイを録画・分析して、コーチングレポートを作成します。追加の操作は必要ありません。完成したらメールでお知らせします。",
