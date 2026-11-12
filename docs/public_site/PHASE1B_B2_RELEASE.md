@@ -9,10 +9,66 @@ failure.
 
 - Branch `p1b/r2-storage`, from `p1a-review-code-frozen` (P1-A, frozen; never
   modified). B1: `5748a85`, `e774608`. D1 clip metadata fix: `535cff7`.
-- Production image before P1-B: `d6261c6e…` (the rollback target).
+- Production image before P1-B: `d6261c6e…` (the rollback target; verified
+  below).
 - All three `PUBLIC_REPORT_*` settings default to off. With them absent the
-  build behaves like P1-A apart from D1 (clean new clips) and sends zero report
-  R2 requests.
+  build sends zero report R2 requests. What still differs from P1-A with every
+  flag off is listed under Gate 4.
+
+## Rollback image (verified on the host, 2026-11-12)
+
+Read-only `docker inspect` / `docker image ls` on the production host, not
+copied from earlier notes:
+
+- Running container `s3-coaching-web`: image
+  `sha256:d6261c6e1a57cecd9b537ad7f544508fb628b9b4f5be329c66185150da807eef`,
+  `org.opencontainers.image.revision` =
+  `23a304c91eb5989277c103c8376466c927880b63` (P1-A release, tag
+  `p1a-review-code-frozen`), amd64, created 2026-11-09T19:23:37Z, started
+  2026-11-09T21:36:48Z. Matches `PHASE1A_RELEASE.md` and the last
+  `DEPLOYED_SHA` entry.
+- Tags on that image: `s3-coaching-app:latest`,
+  `s3-coaching-app:candidate-23a304c91eb5`,
+  `s3-coaching-candidate:23a304c91eb5-amd64`. No repo digest: the image was
+  loaded from a tarball. `d6261c6e…` is the overlay2 config digest; the build
+  Mac's containerd index digest for the same image is `721071dc…`.
+- Second source: `/root/s3-coach-backups/deploy-23a304c9/s3-coaching-candidate-23a304c91eb5-amd64.tar`
+  (read-only, sha256 `1d14c07246c0…`, as recorded in `DEPLOYED_SHA`).
+- Compose: project `s3-coaching`
+  (`/srv/www/s3-coaching/docker-compose.yml`). Service `app` has `build:` and
+  no `image:`, so it resolves to `s3-coaching-app:latest`
+  (`docker compose config --images`). Restoring an image is therefore a
+  retag of `s3-coaching-app:latest` plus
+  `docker compose up -d --no-build --no-deps app`. Without `--no-build`,
+  Compose may build from the host checkout instead of using the image.
+- The older rollback `s3-coaching-app:rollback-d0bea423` is still present
+  (`5114061227fc…`, revision `d0bea42…`).
+
+## Disabled in this deployment: storage timeout (open)
+
+The 600 s delete settle (A3) is **not** a proven guarantee. Gate 1 finding 1
+(`PHASE1B_GATE1_RESULTS.md`) observed one storage request running about 16
+minutes: `urlopen(timeout=60)` bounds each socket operation, not the whole
+request. A PUT still in flight after expiry deletion can land after the
+settle window and leave an object that nothing tracks.
+
+Deploying the P1-B code (Gate 4) is allowed: with the settings below absent,
+the build sends no report R2 requests. Until the timeout is resolved (an
+overall request deadline, or evidence that bounds a late PUT below the settle
+window) and that resolution is reviewed, these stay **absent** in production
+and the gates that need them do not run:
+
+| Setting | Gate | Why it stays off |
+|---|---|---|
+| `PUBLIC_REPORT_PUBLISH` | 5 | Enabled only together with expiry deletion |
+| `PUBLIC_REPORT_EXPIRY_DELETE` | 5 | Relies on the 600 s settle |
+| `PUBLIC_REPORT_SWEEP` | 6 | Deletes on one empty LIST; also waits for B3 |
+| `PUBLIC_STORAGE=r2` (source video) | none | Source deletion has no settle; presigned replay is frozen debt (`docs/follow-ups/source-video-presigned-replay.md`) |
+| `PUBLIC_R2_*` credentials | 2 | Not needed while the rows above are off |
+
+Production on 2026-11-12 (names only): `PUBLIC_STORAGE` is `local`; no
+`PUBLIC_REPORT_*`, `PUBLIC_R2_*`, `PUBLIC_REVIEW_CODES_ENABLED` or
+`PUBLIC_RECORDING_STATION` is set. The Gate 4 deploy keeps it that way.
 
 ## B2 review corrections (R1–R4): behavioral changes
 
@@ -227,13 +283,111 @@ Dev bucket credentials only (the Mac `.env` never holds the production key).
 
 ## Gate 4: deploy with all settings absent and no report credentials
 
-- [ ] Deploy the P1-B image with every `PUBLIC_REPORT_*` setting absent.
+### Candidate
+
+- The candidate is the `p1b/r2-storage` commit that adds this checklist. Its
+  full SHA is recorded in the release report and, at deploy, in
+  `DEPLOYED_SHA`. Do not deploy a later commit without re-running
+  "Local verification".
+- Build off-host for `linux/amd64` with `--build-arg GIT_SHA=<full sha>` and
+  label `org.opencontainers.image.revision=<full sha>`, deliver as a tarball,
+  `docker load`, tag `s3-coaching-app:candidate-<sha12>` and
+  `s3-coaching-app:latest`, following the tarball procedure in
+  `PHASE1A_RELEASE.md` (steps 4 to 6). Record the host image ID (overlay2
+  config digest), not the build Mac's index digest. Never run
+  `docker compose ... --build` on the host.
+
+### Behavior that changes with every flag off
+
+- New moment clips carry no upload metadata (D1).
+- Upload confirmation: one probe per submission, unique download paths.
+- Analysis provenance records the image commit (`BUILD_COMMIT`, from
+  `GIT_SHA`).
+- Every payment gate has a support reference (`S3-XXXXXXXX`), shown to the
+  customer and in notices; admins can look it up.
+- Checkout recovery: paying again on a session Stripe already shows as paid
+  records it and wakes the worker (missed-webhook case).
+- History (`/api/me/submissions`) adds `display_status`; the card shows the
+  11 customer-facing labels in English and Japanese.
+- Not reachable with the flags off: review-code routes, the admin recording
+  pages and the capture station (Mac only, `PUBLIC_RECORDING_STATION`).
+
+### Production configuration and environment (names only)
+
+- Unchanged: compose project `s3-coaching`, `/srv/www/s3-coaching/.env`,
+  `postgres:16`, port 8770. No production setting is added or changed by
+  Gate 4.
+- New names read by P1-B, all **absent** at Gate 4: `PUBLIC_REPORT_PUBLISH`,
+  `PUBLIC_REPORT_EXPIRY_DELETE`, `PUBLIC_REPORT_SWEEP`,
+  `PUBLIC_RECORDING_STATION`, `PUBLIC_STATION_DIR`. Also absent:
+  `PUBLIC_REVIEW_CODES_ENABLED`, `PUBLIC_R2_*`; `PUBLIC_STORAGE` stays
+  `local`. No name was removed.
+- Check before and after the restart, names only:
+  `grep -oE '^[A-Z_]+=' .env` must not list any of the names above.
+- Production secrets (Stripe, SMTP, database, Turnstile, voucher HMAC, LLM
+  keys and any future production R2 key) live only in the host `.env` and the
+  password manager. The Mac `.env` holds dev and test values only; no tracked
+  file holds a secret value.
+
+### Database (applied by startup `ensure_schema`, flags off)
+
+| Change | P1-A after rollback |
+|---|---|
+| `submission_gates.public_reference`: backfill, format check, unique index, `NOT NULL`, default `s3_new_public_reference()` | Inserts omit the column; the default fills it (tested against the frozen tag) |
+| `account_upload_limit.guest_uploads_per_hour`, `network_uploads_per_hour` (nullable) | Ignored |
+| `vouchers.redemption_scope` `NOT NULL DEFAULT 'video_upload'` | Inserts omit it; ignored on redemption, so a review-code-only voucher would redeem for a video under P1-A |
+
+- Review-code migrations `001` and `002` run only with
+  `PUBLIC_REVIEW_CODES_ENABLED`; they do not run at Gate 4.
+- No destructive change: nothing is dropped or rewritten except filling
+  missing references once.
+
+### Stripe
+
+- Keys, webhook endpoint and signing secret, price rows and
+  `pricing_version` are unchanged; Gate 4 touches none of them.
+- The only new Stripe call (`Session.expire`) is used by review-code unpaid
+  cancellation, which is off.
+
+### Backup
+
+- [ ] Fresh `pg_dump -Fc`, schema-only dump, table counts and a copy of the
+      `coaching-data` volume on the operator Mac, with a restore check, as in
+      `PHASE1A_RELEASE.md` steps 1 and 2.
+
+### Smoke tests after the restart
+
+- [ ] `/` and `/api/config` return 200; `review_codes_enabled` is false.
+- [ ] Container image ID and revision label match the candidate.
+- [ ] Sign in; history lists existing submissions with a `display_status`.
+- [ ] One real video end to end (create, upload, pay or voucher, queue,
+      complete with coaching); its support reference is shown.
+- [ ] `public-site-reports status` shows all settings off; no R2 request.
+- [ ] One maintenance/worker cycle with no new errors.
+- [ ] Append release, image ID, rollback tag and backup folder to
+      `DEPLOYED_SHA`.
+
+### Gate 4 steps
+
+- [ ] Before the deploy, re-verify the rollback image on the host (it must
+      still match "Rollback image" above):
+      `docker inspect s3-coaching-web --format '{{.Image}} {{index .Config.Labels "org.opencontainers.image.revision"}}'`
+      prints `sha256:d6261c6e… 23a304c91eb5…`. Then tag it
+      `s3-coaching-app:rollback-23a304c9` and confirm that tag's `{{.Id}}` is
+      `d6261c6e…`.
+- [ ] The candidate gives `submission_gates.public_reference` a database
+      default. P1-B's startup makes the column `NOT NULL` and P1-A's insert
+      omits it, so without the default a rollback breaks new submissions.
+- [ ] Deploy the P1-B image with every setting in "Disabled in this
+      deployment" absent.
 - [ ] Behavior matches P1-A apart from D1; `status` shows all settings off;
       zero report R2 requests.
-- [ ] Rollback target: `d6261c6e…`.
+- [ ] Rollback target: `s3-coaching-app:rollback-23a304c9` (`d6261c6e…`).
 
 ## Gate 5: enable publishing and expiry deletion together
 
+- [ ] **Blocked** until the storage timeout in "Disabled in this deployment"
+      is resolved and reviewed. Do not treat the 600 s settle as sufficient.
 - [ ] Add the production credentials, `PUBLIC_REPORT_PUBLISH=1` and
       `PUBLIC_REPORT_EXPIRY_DELETE=1` (never one without the other).
 - [ ] One smoke-test submission becomes `verified`; the results page is
@@ -241,14 +395,18 @@ Dev bucket credentials only (the Mac `.env` never holds the production key).
 
 ## Gate 6: `PUBLIC_REPORT_SWEEP=1`
 
-Only after B3. Until then superseded and partial runs are bounded by
-`expires_at` (expiry deletion removes the whole prefix) and visible in
-`status --remote`.
+Only after B3, and blocked by the same storage timeout as Gate 5. Until then
+superseded and partial runs are bounded by `expires_at` (expiry deletion
+removes the whole prefix) and visible in `status --remote`.
 
 ## Gate 7: rollback
 
-1. Swap the image back to `d6261c6e…` and remove the `PUBLIC_REPORT_*`
-   settings. P1-A ignores `report_publications/` and `report_staging/` and
+1. Remove the `PUBLIC_REPORT_*` settings, then from `/srv/www/s3-coaching`:
+   `docker image tag s3-coaching-app:rollback-23a304c9 s3-coaching-app:latest`
+   and `docker compose up -d --no-build --no-deps app`. Verify the container
+   image is `sha256:d6261c6e…` with revision `23a304c91eb5…`. If the tag is
+   missing, `docker load -i` the tarball under "Rollback image" and tag
+   `d6261c6e…`. P1-A ignores `report_publications/` and `report_staging/` and
    never contacts R2 for reports.
 2. Submissions that expire while P1-A runs keep their R2 objects.
 3. On redeploying P1-B, recover them with either:

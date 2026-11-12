@@ -11,7 +11,9 @@ Release procedure and gates: `PHASE1B_B2_RELEASE.md`.
   stays `local`. A failing or absent R2 never changes what users see.
 - **Runs are immutable.** An object is written once and never overwritten. A
   changed report is a new run.
-- **No database migration, no telemetry change.** Publication state lives in
+- **Report publishing adds no database migration and no telemetry change.**
+  (The P1-B release's own schema changes are listed in
+  `PHASE1B_B2_RELEASE.md`, Gate 4.) Publication state lives in
   separate local records under `PUBLIC_ROOT/report_publications/` (Pydantic
   projections drop unknown fields, so it cannot live on the projection).
 - **All report network work runs on one dedicated background thread**, never
@@ -221,8 +223,12 @@ once:
 2. The record is re-listed every `DELETE_RECHECK_SECONDS` (60 s). A non-empty
    LIST deletes again and restarts the settle time (`delete_empty_at` = now).
 3. The record (and its canary) is removed only by an empty LIST at least
-   `DELETE_SETTLE_SECONDS` (600 s, well above the 60 s storage request timeout)
-   after `delete_empty_at`.
+   `DELETE_SETTLE_SECONDS` (600 s) after `delete_empty_at`.
+
+The settle is not a proven bound. The 60 s storage timeout limits each socket
+operation, not the whole request, and Gate 1 observed one request lasting
+about 16 minutes. Expiry deletion stays disabled in production until this is
+resolved (`PHASE1B_B2_RELEASE.md`, "Disabled in this deployment").
 
 A failed deletion clears `delete_empty_at`. The sweep's own apply step still
 removes an `expired_submission` record after one empty LIST (its rows are at
