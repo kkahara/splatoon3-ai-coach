@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import secrets
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -705,6 +706,49 @@ class RecordingStore:
             ).fetchone()
             if sent is None:
                 self._event(conn, submission_id, "cancellation_email_sent", None, {})
+
+    def pending_admin_alerts(self) -> list[str]:
+        """Jobs queued for recording in the last 7 days whose admin alert was not sent."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """SELECT a.submission_id FROM review_code_acquisitions a
+                   WHERE a.state = 'awaiting_recording'
+                     AND a.queued_at > now() - interval '7 days'
+                     AND NOT EXISTS (
+                       SELECT 1 FROM review_code_acquisition_events e
+                       WHERE e.submission_id = a.submission_id
+                         AND e.kind = 'admin_alert_sent')
+                   ORDER BY a.queued_at LIMIT 100""",
+            ).fetchall()
+        return [row["submission_id"] for row in rows]
+
+    def send_admin_alert(self, submission_id: str, send: Callable[[dict], None]) -> bool:
+        """Call ``send`` once for a job still awaiting recording, then audit it.
+
+        The job row stays locked while ``send`` runs, so a concurrent caller skips
+        it. A raising ``send`` records nothing and the alert can be retried.
+        """
+        with self._conn() as conn:
+            row = conn.execute(
+                """SELECT a.submission_id, g.payment_state, g.voucher_state
+                   FROM review_code_acquisitions a
+                   JOIN submission_gates g USING (submission_id)
+                   WHERE a.submission_id = %s AND a.state = 'awaiting_recording'
+                   FOR UPDATE OF a SKIP LOCKED""",
+                (submission_id,),
+            ).fetchone()
+            if row is None:
+                return False
+            sent = conn.execute(
+                """SELECT 1 FROM review_code_acquisition_events
+                   WHERE submission_id = %s AND kind = 'admin_alert_sent'""",
+                (submission_id,),
+            ).fetchone()
+            if sent is not None:
+                return False
+            send(dict(row))
+            self._event(conn, submission_id, "admin_alert_sent", None, {})
+        return True
 
     def was_cancelled(self, submission_id: str) -> bool:
         """True when an operator closed this request as unpaid."""

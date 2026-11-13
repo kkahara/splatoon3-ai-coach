@@ -33,6 +33,14 @@ The operator records with OBS on the capture Mac and uploads the finished
 MP4 or MOV file with the upload panel on the admin recording page. Nothing in
 the site selects or records a player.
 
+When `PUBLIC_ADMIN_ALERT_TO` lists one or more addresses, the worker emails them
+once per job after it reaches `awaiting_recording` (paid, voucher or
+administrator request, with a verified contact). The email names the job and
+payment route only, never the review code or customer address. A failed send is
+logged and retried after five minutes; it never changes the job. The
+`admin_alert_sent` acquisition event records the one delivery. Jobs queued more
+than seven days earlier are not announced.
+
 ## Workflow and database
 
 - There is no `confirm_target` operator action. Recording, upload grant,

@@ -416,6 +416,7 @@ class SubmissionService:
             self.recordings.database.purge_expired_unpaid(now)
             self.recordings.reconcile()
             self.recordings.send_pending_cancellations()
+            self.recordings.send_admin_alerts(now)
         self._recover_ready()
         self._expire(now)
         self.retry_notices(now)

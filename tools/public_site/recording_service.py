@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import smtplib
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
@@ -14,6 +15,7 @@ import psycopg
 from loguru import logger
 
 from public_site.accounts import Account, account_email
+from public_site.admin_alerts import AdminAlertSender
 from public_site.errors import EXPIRED, RequestRejected
 from public_site.models import Submission
 from public_site.payments import PriceQuote
@@ -37,6 +39,7 @@ _WORKER_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
 RETRY_RUNNING = "Analysis is still stopping for this recording. Try again in a moment."
 RETRY_NOT_FAILED = "Only a failed analysis of a verified recording can be retried."
 _OPERATOR_STATES = frozenset({"awaiting_recording", "recording", "recording_failed"})
+_ADMIN_ALERT_RETRY = timedelta(minutes=5)
 STRIPE_UNCHECKED = (
     "Stripe could not confirm that this checkout can no longer be paid. "
     "Nothing was changed. Try again."
@@ -59,6 +62,8 @@ class RecordingService:
         self.database = database
         self.canary = canary or CanaryStore(service.settings.root)
         self.intake = RecordingIntake(self)
+        self.admin_alerts = AdminAlertSender(service.settings)
+        self._alert_retry_at: dict[str, datetime] = {}
         self._published: dict[str, str] = {}
         self._is_running: Callable[[str], bool] | None = None
         self._wake: Callable[[], None] | None = None
@@ -755,6 +760,31 @@ class RecordingService:
             except (OSError, psycopg.Error) as exc:
                 logger.warning(
                     "Cancellation email deferred for {} ({})", submission_id, type(exc).__name__
+                )
+
+    def send_admin_alerts(self, now: datetime | None = None) -> None:
+        """Maintenance: email the admins once per job newly awaiting its recording.
+
+        A failed send never touches the job; it is retried after a cool-down.
+        """
+        if not self.admin_alerts.enabled:
+            return
+        now = now or utc_now()
+        try:
+            pending = self.database.pending_admin_alerts()
+        except psycopg.Error as exc:
+            logger.warning("Admin alert scan deferred ({})", type(exc).__name__)
+            return
+        for submission_id in pending:
+            if self._alert_retry_at.get(submission_id, now) > now:
+                continue
+            try:
+                self.database.send_admin_alert(submission_id, self.admin_alerts.send)
+                self._alert_retry_at.pop(submission_id, None)
+            except (OSError, smtplib.SMTPException, psycopg.Error) as exc:
+                self._alert_retry_at[submission_id] = now + _ADMIN_ALERT_RETRY
+                logger.warning(
+                    "Admin alert deferred for {} ({})", submission_id, type(exc).__name__
                 )
 
     def require_verified_contact(self, submission_id: str) -> None:

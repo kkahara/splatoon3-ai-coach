@@ -26,6 +26,11 @@ def _flag(name: str) -> bool:
     return os.environ.get(name, "").strip() == "1"
 
 
+def _addresses(name: str) -> tuple[str, ...]:
+    """Comma-separated email addresses; blanks are dropped."""
+    return tuple(part.strip() for part in os.environ.get(name, "").split(",") if part.strip())
+
+
 def _strict_flag(name: str) -> bool | None:
     """``0``/unset is off, ``1`` is on, anything else is ``None`` (invalid)."""
     value = os.environ.get(name, "").strip()
@@ -122,6 +127,7 @@ class PublicSettings:
     payment_hold_seconds: int = 24 * 60 * 60
     contact_to: str = ""
     contact_messages_per_hour: int = 5
+    admin_alert_to: tuple[str, ...] = ()
     # Report publishing opt-ins. None means the variable held an invalid value.
     report_publish: bool | None = False
     report_expiry_delete: bool | None = False
@@ -227,6 +233,7 @@ class PublicSettings:
             payment_hold_seconds=int(os.environ.get("PUBLIC_PAYMENT_HOLD_SECONDS", str(24 * 60 * 60))),
             contact_to=os.environ.get("PUBLIC_CONTACT_TO", "").strip(),
             contact_messages_per_hour=int(os.environ.get("PUBLIC_CONTACT_PER_HOUR", "5")),
+            admin_alert_to=_addresses("PUBLIC_ADMIN_ALERT_TO"),
             report_publish=_strict_flag("PUBLIC_REPORT_PUBLISH"),
             report_expiry_delete=_strict_flag("PUBLIC_REPORT_EXPIRY_DELETE"),
             report_sweep=_strict_flag("PUBLIC_REPORT_SWEEP"),
