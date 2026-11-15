@@ -110,11 +110,14 @@ def test_round_trip_serves_identically(tmp_path: Path) -> None:
         assert record.state == "verified"
         local = Path(submission.analysis_dir)
         restored = tmp_path / "restored"
-        prefix = f"reports/{submission.id}/{record.run_id}/"
+        from report_test_helpers import attempt_prefix_for
+
+        prefix = attempt_prefix_for(fake, submission.id, record.run_id)
         for rest in run_keys(fake, submission.id)[record.run_id]:
-            target = restored / rest
+            relative = rest.split("/", 1)[1] if rest.startswith("attempt-") else rest
+            target = restored / relative
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(fake.objects[prefix + rest].body)
+            target.write_bytes(fake.objects[f"reports/{submission.id}/{record.run_id}/{rest}"].body)
     bundle = json.loads((restored / "bundle.json").read_text())
     assert bundle["missing_media"] == []
     assert load_result(restored) == load_result(local)

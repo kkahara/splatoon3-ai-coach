@@ -13,6 +13,11 @@ from splatoon3_ai_coach.config.paths import PROJECT_ROOT, default_config_path
 
 _MIB = 1024 * 1024
 STORAGE_BACKENDS = ("local", "r2")
+PROD_R2_BUCKET = "s3-coaching"
+DEV_R2_BUCKET = "s3-coaching-dev"
+MEDIA_URL_SECONDS_MIN = 60
+MEDIA_URL_SECONDS_MAX = 86400
+DEFAULT_MEDIA_URL_SECONDS = 3600
 
 
 REPORT_SETTINGS = (
@@ -39,6 +44,20 @@ def _strict_flag(name: str) -> bool | None:
     if value == "1":
         return True
     return None
+
+
+def _media_url_seconds() -> int | None:
+    """Presigned GET TTL. Unset → default; out of range or non-int → ``None``."""
+    raw = os.environ.get("PUBLIC_MEDIA_URL_SECONDS", "").strip()
+    if not raw:
+        return DEFAULT_MEDIA_URL_SECONDS
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    if not (MEDIA_URL_SECONDS_MIN <= value <= MEDIA_URL_SECONDS_MAX):
+        return None
+    return value
 
 
 _legacy_capacity_warned = False
@@ -104,6 +123,8 @@ class PublicSettings:
     account_retention_days: int = 365
     database_url: str = field(default="", repr=False)
     upload_url_seconds: int = 900
+    # None means PUBLIC_MEDIA_URL_SECONDS was set but invalid (see media_url_problem).
+    media_url_seconds: int | None = DEFAULT_MEDIA_URL_SECONDS
     turnstile_secret: str | None = field(default=None, repr=False)
     turnstile_site_key: str | None = None
     dev_mode: bool = False
@@ -149,6 +170,21 @@ class PublicSettings:
             return "PUBLIC_STORAGE must be local or r2"
         if self.storage == "r2" and not self.r2_ready:
             return "R2 credentials are required when PUBLIC_STORAGE=r2"
+        if (
+            self.storage == "r2"
+            and self.dev_mode
+            and self.r2_bucket == PROD_R2_BUCKET
+        ):
+            return "PUBLIC_R2_BUCKET must not be the production bucket in PUBLIC_DEV_MODE"
+        return None
+
+    def media_url_problem(self) -> str | None:
+        """Why the media URL TTL cannot start, or None. Never includes a value."""
+        if self.media_url_seconds is None:
+            return (
+                "PUBLIC_MEDIA_URL_SECONDS must be an integer between "
+                f"{MEDIA_URL_SECONDS_MIN} and {MEDIA_URL_SECONDS_MAX}"
+            )
         return None
 
     @property
@@ -164,6 +200,40 @@ class PublicSettings:
                 return f"{name} must be 0 or 1"
         if self.reports_enabled and not self.r2_ready:
             return "R2 credentials are required when a PUBLIC_REPORT_* setting is 1"
+        return None
+
+    def production_problem(self) -> str | None:
+        """Why production mode cannot start, or None when ``dev_mode`` is on.
+
+        Never includes credential or bucket *values* beyond the fixed production
+        bucket name required by the invariant.
+        """
+        if self.dev_mode:
+            return None
+        if self.storage != "r2":
+            return "PUBLIC_STORAGE must be r2 when PUBLIC_DEV_MODE is off"
+        if not self.r2_ready:
+            return "R2 credentials are required when PUBLIC_DEV_MODE is off"
+        if self.r2_bucket != PROD_R2_BUCKET:
+            return f"PUBLIC_R2_BUCKET must be {PROD_R2_BUCKET} when PUBLIC_DEV_MODE is off"
+        if not self.database_url:
+            return "PUBLIC_DATABASE_URL is required when PUBLIC_DEV_MODE is off"
+        if self.report_publish is not True:
+            return "PUBLIC_REPORT_PUBLISH must be 1 when PUBLIC_DEV_MODE is off"
+        if self.report_expiry_delete is not True:
+            return "PUBLIC_REPORT_EXPIRY_DELETE must be 1 when PUBLIC_DEV_MODE is off"
+        return None
+
+    def readiness_problem(self) -> str | None:
+        """First startup/readiness blocker across storage, media TTL, reports, and production."""
+        for problem in (
+            self.storage_problem(),
+            self.media_url_problem(),
+            self.report_problem(),
+            self.production_problem(),
+        ):
+            if problem is not None:
+                return problem
         return None
 
     @classmethod
@@ -210,6 +280,7 @@ class PublicSettings:
             retention_days=int(os.environ.get("PUBLIC_RETENTION_DAYS", "30")),
             account_retention_days=int(os.environ.get("PUBLIC_ACCOUNT_RETENTION_DAYS", "365")),
             database_url=os.environ.get("PUBLIC_DATABASE_URL", "").strip(),
+            media_url_seconds=_media_url_seconds(),
             turnstile_secret=os.environ.get("PUBLIC_TURNSTILE_SECRET") or None,
             turnstile_site_key=os.environ.get("PUBLIC_TURNSTILE_SITE_KEY") or None,
             dev_mode=dev_mode,
@@ -218,7 +289,7 @@ class PublicSettings:
             r2_account_id=os.environ.get("PUBLIC_R2_ACCOUNT_ID", ""),
             r2_access_key_id=os.environ.get("PUBLIC_R2_ACCESS_KEY_ID", ""),
             r2_secret_access_key=os.environ.get("PUBLIC_R2_SECRET_ACCESS_KEY", ""),
-            r2_bucket=os.environ.get("PUBLIC_R2_BUCKET", ""),
+            r2_bucket=os.environ.get("PUBLIC_R2_BUCKET", "").strip(),
             smtp_host=os.environ.get("PUBLIC_SMTP_HOST", ""),
             smtp_port=int(os.environ.get("PUBLIC_SMTP_PORT", "587")),
             smtp_user=os.environ.get("PUBLIC_SMTP_USER", ""),

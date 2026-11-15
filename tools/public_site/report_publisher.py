@@ -1,13 +1,17 @@
-"""Write-through publishing of completed reports to ``reports/<id>/<run_id>/``.
+"""Write-through publishing of completed reports under generation prefixes.
 
-Local storage stays the only thing that serves results. All network work runs
-on one background thread; the worker and service hooks only change local
-records. The publisher holds a ``ReportWriter`` (HEAD, PUT, read-back, LIST)
-and can never delete; expiry deletion uses a separate ``ReportDeleter`` built
-only when ``PUBLIC_REPORT_EXPIRY_DELETE=1``.
+Each fenced attempt writes only under
+``reports/<id>/<run_id>/attempt-<generation>/``. PostgreSQL lease fencing is
+the distributed concurrency control; a stale worker that loses its lease can
+only finish a late PUT into its own abandoned generation prefix and can never
+overwrite a newer generation or publish its manifest as authoritative.
 
-Logs carry submission IDs, run IDs, closed-vocabulary error codes and counts;
-never paths, URLs, fingerprints, pseudonyms or personal fields.
+Local ``PublicationStore`` remains the same-machine work queue (flock is an
+optimization only). Customer-facing authority after commit is PostgreSQL
+``published_reports`` / ``published_assets``.
+
+Logs carry submission IDs, run IDs, generations, closed-vocabulary error codes
+and counts; never paths, URLs, fingerprints, pseudonyms or personal fields.
 """
 
 from __future__ import annotations
@@ -21,14 +25,14 @@ from pathlib import Path
 
 from loguru import logger
 
+from public_site.history import match_identity
 from public_site.models import Submission
 from public_site.report_bundle import (
-    BUNDLE_NAME,
     BundleError,
     PreparedBundle,
-    PreparedFile,
+    attempt_key,
+    attempt_prefix,
     prepare_bundle,
-    run_key,
 )
 from public_site.report_canary import CanaryStore
 from public_site.report_content import CONTENT_POLICY_VERSION, KnownValues
@@ -43,7 +47,19 @@ from public_site.report_publications import (
     PublicationStore,
     ReportPublication,
 )
+from public_site.report_lifecycle import (
+    ATTEMPT_LEASE_SECONDS,
+    apply_verified_media_flags,
+    commit_verified_report,
+    inventory_for_attempt,
+    repair_inventory_object,
+    serialize_result_projection,
+    verify_full_inventory,
+    verify_inventory_object,
+)
 from public_site.report_staging import StagingArea, StagingRun, StagingUnsafe
+from public_site.report_store import ReportStore, StaleAttemptError
+from public_site.results import load_result
 from public_site.storage import (
     LocalStorage,
     R2Storage,
@@ -139,7 +155,7 @@ def storage_error_code(exc: OSError) -> ErrorCode:
 
 
 class ReportDeleter:
-    """Expiry deletion: LIST and DELETE under ``reports/<id>/`` only."""
+    """Expiry / abandoned-generation deletion under ``reports/`` only."""
 
     def __init__(self, eraser: ReportEraser) -> None:
         self._eraser = eraser
@@ -155,10 +171,29 @@ class ReportDeleter:
             self._eraser.delete(item.key)
         return len(found), not self._eraser.list_objects(prefix)
 
+    def delete_attempt(
+        self, submission_id: str, run_id: str, generation: int
+    ) -> tuple[int, bool]:
+        """Delete one abandoned generation prefix (late PUTs may recreate objects)."""
+        prefix = attempt_prefix(submission_id, run_id, generation)
+        found = self._eraser.list_objects(prefix)
+        for item in found:
+            self._eraser.delete(item.key)
+        return len(found), not self._eraser.list_objects(prefix)
+
+    def delete_run(self, submission_id: str, run_id: str) -> tuple[int, bool]:
+        """Delete every object under ``reports/<id>/<run_id>/`` (all generations)."""
+        prefix = f"reports/{submission_id}/{run_id}/"
+        found = self._eraser.list_objects(prefix)
+        for item in found:
+            self._eraser.delete(item.key)
+        return len(found), not self._eraser.list_objects(prefix)
+
 
 @dataclass
 class _ActiveRun:
     run_id: str
+    generation: int
     staging: StagingRun
     prepared: PreparedBundle
 
@@ -178,6 +213,8 @@ class ReportPublisher:
         sweeper=None,
         clock: Clock | None = None,
         canary: CanaryStore | None = None,
+        report_store: ReportStore | None = None,
+        bucket: str = "",
     ) -> None:
         self.store = store
         self.canary = canary
@@ -186,6 +223,8 @@ class ReportPublisher:
         self.writer = writer
         self.deleter = deleter
         self.sweeper = sweeper
+        self.report_store = report_store
+        self.bucket = bucket
         self._known = known
         self._clock = clock or (lambda: datetime.now(UTC))
         self._active: dict[str, _ActiveRun] = {}
@@ -194,6 +233,9 @@ class ReportPublisher:
         self._thread: threading.Thread | None = None
         self._last_recovery = 0.0
         self._last_sweep = 0.0
+        # (submission_id, run_id, generation) -> first empty-LIST observation.
+        # Late PUTs into an abandoned prefix reset this clock.
+        self._abandoned_empty_at: dict[tuple[str, str, int], datetime] = {}
 
     # Hooks: local record changes only, never network I/O.
 
@@ -218,21 +260,55 @@ class ReportPublisher:
         self.wake()
 
     def submission_expired(self, submission_id: str) -> None:
-        """The submission expired: mark its record ``delete_pending`` (local only)."""
+        """The submission expired: mark its record ``delete_pending``."""
+
+        now = self._clock()
 
         def change(record: ReportPublication | None) -> ReportPublication | None:
             if record is None or record.state == "delete_pending":
                 return None
             record.state = "delete_pending"
             record.attempt_run_id = None
-            record.delete_requested_at = _stamp(self._clock())
+            record.attempt_generation = None
+            record.delete_requested_at = _stamp(now)
             record.next_attempt_at = record.delete_requested_at
             record.delete_attempts = 0
             record.delete_empty_at = None
             return record
 
         self.publications.update(submission_id, change)
+        if self.report_store is not None:
+            self.report_store.mark_delete_pending(submission_id, now)
         self.wake()
+
+    def publish_now(self, submission_id: str) -> bool:
+        """Synchronously publish one submission (worker pipeline_ready path).
+
+        Returns True when the local publication record is ``verified`` afterward.
+        """
+        if self.writer is None:
+            return False
+        self.submission_completed(submission_id)
+        # Drain this submission only; other due work waits for the background loop.
+        for _ in range(MAX_RECORDS_PER_PASS):
+            record = self.publications.get(submission_id)
+            if record is None:
+                return False
+            if record.state == "verified":
+                return True
+            if record.state in {"blocked", "delete_pending"}:
+                return False
+            if not self._is_due(record, self._clock()):
+                # Force due for the synchronous path.
+                record.next_attempt_at = _stamp(self._clock())
+                self.publications.save(record)
+            self._attempt_record(record)
+            record = self.publications.get(submission_id)
+            if record is not None and record.state == "verified":
+                return True
+            if record is not None and record.state == "blocked":
+                return False
+        return False
 
     def _queue(
         self, submission_id: str, record: ReportPublication | None
@@ -242,6 +318,7 @@ class ReportPublisher:
         record = record or ReportPublication(submission_id=submission_id)
         record.state = "pending"
         record.attempt_run_id = None
+        record.attempt_generation = None
         record.attempts = 0
         record.last_error = None
         record.next_attempt_at = _stamp(self._clock())
@@ -297,9 +374,77 @@ class ReportPublisher:
             self._last_recovery = now
             self.staging.recover()
             self._prune_canaries()
+            self._settle_abandoned_generations()
         if self.sweeper is not None and now - self._last_sweep >= AUTO_SWEEP_SECONDS:
             self._last_sweep = now
             self.sweeper.run_automatic()
+
+    def _settle_abandoned_generations(self) -> None:
+        """Delete superseded generation prefixes; tolerate late PUT completion.
+
+        Same settle rules as expiry deletion: DELETE under the abandoned
+        ``attempt-<generation>/`` prefix, require an empty LIST, and only
+        ``mark_run_deleted`` after ``DELETE_SETTLE_SECONDS`` with no recreations.
+        A late PUT into the abandoned prefix is re-deleted and restarts settle.
+        Storage calls keep the bounded request deadlines from ``R2Storage``.
+        """
+        if self.report_store is None or self.deleter is None:
+            return
+        now = self._clock()
+        seen: set[tuple[str, str, int]] = set()
+        for asset in self.report_store.list_delete_pending_assets():
+            key = (asset.submission_id, asset.run_id, asset.attempt_generation)
+            if key in seen or asset.attempt_generation < 1:
+                continue
+            seen.add(key)
+            report = self.report_store.get(asset.submission_id)
+            if report is None:
+                continue
+            if (
+                report.active_run_id == asset.run_id
+                and report.attempt_generation == asset.attempt_generation
+                and report.publication_state == "verified"
+            ):
+                continue
+            if report.attempt_run_id == asset.run_id and self.report_store.has_active_lease(
+                asset.submission_id, now
+            ):
+                continue
+            try:
+                deleted, empty = self.deleter.delete_attempt(
+                    asset.submission_id, asset.run_id, asset.attempt_generation
+                )
+            except OSError as exc:
+                logger.warning(
+                    "abandoned generation delete failed ({}): submission={} run={} gen={}",
+                    type(exc).__name__,
+                    asset.submission_id,
+                    asset.run_id,
+                    asset.attempt_generation,
+                )
+                self._abandoned_empty_at.pop(key, None)
+                continue
+            if not empty:
+                # Still objects (including a late PUT): keep trying; reset settle.
+                self._abandoned_empty_at.pop(key, None)
+                continue
+            if deleted:
+                # Emptied this pass; start (or restart) the settle clock.
+                self._abandoned_empty_at[key] = now
+                continue
+            first_empty = self._abandoned_empty_at.get(key)
+            if first_empty is None:
+                self._abandoned_empty_at[key] = now
+                continue
+            if now < first_empty + timedelta(seconds=DELETE_SETTLE_SECONDS):
+                continue
+            self.report_store.mark_run_deleted(
+                asset.submission_id,
+                asset.run_id,
+                asset.attempt_generation,
+                now,
+            )
+            self._abandoned_empty_at.pop(key, None)
 
     def startup(self) -> None:
         """Recover abandoned staging, then move records of expired submissions to
@@ -409,6 +554,7 @@ class ReportPublisher:
                 record is None
                 or record.state != "pending"
                 or record.attempt_run_id != active.run_id
+                or record.attempt_generation != active.generation
             ):
                 self._close(submission_id)
 
@@ -427,6 +573,12 @@ class ReportPublisher:
                 self._attempt(submission_id)
             except _RunInvalidated:
                 self._close(submission_id)
+            except StaleAttemptError:
+                self._close(submission_id)
+                logger.info(
+                    "report publish fenced out: submission={}",
+                    submission_id,
+                )
             except PublishFailure as exc:
                 self._fail(submission_id, exc.code, exc.rule)
             except Exception as exc:  # noqa: BLE001 — never retry without backoff
@@ -444,21 +596,52 @@ class ReportPublisher:
         active = self._begin(submission_id)
         if active is None:
             return
-        for item in active.prepared.files:
-            self._ensure_current(submission_id, active.run_id)
-            self._upload(submission_id, active.run_id, item)
+        # Upload/repair artifacts only; ``bundle.json`` is committed last after
+        # the local re-hash barrier so a mid-flight local change never leaves a
+        # published manifest for a partial run.
+        inventory = [
+            item
+            for item in inventory_for_attempt(
+                active.prepared,
+                submission_id=submission_id,
+                run_id=active.run_id,
+                generation=active.generation,
+            )
+            if item.relative_path != "bundle.json"
+        ]
+        missing = verify_full_inventory(self.writer, inventory)  # type: ignore[arg-type]
+        for item in missing:
+            self._ensure_current(submission_id, active)
+            self._fence(submission_id, active)
+            try:
+                repair_inventory_object(self.writer, item)  # type: ignore[arg-type]
+            except FileNotFoundError:
+                raise PublishFailure("checksum") from None
+            except OSError as exc:
+                raise PublishFailure(storage_error_code(exc)) from None
         self._commit(submission_id, active)
 
-    def _ensure_current(self, submission_id: str, run_id: str) -> None:
-        """Stop before the next object when the run was invalidated (expiry, a
-        newer run, a removed record or a submission that is no longer complete).
-        """
+    def _ensure_current(self, submission_id: str, active: _ActiveRun) -> None:
+        """Stop before the next object when the run/generation was invalidated."""
         record = self.publications.get(submission_id)
-        if record is None or record.state != "pending" or record.attempt_run_id != run_id:
+        if (
+            record is None
+            or record.state != "pending"
+            or record.attempt_run_id != active.run_id
+            or record.attempt_generation != active.generation
+        ):
             raise _RunInvalidated
         submission = self.store.get(submission_id)
-        if submission is None or submission.status != "complete":
+        if submission is None or submission.status not in {"complete", "processing"}:
             raise _RunInvalidated
+
+    def _fence(self, submission_id: str, active: _ActiveRun) -> None:
+        """Validate the PostgreSQL fencing token when ReportStore is configured."""
+        if self.report_store is None:
+            return
+        self.report_store.validate_fence(
+            submission_id, active.run_id, active.generation, self._clock()
+        )
 
     def _defer(self, submission_id: str, state: str) -> None:
         """Another holder has the write barrier: try again shortly. Not a failure."""
@@ -484,20 +667,75 @@ class ReportPublisher:
                 return None
             if (
                 submission is None
-                or submission.status != "complete"
+                or submission.status not in {"complete", "processing"}
                 or not submission.analysis_dir
             ):
                 raise PublishFailure("local_missing")
             active = self._active.get(submission_id)
-            if active is not None and active.run_id == record.attempt_run_id:
+            if (
+                active is not None
+                and active.run_id == record.attempt_run_id
+                and active.generation == record.attempt_generation
+            ):
+                self._renew_lease(submission_id, active)
                 return active
             self._close(submission_id)
-            run_id = new_run_id(self._clock())
+            run_id, generation = self._allocate_attempt(submission, record)
             record.attempt_run_id = run_id
+            record.attempt_generation = generation
             self.publications.save(record)
-        return self._prepare(submission, run_id)
+        return self._prepare(submission, run_id, generation)
 
-    def _prepare(self, submission: Submission, run_id: str) -> _ActiveRun:
+    def _allocate_attempt(
+        self, submission: Submission, record: ReportPublication
+    ) -> tuple[str, int]:
+        """Choose run_id + generation. Resume same generation while lease is valid."""
+        now = self._clock()
+        run_id = record.attempt_run_id or new_run_id(now)
+        if self.report_store is None:
+            generation = record.attempt_generation or 1
+            if record.attempt_run_id is None:
+                generation = 1
+            return run_id, generation
+        self._ensure_pending_row(submission, now)
+        lease_until = now + timedelta(seconds=ATTEMPT_LEASE_SECONDS)
+        grant = self.report_store.lease_attempt(
+            submission.id, run_id, lease_until, now
+        )
+        if grant is None:
+            raise _RunInvalidated
+        return grant.attempt_run_id, grant.generation
+
+    def _ensure_pending_row(self, submission: Submission, now: datetime) -> None:
+        assert self.report_store is not None
+        video = self.store.get_video(submission.id)
+        source_key = video.object_key if video is not None else None
+        upload_expires = None
+        if video is not None and video.upload_expires_at:
+            upload_expires = parse_utc(video.upload_expires_at)
+        expires_at = parse_utc(submission.expires_at) if submission.expires_at else None
+        self.report_store.upsert_pending(
+            submission.id,
+            bucket=self.bucket,
+            source_object_key=source_key or None,
+            source_upload_expires_at=upload_expires,
+            expires_at=expires_at,
+            now=now,
+        )
+
+    def _renew_lease(self, submission_id: str, active: _ActiveRun) -> None:
+        if self.report_store is None:
+            return
+        now = self._clock()
+        lease_until = now + timedelta(seconds=ATTEMPT_LEASE_SECONDS)
+        if not self.report_store.renew_lease(
+            submission_id, active.run_id, active.generation, lease_until, now
+        ):
+            raise StaleAttemptError("lease renew rejected")
+
+    def _prepare(
+        self, submission: Submission, run_id: str, generation: int
+    ) -> _ActiveRun:
         try:
             staging = self.staging.open_run(submission.id, run_id)
         except (StagingUnsafe, OSError):
@@ -520,7 +758,12 @@ class ReportPublisher:
             staging.close()
             raise
         prepared.published_json = {}
-        active = _ActiveRun(run_id=run_id, staging=staging, prepared=prepared)
+        active = _ActiveRun(
+            run_id=run_id,
+            generation=generation,
+            staging=staging,
+            prepared=prepared,
+        )
         self._active[submission.id] = active
         return active
 
@@ -536,50 +779,23 @@ class ReportPublisher:
             raise PublishFailure("network")
         return result.known
 
-    def _upload(self, submission_id: str, run_id: str, item: PreparedFile) -> None:
-        assert self.writer is not None
-        key = run_key(submission_id, run_id, item.path)
-        try:
-            existing = self.writer.head(key)
-            if existing is not None:
-                self._verify_existing(key, existing.size_bytes, existing.sha256, item)
-                return
-            self.writer.put_file(
-                key,
-                item.source,
-                item.content_type,
-                item.published_sha256,
-                item.published_size,
-            )
-            self._read_back(key, item.published_size, item.published_sha256)
-        except FileNotFoundError:
-            raise PublishFailure("checksum") from None
-        except OSError as exc:
-            raise PublishFailure(storage_error_code(exc)) from None
-
-    def _verify_existing(
-        self, key: str, size: int, sha256: str | None, item: PreparedFile
-    ) -> None:
-        if size != item.published_size or sha256 != item.published_sha256:
-            raise PublishFailure("conflict")
-        found = self.writer.read_sha256(key)  # type: ignore[union-attr]
-        if found != (item.published_size, item.published_sha256):
-            raise PublishFailure("conflict")
-
-    def _read_back(self, key: str, size: int, sha256: str) -> None:
-        found = self.writer.read_sha256(key)  # type: ignore[union-attr]
-        if found != (size, sha256):
-            raise PublishFailure("checksum")
-
     def _commit(self, submission_id: str, active: _ActiveRun) -> None:
-        """Re-check under the lock, PUT the bundle (barrier held, lock not),
-        re-check under the lock again, then mark ``verified``.
-        """
+        """Re-check, ensure full inventory (incl. bundle), then mark verified."""
         with self.publications.lock(submission_id):
             if self._still_current(submission_id, active) is None:
                 return
         _recheck_local(active.prepared)
-        self._put_bundle(submission_id, active)
+        self._fence(submission_id, active)
+        self._ensure_bundle(submission_id, active)
+        self._fence(submission_id, active)
+        inventory = inventory_for_attempt(
+            active.prepared,
+            submission_id=submission_id,
+            run_id=active.run_id,
+            generation=active.generation,
+        )
+        if verify_full_inventory(self.writer, inventory):  # type: ignore[arg-type]
+            raise PublishFailure("checksum")
         with self.publications.lock(submission_id):
             record = self._still_current(submission_id, active)
             if record is None:
@@ -587,54 +803,50 @@ class ReportPublisher:
             self._mark_verified(record, active)
         self._close(submission_id)
         logger.info(
-            "report published: submission={} run={} objects={}",
+            "report published: submission={} run={} generation={} objects={}",
             submission_id,
             active.run_id,
+            active.generation,
             len(active.prepared.files) + 1,
         )
 
     def _still_current(
         self, submission_id: str, active: _ActiveRun
     ) -> ReportPublication | None:
-        """The record when this run may still commit (call under the record lock).
-
-        Otherwise closes the run, and moves an expired submission's record to
-        ``delete_pending``.
-        """
+        """The record when this generation may still commit (under the record lock)."""
         record = self.publications.get(submission_id)
         if (
             record is None
             or record.state != "pending"
             or record.attempt_run_id != active.run_id
+            or record.attempt_generation != active.generation
         ):
             self._close(submission_id)
             return None
         submission = self.store.get(submission_id)
-        if submission is None or submission.status != "complete":
+        if submission is None or submission.status not in {"complete", "processing"}:
             if submission is not None and submission.status == "expired":
                 self._expire_locked(record)
             self._close(submission_id)
             return None
         return record
 
-    def _put_bundle(self, submission_id: str, active: _ActiveRun) -> None:
+    def _ensure_bundle(self, submission_id: str, active: _ActiveRun) -> None:
+        """PUT ``bundle.json`` under the generation prefix when missing or corrupt."""
         prepared = active.prepared
-        key = run_key(submission_id, active.run_id, BUNDLE_NAME)
-        size = len(prepared.bundle_bytes)
+        bundle_item = inventory_for_attempt(
+            prepared,
+            submission_id=submission_id,
+            run_id=active.run_id,
+            generation=active.generation,
+        )[-1]
+        if verify_inventory_object(self.writer, bundle_item):  # type: ignore[arg-type]
+            return
         try:
-            if self.writer.head(key) is not None:  # type: ignore[union-attr]
-                raise PublishFailure("conflict")
             assert prepared.bundle_source is not None
             if file_sha256(prepared.bundle_source) != prepared.bundle_sha256:
                 raise PublishFailure("local_changed")
-            self.writer.put_file(  # type: ignore[union-attr]
-                key,
-                prepared.bundle_source,
-                "application/json",
-                prepared.bundle_sha256,
-                size,
-            )
-            self._read_back(key, size, prepared.bundle_sha256)
+            repair_inventory_object(self.writer, bundle_item)  # type: ignore[arg-type]
         except FileNotFoundError:
             raise PublishFailure("checksum") from None
         except OSError as exc:
@@ -648,6 +860,7 @@ class ReportPublisher:
         record.state = "verified"
         record.run_id = active.run_id
         record.attempt_run_id = None
+        record.attempt_generation = active.generation
         record.attempts = 0
         record.next_attempt_at = None
         record.last_error = None
@@ -658,15 +871,103 @@ class ReportPublisher:
         record.bundle_sha256 = prepared.bundle_sha256
         record.content_policy_version = CONTENT_POLICY_VERSION
         self.publications.save(record)
+        self._commit_postgres(record, active)
+
+    def _commit_postgres(
+        self, record: ReportPublication, active: _ActiveRun
+    ) -> None:
+        """Fenced PostgreSQL commit of the verified generation inventory.
+
+        Local ``PublicationStore`` remains the work queue. Customer serving
+        reads ``published_reports`` once this succeeds. A PG failure leaves the
+        local record verified so recovery can retry the commit with 0 R2 PUTs.
+        """
+        if self.report_store is None or not self.bucket:
+            return
+        submission = self.store.get(record.submission_id)
+        if submission is None:
+            return
+        outcome = (
+            submission.outcome
+            if submission.outcome in {"coached", "no_deaths"}
+            else "coached"
+        )
+        now = self._clock()
+        battle_mode_id, stage_id = match_identity(submission.analysis_dir)
+        result_json: dict | None = {} if outcome == "no_deaths" else None
+        moment_safe_ids: list[str] | None = None
+        moment_count = 0
+        if submission.analysis_dir and outcome == "coached":
+            try:
+                from public_site.frames import ranked_entries
+                from public_site.report_lifecycle import assets_from_prepared
+
+                result = load_result(Path(submission.analysis_dir))
+                entries = ranked_entries(Path(submission.analysis_dir))
+                moment_safe_ids = [entry.safe_id for entry in entries]
+                moment_count = len(entries)
+                assets = assets_from_prepared(
+                    active.prepared,
+                    submission_id=record.submission_id,
+                    run_id=active.run_id,
+                    generation=active.generation,
+                    bucket=self.bucket,
+                    created_at=now,
+                    expires_at=None,
+                    moment_safe_ids=moment_safe_ids,
+                )
+                result_json = serialize_result_projection(
+                    apply_verified_media_flags(result, assets)
+                )
+            except OSError as exc:
+                logger.warning(
+                    "report result projection failed ({}): submission={}",
+                    type(exc).__name__,
+                    record.submission_id,
+                )
+                result_json = {}
+        expires_at = parse_utc(submission.expires_at) if submission.expires_at else None
+        try:
+            commit_verified_report(
+                self.report_store,
+                submission_id=record.submission_id,
+                run_id=active.run_id,
+                generation=active.generation,
+                bucket=self.bucket,
+                prepared=active.prepared,
+                outcome=outcome,  # type: ignore[arg-type]
+                battle_mode_id=battle_mode_id,
+                stage_id=stage_id,
+                moment_count=moment_count,
+                result_json=result_json,
+                moment_safe_ids=moment_safe_ids,
+                published_at=now,
+                expires_at=expires_at,
+                now=now,
+            )
+        except StaleAttemptError:
+            raise
+        except Exception as exc:  # noqa: BLE001 — never undo local verified
+            logger.warning(
+                "report postgres commit failed ({}): submission={} run={} generation={}",
+                type(exc).__name__,
+                record.submission_id,
+                active.run_id,
+                active.generation,
+            )
 
     def _expire_locked(self, record: ReportPublication) -> None:
+        now = self._clock()
         record.state = "delete_pending"
         record.attempt_run_id = None
-        record.delete_requested_at = _stamp(self._clock())
+        record.attempt_generation = None
+        record.delete_requested_at = _stamp(now)
         record.next_attempt_at = record.delete_requested_at
         record.delete_empty_at = None
         self.publications.save(record)
         self._close(record.submission_id)
+        if self.report_store is not None:
+            self.report_store.mark_delete_pending(record.submission_id, now)
 
     def _fail(
         self,
@@ -680,25 +981,48 @@ class ReportPublisher:
         if new_run or code in _BLOCKING_CODES:
             self._close(submission_id)
         now = self._clock()
+        generation: int | None = None
+        leased_run_id: str | None = None
         with self.publications.lock(submission_id):
             record = self.publications.get(submission_id)
             if record is None or record.state != "pending":
                 return
+            generation = record.attempt_generation
+            leased_run_id = record.attempt_run_id
             record.last_error = code
             if code in _BLOCKING_CODES:
                 record.state = "blocked"
                 record.blocked_rule = rule if code == "content_policy" else code
                 record.attempt_run_id = None
+                record.attempt_generation = None
                 record.next_attempt_at = None
             else:
                 record.attempts += 1
                 if new_run:
+                    # New run_id on the next attempt; abandoned generation stays
+                    # under the old run prefix for later settle/deletion.
                     record.attempt_run_id = None
+                    record.attempt_generation = None
                 record.next_attempt_at = _stamp(
                     now + timedelta(seconds=publish_backoff(record.attempts))
                 )
             self._log_failure(record, now)
             self.publications.save(record)
+        if code in _BLOCKING_CODES and self.report_store is not None:
+            self.report_store.mark_blocked(
+                submission_id, generation=generation, now=now
+            )
+        elif (
+            new_run
+            and generation is not None
+            and leased_run_id is not None
+            and self.report_store is not None
+        ):
+            # Release the lease so a later attempt can allocate a new generation.
+            # The abandoned prefix is reconciled separately; never reused.
+            self.report_store.release_lease(
+                submission_id, leased_run_id, generation, now
+            )
 
     def _log_failure(self, record: ReportPublication, now: datetime) -> None:
         if record.state == "blocked":
@@ -729,9 +1053,15 @@ class ReportPublisher:
         )
 
     def _delete(self, submission_id: str) -> None:
-        """Expiry deletion. Never runs while a publication attempt holds the prefix."""
+        """Expiry deletion. Waits for any unexpired PostgreSQL publication lease."""
         assert self.deleter is not None
         self._close(submission_id)
+        now = self._clock()
+        if self.report_store is not None and self.report_store.has_active_lease(
+            submission_id, now
+        ):
+            self._defer(submission_id, "delete_pending")
+            return
         with self.publications.write_barrier(submission_id) as held:
             if not held:
                 self._defer(submission_id, "delete_pending")
@@ -747,6 +1077,8 @@ class ReportPublisher:
                 if not self._settled(record, deleted):
                     return
                 self.publications.remove(submission_id)
+                if self.report_store is not None:
+                    self.report_store.mark_deleted(submission_id, now, now)
         self._remove_canary(submission_id)
         logger.info("report prefix deleted: submission={}", submission_id)
 
@@ -825,11 +1157,14 @@ def _recheck_local(prepared: PreparedBundle) -> None:
 
 def open_report_storage(settings) -> R2Storage:
     """The R2 client for reports. Built only when a report setting is on."""
+    media_ttl = settings.media_url_seconds or settings.upload_url_seconds
     return R2Storage(
         account_id=settings.r2_account_id,
         access_key_id=settings.r2_access_key_id,
         secret_access_key=settings.r2_secret_access_key,
         bucket=settings.r2_bucket,
+        url_seconds=settings.upload_url_seconds,
+        media_url_seconds=media_ttl,
         cache_dir=settings.root / "cache",
     )
 
@@ -840,6 +1175,7 @@ def build_report_publisher(
     service,
     storage: LocalStorage | R2Storage | None = None,
     clock: Clock | None = None,
+    report_store: ReportStore | None = None,
 ) -> ReportPublisher | None:
     """The publisher for the settings in effect, or None when all three are off.
 
@@ -889,4 +1225,6 @@ def build_report_publisher(
         sweeper=sweeper,
         clock=clock,
         canary=canary,
+        report_store=report_store,
+        bucket=settings.r2_bucket,
     )

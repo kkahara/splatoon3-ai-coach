@@ -84,6 +84,7 @@ from public_site.vouchers import (
 if TYPE_CHECKING:
     from public_site.recording_service import RecordingService
     from public_site.report_publisher import ReportPublisher
+    from public_site.report_store import ReportStore
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _CLAIM_STALE = timedelta(minutes=2)
@@ -130,6 +131,7 @@ class SubmissionService:
         self.checkout = checkout
         self.recordings: RecordingService | None = None
         self.reports: ReportPublisher | None = None
+        self.report_store: ReportStore | None = None
         self.vouchers = vouchers
         self.probe = probe or (lambda path: probe_file(path, settings))
         self._probe_locks = KeyedLocks()
@@ -320,16 +322,14 @@ class SubmissionService:
         """Narrow public view in ``locale``. Internal paths and worker fields are omitted.
 
         The locale only changes presentation: English artifacts are read as-is
-        and nothing is re-analyzed or re-coached.
+        and nothing is re-analyzed or re-coached. When PostgreSQL holds a
+        ``verified`` publication, that projection is authoritative even after
+        the local analysis directory is cleared.
         """
         result = None
         coached = submission.outcome != "no_deaths"
-        if submission.status == "complete" and coached and submission.analysis_dir:
-            self._fill_frames(submission)
-            analysis = Path(submission.analysis_dir)
-            result = localize_result(
-                load_result(analysis), locale, analysis, self.translator
-            )
+        if submission.status == "complete" and coached:
+            result = self._project_result(submission, locale)
         error = submission.error if submission.status in {"failed", "expired"} else None
         error_key = (
             "game_language_undetermined" if error == GAME_LANGUAGE_UNDETERMINED else None
@@ -357,6 +357,59 @@ class SubmissionService:
             voucher_failure_reason=None if gate is None else gate.voucher_failure_reason,
             notice_pending=self._notice_pending(submission),
             public_reference=None if gate is None else gate.public_reference,
+        )
+
+    def _project_result(
+        self, submission: Submission, locale: DisplayLocale
+    ):
+        """Load the coaching result from PostgreSQL when verified, else local disk."""
+        from public_site.report_lifecycle import deserialize_result_projection
+
+        if self.report_store is not None:
+            published = self.report_store.get(submission.id)
+            if (
+                published is not None
+                and published.publication_state == "verified"
+                and published.result_json is not None
+            ):
+                result = deserialize_result_projection(published.result_json)
+                if result is None:
+                    return None
+                if locale == "en":
+                    return result
+                from public_site.localize import (
+                    apply_localized_cache,
+                    extract_localized_cache,
+                )
+
+                cache = published.localized_cache.get(locale)
+                if isinstance(cache, dict) and cache.get("entries"):
+                    return apply_localized_cache(result, cache)
+                seed = None
+                if isinstance(cache, dict):
+                    raw = cache.get("entries")
+                    seed = raw if isinstance(raw, dict) else None
+                localized = localize_result(
+                    result,
+                    locale,
+                    Path(submission.analysis_dir) if submission.analysis_dir else None,
+                    self.translator,
+                    seed_cache=seed,
+                )
+                entries = extract_localized_cache(result, localized)
+                if entries:
+                    self.report_store.merge_localized_cache(
+                        submission.id,
+                        {locale: {"entries": entries}},
+                        datetime.now(UTC),
+                    )
+                return localized
+        if not submission.analysis_dir:
+            return None
+        self._fill_frames(submission)
+        analysis = Path(submission.analysis_dir)
+        return localize_result(
+            load_result(analysis), locale, analysis, self.translator
         )
 
     def display_statuses(self, submissions: list[Submission]) -> dict[str, DisplayStatus]:
@@ -418,8 +471,41 @@ class SubmissionService:
             self.recordings.send_pending_cancellations()
             self.recordings.send_admin_alerts(now)
         self._recover_ready()
+        self._reconcile_report_cleanup(now)
         self._expire(now)
         self.retry_notices(now)
+
+    def _reconcile_report_cleanup(self, now: datetime) -> None:
+        """Finish orthogonal source/local cleanup for verified publications."""
+        if self.report_store is None:
+            return
+        from public_site.report_lifecycle import reconcile_verified_cleanup
+
+        for report in self.report_store.list_incomplete_cleanup():
+            submission = self.store.get(report.submission_id)
+            analysis = (
+                Path(submission.analysis_dir)
+                if submission is not None and submission.analysis_dir
+                else None
+            )
+            result = reconcile_verified_cleanup(
+                self.report_store,
+                submission_id=report.submission_id,
+                generation=report.attempt_generation,
+                source_storage=self.storage,
+                analysis_dir=analysis,
+                clear_analysis_dir=True,
+                now=now,
+            )
+            if (
+                result is not None
+                and result.local_cleanup_state == "completed"
+                and submission is not None
+                and submission.analysis_dir
+            ):
+                submission.analysis_dir = None
+                submission.updated_at = utc_now()
+                self.store.save_submission(submission)
 
     def _persist(
         self,
@@ -457,13 +543,14 @@ class SubmissionService:
             size_bytes=size_bytes,
             content_type=mime,
         )
+        upload = self.storage.presign_put(video.object_key, mime, size_bytes)
+        video.upload_expires_at = upload.expires_at
         self.store.save_submission(submission)
         self.store.save_video(video)
         self.store.remember_token(submission_id, submission.access_token_hash)
         self._remember_account(user_id, submission)
         if notify:
             self.notices.seal(submission_id, token)
-        upload = self.storage.presign_put(video.object_key, mime, size_bytes)
         return (
             CreateSubmissionResponse(
                 token=token,
@@ -1049,6 +1136,8 @@ class SubmissionService:
         submission.error = EXPIRED
         submission.updated_at = utc_now()
         self.store.save_submission(submission)
+        if self.report_store is not None:
+            self.report_store.mark_delete_pending(submission.id, datetime.now(UTC))
         self._report_hook("submission_expired", submission.id)
 
     def note_report_completed(self, submission_id: str) -> None:

@@ -131,7 +131,11 @@ def settle(publisher: ReportPublisher) -> int:
 
 
 def run_keys(fake: FakeS3, submission_id: str) -> dict[str, list[str]]:
-    """Object keys under ``reports/<id>/`` grouped by run ID."""
+    """Object keys under ``reports/<id>/`` grouped by run ID.
+
+    Paths are relative to the run prefix and include the generation segment
+    (``attempt-<n>/...``) when present.
+    """
     runs: dict[str, list[str]] = {}
     prefix = f"reports/{submission_id}/"
     for key in sorted(fake.objects):
@@ -139,6 +143,16 @@ def run_keys(fake: FakeS3, submission_id: str) -> dict[str, list[str]]:
             run_id, _, rest = key[len(prefix) :].partition("/")
             runs.setdefault(run_id, []).append(rest)
     return runs
+
+
+def attempt_prefix_for(fake: FakeS3, submission_id: str, run_id: str) -> str:
+    """Full object-key prefix for the (only) generation under one run."""
+    rest = run_keys(fake, submission_id).get(run_id) or []
+    for path in rest:
+        if path.startswith("attempt-") and "/" in path:
+            gen, _, _ = path.partition("/")
+            return f"reports/{submission_id}/{run_id}/{gen}/"
+    return f"reports/{submission_id}/{run_id}/"
 
 
 def methods(fake: FakeS3) -> list[str]:

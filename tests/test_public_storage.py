@@ -113,18 +113,25 @@ def test_r2_download_streams_in_chunks(
 ) -> None:
     body = b"x" * (3 * 1024 * 1024 + 7)
     sizes: list[int] = []
-    original = storage_module.shutil.copyfileobj
+    original = storage_module._copy_stream
 
-    def spy(source, dest, length=0):
-        sizes.append(length)
-        return original(source, dest, length)
+    def spy(response, out, *, deadline=None):
+        real_read = response.read
 
-    monkeypatch.setattr(storage_module.shutil, "copyfileobj", spy)
+        def read(n=-1):
+            sizes.append(n)
+            return real_read(n)
+
+        response.read = read  # type: ignore[method-assign]
+        return original(response, out, deadline=deadline)
+
+    monkeypatch.setattr(storage_module, "_copy_stream", spy)
     with fake_s3() as state:
         state.objects[f"submissions/{ID}/source.mp4"] = FakeObject(body)
         written = _r2(state).download(f"submissions/{ID}/source.mp4", tmp_path / "v.mp4")
     assert written == len(body)
-    assert sizes == [1024 * 1024]
+    # Four data reads (3 MiB + 7) plus the terminal empty read, each sized to _CHUNK.
+    assert sizes == [1024 * 1024] * 5
 
 
 def test_r2_download_failures_leave_no_file(tmp_path: Path) -> None:
@@ -444,3 +451,130 @@ def test_storage_env_value_is_trimmed(
     assert PublicSettings.from_env().storage == "local"
     monkeypatch.setenv("PUBLIC_STORAGE", "r2 ")
     assert PublicSettings.from_env().storage == "r2"
+
+
+def test_dev_mode_rejects_the_production_r2_bucket(tmp_path: Path) -> None:
+    from public_site.settings import PROD_R2_BUCKET
+
+    settings = PublicSettings(
+        root=tmp_path,
+        config_path=tmp_path / "c.yaml",
+        static_dir=tmp_path,
+        storage="r2",
+        dev_mode=True,
+        r2_account_id="account",
+        r2_access_key_id="key",
+        r2_secret_access_key="secret",
+        r2_bucket=PROD_R2_BUCKET,
+    )
+    assert settings.storage_problem() == (
+        "PUBLIC_R2_BUCKET must not be the production bucket in PUBLIC_DEV_MODE"
+    )
+
+
+def test_production_problem_requires_r2_prod_bucket_and_report_flags(
+    tmp_path: Path,
+) -> None:
+    from public_site.settings import PROD_R2_BUCKET
+
+    base = dict(
+        root=tmp_path,
+        config_path=tmp_path / "c.yaml",
+        static_dir=tmp_path,
+        storage="r2",
+        dev_mode=False,
+        database_url="postgresql://coach@127.0.0.1:5432/coach",
+        r2_account_id="account",
+        r2_access_key_id="key",
+        r2_secret_access_key="secret",
+        r2_bucket=PROD_R2_BUCKET,
+        report_publish=True,
+        report_expiry_delete=True,
+        report_sweep=False,
+    )
+    assert PublicSettings(**base).production_problem() is None
+    assert (
+        PublicSettings(**{**base, "storage": "local"}).production_problem()
+        == "PUBLIC_STORAGE must be r2 when PUBLIC_DEV_MODE is off"
+    )
+    assert (
+        PublicSettings(**{**base, "r2_bucket": "s3-coaching-dev"}).production_problem()
+        == f"PUBLIC_R2_BUCKET must be {PROD_R2_BUCKET} when PUBLIC_DEV_MODE is off"
+    )
+    assert (
+        PublicSettings(**{**base, "database_url": ""}).production_problem()
+        == "PUBLIC_DATABASE_URL is required when PUBLIC_DEV_MODE is off"
+    )
+    assert (
+        PublicSettings(**{**base, "report_publish": False}).production_problem()
+        == "PUBLIC_REPORT_PUBLISH must be 1 when PUBLIC_DEV_MODE is off"
+    )
+    assert PublicSettings(**{**base, "dev_mode": True}).production_problem() is None
+
+
+def test_media_url_seconds_defaults_and_validates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("PUBLIC_MEDIA_URL_SECONDS", raising=False)
+    assert PublicSettings.from_env().media_url_seconds == 3600
+    monkeypatch.setenv("PUBLIC_MEDIA_URL_SECONDS", "7200")
+    assert PublicSettings.from_env().media_url_seconds == 7200
+    monkeypatch.setenv("PUBLIC_MEDIA_URL_SECONDS", "59")
+    bad = PublicSettings.from_env()
+    assert bad.media_url_seconds is None
+    assert bad.media_url_problem() is not None
+    assert "PUBLIC_MEDIA_URL_SECONDS" in (bad.media_url_problem() or "")
+
+
+def test_presigned_get_supports_range_and_content_type(tmp_path: Path) -> None:
+    key = f"reports/{ID}/run/public_clips/m1.mp4"
+    body = b"0123456789abcdef"
+    source = _file(tmp_path, "clip.mp4", body)
+    with fake_s3() as state:
+        r2 = _r2(state)
+        r2.put_file(key, source, "video/mp4")
+        download = r2.presign_get(
+            key, expires_seconds=600, response_content_type="video/mp4"
+        )
+        assert download.method == "GET"
+        assert "response-content-type=video%2Fmp4" in download.url
+        assert "X-Amz-SignedHeaders=host" in download.url
+        request = urllib.request.Request(
+            download.url, method="GET", headers={"Range": "bytes=0-7"}
+        )
+        with urllib.request.urlopen(request, timeout=10) as response:
+            assert response.status == 206
+            assert response.headers.get("Content-Range") == "bytes 0-7/16"
+            assert response.headers.get("Content-Type") == "video/mp4"
+            assert response.read() == body[:8]
+
+
+def test_local_presign_get_issues_a_dev_media_grant(tmp_path: Path) -> None:
+    local = LocalStorage(tmp_path, media_url_seconds=120)
+    key = f"reports/{ID}/run/public_frames/m1.jpg"
+    local.put_file(key, _file(tmp_path, "still.jpg", b"jpeg-bytes"), "image/jpeg")
+    download = local.presign_get(key, response_content_type="image/jpeg")
+    assert download.url.startswith("/api/dev-media/")
+    grant_id = download.url.rsplit("/", 1)[-1]
+    grant = local.media_grant(grant_id)
+    assert grant is not None
+    assert grant["object_key"] == key
+    assert grant["content_type"] == "image/jpeg"
+
+
+def test_r2_request_deadline_aborts_a_stalled_put(tmp_path: Path) -> None:
+    key = f"reports/{ID}/run/public_clips/slow.mp4"
+    source = _file(tmp_path, "slow.mp4", b"x" * 64)
+    with fake_s3() as state:
+        state.put_delay_seconds = 2.0
+        r2 = R2Storage(
+            account_id="account",
+            access_key_id=state.access_key,
+            secret_access_key=state.secret,
+            bucket=state.bucket,
+            endpoint=state.endpoint,
+            request_timeout_seconds=0.2,
+            socket_timeout_seconds=0.2,
+        )
+        with pytest.raises(OSError, match=r"storage put failed \(timeout\)"):
+            r2.put_file(key, source, "video/mp4")

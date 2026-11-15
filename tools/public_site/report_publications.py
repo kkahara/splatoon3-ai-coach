@@ -51,6 +51,9 @@ class ReportPublication(BaseModel):
     run_id: str | None = None
     superseded_run_ids: list[str] = Field(default_factory=list)
     attempt_run_id: str | None = None
+    # Local mirror of PostgreSQL attempt_generation for same-machine resume.
+    # Authoritative fencing lives in ReportStore when configured.
+    attempt_generation: int | None = None
     attempts: int = 0
     next_attempt_at: str | None = None
     last_error: ErrorCode | None = None

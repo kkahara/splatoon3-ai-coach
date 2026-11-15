@@ -33,8 +33,14 @@ def presign(
     expires: int,
     signed_headers: Mapping[str, str],
     scheme: str = "https",
+    extra_query: Mapping[str, str] | None = None,
 ) -> str:
-    """Return a presigned URL. ``signed_headers`` excludes ``host`` (added here)."""
+    """Return a presigned URL. ``signed_headers`` excludes ``host`` (added here).
+
+    ``extra_query`` values (for example ``response-content-type``) are included in
+    the canonical query string. Unsigned browser headers such as ``Range`` are
+    intentionally omitted from ``signed_headers`` so seeking still works.
+    """
     amz_date = now.strftime("%Y%m%dT%H%M%SZ")
     datestamp = now.strftime("%Y%m%d")
     scope = f"{datestamp}/{region}/{service}/aws4_request"
@@ -48,6 +54,8 @@ def presign(
         "X-Amz-Expires": str(expires),
         "X-Amz-SignedHeaders": signed_names,
     }
+    if extra_query:
+        params.update(extra_query)
     query = _canonical_query(params)
     canonical = _canonical_request(method, canonical_uri, query, headers, signed_names, _PAYLOAD)
     signature = _signature(secret, datestamp, region, service, amz_date, scope, canonical)

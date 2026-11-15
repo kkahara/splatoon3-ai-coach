@@ -75,7 +75,7 @@ def test_unexpected_upload_error_backs_off(tmp_path: Path, monkeypatch) -> None:
         def explode(*_args, **_kwargs):
             raise KeyError("unexpected")
 
-        monkeypatch.setattr(publisher, "_upload", explode)
+        monkeypatch.setattr(publisher, "_attempt", explode)
         publisher.run_once()
         record = publisher.publications.get(submission.id)
         assert (record.last_error, record.attempts) == ("local_changed", 1)

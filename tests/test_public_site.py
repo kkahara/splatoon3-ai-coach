@@ -977,6 +977,20 @@ def test_dev_mode_keeps_regular_upload_limits(monkeypatch, tmp_path: Path) -> No
     assert production.accounts_per_ip == 3
 
 
+def test_healthz_is_ok_in_dev_mode(tmp_path: Path) -> None:
+    client = _client(tmp_path, dev_mode=True)
+    response = client.get("/api/healthz")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_healthz_fails_closed_when_production_invariants_break(tmp_path: Path) -> None:
+    client = _client(tmp_path, dev_mode=False)
+    response = client.get("/api/healthz")
+    assert response.status_code == 503
+    assert "PUBLIC_STORAGE" in response.json()["detail"]
+
+
 def test_public_site_refuses_to_start_without_turnstile(monkeypatch) -> None:
     import public_site.app as public_app
     import uvicorn

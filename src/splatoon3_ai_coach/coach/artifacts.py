@@ -170,6 +170,10 @@ class CoachingIndex(BaseModel):
         default=None, description="None for artifacts written before versioning."
     )
     analysis_id: str | None = None
+    upstream_evidence_sha256: str | None = Field(
+        default=None,
+        description="Digest of the exact source artifacts used to build CoachInputs.",
+    )
     entries: list[CoachingIndexEntry]
 
     def by_scenario_id(self, scenario_id: str) -> CoachingIndexEntry | None:
@@ -372,12 +376,14 @@ def write_coaching_index(
     entries: list[CoachingIndexEntry],
     *,
     analysis_id: str | None,
+    upstream_evidence_sha256: str | None = None,
 ) -> Path:
     """Write the rank-ordered coach-inputs index (current schema + evidence)."""
     path = inputs_dir / COACHING_INDEX_FILENAME
     index = CoachingIndex(
         evidence_version=COACH_EVIDENCE_VERSION,
         analysis_id=analysis_id,
+        upstream_evidence_sha256=upstream_evidence_sha256,
         entries=entries,
     )
     write_json(path, index.model_dump(mode="json"))

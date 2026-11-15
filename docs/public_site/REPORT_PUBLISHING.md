@@ -50,12 +50,29 @@ Release procedure and gates: `PHASE1B_B2_RELEASE.md`.
 
 ## Keys and run IDs
 
-`reports/<submission_id>/<run_id>/<path>`
+Legacy (pre-fencing) layout: `reports/<submission_id>/<run_id>/<path>`
+
+**Generation-fenced layout (Increment 5):**
+
+`reports/<submission_id>/<run_id>/attempt-<attempt_generation>/<path>`
 
 - `run_id` is `YYYYMMDDTHHMMSSZ-<8 hex>` (UTC time of the run plus randomness).
+- `attempt_generation` is a monotonic PostgreSQL fencing token per submission.
+  Each publication attempt writes **only** under its own generation prefix.
+  A stale worker that loses its lease can finish a late PUT into its abandoned
+  prefix, but cannot overwrite a newer generation or publish its manifest as
+  authoritative. PostgreSQL `commit_verified` stores `bundle_key` and asset
+  keys for the verified generation only.
+- Ordinary transient retries while the lease is still valid **resume the same
+  generation** (same prefix). A new generation is allocated only when acquiring
+  a fresh lease after expiry/fence-out, `retry_blocked`, or a replacement run.
+- Abandoned generation prefixes are reconciled and deleted with the same
+  upload-window settle, bounded request deadlines, and empty-LIST settle rules
+  as expiry deletion. Sweep never deletes the active generation's retained keys.
 - `<path>` is relative to the analysis folder and passes B1's key rules.
-- A run is **committed** when its `bundle.json` exists. `bundle.json` is
-  written last, after every other object has been read back and verified.
+- A generation is **committed** when its full inventory (every artifact plus
+  `bundle.json`) verifies by size and SHA-256. `bundle.json` is written last,
+  after the local re-hash barrier.
 
 ## What is published (allowlist)
 

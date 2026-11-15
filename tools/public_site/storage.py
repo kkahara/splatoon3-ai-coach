@@ -6,8 +6,10 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import shutil
 import tempfile
+import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -18,7 +20,7 @@ from http.client import HTTPException, HTTPResponse
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 
-from public_site.models import PresignedUpload
+from public_site.models import PresignedDownload, PresignedUpload
 from public_site.s3sign import authorization_headers, canonical_query, presign
 
 OBJECT_PREFIXES = ("submissions/", "processing/", "reports/", "exports/")
@@ -30,6 +32,10 @@ _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _CHUNK = 1024 * 1024
 _LIST_PAGE = 1000
 _S3_NS = "{http://s3.amazonaws.com/doc/2006-03-01/}"
+# Overall wall-clock bound for one storage request (PUT/GET). Socket ops stay shorter.
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 180.0
+DEFAULT_SOCKET_TIMEOUT_SECONDS = 60.0
+DEFAULT_META_TIMEOUT_SECONDS = 30.0
 
 
 def valid_key(key: str) -> bool:
@@ -99,13 +105,15 @@ def _attempt_headers(attempt: str | None) -> dict[str, str]:
 class HashingReader:
     """A read-only file wrapper that hashes and counts exactly the bytes handed out."""
 
-    def __init__(self, handle) -> None:
+    def __init__(self, handle, *, deadline: float | None = None) -> None:
         self._handle = handle
         self._digest = hashlib.sha256()
+        self._deadline = deadline
         self.size_bytes = 0
 
     def read(self, size: int = -1) -> bytes:
         """Read like the wrapped file and account for every byte returned."""
+        _ensure_deadline(self._deadline, "put")
         block = self._handle.read(size)
         self._digest.update(block)
         self.size_bytes += len(block)
@@ -121,11 +129,20 @@ def _check_sent(reader: HashingReader, digest: str, size: int) -> None:
         raise OSError("storage put failed (checksum)")
 
 
-def _hash_stream(handle) -> tuple[int, str]:
+def _ensure_deadline(deadline: float | None, operation: str) -> None:
+    if deadline is not None and time.monotonic() >= deadline:
+        raise OSError(f"storage {operation} failed (timeout)")
+
+
+def _hash_stream(handle, *, deadline: float | None = None) -> tuple[int, str]:
     digest = hashlib.sha256()
     total = 0
     try:
-        for block in iter(lambda: handle.read(_CHUNK), b""):
+        while True:
+            _ensure_deadline(deadline, "get")
+            block = handle.read(_CHUNK)
+            if not block:
+                break
             digest.update(block)
             total += len(block)
     except HTTPException:
@@ -133,18 +150,43 @@ def _hash_stream(handle) -> tuple[int, str]:
     return total, digest.hexdigest()
 
 
+def _copy_stream(response, out, *, deadline: float | None = None) -> int:
+    """Copy response body to ``out`` under an overall deadline. Returns bytes written."""
+    written = 0
+    try:
+        while True:
+            _ensure_deadline(deadline, "get")
+            block = response.read(_CHUNK)
+            if not block:
+                break
+            out.write(block)
+            written += len(block)
+    except HTTPException:
+        raise OSError("storage get failed (incomplete)") from None
+    return written
+
+
 class LocalStorage:
     """Filesystem objects and a dev-only upload grant. Disabled when using R2."""
 
     allows_dev_upload = True
 
-    def __init__(self, root: Path, *, url_seconds: int = 900) -> None:
+    def __init__(
+        self,
+        root: Path,
+        *,
+        url_seconds: int = 900,
+        media_url_seconds: int | None = None,
+    ) -> None:
         self.root = root
         self.objects = root / "objects"
         self.grants = root / "upload_grants"
+        self.media_grants = root / "media_grants"
         self.url_seconds = url_seconds
+        self.media_url_seconds = media_url_seconds or url_seconds
         self.objects.mkdir(parents=True, exist_ok=True)
         self.grants.mkdir(parents=True, exist_ok=True)
+        self.media_grants.mkdir(parents=True, exist_ok=True)
 
     def presign_put(
         self,
@@ -160,8 +202,6 @@ class LocalStorage:
         With ``attempt`` the grant is create-only and stamps the object with that
         id; the grant id is the attempt, so the same attempt yields the same URL.
         """
-        import secrets
-
         extra = _attempt_headers(attempt)
         grant_id = attempt or secrets.token_urlsafe(24)
         expires = (issued_at or datetime.now(UTC)) + timedelta(seconds=self.url_seconds)
@@ -182,6 +222,64 @@ class LocalStorage:
             headers={"Content-Type": content_type, **extra},
             expires_at=payload["expires_at"],
         )
+
+    def presign_get(
+        self,
+        key: str,
+        *,
+        expires_seconds: int | None = None,
+        response_content_type: str | None = None,
+        issued_at: datetime | None = None,
+    ) -> PresignedDownload:
+        """Issue a one-object GET grant for local/dev media delivery."""
+        if not valid_key(key):
+            raise ValueError("invalid object key")
+        ttl = self.media_url_seconds if expires_seconds is None else expires_seconds
+        if ttl < 1:
+            raise ValueError("media URL lifetime must be positive")
+        grant_id = secrets.token_urlsafe(24)
+        expires = (issued_at or datetime.now(UTC)) + timedelta(seconds=ttl)
+        content_type = response_content_type or "application/octet-stream"
+        payload = {
+            "object_key": key,
+            "content_type": content_type,
+            "expires_at": expires.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        (self.media_grants / f"{grant_id}.json").write_text(
+            json.dumps(payload, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return PresignedDownload(
+            url=f"/api/dev-media/{grant_id}",
+            method="GET",
+            expires_at=payload["expires_at"],
+            content_type=content_type,
+        )
+
+    def media_grant(self, grant_id: str) -> dict | None:
+        """Live media GET grant payload, or None when missing/expired."""
+        if not _GRANT.fullmatch(grant_id):
+            return None
+        path = self.media_grants / f"{grant_id}.json"
+        if not path.is_file():
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        try:
+            expires = datetime.strptime(payload["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=UTC
+            )
+        except (KeyError, TypeError, ValueError):
+            return None
+        if expires <= datetime.now(UTC):
+            path.unlink(missing_ok=True)
+            return None
+        key = str(payload.get("object_key") or "")
+        if not valid_key(key):
+            return None
+        return payload
 
     def write_grant(self, grant_id: str, body: bytes) -> str:
         """Store bytes for a live grant. Returns the object key.
@@ -366,15 +464,23 @@ class R2Storage:
         secret_access_key: str,
         bucket: str,
         url_seconds: int = 900,
+        media_url_seconds: int | None = None,
         cache_dir: Path | None = None,
         endpoint: str | None = None,
+        request_timeout_seconds: float = DEFAULT_REQUEST_TIMEOUT_SECONDS,
+        socket_timeout_seconds: float = DEFAULT_SOCKET_TIMEOUT_SECONDS,
+        meta_timeout_seconds: float = DEFAULT_META_TIMEOUT_SECONDS,
     ) -> None:
         self.account_id = account_id
         self.access_key_id = access_key_id
         self.secret_access_key = secret_access_key
         self.bucket = bucket
         self.url_seconds = url_seconds
+        self.media_url_seconds = media_url_seconds or url_seconds
         self.cache_dir = cache_dir or Path("/tmp")
+        self.request_timeout_seconds = float(request_timeout_seconds)
+        self.socket_timeout_seconds = float(socket_timeout_seconds)
+        self.meta_timeout_seconds = float(meta_timeout_seconds)
         parts = urlsplit(endpoint or f"https://{account_id}.r2.cloudflarestorage.com")
         self.scheme = parts.scheme
         self.host = parts.netloc
@@ -427,9 +533,48 @@ class R2Storage:
             expires_at=expires_at,
         )
 
+    def presign_get(
+        self,
+        key: str,
+        *,
+        expires_seconds: int | None = None,
+        response_content_type: str | None = None,
+        issued_at: datetime | None = None,
+    ) -> PresignedDownload:
+        """Presign a GET for this key. ``Range`` is not signed so seeking works."""
+        now = issued_at or datetime.now(UTC)
+        ttl = self.media_url_seconds if expires_seconds is None else expires_seconds
+        if ttl < 1:
+            raise ValueError("media URL lifetime must be positive")
+        expires_at = (now + timedelta(seconds=ttl)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        extra_query = None
+        if response_content_type:
+            extra_query = {"response-content-type": response_content_type}
+        url = presign(
+            method="GET",
+            host=self.host,
+            canonical_uri=self._uri(key),
+            access_key=self.access_key_id,
+            secret=self.secret_access_key,
+            region="auto",
+            service="s3",
+            now=now,
+            expires=ttl,
+            signed_headers={},
+            scheme=self.scheme,
+            extra_query=extra_query,
+        )
+        return PresignedDownload(
+            url=url,
+            method="GET",
+            expires_at=expires_at,
+            content_type=response_content_type,
+        )
+
     def head(self, key: str) -> ObjectStat | None:
         """HEAD the object. A missing object returns None."""
-        status, headers, _body = self._request("HEAD", self._uri(key))
+        deadline = time.monotonic() + self.meta_timeout_seconds
+        status, headers, _body = self._request("HEAD", self._uri(key), deadline=deadline)
         if status == 404:
             return None
         if status != 200:
@@ -461,17 +606,14 @@ class R2Storage:
             dir=dest.parent, prefix=f".{dest.name}.", suffix=".part"
         )
         partial = Path(name)
+        deadline = time.monotonic() + self.request_timeout_seconds
         try:
             with (
                 os.fdopen(fd, "wb") as out,
-                self._stream("GET", self._uri(key)) as response,
+                self._stream("GET", self._uri(key), deadline=deadline) as response,
             ):
                 expected = _header(dict(response.headers), "content-length")
-                try:
-                    shutil.copyfileobj(response, out, _CHUNK)
-                except HTTPException:
-                    raise OSError("storage get failed (incomplete)") from None
-            written = partial.stat().st_size
+                written = _copy_stream(response, out, deadline=deadline)
             if expected is not None and int(expected) != written:
                 raise OSError("storage get failed (length)")
             partial.replace(dest)
@@ -501,10 +643,16 @@ class R2Storage:
             "content-length": str(size),
             SHA256_METADATA: digest,
         }
+        deadline = time.monotonic() + self.request_timeout_seconds
         with source.open("rb") as handle:
-            reader = HashingReader(handle)
+            reader = HashingReader(handle, deadline=deadline)
             status, _headers, _body = self._request(
-                "PUT", uri, extra_headers=extra, body=reader, payload_sha256=digest
+                "PUT",
+                uri,
+                extra_headers=extra,
+                body=reader,
+                payload_sha256=digest,
+                deadline=deadline,
             )
         if status != 200:
             raise OSError(f"storage put failed ({status})")
@@ -518,9 +666,10 @@ class R2Storage:
             FileNotFoundError: The object does not exist.
             OSError: Any other storage, network, or length failure.
         """
-        with self._stream("GET", self._uri(key)) as response:
+        deadline = time.monotonic() + self.request_timeout_seconds
+        with self._stream("GET", self._uri(key), deadline=deadline) as response:
             expected = _header(dict(response.headers), "content-length")
-            size, digest = _hash_stream(response)
+            size, digest = _hash_stream(response, deadline=deadline)
         if expected is not None and int(expected) != size:
             raise OSError("storage get failed (length)")
         return size, digest
@@ -531,11 +680,14 @@ class R2Storage:
             raise ValueError("invalid object prefix")
         found: list[ObjectStat] = []
         token: str | None = None
+        deadline = time.monotonic() + self.meta_timeout_seconds
         while True:
             query = {"list-type": "2", "prefix": prefix, "max-keys": str(_LIST_PAGE)}
             if token:
                 query["continuation-token"] = token
-            status, _headers, body = self._request("GET", f"/{self.bucket}", query=query)
+            status, _headers, body = self._request(
+                "GET", f"/{self.bucket}", query=query, deadline=deadline
+            )
             if status != 200 or body is None:
                 raise OSError(f"storage list failed ({status})")
             page, token = _parse_list(body)
@@ -546,8 +698,12 @@ class R2Storage:
     def copy(self, source_key: str, dest_key: str) -> ObjectStat:
         """Server-side copy, keeping metadata. A missing source raises FileNotFoundError."""
         source = self._uri(source_key)
+        deadline = time.monotonic() + self.request_timeout_seconds
         status, _headers, body = self._request(
-            "PUT", self._uri(dest_key), extra_headers={"x-amz-copy-source": source}
+            "PUT",
+            self._uri(dest_key),
+            extra_headers={"x-amz-copy-source": source},
+            deadline=deadline,
         )
         if status == 404:
             raise FileNotFoundError(source_key)
@@ -560,7 +716,10 @@ class R2Storage:
 
     def delete(self, key: str) -> None:
         """Delete the object. A missing object is success."""
-        status, _headers, _body = self._request("DELETE", self._uri(key))
+        deadline = time.monotonic() + self.meta_timeout_seconds
+        status, _headers, _body = self._request(
+            "DELETE", self._uri(key), deadline=deadline
+        )
         if status not in {200, 204, 404}:
             raise OSError(f"storage delete failed ({status})")
 
@@ -573,6 +732,7 @@ class R2Storage:
         extra_headers: Mapping[str, str] | None = None,
         body=None,
         payload_sha256: str | None = None,
+        deadline: float | None = None,
     ) -> tuple[int, dict[str, str], bytes | None]:
         try:
             with self._stream(
@@ -582,9 +742,14 @@ class R2Storage:
                 extra_headers=extra_headers,
                 body=body,
                 payload_sha256=payload_sha256,
+                deadline=deadline,
             ) as response:
                 try:
-                    payload = response.read() if method != "HEAD" else b""
+                    if method == "HEAD":
+                        payload = b""
+                    else:
+                        _ensure_deadline(deadline, method.lower())
+                        payload = response.read()
                 except HTTPException:
                     raise OSError(f"storage {method.lower()} failed (incomplete)") from None
                 return response.status, dict(response.headers), payload
@@ -603,6 +768,7 @@ class R2Storage:
         extra_headers: Mapping[str, str] | None = None,
         body=None,
         payload_sha256: str | None = None,
+        deadline: float | None = None,
     ) -> Iterator[HTTPResponse]:
         headers = authorization_headers(
             method=method,
@@ -625,15 +791,32 @@ class R2Storage:
             if name == "host":
                 continue
             request.add_header(name, value)
+        _ensure_deadline(deadline, method.lower())
+        remaining = (
+            self.socket_timeout_seconds
+            if deadline is None
+            else max(0.001, deadline - time.monotonic())
+        )
+        socket_timeout = min(self.socket_timeout_seconds, remaining)
         try:
-            response = urllib.request.urlopen(request, timeout=60)
+            response = urllib.request.urlopen(request, timeout=socket_timeout)
         except urllib.error.HTTPError as exc:
             exc.close()
             if exc.code == 404:
                 raise FileNotFoundError(uri.rsplit("/", 1)[-1]) from None
             raise _StatusError(exc.code) from None
+        except TimeoutError as exc:
+            raise OSError(f"storage {method.lower()} failed (timeout)") from exc
         except (urllib.error.URLError, OSError, HTTPException) as exc:
-            raise OSError(f"storage {method.lower()} failed (network: {type(exc).__name__})") from None
+            if isinstance(exc, OSError) and "timeout" in str(exc).lower():
+                raise OSError(f"storage {method.lower()} failed (timeout)") from exc
+            if isinstance(exc, urllib.error.URLError) and isinstance(
+                getattr(exc, "reason", None), TimeoutError
+            ):
+                raise OSError(f"storage {method.lower()} failed (timeout)") from exc
+            raise OSError(
+                f"storage {method.lower()} failed (network: {type(exc).__name__})"
+            ) from None
         with response:
             yield response
 

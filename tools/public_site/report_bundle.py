@@ -61,8 +61,16 @@ _DIR_SUFFIXES = {
     ),
     "public_clips": (".mp4",),
     "public_frames": (".jpg",),
+    "thumbnails": (".jpg", ".png", ".webp"),
+    "other_visual_assets": (".jpg", ".png", ".webp", ".mp4"),
 }
-_CONTENT_TYPES = {".json": "application/json", ".mp4": "video/mp4", ".jpg": "image/jpeg"}
+_CONTENT_TYPES = {
+    ".json": "application/json",
+    ".mp4": "video/mp4",
+    ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+}
 ErrorKind = Literal[
     "local_missing",
     "invalid_key",
@@ -187,11 +195,42 @@ def _real_dir(path: Path) -> bool:
 
 
 def run_key(submission_id: str, run_id: str, path: str) -> str:
-    """Object key of one published file. Raises BundleError(invalid_key)."""
+    """Object key of one published file (legacy path without generation).
+
+    New publications use :func:`attempt_key` so each fenced generation writes
+    under an immutable prefix. Raises BundleError(invalid_key).
+    """
     key = f"reports/{submission_id}/{run_id}/{path}"
     if not valid_key(key):
         raise BundleError("invalid_key")
     return key
+
+
+def attempt_key(
+    submission_id: str, run_id: str, generation: int, path: str
+) -> str:
+    """Object key under a generation-specific immutable upload prefix.
+
+    ``reports/<id>/<run_id>/attempt-<generation>/<path>``. A stale worker that
+    loses its lease can only finish a late PUT into its own abandoned
+    generation prefix; it cannot overwrite a newer generation.
+    """
+    if generation < 1:
+        raise BundleError("invalid_key")
+    key = f"reports/{submission_id}/{run_id}/attempt-{generation}/{path}"
+    if not valid_key(key):
+        raise BundleError("invalid_key")
+    return key
+
+
+def attempt_prefix(submission_id: str, run_id: str, generation: int) -> str:
+    """LIST/DELETE prefix for one fenced publication attempt."""
+    if generation < 1:
+        raise BundleError("invalid_key")
+    prefix = f"reports/{submission_id}/{run_id}/attempt-{generation}/"
+    if not valid_key(prefix.rstrip("/")):
+        raise BundleError("invalid_key")
+    return prefix
 
 
 def known_values(

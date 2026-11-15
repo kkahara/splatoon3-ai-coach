@@ -196,13 +196,33 @@ class PublicWorker:
                     return
 
     def recover(self) -> list[Submission]:
-        """Fail in-flight work. Queued submissions stay queued.
+        """Resume pipeline-ready publications; fail other in-flight work.
 
-        Assumes this is the only worker, so every validating or processing
-        record is an orphan of an earlier run whatever ``worker_id`` it has.
-        Before a second worker exists, replace this with lease or heartbeat
-        based recovery; a capacity row is not evidence that a worker is alive.
+        A ``.pipeline_ready.json`` receipt means vision/coaching already
+        finished — recover publishes without re-running LLM stages. Other
+        validating/processing orphans are failed as before.
         """
+        from public_site.report_lifecycle import read_pipeline_ready
+
+        for submission in self.store.list_submissions():
+            if submission.status != "processing":
+                continue
+            ready = read_pipeline_ready(
+                Path(submission.analysis_dir) if submission.analysis_dir else None
+            )
+            if ready is None:
+                continue
+            try:
+                self._complete(
+                    submission,
+                    ready["outcome"],  # type: ignore[arg-type]
+                    ready["game_language"],  # type: ignore[arg-type]
+                )
+            except Exception:
+                logger.exception(
+                    "pipeline_ready recovery failed for submission {}",
+                    submission.id,
+                )
         failed = self.store.fail_in_flight(
             INTERRUPTED, utc_now(), review_code_message=REVIEW_CODE_INTERRUPTED
         )
@@ -408,11 +428,38 @@ class PublicWorker:
         outcome: CoachingOutcome,
         game_language: GameLanguage,
     ) -> None:
-        """Finish successfully. ``no_deaths`` is a valid empty result, not a failure."""
-        submission.status = "complete"
+        """Finish successfully. ``no_deaths`` is a valid empty result, not a failure.
+
+        Writes ``.pipeline_ready.json`` then runs synchronous fenced publication
+        when reporting is enabled, before marking the submission ``complete``.
+        """
+        analysis = self._analysis_dir(submission)
+        if analysis is not None:
+            from public_site.report_lifecycle import write_pipeline_ready
+
+            write_pipeline_ready(
+                analysis, outcome=outcome, game_language=game_language
+            )
+        submission.outcome = outcome
         submission.step = "ready"
         submission.error = None
-        submission.outcome = outcome
+        submission.updated_at = utc_now()
+        # Stay ``processing`` until publication verifies (or publishing is off).
+        self._save(submission)
+        sync = (
+            self.service.reports is not None
+            and self.service.reports.writer is not None
+            and self.service.report_store is not None
+        )
+        published = self._publish_ready(submission) if sync else False
+        if sync and not published:
+            # Leave processing so recover/startup can resume without re-LLM.
+            logger.warning(
+                "report publish not verified yet; leaving processing: submission={}",
+                submission.id,
+            )
+            return
+        submission.status = "complete"
         submission.updated_at = utc_now()
         self._save(submission)
         if self.telemetry is not None:
@@ -425,12 +472,20 @@ class PublicWorker:
             )
         notice = "no_moments" if outcome == "no_deaths" else "ready"
         self.service.note_analysis_completed(submission.id)
-        self.service.note_report_completed(submission.id)
+        if not published:
+            self.service.note_report_completed(submission.id)
         if submission.input_type == "review_code":
             self._hand_off_recording(submission)
         self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
         self._stage_seconds.pop(submission.id, None)
+
+    def _publish_ready(self, submission: Submission) -> bool:
+        """Synchronously publish when PostgreSQL report authority is configured."""
+        reports = self.service.reports
+        if reports is None or reports.writer is None:
+            return False
+        return reports.publish_now(submission.id)
 
     def _frames(self, submission: Submission, analysis: Path, video: Path) -> None:
         """Create presentation media before source cleanup. Failure stays non-fatal."""

@@ -10,15 +10,38 @@ import hashlib
 import hmac
 import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qsl, quote, unquote, urlsplit
 from xml.sax.saxutils import escape
 
 UNSIGNED = "UNSIGNED-PAYLOAD"
+
+
+def _byte_range(header: str | None, total: int) -> tuple[int, int, int]:
+    """Parse ``Range: bytes=start-end`` into ``(start, end, status)``."""
+    if not header or not header.startswith("bytes=") or total <= 0:
+        return 0, max(total - 1, 0), 200
+    spec = header.removeprefix("bytes=").strip()
+    if "," in spec:
+        return 0, total - 1, 200
+    start_text, _, end_text = spec.partition("-")
+    try:
+        if start_text == "":
+            length = int(end_text)
+            start = max(total - length, 0)
+            end = total - 1
+        else:
+            start = int(start_text)
+            end = int(end_text) if end_text else total - 1
+    except ValueError:
+        return 0, total - 1, 200
+    if start < 0 or start >= total or end < start:
+        return 0, total - 1, 200
+    return start, min(end, total - 1), 206
 
 
 @dataclass
@@ -49,6 +72,12 @@ class FakeS3:
     get_gate: threading.Event | None = None
     get_gate_count: int = 0
     verify_payload: bool = True
+    # When True, reject query-presigned requests past X-Amz-Date + X-Amz-Expires.
+    check_presign_expiry: bool = False
+    # Override to simulate wall-clock advances for presigned URL expiry.
+    clock: Callable[[], datetime] = field(
+        default_factory=lambda: (lambda: datetime.now(UTC))
+    )
 
     def gated_get(self) -> bool:
         """True when this GET sends half its body, then waits on ``get_gate``
@@ -169,6 +198,21 @@ class _Handler(BaseHTTPRequestHandler):
             amz_date = query["X-Amz-Date"]
             access = query["X-Amz-Credential"].split("/")[0]
             given, payload = query["X-Amz-Signature"], UNSIGNED
+            try:
+                issued = datetime.strptime(amz_date, "%Y%m%dT%H%M%SZ").replace(
+                    tzinfo=UTC
+                )
+                ttl = int(query.get("X-Amz-Expires", "0"))
+            except (TypeError, ValueError):
+                self._error(403, "AccessDenied")
+                return False
+            if (
+                self.state.check_presign_expiry
+                and ttl > 0
+                and self.state.clock() > issued + timedelta(seconds=ttl)
+            ):
+                self._error(403, "ExpiredToken")
+                return False
         else:
             auth = headers.get("authorization", "")
             try:
@@ -215,12 +259,24 @@ class _Handler(BaseHTTPRequestHandler):
             self._error(404, "NoSuchKey")
             return
         body = found.body
+        total = len(body)
+        start, end, status = _byte_range(self.headers.get("Range"), total)
+        body = body[start : end + 1]
+        declared = len(body)
         truncated = self.state.truncate_next_get
         if truncated:
             self.state.truncate_next_get = False
             body = body[: len(body) // 2]
-        self.send_response(200)
-        self.send_header("Content-Length", str(len(found.body)))
+        self.send_response(status)
+        self.send_header("Accept-Ranges", "bytes")
+        # Declared length stays full so clients detect a short body (same as
+        # production IncompleteRead / length mismatch).
+        self.send_header("Content-Length", str(declared))
+        if status == 206 and not truncated:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{total}")
+        content_type = self._response_content_type()
+        if content_type:
+            self.send_header("Content-Type", content_type)
         self.end_headers()
         if self.state.gated_get():
             half = len(body) // 2
@@ -231,6 +287,13 @@ class _Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
         if truncated:
             self.close_connection = True
+
+    def _response_content_type(self) -> str | None:
+        parts = urlsplit(self.path)
+        for name, value in parse_qsl(parts.query, keep_blank_values=True):
+            if name == "response-content-type":
+                return value
+        return None
 
     def _put(self, key: str, body: bytes) -> None:
         source = self.headers.get("x-amz-copy-source")

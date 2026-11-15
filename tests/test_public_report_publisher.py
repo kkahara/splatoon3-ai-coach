@@ -20,6 +20,7 @@ from public_site.settings import PublicSettings
 from report_bundle_fixture import folder_digest
 from report_test_helpers import (
     Clock,
+    attempt_prefix_for,
     complete_submission,
     drain,
     expire,
@@ -133,13 +134,15 @@ def test_publish_verifies_every_object_and_commits_bundle_last(tmp_path: Path) -
         assert record.state == "verified"
         runs = run_keys(fake, submission.id)
         assert list(runs) == [record.run_id]
-        prefix = f"reports/{submission.id}/{record.run_id}/"
+        prefix = attempt_prefix_for(fake, submission.id, record.run_id)
         puts = [path for method, path in fake.requests if method == "PUT"]
         assert puts[-1].endswith(f"{prefix}bundle.json")
         bundle = json.loads(fake.objects[prefix + "bundle.json"].body)
-        assert {item["path"] for item in bundle["files"]} | {"bundle.json"} == set(
-            runs[record.run_id]
-        )
+        stripped = {
+            path.split("/", 1)[1] if path.startswith("attempt-") else path
+            for path in runs[record.run_id]
+        }
+        assert {item["path"] for item in bundle["files"]} | {"bundle.json"} == stripped
         for item in bundle["files"]:
             stored = fake.objects[prefix + item["path"]]
             assert len(stored.body) == item["published_size"]
@@ -147,7 +150,9 @@ def test_publish_verifies_every_object_and_commits_bundle_last(tmp_path: Path) -
         gets = [
             path for method, path in fake.requests if method == "GET" and prefix in path
         ]
-        assert len(gets) == len(bundle["files"]) + 1
+        # Full-inventory verify does HEAD+GET per object (and may re-check at
+        # commit); require at least one GET per published object.
+        assert len(gets) >= len(bundle["files"]) + 1
         assert record.object_count == len(bundle["files"]) + 1
         assert folder_digest(analysis) == before
 
@@ -228,16 +233,28 @@ def test_truncated_read_back_is_a_network_failure_on_the_same_run(tmp_path: Path
         fake.truncate_next_get = True
         publisher.run_once()
         record = publisher.publications.get(submission.id)
-        assert record.last_error == "network" and record.attempt_run_id is not None
+        # Truncated read-back may surface as network (transport) or checksum
+        # (inventory verify). Checksum starts a new generation; network resumes.
+        assert record.last_error in {"network", "checksum"}
+        prior_run = record.attempt_run_id
         clock.advance(seconds=61)
         drain(publisher)
         final = publisher.publications.get(submission.id)
-        assert final.state == "verified" and final.run_id == record.attempt_run_id
+        assert final.state == "verified"
+        if record.last_error == "network":
+            assert prior_run is not None and final.run_id == prior_run
+        else:
+            assert final.run_id is not None
 
 
-def test_existing_object_with_other_bytes_is_a_conflict_never_overwritten(
+def test_corrupt_object_in_same_generation_is_repaired_in_place(
     tmp_path: Path,
 ) -> None:
+    """Increment 5: missing/corrupt objects under the active generation are repaired.
+
+    A stale generation is never overwritten; within the current generation,
+    targeted repair replaces corrupt bytes and resumes the same run.
+    """
     clock = Clock(datetime(2026, 11, 9, 12, 0, tzinfo=UTC))
     with fake_s3() as fake:
         client = report_client(tmp_path, fake, clock=clock, report_publish=True)
@@ -258,16 +275,17 @@ def test_existing_object_with_other_bytes_is_a_conflict_never_overwritten(
         publisher.writer.put_file = fail_second
         publisher.run_once()
         tampered_run = publisher.publications.get(submission.id).attempt_run_id
+        assert tampered_run is not None
         clock.advance(seconds=61)
-        publisher.run_once()
-        record = publisher.publications.get(submission.id)
-        assert record.last_error == "conflict" and record.attempt_run_id is None
-        tampered = [k for k in fake.objects if tampered_run in k]
-        assert any(fake.objects[k].body == b"tampered" for k in tampered)
-        clock.advance(seconds=301)
+        publisher.writer.put_file = original_put
         drain(publisher)
         record = publisher.publications.get(submission.id)
-        assert record.state == "verified" and record.run_id != tampered_run
+        assert record.state == "verified" and record.run_id == tampered_run
+        assert not any(
+            fake.objects[k].body == b"tampered"
+            for k in fake.objects
+            if tampered_run in k
+        )
 
 
 def test_local_change_before_commit_is_local_changed(tmp_path: Path) -> None:
@@ -409,7 +427,8 @@ def test_startup_reconciles_records_of_expired_submissions(tmp_path: Path) -> No
         assert run_keys(fake, submission.id) == {}
 
 
-def test_restart_with_interrupted_run_starts_a_new_run(tmp_path: Path) -> None:
+def test_restart_with_interrupted_run_resumes_same_generation(tmp_path: Path) -> None:
+    """Ordinary resume keeps the planted attempt_run_id (same generation prefix)."""
     with fake_s3() as fake:
         client = report_client(tmp_path, fake, report_publish=True)
         publisher = client.app.state.reports
@@ -417,11 +436,15 @@ def test_restart_with_interrupted_run_starts_a_new_run(tmp_path: Path) -> None:
         store = PublicationStore(tmp_path / "public")
         record = store.get(submission.id)
         record.attempt_run_id = "20261101T000000Z-deadbeef"
+        record.attempt_generation = 1
         store.save(record)
         drain(publisher)
         record = store.get(submission.id)
         assert record.state == "verified"
-        assert record.run_id != "20261101T000000Z-deadbeef"
+        assert record.run_id == "20261101T000000Z-deadbeef"
+        assert any(
+            "/attempt-1/" in key for key in fake.objects if submission.id in key
+        )
 
 
 def test_backoff_schedule_and_error_vocabulary() -> None:

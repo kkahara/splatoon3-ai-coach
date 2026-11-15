@@ -86,6 +86,9 @@ class VideoInput(BaseModel):
     height: int | None = None
     upload_state: UploadState = "pending"
     sha256: str | None = None
+    # When the outstanding browser PUT URL expires (UTC). Used for source
+    # cleanup settle; never a publication readiness gate.
+    upload_expires_at: str | None = None
 
 
 class ReviewCodeInput(BaseModel):
@@ -104,6 +107,15 @@ class PresignedUpload(BaseModel):
     method: str = "PUT"
     headers: dict[str, str] = Field(default_factory=dict)
     expires_at: str
+
+
+class PresignedDownload(BaseModel):
+    """Browser GET target for a private object. Credentials are not included."""
+
+    url: str
+    method: str = "GET"
+    expires_at: str
+    content_type: str | None = None
 
 
 class CreateSubmissionResponse(BaseModel):

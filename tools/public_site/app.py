@@ -31,6 +31,7 @@ from public_site.recording_routes import register_recording_routes
 from public_site.recording_service import RecordingService
 from public_site.recording_store import RecordingStore
 from public_site.report_publisher import build_report_publisher
+from public_site.report_store import ReportStore
 from public_site.service import SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
@@ -235,6 +236,7 @@ def create_app(
     checkout: CheckoutGateway | None = None,
     capacities: WorkerCapacityStore | None = None,
     report_storage: LocalStorage | R2Storage | None = None,
+    report_store: ReportStore | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
@@ -260,6 +262,9 @@ def create_app(
     if capacities is None and settings.database_url:
         capacities = WorkerCapacityStore(settings.database_url)
         capacities.ensure_schema()
+    if report_store is None and settings.database_url:
+        report_store = ReportStore(settings.database_url)
+        report_store.ensure_schema()
     if checkout is None and settings.stripe_secret_key:
         checkout = StripeCheckout(settings.stripe_secret_key)
     if translator is None:
@@ -286,7 +291,10 @@ def create_app(
         )
         service.recordings = RecordingService(service, recording_store)
         _prepare_canary(service.recordings)
-    service.reports = build_report_publisher(settings, store, service, report_storage)
+    service.report_store = report_store
+    service.reports = build_report_publisher(
+        settings, store, service, report_storage, report_store=report_store
+    )
     if service.reports is not None and start_worker:
         service.reports.start()
     worker = PublicWorker(
@@ -305,6 +313,7 @@ def create_app(
     app.state.service = service
     app.state.worker = worker
     app.state.reports = service.reports
+    app.state.report_store = report_store
     app.state.accounts = accounts
     app.state.telemetry = telemetry
     app.state.payments = payments
@@ -406,6 +415,7 @@ def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
     problem = settings.storage_problem()
     if problem is not None:
         raise ValueError(problem)
+    media_ttl = settings.media_url_seconds or settings.upload_url_seconds
     if settings.storage == "r2":
         return R2Storage(
             account_id=settings.r2_account_id,
@@ -413,9 +423,14 @@ def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
             secret_access_key=settings.r2_secret_access_key,
             bucket=settings.r2_bucket,
             url_seconds=settings.upload_url_seconds,
+            media_url_seconds=media_ttl,
             cache_dir=settings.root / "cache",
         )
-    return LocalStorage(settings.root, url_seconds=settings.upload_url_seconds)
+    return LocalStorage(
+        settings.root,
+        url_seconds=settings.upload_url_seconds,
+        media_url_seconds=media_ttl,
+    )
 
 
 def _routes(
@@ -430,6 +445,14 @@ def _routes(
     payments,
     checkout,
 ) -> None:
+    @app.get("/api/healthz")
+    def get_healthz() -> dict:
+        """Liveness always; readiness fails closed on settings invariants."""
+        problem = settings.readiness_problem()
+        if problem is not None:
+            raise HTTPException(status_code=503, detail=problem)
+        return {"status": "ok"}
+
     @app.get("/api/config")
     def get_config(request: Request) -> dict:
         return _public_config(request, settings, accounts, payments).model_dump()
@@ -1010,8 +1033,17 @@ def _history_items(
             owned.append(submission)
     statuses = service.display_statuses(owned)
     items = []
+    history = {}
+    if service.report_store is not None:
+        history = service.report_store.history_fields([s.id for s in owned])
     for submission in owned:
-        mode_id, stage_id = match_identity(submission.analysis_dir)
+        fields = history.get(submission.id)
+        if fields is not None:
+            mode_id, stage_id = fields.battle_mode_id, fields.stage_id
+            moments = fields.moment_count
+        else:
+            mode_id, stage_id = match_identity(submission.analysis_dir)
+            moments = moment_count(submission)
         items.append(
             HistoryItem(
                 id=submission.id,
@@ -1024,7 +1056,7 @@ def _history_items(
                 outcome=submission.outcome,
                 battle_mode_id=mode_id,
                 stage_id=stage_id,
-                moment_count=moment_count(submission),
+                moment_count=moments,
             ).model_dump()
         )
     return items

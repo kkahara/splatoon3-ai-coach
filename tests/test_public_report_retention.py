@@ -29,13 +29,20 @@ from splatoon3_ai_coach.cli.app import app as cli_app
 FLAGS = {"report_publish": True, "report_expiry_delete": True}
 
 
+def _run_prefix(fake: FakeS3, submission_id: str, run_id: str) -> str:
+    from report_test_helpers import attempt_prefix_for
+
+    return attempt_prefix_for(fake, submission_id, run_id)
+
+
 def _published_analysis_id(fake: FakeS3, submission_id: str, run_id: str) -> str:
-    key = f"reports/{submission_id}/{run_id}/coach_inputs/coaching_index.json"
+    key = _run_prefix(fake, submission_id, run_id) + "coach_inputs/coaching_index.json"
     return json.loads(fake.objects[key].body)["analysis_id"]
 
 
 def _bundle(fake: FakeS3, submission_id: str, run_id: str) -> dict:
-    return json.loads(fake.objects[f"reports/{submission_id}/{run_id}/bundle.json"].body)
+    key = _run_prefix(fake, submission_id, run_id) + "bundle.json"
+    return json.loads(fake.objects[key].body)
 
 
 def _two_runs(tmp_path: Path, fake: FakeS3, monkeypatch, **flags):
@@ -73,7 +80,9 @@ def _two_runs(tmp_path: Path, fake: FakeS3, monkeypatch, **flags):
         fake, s.id, run_b
     )
     assert set(run_keys(fake, s.id)) == {run_a, run_b}
-    assert "bundle.json" in run_keys(fake, s.id)[run_a]
+    assert any(
+        path.endswith("bundle.json") for path in run_keys(fake, s.id)[run_a]
+    )
     assert "DELETE" not in methods(fake)
     return client, s, t, run_a, run_b
 

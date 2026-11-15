@@ -54,8 +54,14 @@ class RunGroup:
 
     @property
     def committed(self) -> bool:
-        """True when the run's ``bundle.json`` exists."""
-        return any(item.key == self.prefix + BUNDLE_NAME for item in self.objects)
+        """True when any generation under the run has ``bundle.json``."""
+        # Legacy: reports/<id>/<run>/bundle.json
+        # Fenced: reports/<id>/<run>/attempt-<n>/bundle.json
+        return any(
+            item.key == self.prefix + BUNDLE_NAME
+            or item.key.endswith("/" + BUNDLE_NAME)
+            for item in self.objects
+        )
 
     @property
     def size_bytes(self) -> int:

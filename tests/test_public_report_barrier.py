@@ -83,8 +83,11 @@ class _Child:
         self.errors = tmp_path / "publisher.err"
         env = {k: v for k, v in os.environ.items() if not k.startswith("PUBLIC_")}
         env["PUBLIC_LOAD_DOTENV"] = "0"
+        # Prefer the same ``splatoon3_ai_coach`` import as the parent pytest
+        # process (editable install). Putting worktree ``src`` first desyncs
+        # CoachingIndex schema from indexes the parent fixture just wrote.
         env["PYTHONPATH"] = os.pathsep.join(
-            str(TESTS.parent / name) for name in ("src", "tools", "tests")
+            str(TESTS.parent / name) for name in ("tools", "tests")
         )
         fake.put_gate = threading.Event()
         fake.put_gate_after = after
@@ -171,7 +174,10 @@ def test_expiry_deletion_and_sweep_wait_for_an_in_flight_publication(
 
         child.release()
         assert _puts(fake, submission.id) == puts_in_flight
-        assert "bundle.json" not in next(iter(run_keys(fake, submission.id).values()))
+        assert not any(
+            path.endswith("bundle.json")
+            for path in next(iter(run_keys(fake, submission.id).values()))
+        )
         clock.advance(minutes=2)
         drain(publisher)
         assert run_keys(fake, submission.id) == {}
