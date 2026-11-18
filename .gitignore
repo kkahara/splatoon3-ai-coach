@@ -251,3 +251,6 @@ training/datasets/**
 
 ./NOTES
 NOTES
+
+# Written by the image build only (Dockerfile, from GIT_SHA).
+src/splatoon3_ai_coach/BUILD_COMMIT

@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { AccountBar } from "../AccountBar.jsx";
-import { loadAccount } from "../api.js";
+import { loadAccount, loadConfig } from "../api.js";
 
 export function AdminLayout() {
   const [account, setAccount] = useState(undefined);
+  const [recordingsEnabled, setRecordingsEnabled] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let stopped = false;
+    loadConfig().then((config) => { if (!stopped) setRecordingsEnabled(config.review_codes_enabled); }).catch(() => {});
     loadAccount()
       .then((next) => {
         if (!stopped) {
@@ -48,6 +50,7 @@ export function AdminLayout() {
             <NavLink to="/admin/llm">LLM</NavLink>
             <NavLink to="/admin/product">Product</NavLink>
             <NavLink to="/admin/failures">Failures</NavLink>
+            {recordingsEnabled ? <NavLink to="/admin/recordings">Recordings</NavLink> : null}
             <NavLink to="/admin/requests">Requests</NavLink>
             <NavLink to="/admin/users">Users</NavLink>
           </nav>

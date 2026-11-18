@@ -242,13 +242,59 @@ def localize_line(text: str, locale: str) -> str:
 def localize_result(
     result: PublicSubmissionResult,
     locale: str,
-    analysis_dir: Path,
+    analysis_dir: Path | None,
     translator: Translator | None,
+    *,
+    seed_cache: dict[str, dict[str, str]] | None = None,
 ) -> PublicSubmissionResult:
-    """Return ``result`` for display in ``locale``. English input is never modified."""
+    """Return ``result`` for display in ``locale``. English input is never modified.
+
+    ``analysis_dir`` may be None when serving from PostgreSQL after local cleanup;
+    translations then use ``seed_cache`` (and optionally the translator) without
+    writing a disk cache.
+    """
     if locale != "ja":
         return result
-    translations = _translate_assessments(result.moments, analysis_dir, translator)
+    translations = _translate_assessments(
+        result.moments, analysis_dir, translator, seed_cache=seed_cache
+    )
+    moments = [_localize_moment(moment, translations) for moment in result.moments]
+    return result.model_copy(update={"moments": moments})
+
+
+def extract_localized_cache(
+    english: PublicSubmissionResult, localized: PublicSubmissionResult
+) -> dict[str, dict[str, str]]:
+    """Build a PostgreSQL ``localized_cache`` fragment from an EN/JA pair."""
+    entries: dict[str, dict[str, str]] = {}
+    for before, after in zip(english.moments, localized.moments, strict=False):
+        if before.assessment and after.assessment and after.assessment_locale == "ja":
+            entries[_key(before.assessment)] = {
+                "en": before.assessment,
+                "ja": after.assessment,
+            }
+        for src, dst in zip(
+            before.recommendations, after.recommendations, strict=False
+        ):
+            if src and dst and after.recommendations_locale == "ja":
+                entries[_key(src)] = {"en": src, "ja": dst}
+    return entries
+
+
+def apply_localized_cache(
+    result: PublicSubmissionResult, cache: dict[str, object]
+) -> PublicSubmissionResult:
+    """Apply a previously stored JA cache without calling the translator."""
+    raw_entries = cache.get("entries") if isinstance(cache.get("entries"), dict) else cache
+    translations: dict[str, str] = {}
+    if isinstance(raw_entries, dict):
+        for value in raw_entries.values():
+            if (
+                isinstance(value, dict)
+                and isinstance(value.get("en"), str)
+                and isinstance(value.get("ja"), str)
+            ):
+                translations[value["en"]] = value["ja"]
     moments = [_localize_moment(moment, translations) for moment in result.moments]
     return result.model_copy(update={"moments": moments})
 
@@ -341,14 +387,23 @@ def _legacy_line(text: str | None) -> str | None:
 
 
 def _translate_assessments(
-    moments: list[CoachingMoment], analysis_dir: Path, translator: Translator | None
+    moments: list[CoachingMoment],
+    analysis_dir: Path | None,
+    translator: Translator | None,
+    *,
+    seed_cache: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, str]:
     """English paragraph -> Japanese. Failed paragraphs are simply absent.
 
-    Serialized per review so overlapping requests reuse one translation.
+    Serialized per review so overlapping requests reuse one translation when a
+    local analysis directory still exists.
     """
+    if analysis_dir is None:
+        return _translate_locked(moments, None, translator, seed_cache=seed_cache)
     with _review_lock(analysis_dir):
-        return _translate_locked(moments, analysis_dir, translator)
+        return _translate_locked(
+            moments, analysis_dir, translator, seed_cache=seed_cache
+        )
 
 
 def _review_lock(analysis_dir: Path) -> threading.Lock:
@@ -358,11 +413,17 @@ def _review_lock(analysis_dir: Path) -> threading.Lock:
 
 
 def _translate_locked(
-    moments: list[CoachingMoment], analysis_dir: Path, translator: Translator | None
+    moments: list[CoachingMoment],
+    analysis_dir: Path | None,
+    translator: Translator | None,
+    *,
+    seed_cache: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, str]:
     found: dict[str, str] = {}
     pending: list[str] = []
-    cache = _read_cache(analysis_dir)
+    cache = dict(seed_cache or {})
+    if analysis_dir is not None:
+        cache.update(_read_cache(analysis_dir))
     texts = [
         text
         for moment in moments
@@ -386,7 +447,7 @@ def _translate_locked(
             if _faithful(english, japanese)
         }
         found.update(fresh)
-        if fresh:
+        if fresh and analysis_dir is not None:
             _write_cache(analysis_dir, fresh)
     return found
 

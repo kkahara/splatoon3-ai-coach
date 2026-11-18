@@ -14,11 +14,18 @@ from urllib.parse import urlsplit, urlunsplit
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from psycopg import sql
 from public_site.accounts import AccountStore
 from public_site.app import SESSION_COOKIE, create_app
-from public_site.errors import PAYMENT_UNAVAILABLE, PROBE_DURATION
+from public_site.errors import (
+    PAYMENT_UNAVAILABLE,
+    PROBE_DURATION,
+    RATE_LIMIT,
+    RequestRejected,
+)
 from public_site.media_probe import ProbeFacts, ProbeRejected
-from public_site.payments import PaymentStore
+from public_site.payments import PaymentStore, PriceQuote
+from public_site.recording_store import RecordingStore
 from public_site.settings import PublicSettings
 from public_site.stripe_checkout import (
     CheckoutEvent,
@@ -115,6 +122,23 @@ class FakeCheckout:
 
     def expire(self, session_id: str) -> None:
         self.sessions[session_id] = replace(self.sessions[session_id], status="expired")
+
+    def expire_session(self, session_id: str) -> CheckoutSession:
+        """Like Stripe: only an open session can be expired."""
+        self.expire_calls = getattr(self, "expire_calls", 0) + 1
+        if self.sessions[session_id].status != "open":
+            raise RuntimeError("session is not open")
+        self.expire(session_id)
+        return self.sessions[session_id]
+
+    def pay(self, session_id: str, intent: str = "pi_test") -> None:
+        """The customer completes payment at Stripe."""
+        self.sessions[session_id] = replace(
+            self.sessions[session_id],
+            status="complete",
+            payment_status="paid",
+            payment_intent_id=intent,
+        )
 
 
 def _probe_ok(_path: Path) -> ProbeFacts:
@@ -245,7 +269,8 @@ def test_admin_can_change_the_account_upload_limit(
     assert current.json()["account_uploads_per_hour"] == 5
     saved = client.put("/api/admin/upload-limit", json={"account_uploads_per_hour": 8})
     assert saved.status_code == 200
-    assert saved.json() == {"account_uploads_per_hour": 8}
+    assert saved.json()["account_uploads_per_hour"] == 8
+    assert saved.json()["account_uploads_per_hour_source"] == "saved"
     assert payments.account_upload_limit() == 8
     priced = client.put("/api/admin/price", json={"price_cents": 200})
     assert priced.status_code == 200
@@ -261,6 +286,182 @@ def test_admin_can_change_the_account_upload_limit(
         assert bad.status_code == 422
     assert payments.account_upload_limit() == 8
     accounts.clear()
+
+
+def _admin_client(tmp_path: Path, payments: PaymentStore) -> TestClient:
+    accounts = AccountStore(payments.database_url)
+    accounts.ensure_schema()
+    accounts.clear()
+    client = _client(tmp_path, payments, FakeCheckout(), accounts=accounts)
+    client.cookies.set(SESSION_COOKIE, _admin_session(accounts))
+    return client
+
+
+def _limits(response) -> dict:
+    assert response.status_code == 200, response.text
+    body = response.json()
+    return {
+        name: (body[f"{name}_uploads_per_hour"], body[f"{name}_uploads_per_hour_source"])
+        for name in ("account", "guest", "network")
+    }
+
+
+def test_guest_and_network_limits_start_from_the_environment(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    client = _admin_client(tmp_path, payments)
+    assert _limits(client.get("/api/admin/price")) == {
+        "account": (5, "saved"),
+        "guest": (2, "environment"),
+        "network": (6, "environment"),
+    }
+
+
+def test_partial_limit_updates_leave_the_other_limits_alone(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    client = _admin_client(tmp_path, payments)
+    both = client.put(
+        "/api/admin/upload-limit",
+        json={"account_uploads_per_hour": 10, "network_uploads_per_hour": 7},
+    )
+    assert _limits(both) == {
+        "account": (10, "saved"),
+        "guest": (2, "environment"),
+        "network": (7, "saved"),
+    }
+    guest = client.put("/api/admin/upload-limit", json={"guest_uploads_per_hour": 9})
+    assert _limits(guest) == {
+        "account": (10, "saved"),
+        "guest": (9, "saved"),
+        "network": (7, "saved"),
+    }
+    network = client.put("/api/admin/upload-limit", json={"network_uploads_per_hour": 20})
+    assert _limits(network)["account"] == (10, "saved")
+    assert _limits(network)["guest"] == (9, "saved")
+    assert _limits(client.get("/api/admin/price"))["network"] == (20, "saved")
+
+
+def test_explicit_null_restores_only_that_environment_default(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    client = _admin_client(tmp_path, payments)
+    client.put(
+        "/api/admin/upload-limit",
+        json={
+            "account_uploads_per_hour": 10,
+            "guest_uploads_per_hour": 9,
+            "network_uploads_per_hour": 8,
+        },
+    )
+    reset = client.put("/api/admin/upload-limit", json={"guest_uploads_per_hour": None})
+    assert _limits(reset) == {
+        "account": (10, "saved"),
+        "guest": (2, "environment"),
+        "network": (8, "saved"),
+    }
+    assert payments.upload_limits().guest is None
+    assert payments.upload_limits().network == 8
+    reset = client.put("/api/admin/upload-limit", json={"network_uploads_per_hour": None})
+    assert _limits(reset)["network"] == (6, "environment")
+    assert _limits(reset)["account"] == (10, "saved")
+
+
+def test_bad_limit_requests_save_nothing(tmp_path: Path, payments: PaymentStore) -> None:
+    client = _admin_client(tmp_path, payments)
+    client.put("/api/admin/upload-limit", json={"guest_uploads_per_hour": 9})
+    before = payments.upload_limits()
+    bodies = [
+        {},
+        {"unrelated": 3},
+        {"account_uploads_per_hour": None},
+        {"guest_uploads_per_hour": 0},
+        {"network_uploads_per_hour": 101},
+        {"guest_uploads_per_hour": 3.5},
+        {"network_uploads_per_hour": "7"},
+        {"guest_uploads_per_hour": True},
+        {"guest_uploads_per_hour": 4, "network_uploads_per_hour": 0},
+    ]
+    for body in bodies:
+        response = client.put("/api/admin/upload-limit", json=body)
+        assert response.status_code == 422, body
+    assert payments.upload_limits() == before
+
+
+def test_store_refuses_bad_limits_before_writing(payments: PaymentStore) -> None:
+    payments.set_upload_limits(guest=9)
+    for kwargs in (
+        {"account": None},
+        {"guest": 0},
+        {"network": 101},
+        {"guest": True},
+        {"network": 4, "guest": 200},
+        {},
+    ):
+        with pytest.raises(ValueError):
+            payments.set_upload_limits(**kwargs)
+    assert payments.upload_limits().guest == 9
+    assert payments.upload_limits().network is None
+
+
+def test_limit_schema_is_idempotent_and_keeps_saved_limits(
+    payments: PaymentStore,
+) -> None:
+    payments.set_upload_limits(account=11, guest=12, network=13)
+    payments.ensure_schema()
+    payments.ensure_schema()
+    saved = payments.upload_limits()
+    assert (saved.account, saved.guest, saved.network) == (11, 12, 13)
+
+
+def _service_create(client: TestClient, ip: str, user_id: str | None) -> None:
+    client.app.state.service.create(
+        turnstile_token="ok",
+        filename="match.mp4",
+        size_bytes=8,
+        content_type="video/mp4",
+        email=None,
+        notify=False,
+        display_name=None,
+        ip=ip,
+        verifier=lambda token: token == "ok",
+        user_id=user_id,
+    )
+
+
+def _limited(client: TestClient, ip: str, user_id: str | None) -> str:
+    with pytest.raises(RequestRejected) as excinfo:
+        _service_create(client, ip, user_id)
+    assert excinfo.value.status_code == 429
+    return excinfo.value.detail
+
+
+@pytest.mark.parametrize("seventh", [None, "account-7"])
+def test_saved_network_limit_applies_across_guests_and_accounts(
+    tmp_path: Path, payments: PaymentStore, seventh: str | None
+) -> None:
+    payments.set_price(199)
+    payments.set_upload_limits(account=10, guest=10, network=6)
+    client = _client(tmp_path, payments, FakeCheckout())
+    ip = "203.0.113.50"
+    for user_id in (None, None, None, "account-a", "account-a", "account-b"):
+        _service_create(client, ip, user_id)
+    assert _limited(client, ip, seventh) == RATE_LIMIT
+    _service_create(client, "198.51.100.50", seventh)
+
+
+def test_saved_guest_limit_is_enforced_and_null_falls_back(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(199)
+    payments.set_upload_limits(guest=1, network=50)
+    client = _client(tmp_path, payments, FakeCheckout())
+    _service_create(client, "203.0.113.60", None)
+    assert _limited(client, "203.0.113.60", None) == RATE_LIMIT
+    payments.set_upload_limits(guest=None)
+    _service_create(client, "203.0.113.61", None)
+    _service_create(client, "203.0.113.61", None)
+    assert _limited(client, "203.0.113.61", None) == RATE_LIMIT
 
 
 def test_guest_is_refused_until_a_price_exists(
@@ -449,6 +650,63 @@ def test_tax_added_by_stripe_still_counts_as_paid(
     assert client.app.state.store.get(submission.id).status == "queued"
 
 
+def _payment_events(payments: PaymentStore, submission_id: str) -> int:
+    with payments._conn() as conn:
+        return conn.execute(
+            """SELECT count(*) AS n FROM price_events
+               WHERE submission_id = %s AND kind = 'payment_completed'""",
+            (submission_id,),
+        ).fetchone()["n"]
+
+
+def test_checkout_records_a_session_stripe_shows_paid_without_a_webhook(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(199)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.post(f"/api/submissions/{token}/checkout")
+    session = checkout.created[0]
+    checkout.pay(session.id)
+    for _ in range(2):
+        again = client.post(f"/api/submissions/{token}/checkout")
+        assert again.status_code == 200, again.text
+        assert again.json() == {"url": None, "paid": True, "pending": False}
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "paid"
+    assert client.app.state.store.get(submission.id).status == "queued"
+    assert _payment_events(payments, submission.id) == 1
+    late = _webhook(client, _event(checkout.sessions[session.id]))
+    assert late.status_code == 200 and late.json()["result"] == "paid"
+    assert _payment_events(payments, submission.id) == 1
+    assert len(checkout.created) == 1
+
+
+def test_checkout_leaves_a_paid_session_with_a_wrong_amount_pending(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    payments.set_price(199)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    client.post(f"/api/submissions/{token}/checkout")
+    session = checkout.created[0]
+    checkout.sessions[session.id] = replace(session, amount_subtotal=99, amount_total=99)
+    checkout.pay(session.id)
+    again = client.post(f"/api/submissions/{token}/checkout")
+    assert again.status_code == 200, again.text
+    assert again.json() == {"url": None, "paid": False, "pending": True}
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "checkout_created"
+    assert _payment_events(payments, submission.id) == 0
+    assert client.app.state.store.get(submission.id).status != "queued"
+
+
 def test_upload_and_payment_queue_exactly_once(payments: PaymentStore) -> None:
     payments.set_price(199)
     quote = payments.quote(admin=False)
@@ -456,7 +714,9 @@ def test_upload_and_payment_queue_exactly_once(payments: PaymentStore) -> None:
     payments.open_gate(submission_id, quote, datetime.now(UTC) + timedelta(hours=24))
     attempt = payments.claim_checkout(submission_id, None)
     assert attempt is not None
-    assert payments.attach_session(submission_id, attempt, "cs_race", "https://pay.example/race")
+    assert payments.attach_session(
+        submission_id, attempt, "cs_race", "https://pay.example/race"
+    )
     barrier = threading.Barrier(2)
     wins: list[bool] = []
 
@@ -709,3 +969,279 @@ def test_same_price_does_not_bump_the_version(payments: PaymentStore) -> None:
     assert first.pricing_version == 1
     assert second.pricing_version == 1
     assert third.pricing_version == 2
+
+
+def test_review_schema_is_gated_and_base_payment_flow_needs_no_acquisition_tables() -> (
+    None
+):
+    """Payment startup stays on the legacy schema until review is enabled."""
+    base_url = _database_url()
+    parts = urlsplit(base_url)
+    admin_url = urlunsplit((parts.scheme, parts.netloc, "/postgres", parts.query, ""))
+    name = f"coach_test_review_gate_{uuid.uuid4().hex}"
+    isolated_url = urlunsplit((parts.scheme, parts.netloc, f"/{name}", parts.query, ""))
+    with psycopg.connect(admin_url, autocommit=True) as conn:
+        conn.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
+    try:
+        payments = PaymentStore(isolated_url)
+        payments.ensure_schema()
+        assert not payments.source_column_available
+        with payments._conn() as conn:
+            assert not conn.execute(
+                """SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = current_schema()
+                     AND table_name = 'submission_gates'
+                     AND column_name = 'source') AS present"""
+            ).fetchone()["present"]
+            assert not conn.execute(
+                "SELECT to_regclass('review_code_acquisitions') IS NOT NULL AS present"
+            ).fetchone()["present"]
+        with pytest.raises(RuntimeError, match="Review-code schema is missing"):
+            payments.refresh_source_schema(required=True)
+
+        quote = PriceQuote(199, "usd", 1, "unpaid")
+        video_id = uuid.uuid4().hex
+        payments.open_gate(video_id, quote, datetime.now(UTC) + timedelta(hours=1))
+        attempt = payments.claim_checkout(video_id, None)
+        assert attempt is not None
+        assert payments.attach_session(video_id, attempt, "cs_legacy", "https://pay.test")
+        assert (
+            payments.apply_paid(
+                submission_id=video_id,
+                session_id="cs_legacy",
+                amount_subtotal=199,
+                amount_total=199,
+                currency="usd",
+                payment_intent_id="pi_legacy",
+            )
+            == "paid"
+        )
+        assert payments.mark_uploaded(video_id)
+        assert payments.try_queue(video_id)
+
+        recordings = RecordingStore(payments)
+        recordings.ensure_schema(30, 365)
+        recordings.ensure_schema(30, 365)
+        assert payments.source_column_available
+        with payments._conn() as conn:
+            sources = conn.execute(
+                "SELECT submission_id, source FROM submission_gates "
+                "ORDER BY submission_id"
+            ).fetchall()
+        assert {row["submission_id"]: row["source"] for row in sources} == {
+            video_id: "upload"
+        }
+        review_id = uuid.uuid4().hex
+        payments.open_gate(
+            review_id,
+            quote,
+            datetime.now(UTC) + timedelta(hours=1),
+            source="nintendo_review_code",
+        )
+        with payments._conn() as conn:
+            assert (
+                conn.execute(
+                    "SELECT source FROM submission_gates WHERE submission_id = %s",
+                    (review_id,),
+                ).fetchone()["source"]
+                == "nintendo_review_code"
+            )
+    finally:
+        with psycopg.connect(admin_url, autocommit=True) as conn:
+            conn.execute(
+                sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(
+                    sql.Identifier(name)
+                )
+            )
+
+
+def _open_checkout(tmp_path: Path, payments: PaymentStore, checkout: FakeCheckout):
+    payments.set_price(199)
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    opened = client.post(f"/api/submissions/{token}/checkout")
+    assert opened.status_code == 200, opened.text
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "checkout_created"
+    return client, token, submission, checkout.created[0]
+
+
+def test_reconcile_marks_paid_when_stripe_session_is_complete(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+    checkout.pay(session.id)
+    reconciled = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert reconciled.status_code == 200, reconciled.text
+    assert reconciled.json()["payment_state"] == "paid"
+    assert reconciled.json()["status"] == "queued"
+    assert payments.get(submission.id).payment_state == "paid"
+    again = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert again.status_code == 200
+    assert again.json()["payment_state"] == "paid"
+    assert again.json()["status"] == "queued"
+
+
+def test_reconcile_and_webhook_are_idempotent_under_concurrency(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+    checkout.pay(session.id)
+    service = client.app.state.service
+    results: list[str] = []
+    errors: list[BaseException] = []
+    barrier = threading.Barrier(3)
+
+    def reconcile() -> None:
+        try:
+            barrier.wait(timeout=5)
+            view = service.reconcile_checkout_for_token(token)
+            results.append(view.payment_state)
+        except BaseException as exc:  # noqa: BLE001 - collect for assertion
+            errors.append(exc)
+
+    def webhook() -> None:
+        try:
+            barrier.wait(timeout=5)
+            event = CheckoutEvent(
+                type="checkout.session.completed",
+                session=checkout.sessions[session.id],
+            )
+            results.append(service.apply_webhook(event))
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [
+        threading.Thread(target=reconcile),
+        threading.Thread(target=reconcile),
+        threading.Thread(target=webhook),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert errors == []
+    assert payments.get(submission.id).payment_state == "paid"
+    assert client.app.state.store.get(submission.id).status == "queued"
+    assert results.count("paid") >= 1
+
+
+def test_reconcile_leaves_gate_unchanged_when_stripe_retrieve_fails(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    from public_site.stripe_checkout import CheckoutRequestError
+
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+
+    def boom(_session_id: str):
+        raise CheckoutRequestError("timeout")
+
+    checkout.retrieve_session = boom  # type: ignore[method-assign]
+    reconciled = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert reconciled.status_code == 200, reconciled.text
+    assert reconciled.json()["payment_state"] == "checkout_created"
+    assert payments.get(submission.id).checkout_session_id == session.id
+    assert payments.get(submission.id).payment_state == "checkout_created"
+
+
+def test_reconcile_recovers_queue_after_paid_transition(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+    checkout.pay(session.id)
+    service = client.app.state.service
+    calls = {"n": 0}
+    original = service.attempt_queue
+
+    def flaky(submission_obj, token_value: str):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("probe temporarily unavailable")
+        return original(submission_obj, token_value)
+
+    service.attempt_queue = flaky  # type: ignore[method-assign]
+    first = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert first.status_code == 200
+    assert first.json()["payment_state"] == "paid"
+    assert first.json()["status"] == "received"
+    assert payments.get(submission.id).payment_state == "paid"
+
+    second = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert second.status_code == 200
+    assert second.json()["payment_state"] == "paid"
+    assert second.json()["status"] == "queued"
+
+
+def test_stale_checkout_session_cannot_pay_after_replacement(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, first_session = _open_checkout(tmp_path, payments, checkout)
+    checkout.expire(first_session.id)
+    replaced = client.post(f"/api/submissions/{token}/checkout")
+    assert replaced.status_code == 200
+    current = checkout.created[1]
+    checkout.pay(first_session.id)
+    stale = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert stale.status_code == 200
+    assert stale.json()["payment_state"] == "checkout_created"
+    assert payments.get(submission.id).checkout_session_id == current.id
+
+    checkout.pay(current.id)
+    paid = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert paid.json()["payment_state"] == "paid"
+
+
+def test_owned_reconcile_payment_requires_session_and_marks_paid(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    accounts = AccountStore(payments.database_url)
+    accounts.ensure_schema()
+    accounts.clear()
+    payments.set_price(199)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout, accounts=accounts)
+    now = datetime.now(UTC)
+    verify = accounts.register(
+        name="Ada", email="ada@example.com", password=_PASSWORD, now=now
+    )
+    _account, session = accounts.verify(verify, now)
+    client.cookies.set(SESSION_COOKIE, session)
+
+    created = client.post(
+        "/api/submissions",
+        json={
+            "turnstile_token": "ok",
+            "filename": "match.mp4",
+            "size_bytes": 8,
+            "content_type": "video/mp4",
+            "language": "en",
+        },
+    )
+    assert created.status_code == 200, created.text
+    body = created.json()
+    token = _put(client, body)
+    uploaded = client.post(f"/api/submissions/{token}/uploaded")
+    assert uploaded.status_code == 200
+    submission = client.app.state.store.get_by_hash(hash_token(token))
+    assert submission is not None and submission.user_id is not None
+
+    opened = client.post(f"/api/me/submissions/{submission.id}/checkout")
+    assert opened.status_code == 200, opened.text
+    checkout.pay(checkout.created[0].id)
+
+    anonymous = TestClient(client.app)
+    denied = anonymous.post(f"/api/me/submissions/{submission.id}/reconcile-payment")
+    assert denied.status_code == 401
+
+    paid = client.post(f"/api/me/submissions/{submission.id}/reconcile-payment")
+    assert paid.status_code == 200, paid.text
+    assert paid.json()["payment_state"] == "paid"
+    accounts.clear()
+

@@ -177,6 +177,17 @@ label {
   gap: 0.3rem;
 }
 
+.label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.label-row button.linkish {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
 .check {
   display: flex;
   gap: 0.6rem;
@@ -274,6 +285,18 @@ button:disabled {
 
 .error {
   color: #f0a8a8;
+}
+
+.notice-callout {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(32 231 255 / 35%);
+  border-radius: 0.5rem;
+  background: rgb(32 231 255 / 8%);
+}
+
+.notice-callout p {
+  margin: 0.35rem 0;
 }
 
 .notice.stale {
@@ -588,6 +611,15 @@ details summary {
 
 .admin-table tbody tr:last-child td {
   border-bottom: 0;
+}
+
+.admin-table tbody tr.clickable {
+  cursor: pointer;
+}
+
+.admin-table tbody tr.clickable:hover td,
+.admin-table tbody tr.clickable:focus-visible td {
+  background: rgba(198, 161, 91, 0.12);
 }
 
 .admin-table a,
@@ -1432,6 +1464,38 @@ dialog.share-panel {
   border-top-color: var(--s3-yellow);
 }
 
+.admin-details.job-facts {
+  margin: 1rem 0;
+  border-radius: 0.85rem;
+  background: var(--s3-surface-raised);
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.status-line .spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+.done-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--s3-yellow);
+  color: var(--s3-void);
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
 .admin-volume span {
   background: var(--s3-yellow);
 }
@@ -1446,6 +1510,39 @@ dialog.share-panel {
 
 .admin-volume span:nth-child(4n + 4) {
   background: var(--s3-pink);
+}
+
+.method-tabs {
+  display: flex;
+  gap: 0.35rem;
+  border-bottom: 2px solid var(--s3-yellow);
+}
+
+.method-tabs button {
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--s3-border);
+  border-bottom: 0;
+  border-radius: 0.6rem 0.6rem 0 0;
+  background: var(--s3-surface);
+  color: var(--s3-muted);
+}
+
+.method-tabs button:hover {
+  background: var(--s3-surface-raised);
+  color: var(--s3-text);
+}
+
+.method-tabs button[aria-selected="true"] {
+  border-color: var(--s3-yellow);
+  background: var(--s3-yellow);
+  color: var(--s3-void);
+}
+
+.method-tabs ~ .upload-card {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 @media (max-width: 640px) {

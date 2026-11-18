@@ -47,6 +47,14 @@ def copy_lifecycle(source: Submission, target: Submission) -> None:
         setattr(target, name, getattr(source, name))
 
 
+def _claimable(item: Submission, admit: Callable[[Submission], bool] | None) -> bool:
+    if item.status != "queued":
+        return False
+    if item.input_type == "video":
+        return True
+    return admit is not None and admit(item)
+
+
 def _write_atomic(path: Path, text: str) -> None:
     """Replace ``path`` so a concurrent reader never sees half a record."""
     temporary = path.with_name(f".{path.name}.{threading.get_ident()}.tmp")
@@ -157,14 +165,24 @@ class PublicStore:
 
     def unfinished_count(self) -> int:
         """Submissions that still occupy a queue slot."""
-        return sum(1 for item in self.list_submissions() if item.status in UNFINISHED)
+        return sum(1 for item in self.list_submissions()
+                   if item.status in UNFINISHED and item.input_type == "video")
 
     def count_status(self, status: str) -> int:
         """How many submissions currently have ``status``."""
         return sum(1 for item in self.list_submissions() if item.status == status)
 
-    def claim_oldest_queued(self, worker_id: str, now: str) -> Submission | None:
+    def claim_oldest_queued(
+        self,
+        worker_id: str,
+        now: str,
+        admit: Callable[[Submission], bool] | None = None,
+    ) -> Submission | None:
         """Move the oldest queued submission to ``processing`` for ``worker_id``.
+
+        Uploaded videos need only ``queued``. A review-code submission is never
+        claimed on its local status alone: ``admit`` must confirm it, and
+        without ``admit`` it is never claimed.
 
         Local-worker mechanism only. The thread lock covers job threads in this
         process and ``flock`` covers processes that share this directory on one
@@ -172,8 +190,8 @@ class PublicStore:
         another host needs the claim moved into the shared database as one
         atomic operation.
         """
-        with _CLAIM_LOCK, self._claim_file_lock():
-            for candidate in self._queued_oldest_first():
+        with self.claim_guard():
+            for candidate in self._queued_oldest_first(admit):
                 claimed = self._claim_one(candidate.id, worker_id, now)
                 if claimed is not None:
                     return claimed
@@ -196,9 +214,17 @@ class PublicStore:
         claimed = self.update(submission_id, take)
         return claimed if won else None
 
-    def _queued_oldest_first(self) -> list[Submission]:
-        queued = [item for item in self.list_submissions() if item.status == "queued"]
+    def _queued_oldest_first(
+        self, admit: Callable[[Submission], bool] | None = None
+    ) -> list[Submission]:
+        queued = [item for item in self.list_submissions() if _claimable(item, admit)]
         return sorted(queued, key=lambda item: item.created_at)
+
+    @contextmanager
+    def claim_guard(self) -> Iterator[None]:
+        """Hold the worker claim lock; no queued record can be claimed meanwhile."""
+        with _CLAIM_LOCK, self._claim_file_lock():
+            yield
 
     @contextmanager
     def _claim_file_lock(self) -> Iterator[None]:
@@ -209,19 +235,25 @@ class PublicStore:
             finally:
                 fcntl.flock(handle, fcntl.LOCK_UN)
 
-    def fail_in_flight(self, message: str, now: str) -> list[Submission]:
+    def fail_in_flight(
+        self, message: str, now: str, *, review_code_message: str | None = None
+    ) -> list[Submission]:
         """Mark validating and processing submissions failed. Does not requeue.
 
         Every in-flight record is treated as orphaned, whichever ``worker_id``
         it carries, because this deployment has exactly one worker. This is
         not safe with a second worker: cross-worker orphan recovery needs
-        leases or heartbeats.
+        leases or heartbeats. A review-code record gets ``review_code_message``
+        when one is given, because its customer cannot submit the video again.
         """
         failed: list[Submission] = []
         for item in self.list_submissions():
             if item.status not in IN_FLIGHT:
                 continue
-            updated = self._fail_one(item.id, message, now)
+            text = message
+            if item.input_type == "review_code" and review_code_message:
+                text = review_code_message
+            updated = self._fail_one(item.id, text, now)
             if updated is not None:
                 failed.append(updated)
         return failed
@@ -238,6 +270,33 @@ class PublicStore:
             changed.append(True)
 
         updated = self.update(submission_id, fail)
+        return updated if changed else None
+
+    def requeue_failed(self, submission_id: str, now: str) -> Submission | None:
+        """Queue a failed submission again for a new analysis run.
+
+        Changes only a record that is still ``failed`` and returns None
+        otherwise. The previous run's results and ownership are cleared;
+        notice fields are kept so a sent failure notice is never sent again.
+        The caller holds ``claim_guard`` and has checked that no job thread
+        still owns the submission.
+        """
+        changed: list[bool] = []
+
+        def requeue(current: Submission) -> None:
+            if current.status != "failed":
+                return
+            current.status = "queued"
+            current.step = "queued"
+            current.error = None
+            current.outcome = None
+            current.analysis_dir = None
+            current.worker_id = None
+            current.processing_started_at = None
+            current.updated_at = now
+            changed.append(True)
+
+        updated = self.update(submission_id, requeue)
         return updated if changed else None
 
     def rate_path(self) -> Path:

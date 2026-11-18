@@ -11,6 +11,7 @@ import { AdminVersionsPage } from "./pages/AdminVersions.jsx";
 import { AdminOverviewPage } from "./pages/AdminOverview.jsx";
 import { AdminPricePage } from "./pages/AdminPrice.jsx";
 import { AdminRequestDetailPage } from "./pages/AdminRequestDetail.jsx";
+import { AdminRecordingsPage } from "./pages/AdminRecordings.jsx";
 import { AdminRequestsPage } from "./pages/AdminRequests.jsx";
 import { AdminUserDetailPage } from "./pages/AdminUserDetail.jsx";
 import { AdminUsersPage } from "./pages/AdminUsers.jsx";
@@ -73,6 +74,7 @@ function AppRoutes() {
         <Route path="llm" element={<AdminLlmPage />} />
         <Route path="product" element={<AdminProductPage />} />
         <Route path="failures" element={<AdminFailuresPage />} />
+        <Route path="recordings" element={<AdminRecordingsPage />} />
         <Route path="requests" element={<AdminRequestsPage />} />
         <Route path="requests/:id" element={<AdminRequestDetailPage />} />
         <Route path="users" element={<AdminUsersPage />} />

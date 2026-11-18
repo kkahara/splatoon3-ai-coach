@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { translate } from "../i18n/translate.js";
-import { formatWhen, historyCard } from "./historyCard.js";
+import { DISPLAY_STATUSES, formatWhen, historyCard } from "./historyCard.js";
 
 const load = (name) =>
   JSON.parse(readFileSync(new URL(`../i18n/${name}`, import.meta.url), "utf8"));
@@ -17,6 +17,7 @@ function item(update = {}) {
     id: "abc123",
     created_at: STAMP,
     status: "complete",
+    display_status: "complete",
     outcome: "coached",
     battle_mode_id: "splat_zones",
     stage_id: "hagglefish_market",
@@ -79,18 +80,59 @@ test("an unknown id is omitted, never shown raw", () => {
   assert.equal(card({ battle_mode_id: "x", stage_id: "y" }).title, "Match");
 });
 
+const DISPLAY_LABELS = [
+  ["payment_required", "Payment required", "お支払い待ち"],
+  ["email_confirmation", "Email confirmation needed", "メール確認待ち"],
+  ["awaiting_recording", "Waiting for recording", "録画待ち"],
+  ["recording", "Recording", "録画中"],
+  ["awaiting_analysis", "Waiting for analysis", "分析待ち"],
+  ["analyzing", "Analyzing", "分析中"],
+  ["complete", "Complete", "完了"],
+  ["needs_attention", "Needs attention", "要確認"],
+  ["failed", "Failed", "失敗"],
+  ["expired", "Expired", "期限切れ"],
+  ["cancelled", "Cancelled", "キャンセル"],
+];
+
+test("every display status has its own label in both languages", () => {
+  assert.equal(DISPLAY_LABELS.length, DISPLAY_STATUSES.size);
+  for (const [displayStatus, en, ja] of DISPLAY_LABELS) {
+    assert.ok(DISPLAY_STATUSES.has(displayStatus), displayStatus);
+    assert.equal(card({ display_status: displayStatus }).status, en);
+    assert.equal(card({ display_status: displayStatus }, "ja").status, ja);
+  }
+});
+
+test("the label follows display_status, not the analysis status", () => {
+  const unpaid = card({ status: "received", display_status: "payment_required" }, "ja");
+  assert.equal(unpaid.status, "お支払い待ち");
+  const analyzing = card({ status: "processing", display_status: "analyzing" }, "ja");
+  assert.equal(analyzing.status, "分析中");
+});
+
 test("unfinished submissions show status only, without a moment phrase", () => {
-  const cases = [
-    ["processing", "In progress", "処理中"],
-    ["queued", "In progress", "処理中"],
-    ["failed", "Failed", "失敗"],
-    ["expired", "Expired", "期限切れ"],
-  ];
-  for (const [status, en, ja] of cases) {
-    const update = { status, outcome: null, moment_count: null };
-    assert.equal(card(update).status, en);
-    assert.equal(card(update, "ja").status, ja);
+  for (const [displayStatus] of DISPLAY_LABELS.filter(([key]) => key !== "complete")) {
+    const update = { status: "received", display_status: displayStatus, outcome: null, moment_count: null };
     assert.equal(card(update).meta, formatWhen(STAMP, "en"));
+  }
+});
+
+test("a missing or unknown display status shows the generic fallback, never a raw id", () => {
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    for (const displayStatus of [undefined, null, "", "new_state_2027", "constructor"]) {
+      const en = card({ status: "processing", display_status: displayStatus });
+      const ja = card({ status: "processing", display_status: displayStatus }, "ja");
+      assert.equal(en.status, "Checking status");
+      assert.equal(ja.status, "状態を確認中");
+      assert.ok(!ja.status.includes("処理中"));
+      for (const text of [en.status, ja.status]) {
+        assert.ok(!/[a-z]+_[a-z]+|coaching\.status/.test(text), text);
+      }
+    }
+  } finally {
+    console.warn = warn;
   }
 });
 

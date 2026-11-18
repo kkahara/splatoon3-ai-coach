@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from loguru import logger
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from public_site.accounts import Account, AccountStore, account_email
 from public_site.contact import ContactDraft, accept_contact
@@ -25,10 +27,16 @@ from public_site.localize import Translator, build_translator
 from public_site.models import DisplayLocale, HistoryItem, PublicConfig, Submission
 from public_site.notices import NoticeSender
 from public_site.payments import PaymentStore
-from public_site.service import SubmissionService
+from public_site.public_reference import normalize_reference
+from public_site.recording_routes import register_recording_routes
+from public_site.recording_service import RecordingService
+from public_site.recording_store import RecordingStore
+from public_site.report_publisher import build_report_publisher, open_report_storage
+from public_site.report_store import ReportStore
+from public_site.service import LocalMedia, MediaAssetKind, PresignedMedia, SubmissionService
 from public_site.settings import PublicSettings
 from public_site.share_page import review_html, review_token
-from public_site.storage import LocalStorage, R2Storage
+from public_site.storage import LocalStorage, ObjectExists, R2Storage
 from public_site.store import PublicStore
 from public_site.stripe_checkout import (
     CheckoutGateway,
@@ -38,7 +46,7 @@ from public_site.stripe_checkout import (
 from public_site.telemetry import TelemetryStore
 from public_site.tokens import hash_ip, hash_token, new_token
 from public_site.turnstile import build_verifier
-from public_site.vouchers import VoucherStore
+from public_site.vouchers import VoucherStore, preview_payload
 from public_site.worker import Command, PublicWorker, subprocess_run
 from public_site.worker_capacity import MAX_CAPACITY, MIN_CAPACITY, WorkerCapacityStore
 
@@ -64,7 +72,10 @@ class CreateBody(BaseModel):
 
 
 class VoucherBody(BaseModel):
-    """A voucher code. It is not accepted in a query string."""
+    """A voucher code. It is not accepted in a query string.
+
+    There is no scope field: this route always checks the video-upload path.
+    """
 
     model_config = ConfigDict(extra="ignore")
 
@@ -115,19 +126,51 @@ class PriceBody(BaseModel):
 
 
 class UploadLimitBody(BaseModel):
-    """How many logged-in submissions one account may start per hour."""
+    """Per-hour submission limits. Only the fields sent are changed.
+
+    An omitted field is left as it is. ``null`` restores the environment
+    default for the guest or network limit. The account limit cannot be null.
+    """
 
     model_config = ConfigDict(extra="ignore")
 
-    account_uploads_per_hour: int = Field(ge=1, le=100)
+    account_uploads_per_hour: int | None = Field(default=None, ge=1, le=100)
+    guest_uploads_per_hour: int | None = Field(default=None, ge=1, le=100)
+    network_uploads_per_hour: int | None = Field(default=None, ge=1, le=100)
 
-    @field_validator("account_uploads_per_hour", mode="before")
+    @field_validator(
+        "account_uploads_per_hour",
+        "guest_uploads_per_hour",
+        "network_uploads_per_hour",
+        mode="before",
+    )
     @classmethod
     def require_whole_number(cls, value: object) -> object:
-        """Reject decimals, booleans, and strings. Only a JSON integer is valid."""
-        if type(value) is not int:
-            raise ValueError("account uploads per hour must be a whole number")
+        """Reject decimals, booleans, and strings. Only a JSON integer or null is valid."""
+        if value is not None and type(value) is not int:
+            raise ValueError("uploads per hour must be a whole number")
         return value
+
+    @model_validator(mode="after")
+    def require_one_limit(self) -> UploadLimitBody:
+        """At least one limit, and never a null account limit."""
+        if not self.model_fields_set:
+            raise ValueError("give at least one upload limit")
+        if (
+            "account_uploads_per_hour" in self.model_fields_set
+            and self.account_uploads_per_hour is None
+        ):
+            raise ValueError("account uploads per hour cannot be reset")
+        return self
+
+    def changes(self) -> dict[str, int | None]:
+        """Store keyword arguments for the fields that were sent."""
+        names = {
+            "account_uploads_per_hour": "account",
+            "guest_uploads_per_hour": "guest",
+            "network_uploads_per_hour": "network",
+        }
+        return {names[field]: getattr(self, field) for field in self.model_fields_set}
 
 
 class WorkerCapacityBody(BaseModel):
@@ -193,9 +236,14 @@ def create_app(
     payments: PaymentStore | None = None,
     checkout: CheckoutGateway | None = None,
     capacities: WorkerCapacityStore | None = None,
+    report_storage: LocalStorage | R2Storage | None = None,
+    report_store: ReportStore | None = None,
 ) -> FastAPI:
     """Build the public API and, when a build exists, the React app."""
     settings = settings or PublicSettings.from_env()
+    report_problem = settings.report_problem()
+    if report_problem is not None:
+        raise ValueError(report_problem)
     store = store or PublicStore(settings.root)
     storage = storage or open_storage(settings)
     notices = notices or NoticeSender(settings)
@@ -215,6 +263,9 @@ def create_app(
     if capacities is None and settings.database_url:
         capacities = WorkerCapacityStore(settings.database_url)
         capacities.ensure_schema()
+    if report_store is None and settings.database_url:
+        report_store = ReportStore(settings.database_url)
+        report_store.ensure_schema()
     if checkout is None and settings.stripe_secret_key:
         checkout = StripeCheckout(settings.stripe_secret_key)
     if translator is None:
@@ -234,6 +285,27 @@ def create_app(
     )
     if verifier is None:
         verifier = build_verifier(settings)
+    if settings.review_codes_enabled and payments is not None and accounts is not None:
+        recording_store = RecordingStore(payments, storage.url_seconds)
+        recording_store.ensure_schema(
+            settings.retention_days, settings.account_retention_days
+        )
+        service.recordings = RecordingService(service, recording_store)
+        _prepare_canary(service.recordings)
+    service.report_store = report_store
+    if report_storage is not None:
+        service.media_storage = report_storage
+    elif isinstance(storage, R2Storage):
+        service.media_storage = storage
+    elif report_store is not None and settings.r2_ready:
+        service.media_storage = open_report_storage(settings)
+    else:
+        service.media_storage = storage
+    service.reports = build_report_publisher(
+        settings, store, service, report_storage, report_store=report_store
+    )
+    if service.reports is not None and start_worker:
+        service.reports.start()
     worker = PublicWorker(
         settings,
         store,
@@ -242,16 +314,43 @@ def create_app(
         start_thread=start_worker,
         capacity=_capacity_reader(settings, capacities),
     )
+    if service.recordings is not None:
+        service.recordings.bind_worker(is_running=worker.is_running, wake=worker.wake)
     app = FastAPI(title="Splatoon 3 AI Coach")
     app.state.settings = settings
     app.state.store = store
     app.state.service = service
     app.state.worker = worker
+    app.state.reports = service.reports
+    app.state.report_store = report_store
     app.state.accounts = accounts
     app.state.telemetry = telemetry
     app.state.payments = payments
     app.state.capacities = capacities
-    _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout)
+    _routes(
+        app,
+        settings,
+        service,
+        storage,
+        verifier,
+        worker,
+        accounts,
+        notices,
+        payments,
+        checkout,
+    )
+    if service.recordings is not None:
+        register_recording_routes(
+            app,
+            service.recordings,
+            current_user=lambda request: _current_user(request, accounts),
+            required_admin=lambda request: _required_admin(request, accounts),
+            client_ip=lambda request: _client_ip(request, settings),
+            notice_cookie=lambda response, token: _notice_cookie(
+                response, token, settings
+            ),
+            verifier=verifier,
+        )
     _worker_capacity_routes(app, settings, worker, accounts, capacities)
     from public_site.admin import register_admin_routes
 
@@ -265,6 +364,19 @@ def create_app(
     )
     _mount_ui(app, settings, service)
     return app
+
+
+def _prepare_canary(recordings: RecordingService) -> None:
+    """Load (or, on a fresh install, create) the canary key before any review-code
+    submission, so the epoch precedes them; then repair pending corrections.
+    An unusable key is logged and makes every capture fail; the app still serves.
+    """
+    try:
+        recordings.canary.ensure_key()
+    except OSError as exc:
+        logger.error("Review-code canary key unavailable ({})", type(exc).__name__)
+        return
+    recordings.repair_canaries()
 
 
 def _capacity_reader(
@@ -304,7 +416,15 @@ def _worker_capacity_routes(app, settings, worker, accounts, capacities) -> None
 
 
 def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
-    """Local disk, or R2 when configured. The dev upload route follows this choice."""
+    """Local disk, or R2 when configured. The dev upload route follows this choice.
+
+    Raises:
+        ValueError: The storage settings are unusable (see ``storage_problem``).
+    """
+    problem = settings.storage_problem()
+    if problem is not None:
+        raise ValueError(problem)
+    media_ttl = settings.media_url_seconds or settings.upload_url_seconds
     if settings.storage == "r2":
         return R2Storage(
             account_id=settings.r2_account_id,
@@ -312,12 +432,36 @@ def open_storage(settings: PublicSettings) -> LocalStorage | R2Storage:
             secret_access_key=settings.r2_secret_access_key,
             bucket=settings.r2_bucket,
             url_seconds=settings.upload_url_seconds,
+            media_url_seconds=media_ttl,
             cache_dir=settings.root / "cache",
         )
-    return LocalStorage(settings.root, url_seconds=settings.upload_url_seconds)
+    return LocalStorage(
+        settings.root,
+        url_seconds=settings.upload_url_seconds,
+        media_url_seconds=media_ttl,
+    )
 
 
-def _routes(app, settings, service, storage, verifier, worker, accounts, notices, payments, checkout) -> None:
+def _routes(
+    app,
+    settings,
+    service,
+    storage,
+    verifier,
+    worker,
+    accounts,
+    notices,
+    payments,
+    checkout,
+) -> None:
+    @app.get("/api/healthz")
+    def get_healthz() -> dict:
+        """Liveness always; readiness fails closed on settings invariants."""
+        problem = settings.readiness_problem()
+        if problem is not None:
+            raise HTTPException(status_code=503, detail=problem)
+        return {"status": "ok"}
+
     @app.get("/api/config")
     def get_config(request: Request) -> dict:
         return _public_config(request, settings, accounts, payments).model_dump()
@@ -387,11 +531,15 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
             )
             browser_token = None
             if guest_email is not None:
-                created.notice_pending, browser_token = service.arrange_guest_notice(
+                arranged = service.arrange_guest_notice(
                     created,
                     guest_email,
                     request.cookies.get(NOTICE_COOKIE, ""),
                 )
+                created.notice_pending = arranged.pending
+                created.confirm_mail_outcome = arranged.mail_outcome
+                created.confirm_mail_retry_after_seconds = arranged.retry_after_seconds
+                browser_token = arranged.cookie
         except RequestRejected as exc:
             return _rejected(exc)
         response = JSONResponse(created.model_dump())
@@ -400,25 +548,29 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         return response
 
     @app.post("/api/notices/confirm")
-    def post_notice_confirm(body: TokenBody) -> dict:
-        if not service.confirm_guest_notice(body.token):
+    def post_notice_confirm(body: TokenBody) -> JSONResponse:
+        result = service.confirm_guest_notice(body.token)
+        if not result.get("confirmed"):
             raise HTTPException(status_code=400, detail=BAD_LINK)
-        return {"confirmed": True}
+        payload = {"confirmed": True}
+        review_path = result.get("review_path")
+        if isinstance(review_path, str) and review_path.startswith("/review/"):
+            payload["review_path"] = review_path
+        response = JSONResponse(payload)
+        response.headers["Cache-Control"] = "private, no-store"
+        return response
 
     _auth_routes(app, settings, service, accounts, notices)
 
     @app.post("/api/vouchers/validate")
     def post_voucher(body: VoucherBody, request: Request) -> dict:
         try:
-            preview = service.preview_voucher(body.code, _client_ip(request, settings))
+            preview = service.preview_voucher(
+                body.code, _client_ip(request, settings), "video_upload"
+            )
         except RequestRejected as exc:
             return _rejected(exc)
-        return {
-            "accepted": True,
-            "benefit_type": preview.benefit_type,
-            "amount_due_cents": preview.amount_due_cents,
-            "currency": preview.currency,
-        }
+        return preview_payload(preview)
 
     @app.post("/api/submissions/{token}/uploaded")
     def post_uploaded(token: str) -> dict:
@@ -435,7 +587,19 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
             started = service.start_checkout(token)
         except RequestRejected as exc:
             return _rejected(exc)
+        if started["paid"]:
+            worker.wake()
         return started
+
+    @app.post("/api/submissions/{token}/reconcile-payment")
+    def post_reconcile_payment(token: str) -> dict:
+        try:
+            view = service.reconcile_checkout_for_token(token)
+        except RequestRejected as exc:
+            return _rejected(exc)
+        if view.payment_state == "paid":
+            worker.wake()
+        return view.model_dump()
 
     @app.post("/api/stripe/webhook")
     async def stripe_webhook(request: Request) -> dict:
@@ -444,7 +608,7 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
     @app.get("/api/admin/price")
     def get_price(request: Request) -> dict:
         _required_admin(request, accounts)
-        return _price_payload(payments)
+        return _price_payload(payments, service)
 
     @app.put("/api/admin/price")
     def put_price(body: PriceBody, request: Request) -> dict:
@@ -456,22 +620,32 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
             "price_cents": price.price_cents,
             "currency": price.currency,
             "pricing_version": price.pricing_version,
-            "account_uploads_per_hour": payments.account_upload_limit(),
+            **_limit_payload(service),
             "events": _event_rows(payments),
         }
+
+    @app.get("/api/admin/reference/{reference}")
+    def get_reference(reference: str, request: Request) -> dict:
+        _required_admin(request, accounts)
+        if payments is None:
+            raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
+        payload = _reference_payload(payments, service, reference[:64])
+        if payload is None:
+            raise HTTPException(status_code=404, detail="No submission has that reference.")
+        return payload
 
     @app.put("/api/admin/upload-limit")
     def put_upload_limit(body: UploadLimitBody, request: Request) -> dict:
         _required_admin(request, accounts)
         if payments is None:
             raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
-        saved = payments.set_account_upload_limit(body.account_uploads_per_hour)
-        return {"account_uploads_per_hour": saved}
+        payments.set_upload_limits(**body.changes())
+        return _limit_payload(service)
 
     @app.get("/api/submissions/{token}")
-    def get_submission(token: str, locale: DisplayLocale = "en") -> dict:
+    def get_submission(token: str, request: Request, locale: DisplayLocale = "en") -> dict:
         try:
-            view = service.view(token, locale)
+            view = service.view(token, locale, request.cookies.get(NOTICE_COOKIE, ""))
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return view.model_dump()
@@ -484,20 +658,18 @@ def _routes(app, settings, service, storage, verifier, worker, accounts, notices
         return _save_feedback(accounts, submission.id, None, body.body)
 
     @app.get("/api/submissions/{token}/moments/{index}/frame")
-    def get_moment_frame(token: str, index: int) -> FileResponse:
-        try:
-            path = service.moment_frame(token, index)
-        except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
-        return FileResponse(path, media_type="image/jpeg")
+    def get_moment_frame(token: str, index: int, request: Request):
+        return _media_response(service, request, token=token, index=index, kind="frame")
 
     @app.get("/api/submissions/{token}/moments/{index}/clip")
-    def get_moment_clip(token: str, index: int) -> FileResponse:
-        try:
-            path = service.moment_clip(token, index)
-        except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
-        return FileResponse(path, media_type="video/mp4")
+    def get_moment_clip(token: str, index: int, request: Request):
+        return _media_response(service, request, token=token, index=index, kind="clip")
+
+    @app.get("/api/submissions/{token}/moments/{index}/thumbnail")
+    def get_moment_thumbnail(token: str, index: int, request: Request):
+        return _media_response(
+            service, request, token=token, index=index, kind="thumbnail"
+        )
 
     _register_dev_upload(app, storage)
 
@@ -507,8 +679,13 @@ def _public_config(request: Request, settings, accounts, payments) -> PublicConf
     user = _current_user(request, accounts)
     admin = user is not None and user.role == "admin"
     price = payments.current_price() if payments is not None else None
-    required = payments is not None and not admin and (price is None or price.price_cents > 0)
+    required = (
+        payments is not None and not admin and (price is None or price.price_cents > 0)
+    )
     return PublicConfig(
+        review_codes_enabled=settings.review_codes_enabled
+        and accounts is not None
+        and payments is not None,
         turnstile_site_key=settings.turnstile_site_key,
         dev_mode=settings.dev_mode,
         max_video_bytes=None if admin else settings.max_video_bytes,
@@ -524,7 +701,7 @@ def _public_config(request: Request, settings, accounts, payments) -> PublicConf
     )
 
 
-def _price_payload(payments: PaymentStore | None) -> dict:
+def _price_payload(payments: PaymentStore | None, service: SubmissionService) -> dict:
     if payments is None:
         raise HTTPException(status_code=503, detail=PAYMENT_UNAVAILABLE)
     price = payments.current_price()
@@ -532,9 +709,52 @@ def _price_payload(payments: PaymentStore | None) -> dict:
         "price_cents": None if price is None else price.price_cents,
         "currency": None if price is None else price.currency,
         "pricing_version": None if price is None else price.pricing_version,
-        "account_uploads_per_hour": payments.account_upload_limit(),
+        **_limit_payload(service),
         "events": _event_rows(payments),
     }
+
+
+def _reference_payload(
+    payments: PaymentStore, service: SubmissionService, text: str
+) -> dict | None:
+    """Which submission a support reference names, for operators only.
+
+    The reference identifies a submission; it grants no customer access.
+    """
+    reference = normalize_reference(text)
+    gate = None if reference is None else payments.get_by_reference(reference)
+    if gate is None:
+        return None
+    submission = service.store.get(gate.submission_id)
+    acquisition = (
+        service.recordings.database.get(gate.submission_id)
+        if service.recordings is not None and gate.source == "nintendo_review_code"
+        else None
+    )
+    return {
+        "public_reference": gate.public_reference,
+        "submission_id": gate.submission_id,
+        "source": gate.source,
+        "created_at": None if submission is None else submission.created_at,
+        "status": None if submission is None else submission.status,
+        "payment_state": gate.payment_state,
+        "voucher_state": gate.voucher_state,
+        "acquisition_state": None if acquisition is None else acquisition["state"],
+    }
+
+
+def _limit_payload(service: SubmissionService) -> dict:
+    """Each enforced limit and whether it is a saved setting or the environment default."""
+    limits = service.effective_upload_limits()
+    payload: dict = {}
+    for name, value, saved in (
+        ("account", limits.account, limits.account_saved),
+        ("guest", limits.guest, limits.guest_saved),
+        ("network", limits.network, limits.network_saved),
+    ):
+        payload[f"{name}_uploads_per_hour"] = value
+        payload[f"{name}_uploads_per_hour_source"] = "saved" if saved else "environment"
+    return payload
 
 
 def _event_rows(payments: PaymentStore) -> list[dict]:
@@ -555,7 +775,9 @@ async def _stripe_webhook(request: Request, settings, service, worker, checkout)
     payload = await request.body()
     signature = request.headers.get("stripe-signature", "")
     try:
-        event = checkout.construct_event(payload, signature, settings.stripe_webhook_secret)
+        event = checkout.construct_event(
+            payload, signature, settings.stripe_webhook_secret
+        )
     except CheckoutSignatureError as exc:
         raise HTTPException(status_code=400, detail="invalid signature") from exc
     result = service.apply_webhook(event)
@@ -567,7 +789,7 @@ async def _stripe_webhook(request: Request, settings, service, worker, checkout)
 
 
 def _register_dev_upload(app: FastAPI, storage) -> None:
-    """Local PUT route. Not registered when storage is R2."""
+    """Local PUT/GET grant routes. Not registered when storage is R2."""
     if not storage.allows_dev_upload:
         return
 
@@ -578,9 +800,81 @@ def _register_dev_upload(app: FastAPI, storage) -> None:
             storage.write_grant(grant_id, body)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="not found") from exc
+        except ObjectExists as exc:
+            raise HTTPException(status_code=412, detail="An object already exists.") from exc
         except ValueError as exc:
-            raise HTTPException(status_code=413, detail="That video is too large.") from exc
+            raise HTTPException(
+                status_code=413, detail="That video is too large."
+            ) from exc
         return {"stored": True}
+
+    @app.get("/api/dev-media/{grant_id}")
+    def get_dev_media(grant_id: str, request: Request):
+        """Serve a local media grant with HTTP Range support for seeking."""
+        grant = storage.media_grant(grant_id)
+        if grant is None:
+            raise HTTPException(status_code=404, detail="not found")
+        key = str(grant["object_key"])
+        if storage.head(key) is None:
+            raise HTTPException(status_code=404, detail="not found")
+        try:
+            path, _temporary = storage.local_file(key, storage.objects / ".media-read")
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="not found") from exc
+        content_type = str(grant.get("content_type") or "application/octet-stream")
+        total = path.stat().st_size
+        range_header = request.headers.get("range")
+        if not range_header:
+            response = FileResponse(path, media_type=content_type)
+            response.headers["Accept-Ranges"] = "bytes"
+            response.headers["Cache-Control"] = "private, no-store"
+            return response
+        start, end, status = _parse_byte_range(range_header, total)
+        if status == 416:
+            raise HTTPException(
+                status_code=416,
+                detail="requested range not satisfiable",
+                headers={"Content-Range": f"bytes */{total}"},
+            )
+        length = end - start + 1
+        with path.open("rb") as handle:
+            handle.seek(start)
+            body = handle.read(length)
+        return Response(
+            content=body,
+            status_code=206,
+            media_type=content_type,
+            headers={
+                "Accept-Ranges": "bytes",
+                "Content-Range": f"bytes {start}-{end}/{total}",
+                "Content-Length": str(length),
+                "Cache-Control": "private, no-store",
+            },
+        )
+
+
+def _parse_byte_range(header: str, total: int) -> tuple[int, int, int]:
+    """Parse ``Range: bytes=start-end`` into ``(start, end, status)``."""
+    if total <= 0 or not header.startswith("bytes="):
+        return 0, max(total - 1, 0), 200
+    spec = header.removeprefix("bytes=").strip()
+    if "," in spec or "-" not in spec:
+        return 0, total - 1, 416
+    left, _, right = spec.partition("-")
+    try:
+        if left == "" and right:
+            length = int(right)
+            if length <= 0:
+                return 0, total - 1, 416
+            start = max(total - length, 0)
+            return start, total - 1, 206
+        start = int(left) if left else 0
+        end = int(right) if right else total - 1
+    except ValueError:
+        return 0, total - 1, 416
+    if start < 0 or start >= total or end < start:
+        return 0, total - 1, 416
+    return start, min(end, total - 1), 206
 
 
 def _auth_routes(app, settings, service, accounts, notices) -> None:
@@ -598,7 +892,9 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
                 ip_hash=hash_ip(_client_ip(request, settings)),
                 max_per_ip=settings.accounts_per_ip,
             )
-            notices.send_account(email, "verify", f"{settings.public_base_url}/verify/{token}")
+            notices.send_account(
+                email, "verify", f"{settings.public_base_url}/verify/{token}"
+            )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return {"sent": True}
@@ -631,7 +927,9 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
             email = account_email(body.email)
             token = store.request_reset(email, now)
             if token:
-                notices.send_account(email, "reset", f"{settings.public_base_url}/reset/{token}")
+                notices.send_account(
+                    email, "reset", f"{settings.public_base_url}/reset/{token}"
+                )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return {"sent": True}
@@ -640,7 +938,9 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
     def post_reset(body: TokenBody) -> JSONResponse:
         store = _require_accounts(accounts)
         try:
-            account, token = store.reset_password(body.token, body.password, datetime.now(UTC))
+            account, token = store.reset_password(
+                body.token, body.password, datetime.now(UTC)
+            )
         except RequestRejected as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
         return _session_response(account, token, settings)
@@ -673,7 +973,7 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
     @app.get("/api/me/submissions")
     def get_mine(request: Request) -> list[dict]:
         user = _required_user(request, accounts)
-        return _history_items(accounts, service.store, user.id)
+        return _history_items(accounts, service, user.id)
 
     @app.post("/api/me/submissions/{submission_id}/share")
     def post_share(submission_id: str, request: Request) -> dict:
@@ -684,36 +984,117 @@ def _auth_routes(app, settings, service, accounts, notices) -> None:
         return {"review_path": f"/review/{token}"}
 
     @app.get("/api/me/submissions/{submission_id}")
-    def get_owned(submission_id: str, request: Request, locale: DisplayLocale = "en") -> dict:
+    def get_owned(
+        submission_id: str, request: Request, locale: DisplayLocale = "en"
+    ) -> dict:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
         return service.project(submission, locale).model_dump()
 
+    @app.post("/api/me/submissions/{submission_id}/checkout")
+    def post_owned_checkout(submission_id: str, request: Request) -> dict:
+        user = _required_user(request, accounts)
+        submission = _owned(accounts, service.store, user, submission_id)
+        try:
+            started = service.start_owned_checkout(submission)
+        except RequestRejected as exc:
+            return _rejected(exc)
+        if started["paid"]:
+            request.app.state.worker.wake()
+        return started
+
+    @app.post("/api/me/submissions/{submission_id}/reconcile-payment")
+    def post_owned_reconcile_payment(submission_id: str, request: Request) -> dict:
+        user = _required_user(request, accounts)
+        try:
+            view = service.reconcile_checkout_owned(user.id, submission_id)
+        except RequestRejected as exc:
+            return _rejected(exc)
+        if view.payment_state == "paid":
+            request.app.state.worker.wake()
+        return view.model_dump()
+
     @app.post("/api/me/submissions/{submission_id}/feedback")
-    def post_owned_feedback(submission_id: str, body: FeedbackBody, request: Request) -> dict:
+    def post_owned_feedback(
+        submission_id: str, body: FeedbackBody, request: Request
+    ) -> dict:
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
         return _save_feedback(accounts, submission.id, user.id, body.body)
 
     @app.get("/api/me/submissions/{submission_id}/moments/{index}/frame")
-    def get_owned_frame(submission_id: str, index: int, request: Request) -> FileResponse:
+    def get_owned_frame(submission_id: str, index: int, request: Request):
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
-        try:
-            path = service.frame_file(submission, index)
-        except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
-        return FileResponse(path, media_type="image/jpeg")
+        return _media_response(
+            service, request, submission=submission, index=index, kind="frame"
+        )
 
     @app.get("/api/me/submissions/{submission_id}/moments/{index}/clip")
-    def get_owned_clip(submission_id: str, index: int, request: Request) -> FileResponse:
+    def get_owned_clip(submission_id: str, index: int, request: Request):
         user = _required_user(request, accounts)
         submission = _owned(accounts, service.store, user, submission_id)
-        try:
-            path = service.clip_file(submission, index)
-        except RequestRejected as exc:
-            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
-        return FileResponse(path, media_type="video/mp4")
+        return _media_response(
+            service, request, submission=submission, index=index, kind="clip"
+        )
+
+    @app.get("/api/me/submissions/{submission_id}/moments/{index}/thumbnail")
+    def get_owned_thumbnail(submission_id: str, index: int, request: Request):
+        user = _required_user(request, accounts)
+        submission = _owned(accounts, service.store, user, submission_id)
+        return _media_response(
+            service, request, submission=submission, index=index, kind="thumbnail"
+        )
+
+
+def _media_response(
+    service: SubmissionService,
+    request: Request,
+    *,
+    kind: MediaAssetKind,
+    index: int,
+    token: str | None = None,
+    submission: Submission | None = None,
+):
+    """Authorize (caller), resolve media, then redirect or stream locally."""
+    try:
+        if token is not None:
+            target = service.resolve_guest_media(token, index, kind)
+        else:
+            assert submission is not None
+            target = service.resolve_media(submission, index, kind)
+    except RequestRejected as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+    if isinstance(target, PresignedMedia):
+        # Explicit JSON clients only; browsers and crawlers follow 302.
+        wants_json = _accepts_json_only(request.headers.get("accept"))
+        if wants_json:
+            response: JSONResponse | RedirectResponse = JSONResponse(
+                {
+                    "url": target.download.url,
+                    "expires_at": target.download.expires_at,
+                    "content_type": target.download.content_type,
+                }
+            )
+        else:
+            response = RedirectResponse(url=target.download.url, status_code=302)
+        response.headers["Cache-Control"] = "private, no-store"
+        response.headers["Vary"] = "Cookie, Accept"
+        return response
+    assert isinstance(target, LocalMedia)
+    return FileResponse(target.path, media_type=target.content_type)
+
+
+def _accepts_json_only(accept: str | None) -> bool:
+    """True when Accept prefers application/json without text/html."""
+    if not accept:
+        return False
+    parts = [part.strip().lower() for part in accept.split(",") if part.strip()]
+    if not parts:
+        return False
+    has_json = any(part.startswith("application/json") for part in parts)
+    has_html = any(part.startswith("text/html") for part in parts)
+    return has_json and not has_html
 
 
 def _save_feedback(
@@ -758,7 +1139,9 @@ def _current_user(request: Request, accounts: AccountStore | None) -> Account | 
     return accounts.user_from_session(token, datetime.now(UTC))
 
 
-def _session_response(account: Account, token: str, settings: PublicSettings) -> JSONResponse:
+def _session_response(
+    account: Account, token: str, settings: PublicSettings
+) -> JSONResponse:
     response = JSONResponse({"name": account.name, "email": account.email})
     response.set_cookie(
         SESSION_COOKIE,
@@ -790,7 +1173,9 @@ def _chosen_name(given: str | None, account_name: str) -> str:
     return text or account_name
 
 
-def _owned(accounts: AccountStore, store: PublicStore, user: Account, submission_id: str) -> Submission:
+def _owned(
+    accounts: AccountStore, store: PublicStore, user: Account, submission_id: str
+) -> Submission:
     if not accounts.owns(user.id, submission_id):
         raise HTTPException(status_code=404, detail="not found")
     submission = store.get(submission_id)
@@ -799,13 +1184,27 @@ def _owned(accounts: AccountStore, store: PublicStore, user: Account, submission
     return submission
 
 
-def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> list[dict]:
-    items = []
+def _history_items(
+    accounts: AccountStore, service: SubmissionService, user_id: str
+) -> list[dict]:
+    owned = []
     for row in accounts.list_history(user_id):
-        submission = store.get(row.submission_id)
-        if submission is None or submission.user_id != user_id:
-            continue
-        mode_id, stage_id = match_identity(submission.analysis_dir)
+        submission = service.store.get(row.submission_id)
+        if submission is not None and submission.user_id == user_id:
+            owned.append(submission)
+    statuses = service.display_statuses(owned)
+    items = []
+    history = {}
+    if service.report_store is not None:
+        history = service.report_store.history_fields([s.id for s in owned])
+    for submission in owned:
+        fields = history.get(submission.id)
+        if fields is not None:
+            mode_id, stage_id = fields.battle_mode_id, fields.stage_id
+            moments = fields.moment_count
+        else:
+            mode_id, stage_id = match_identity(submission.analysis_dir)
+            moments = moment_count(submission)
         items.append(
             HistoryItem(
                 id=submission.id,
@@ -813,11 +1212,12 @@ def _history_items(accounts: AccountStore, store: PublicStore, user_id: str) -> 
                 expires_at=submission.expires_at,
                 status=submission.status,
                 step=submission.step,
+                display_status=statuses[submission.id],
                 display_name=submission.display_name,
                 outcome=submission.outcome,
                 battle_mode_id=mode_id,
                 stage_id=stage_id,
-                moment_count=moment_count(submission),
+                moment_count=moments,
             ).model_dump()
         )
     return items
@@ -866,7 +1266,9 @@ def _mount_ui(app: FastAPI, settings: PublicSettings, service: SubmissionService
             return FileResponse(candidate)
         token = review_token(full_path)
         if token:
-            page = review_html(service, settings, index.read_text(encoding="utf-8"), token)
+            page = review_html(
+                service, settings, index.read_text(encoding="utf-8"), token
+            )
             if page is not None:
                 return HTMLResponse(page)
         return FileResponse(index)

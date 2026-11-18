@@ -9,6 +9,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from public_site.display_status import DisplayStatus
+from public_site.recording_models import AcquisitionView
+
 PublicStatus = Literal[
     "received",
     "validating",
@@ -82,6 +85,10 @@ class VideoInput(BaseModel):
     width: int | None = None
     height: int | None = None
     upload_state: UploadState = "pending"
+    sha256: str | None = None
+    # When the outstanding browser PUT URL expires (UTC). Used for source
+    # cleanup settle; never a publication readiness gate.
+    upload_expires_at: str | None = None
 
 
 class ReviewCodeInput(BaseModel):
@@ -102,6 +109,15 @@ class PresignedUpload(BaseModel):
     expires_at: str
 
 
+class PresignedDownload(BaseModel):
+    """Browser GET target for a private object. Credentials are not included."""
+
+    url: str
+    method: str = "GET"
+    expires_at: str
+    content_type: str | None = None
+
+
 class CreateSubmissionResponse(BaseModel):
     """Issued once. This is the only response that contains the raw token."""
 
@@ -113,6 +129,11 @@ class CreateSubmissionResponse(BaseModel):
     # Pending means a code is attached and unpaid. It is not payment authorization.
     voucher_state: Literal["pending", "redeemed", "failed"] | None = None
     notice_pending: bool = False
+    # Whether a confirmation message was accepted, suppressed, or failed to send.
+    confirm_mail_outcome: Literal["sent", "cooldown", "failed", "not_required"] | None = (
+        None
+    )
+    confirm_mail_retry_after_seconds: int | None = None
 
 
 class LifecycleMark(BaseModel):
@@ -193,6 +214,7 @@ class PublicSubmissionResult(BaseModel):
 class PublicSubmissionResponse(BaseModel):
     """Status projection. Paths, keys, tokens, and worker fields are absent."""
 
+    acquisition: AcquisitionView | None = None
     status: PublicStatus
     step: PublicStep
     created_at: str
@@ -213,6 +235,10 @@ class PublicSubmissionResponse(BaseModel):
         Literal["expired", "revoked", "exhausted", "inactive", "wrong_service"] | None
     ) = None
     notice_pending: bool = False
+    # True only when an unused confirmation challenge was mailed for this request.
+    confirm_mail_dispatched: bool = False
+    # Support reference for contacting us; identifies, never authorizes.
+    public_reference: str | None = None
 
 
 class HistoryItem(BaseModel):
@@ -223,6 +249,7 @@ class HistoryItem(BaseModel):
     expires_at: str
     status: PublicStatus
     step: PublicStep
+    display_status: DisplayStatus
     display_name: str | None = None
     outcome: CoachingOutcome | None = None
     battle_mode_id: str | None = None
@@ -241,6 +268,7 @@ class PublicConfig(BaseModel):
 
     turnstile_site_key: str | None = None
     dev_mode: bool = False
+    review_codes_enabled: bool = False
     max_video_bytes: int | None = None
     max_duration_seconds: int
     retention_days: int

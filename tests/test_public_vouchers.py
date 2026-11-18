@@ -71,13 +71,15 @@ def test_skilltown_code_is_hashed_and_duplicate_rejected(vouchers: VoucherStore)
 
 def test_expiration_boundary_and_revocation(vouchers: VoucherStore) -> None:
     issued = vouchers.issue(_spec("youtube", code="squidlab50", max_redemptions=3), _NOW)
-    vouchers.preview(" SQUIDLAB50 ", _EXPIRES - timedelta(microseconds=1))
+    vouchers.preview(
+        " SQUIDLAB50 ", _EXPIRES - timedelta(microseconds=1), "video_upload"
+    )
     with pytest.raises(Exception, match="expired") as caught:
-        vouchers.preview(issued.code, _EXPIRES)
+        vouchers.preview(issued.code, _EXPIRES, "video_upload")
     assert caught.value.reason == "expired"
     assert vouchers.revoke(issued.voucher_id) is True
     with pytest.raises(Exception, match="revoked") as revoked:
-        vouchers.preview(issued.code, _NOW)
+        vouchers.preview(issued.code, _NOW, "video_upload")
     assert revoked.value.reason == "revoked"
 
 
@@ -89,7 +91,7 @@ def test_wrong_service_is_rejected(vouchers: VoucherStore) -> None:
             ("future_premium", issued.voucher_id),
         )
     with pytest.raises(Exception, match="not valid for this service") as caught:
-        vouchers.preview(issued.code, _NOW)
+        vouchers.preview(issued.code, _NOW, "video_upload")
     assert caught.value.reason == "wrong_service"
 
 

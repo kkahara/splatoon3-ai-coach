@@ -137,3 +137,23 @@ export function formatRemaining(seconds) {
 export function momentAnchor(index) {
   return `moment-${index}`;
 }
+
+/**
+ * Moment media URL. One optional ``?refresh=1`` retry after a failed load
+ * (expired presigned R2 GET); never loops beyond a single refresh.
+ */
+export function mediaResourceUrl(frameBase, index, kind, retryCount = 0) {
+  const base = `${frameBase}/moments/${index}/${kind}`;
+  return retryCount > 0 ? `${base}?refresh=1` : base;
+}
+
+/** Advance media error state; at most one refresh before fail-closed. */
+export function nextMediaErrorState(state = { retryCount: 0, failed: false }) {
+  if (state.failed) {
+    return { retryCount: state.retryCount, failed: true };
+  }
+  if ((state.retryCount || 0) < 1) {
+    return { retryCount: 1, failed: false };
+  }
+  return { retryCount: 1, failed: true };
+}

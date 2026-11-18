@@ -3,9 +3,10 @@ import {
   loadAdminPrice,
   loadAdminWorkerCapacity,
   saveAdminPrice,
-  saveAdminUploadLimit,
+  saveAdminUploadLimits,
   saveAdminWorkerCapacity,
 } from "../api.js";
+import { limitChanges, limitInputs, limitSourceLabel, mergeLimits, UPLOAD_LIMITS } from "./adminLimits.js";
 import { centsFromDollars, formatUsd } from "./submitForm.js";
 import { AdminError, AdminLoading } from "./AdminUi.jsx";
 
@@ -22,12 +23,8 @@ const EVENT_LABELS = {
 export function AdminPricePage() {
   const [price, setPrice] = useState(null);
   const [dollars, setDollars] = useState("");
-  const [uploads, setUploads] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  const [limitError, setLimitError] = useState("");
-  const [limitSaved, setLimitSaved] = useState("");
-  const [limitSaving, setLimitSaving] = useState(false);
 
   useEffect(() => {
     let stopped = false;
@@ -38,9 +35,6 @@ export function AdminPricePage() {
         }
         setPrice(next);
         setDollars(next.price_cents == null ? "" : (next.price_cents / 100).toFixed(2));
-        if (Number.isInteger(next.account_uploads_per_hour)) {
-          setUploads(String(next.account_uploads_per_hour));
-        }
       })
       .catch((exc) => {
         if (!stopped) {
@@ -71,36 +65,6 @@ export function AdminPricePage() {
     }
   }
 
-  async function onSaveLimit(event) {
-    event.preventDefault();
-    setLimitError("");
-    setLimitSaved("");
-    const perHour = Number(uploads);
-    if (!Number.isInteger(perHour) || perHour < 1 || perHour > 100) {
-      setLimitError("Enter a whole number from 1 to 100.");
-      return;
-    }
-    setLimitSaving(true);
-    try {
-      const next = await saveAdminUploadLimit(perHour);
-      if (!Number.isInteger(next.account_uploads_per_hour)) {
-        setLimitError("The upload limit was not saved.");
-        return;
-      }
-      setPrice((current) =>
-        current
-          ? { ...current, account_uploads_per_hour: next.account_uploads_per_hour }
-          : current,
-      );
-      setUploads(String(next.account_uploads_per_hour));
-      setLimitSaved("Saved.");
-    } catch (exc) {
-      setLimitError(exc.message);
-    } finally {
-      setLimitSaving(false);
-    }
-  }
-
   return (
     <section>
       <h1>Price</h1>
@@ -120,28 +84,7 @@ export function AdminPricePage() {
             <button type="submit">Save price</button>
           </form>
           {saved ? <p className="note">{saved}</p> : null}
-          <form onSubmit={onSaveLimit}>
-            <label>
-              Logged-in uploads per hour
-              <input
-                value={uploads}
-                type="number"
-                min={1}
-                max={100}
-                step={1}
-                inputMode="numeric"
-                onChange={(event) => setUploads(event.target.value)}
-              />
-            </label>
-            <p className="note">
-              Accepting the submission uses one hourly slot, including when the proxy then rejects the video.
-            </p>
-            <AdminError message={limitError} />
-            <button type="submit" disabled={limitSaving}>
-              {limitSaving ? "Saving…" : "Save upload limit"}
-            </button>
-          </form>
-          {limitSaved ? <p className="note">{limitSaved}</p> : null}
+          <UploadLimitsForm price={price} onSaved={(next) => setPrice((current) => mergeLimits(current, next))} />
           <p className="note">
             Current version {price.pricing_version ?? "—"}
             {price.price_cents == null ? "" : `, ${formatUsd(price.price_cents)}`}
@@ -156,6 +99,80 @@ export function AdminPricePage() {
       ) : null}
       <WorkerCapacitySection />
     </section>
+  );
+}
+
+function UploadLimitsForm({ price, onSaved }) {
+  const [inputs, setInputs] = useState(() => limitInputs(price));
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function send(changes) {
+    setError("");
+    setSaved("");
+    setSaving(true);
+    try {
+      const next = await saveAdminUploadLimits(changes);
+      onSaved(next);
+      setInputs(limitInputs(next));
+      setSaved("Saved.");
+    } catch (exc) {
+      setError(exc.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function onSubmit(event) {
+    event.preventDefault();
+    const result = limitChanges(price, inputs);
+    if (result.error) {
+      setError(result.error);
+      setSaved("");
+      return;
+    }
+    send(result.changes);
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      {UPLOAD_LIMITS.map(({ key, label, resettable }) => (
+        <div key={key}>
+          <label>
+            {label} ({limitSourceLabel(price, key)})
+            <input
+              value={inputs[key]}
+              type="number"
+              min={1}
+              max={100}
+              step={1}
+              inputMode="numeric"
+              onChange={(event) => setInputs((current) => ({ ...current, [key]: event.target.value }))}
+            />
+          </label>
+          {resettable ? (
+            <button
+              type="button"
+              disabled={saving || price[`${key}_source`] !== "saved"}
+              onClick={() => send({ [key]: null })}
+            >
+              Use environment default
+            </button>
+          ) : null}
+        </div>
+      ))}
+      <p className="note">
+        Accepting the submission uses one hourly slot, including when the proxy then rejects the video.
+        The network limit counts every submission from one network, guests and logged-in users together,
+        so it applies first whenever it is lower than the guest or logged-in limit.
+      </p>
+      <AdminError message={error} />
+      <button type="submit" disabled={saving}>
+        {saving ? "Saving…" : "Save upload limits"}
+      </button>
+      {saved ? <p className="note">{saved}</p> : null}
+    </form>
   );
 }
 

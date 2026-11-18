@@ -6,6 +6,7 @@ COPY web/public/package.json web/public/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY web/public/index.html web/public/vite.config.js ./
+COPY web/public/public ./public
 COPY web/public/src ./src
 RUN npm run build
 
@@ -17,20 +18,22 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md constraints.txt ./
 COPY src ./src
 COPY tools ./tools
 COPY configs ./configs
 COPY calibration/templates ./calibration/templates
 COPY --from=web /web/dist ./web/public/dist
 
-RUN pip install --no-cache-dir -e ".[web,cursor]"
+RUN pip install --no-cache-dir -c constraints.txt -e ".[web,cursor]"
 
 # The image must say which commit it was built from: pass the full SHA of the
 # commit whose tree is the build context (GIT_SHA=$(git rev-parse HEAD)).
 ARG GIT_SHA
 RUN echo "$GIT_SHA" | grep -Eqx '[0-9a-f]{40}' \
     || { echo "GIT_SHA build arg must be a full 40-character commit SHA" >&2; exit 1; }
+# The image has no .git: analysis provenance reads the commit from this file.
+RUN printf '%s\n' "$GIT_SHA" > src/splatoon3_ai_coach/BUILD_COMMIT
 LABEL org.opencontainers.image.revision=$GIT_SHA
 
 ENV PUBLIC_HOST=0.0.0.0 \

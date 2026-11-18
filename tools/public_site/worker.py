@@ -23,10 +23,12 @@ from public_site.errors import (
     COACHING_FAILED,
     GAME_LANGUAGE_UNDETERMINED,
     INTERRUPTED,
+    REVIEW_CODE_INTERRUPTED,
 )
 from public_site.frames import extract_frames
 from public_site.models import CoachingOutcome, Submission
-from public_site.service import SubmissionService
+from public_site.recording_publish import MISMATCH, downloaded_matches
+from public_site.service import SubmissionService, _remove_tree
 from public_site.settings import PublicSettings
 from public_site.store import PublicStore, copy_lifecycle, utc_now
 from public_site.telemetry import CoachingOutcome as TelemetryOutcome
@@ -162,6 +164,15 @@ class PublicWorker:
         with self._jobs_lock:
             return len(self._jobs)
 
+    def is_running(self, submission_id: str) -> bool:
+        """True while a job thread of this worker still owns ``submission_id``.
+
+        A thread leaves ``_jobs`` only after its source cleanup has run, so a
+        submission that is not running here has no cleanup left to happen.
+        """
+        with self._jobs_lock:
+            return submission_id in self._jobs
+
     def capacity(self) -> int:
         """This worker's current capacity, read fresh for every claim."""
         try:
@@ -192,14 +203,49 @@ class PublicWorker:
                     return
 
     def recover(self) -> list[Submission]:
-        """Fail in-flight work. Queued submissions stay queued.
+        """Resume finished work; fail other in-flight work.
 
-        Assumes this is the only worker, so every validating or processing
-        record is an orphan of an earlier run whatever ``worker_id`` it has.
-        Before a second worker exists, replace this with lease or heartbeat
-        based recovery; a capacity row is not evidence that a worker is alive.
+        Resume order for ``processing``:
+
+        1. ``.pipeline_ready.json`` — vision/coaching finished; publish without
+           re-running LLM stages.
+        2. A local ``verified`` publication with a successful ``outcome`` already
+           on the submission — publication finished before ``complete`` stuck;
+           finish handoff without re-analysis.
+
+        Other validating/processing orphans are failed as before.
         """
-        failed = self.store.fail_in_flight(INTERRUPTED, utc_now())
+        from public_site.report_lifecycle import read_pipeline_ready
+
+        for submission in self.store.list_submissions():
+            if submission.status != "processing":
+                continue
+            ready = read_pipeline_ready(
+                Path(submission.analysis_dir) if submission.analysis_dir else None
+            )
+            if ready is not None:
+                try:
+                    self._complete(
+                        submission,
+                        ready["outcome"],  # type: ignore[arg-type]
+                        ready["game_language"],  # type: ignore[arg-type]
+                    )
+                except Exception:
+                    logger.exception(
+                        "pipeline_ready recovery failed for submission {}",
+                        submission.id,
+                    )
+                continue
+            try:
+                self._resume_verified_publication(submission)
+            except Exception:
+                logger.exception(
+                    "verified publication recovery failed for submission {}",
+                    submission.id,
+                )
+        failed = self.store.fail_in_flight(
+            INTERRUPTED, utc_now(), review_code_message=REVIEW_CODE_INTERRUPTED
+        )
         for submission in failed:
             self._capture_terminal(submission)
             if self.telemetry is not None:
@@ -211,6 +257,32 @@ class PublicWorker:
             self.service.note_analysis_failed(submission.id, "processing")
             self.service.note_terminal(submission, "failed")
         return failed
+
+    def _resume_verified_publication(self, submission: Submission) -> bool:
+        """Finish a run whose report is already verified but status never stuck.
+
+        Requires a successful ``outcome`` already written before publication. Does
+        not re-run analyze or invent a game language. Idempotent with handoff and
+        terminal notices.
+        """
+        from public_site.report_publications import load_verified_publication
+
+        if load_verified_publication(self.service.settings.root, submission.id) is None:
+            return False
+        if submission.outcome not in {"coached", "no_deaths"}:
+            return False
+        submission.status = "complete"
+        submission.error = None
+        submission.step = "ready"
+        submission.updated_at = utc_now()
+        self._save(submission)
+        self.service.note_analysis_completed(submission.id)
+        if submission.input_type == "review_code":
+            self._hand_off_recording(submission)
+        notice = "no_moments" if submission.outcome == "no_deaths" else "ready"
+        self.service.note_terminal(submission, notice)
+        self.service.release_source_video(submission)
+        return True
 
     def tick(self) -> bool:
         """Expire old work, then start queued submissions into free slots."""
@@ -228,7 +300,9 @@ class PublicWorker:
             with self._jobs_lock:
                 if len(self._jobs) >= self.capacity():
                     break
-                submission = self.store.claim_oldest_queued(self.worker_id, utc_now())
+                submission = self.store.claim_oldest_queued(
+                    self.worker_id, utc_now(), admit=self._admit_review_code
+                )
                 if submission is None:
                     break
                 self._stage_seconds[submission.id] = {}
@@ -242,6 +316,17 @@ class PublicWorker:
                 thread.start()
             started = True
         return started
+
+    def _admit_review_code(self, submission: Submission) -> bool:
+        """Only a verified, queued review-code recording; never without the feature."""
+        recordings = self.service.recordings
+        return recordings is not None and recordings.intake.admits(submission)
+
+    def _hand_off_recording(self, submission: Submission) -> None:
+        """Hand off an accepted review-code recording; reconcile retries a failure."""
+        recordings = self.service.recordings
+        if recordings is not None:
+            recordings.hand_off(submission)
 
     def _run_job(self, submission: Submission) -> None:
         """Run one claimed submission. The slot is released on every path."""
@@ -283,6 +368,12 @@ class PublicWorker:
             )
             return
         analysis = self.settings.root / "analysis" / submission.id
+        try:
+            _remove_tree(analysis)
+        except OSError:
+            logger.exception("stale analysis cleanup failed for submission {}", submission.id)
+            self._fail(submission, ANALYSIS_FAILED, stage=Stage.ANALYZE)
+            return
         analysis.mkdir(parents=True, exist_ok=True)
         submission.analysis_dir = str(analysis)
         self._save(submission)
@@ -296,6 +387,16 @@ class PublicWorker:
                 stage=Stage.ANALYZE,
                 diagnostic=Diagnostic.SOURCE_MISSING,
             )
+            return
+        if submission.input_type == "review_code" and not downloaded_matches(path, video.sha256):
+            self._fail(
+                submission,
+                MISMATCH,
+                stage=Stage.ANALYZE,
+                diagnostic=Diagnostic.SOURCE_MISSING,
+            )
+            if temporary and path.is_file():
+                path.unlink()
             return
         try:
             self._stages(submission, analysis, path)
@@ -384,11 +485,38 @@ class PublicWorker:
         outcome: CoachingOutcome,
         game_language: GameLanguage,
     ) -> None:
-        """Finish successfully. ``no_deaths`` is a valid empty result, not a failure."""
-        submission.status = "complete"
+        """Finish successfully. ``no_deaths`` is a valid empty result, not a failure.
+
+        Writes ``.pipeline_ready.json`` then runs synchronous fenced publication
+        when reporting is enabled, before marking the submission ``complete``.
+        """
+        analysis = self._analysis_dir(submission)
+        if analysis is not None:
+            from public_site.report_lifecycle import write_pipeline_ready
+
+            write_pipeline_ready(
+                analysis, outcome=outcome, game_language=game_language
+            )
+        submission.outcome = outcome
         submission.step = "ready"
         submission.error = None
-        submission.outcome = outcome
+        submission.updated_at = utc_now()
+        # Stay ``processing`` until publication verifies (or publishing is off).
+        self._save(submission)
+        sync = (
+            self.service.reports is not None
+            and self.service.reports.writer is not None
+            and self.service.report_store is not None
+        )
+        published = self._publish_ready(submission) if sync else False
+        if sync and not published:
+            # Leave processing so recover/startup can resume without re-LLM.
+            logger.warning(
+                "report publish not verified yet; leaving processing: submission={}",
+                submission.id,
+            )
+            return
+        submission.status = "complete"
         submission.updated_at = utc_now()
         self._save(submission)
         if self.telemetry is not None:
@@ -401,10 +529,20 @@ class PublicWorker:
             )
         notice = "no_moments" if outcome == "no_deaths" else "ready"
         self.service.note_analysis_completed(submission.id)
+        if not published:
+            self.service.note_report_completed(submission.id)
+        if submission.input_type == "review_code":
+            self._hand_off_recording(submission)
         self.service.note_terminal(submission, notice)
         self.service.release_source_video(submission)
         self._stage_seconds.pop(submission.id, None)
 
+    def _publish_ready(self, submission: Submission) -> bool:
+        """Synchronously publish when PostgreSQL report authority is configured."""
+        reports = self.service.reports
+        if reports is None or reports.writer is None:
+            return False
+        return reports.publish_now(submission.id)
 
     def _frames(self, submission: Submission, analysis: Path, video: Path) -> None:
         """Create presentation media before source cleanup. Failure stays non-fatal."""

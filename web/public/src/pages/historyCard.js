@@ -3,8 +3,9 @@
  *
  * Only stored facts are shown: the mode and stage ids the pipeline latched from
  * the match intro, and the number of moments the completed review lists.
- * Missing facts are omitted, never replaced with placeholders. Processing state
- * (`status`) and what the review contains (`meta`) stay separate.
+ * Missing facts are omitted, never replaced with placeholders. The server's
+ * customer-facing state (`display_status`) and what the review contains
+ * (`meta`) stay separate.
  */
 
 const SEPARATOR = " · ";
@@ -17,7 +18,7 @@ export function historyCard(item, t, locale) {
   ]);
   return {
     title: title || t("coaching.match"),
-    status: t(statusKey(item.status)),
+    status: t(statusKey(item.display_status)),
     meta: joinParts([momentText(item, t), formatWhen(item.created_at, locale)]),
     href: `/coaching/${item.id}`,
   };
@@ -35,17 +36,29 @@ export function formatWhen(stamp, locale) {
   }).format(date);
 }
 
-function statusKey(status) {
-  if (status === "complete") {
-    return "coaching.status.complete";
+/** Customer-facing statuses the server may send as `display_status`. */
+export const DISPLAY_STATUSES = new Set([
+  "payment_required",
+  "email_confirmation",
+  "awaiting_recording",
+  "recording",
+  "awaiting_analysis",
+  "analyzing",
+  "complete",
+  "needs_attention",
+  "failed",
+  "expired",
+  "cancelled",
+]);
+
+function statusKey(displayStatus) {
+  if (DISPLAY_STATUSES.has(displayStatus)) {
+    return `coaching.status.${displayStatus}`;
   }
-  if (status === "failed") {
-    return "coaching.status.failed";
+  if (displayStatus) {
+    console.warn("Unknown history display_status", displayStatus);
   }
-  if (status === "expired") {
-    return "coaching.status.expired";
-  }
-  return "coaching.status.in_progress";
+  return "coaching.status.unknown";
 }
 
 function momentText(item, t) {

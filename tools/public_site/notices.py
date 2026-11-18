@@ -18,8 +18,16 @@ SUBJECTS = {
     "ready": "Your Splatoon 3 coaching review is ready",
     "no_moments": "Your Splatoon 3 review is complete: no coaching moments",
     "failed": "Your Splatoon 3 coaching review could not be completed",
+    "cancelled": "Your Splatoon 3 review request was cancelled",
 }
+CANCELLED_EXPLANATION = (
+    "Your Splatoon 3 review request was cancelled because it was not paid. "
+    "No payment was taken. To get a review, submit a new request."
+)
 NO_DEATHS_EXPLANATION = "No deaths were detected in this recording."
+REVIEW_CODE_FAILED_HELP = (
+    "Please contact the administrator and include your support reference."
+)
 ACCOUNT_SUBJECTS = {
     "verify": "Confirm your Splatoon 3 coaching account",
     "reset": "Reset your Splatoon 3 coaching password",
@@ -55,39 +63,54 @@ class NoticeSender:
         """Drop the sealed token after the terminal notice or on expiry."""
         self._secret(submission_id).unlink(missing_ok=True)
 
-    def deliver(self, submission: Submission, kind: str, token: str) -> None:
+    def deliver(
+        self, submission: Submission, kind: str, token: str, reference: str | None = None
+    ) -> None:
         """Write one notice. The caller records sent only after this returns.
 
+        ``reference`` is the customer's support reference, never the internal id.
         Raises when the provider rejects the message so a claim can be retried.
         """
         subject = SUBJECTS[kind]
         review_url = f"{self.settings.public_base_url}/review/{token}"
-        body = _body(kind, review_url)
+        review_code = submission.input_type == "review_code"
+        body = _body(kind, review_url, reference, review_code=review_code)
         if self.settings.smtp_host:
             _smtp(self.settings, submission.email or "", subject, body)
         else:
             self._write_outbox(submission.id, kind, submission.email or "", subject, body)
         logger.info("notice {} sent for submission {}", kind, submission.id)
 
-    def send(self, submission: Submission, kind: str, token: str) -> None:
+    def send(
+        self, submission: Submission, kind: str, token: str, reference: str | None = None
+    ) -> None:
         """Send one notice and mark it on the in-memory submission."""
         if not submission.notify or not submission.email:
             return
         if kind in submission.notices_sent:
             return
-        self.deliver(submission, kind, token)
+        self.deliver(submission, kind, token, reference)
         submission.notices_sent.append(kind)
 
     def send_confirm(self, email: str, url: str) -> None:
-        """Mail a confirmation link. The body has no review URL."""
+        """Mail a confirmation link. The body has no review URL.
+
+        Success means the SMTP provider accepted the message (or the local
+        outbox write finished). Delivery to the inbox is not claimed here.
+        """
         body = f"Confirm this address to receive a notice when your review is ready.\n\n{url}\n"
         if self.settings.smtp_host:
-            _smtp(self.settings, email, CONFIRM_SUBJECT, body)
+            try:
+                logger.info("notice confirmation send attempted")
+                _smtp(self.settings, email, CONFIRM_SUBJECT, body)
+            except smtplib.SMTPException:
+                logger.exception("notice confirmation SMTP rejected")
+                raise RequestRejected(502, MAIL_FAILED) from None
         else:
             name = f"confirm.{uuid.uuid4().hex}.txt"
             text = f"To: {email}\nSubject: {CONFIRM_SUBJECT}\n\n{body}"
             (self.outbox / name).write_text(text, encoding="utf-8")
-        logger.info("notice confirmation sent")
+        logger.info("notice confirmation SMTP accepted")
 
     def send_account(self, email: str, kind: str, url: str) -> None:
         """Send a verify or reset link. The raw token stays in the message body."""
@@ -128,16 +151,32 @@ def _account_body(kind: str, url: str) -> str:
     return f"{lead}\n\n{url}\n"
 
 
-def _body(kind: str, review_url: str) -> str:
-    if kind == "received":
+def _body(
+    kind: str, review_url: str, reference: str | None = None, *, review_code: bool = False
+) -> str:
+    if kind == "failed" and review_code:
+        lead = (
+            "Your Splatoon 3 coaching review could not be completed."
+            f"\n\n{REVIEW_CODE_FAILED_HELP}"
+        )
+    elif kind == "received":
         lead = "We received your match."
     elif kind == "ready":
         lead = "Your Splatoon 3 coaching review is ready."
     elif kind == "no_moments":
         lead = f"Your Splatoon 3 review is complete.\n\n{NO_DEATHS_EXPLANATION}"
+    elif kind == "cancelled":
+        lead = CANCELLED_EXPLANATION
     else:
         lead = "Your Splatoon 3 coaching review could not be completed."
-    return f"{lead}\n\nView your review\n{review_url}\n"
+    support = (
+        ""
+        if reference is None
+        else f"\n\nSupport reference: {reference}\n"
+        "Please include this number if you contact us."
+    )
+    link = "View your request" if kind == "cancelled" else "View your review"
+    return f"{lead}{support}\n\n{link}\n{review_url}\n"
 
 
 def _smtp(settings: PublicSettings, email: str, subject: str, body: str) -> None:

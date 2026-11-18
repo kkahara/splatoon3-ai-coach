@@ -6,14 +6,21 @@ leave ``received``. An older Checkout attempt cannot overwrite the current one.
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
 
 import psycopg
+from psycopg import sql
 from psycopg.rows import dict_row
 
 from public_site.errors import PAYMENT_UNAVAILABLE, RequestRejected
+from public_site.public_reference import ALPHABET as REFERENCE_ALPHABET
+from public_site.public_reference import LENGTH as REFERENCE_LENGTH
+from public_site.public_reference import PATTERN as REFERENCE_PATTERN
+from public_site.public_reference import PREFIX as REFERENCE_PREFIX
+from public_site.public_reference import new_reference
 
 PaymentState = Literal["not_required", "unpaid", "checkout_created", "paid"]
 GateStatus = Literal["received", "queued", "expired"]
@@ -30,6 +37,8 @@ FailureCategory = Literal["processing", "invalid_upload", "expired"]
 PaidResult = Literal["paid", "queued", "stale", "amount", "expired", "missing"]
 
 _SCHEMA_LOCK = 8_273_341_904
+_REFERENCE_ATTEMPTS = 10
+_UNBIASED_BYTES = 256 - 256 % len(REFERENCE_ALPHABET)
 _SCHEMA = (
     """
     CREATE TABLE IF NOT EXISTS analysis_price (
@@ -101,6 +110,14 @@ _SCHEMA = (
     ON CONFLICT (id) DO NOTHING
     """,
     """
+    ALTER TABLE account_upload_limit ADD COLUMN IF NOT EXISTS guest_uploads_per_hour integer
+        CHECK (guest_uploads_per_hour BETWEEN 1 AND 100)
+    """,
+    """
+    ALTER TABLE account_upload_limit ADD COLUMN IF NOT EXISTS network_uploads_per_hour integer
+        CHECK (network_uploads_per_hour BETWEEN 1 AND 100)
+    """,
+    """
     ALTER TABLE submission_gates ADD COLUMN IF NOT EXISTS voucher_id uuid
     """,
     """
@@ -168,6 +185,47 @@ _SCHEMA = (
         WHEN duplicate_object THEN NULL;
     END $$
     """,
+    """
+    ALTER TABLE submission_gates ADD COLUMN IF NOT EXISTS public_reference text
+    """,
+    f"""
+    DO $$
+    BEGIN
+        ALTER TABLE submission_gates
+            ADD CONSTRAINT submission_gates_public_reference_format
+            CHECK (public_reference ~ '{REFERENCE_PATTERN}');
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END $$
+    """,
+    """
+    CREATE UNIQUE INDEX IF NOT EXISTS submission_gates_public_reference
+        ON submission_gates (public_reference)
+    """,
+    # P1-A inserts gates without public_reference; after a rollback to it the
+    # NOT NULL column must still fill itself.
+    f"""
+    CREATE OR REPLACE FUNCTION s3_new_public_reference() RETURNS text
+    LANGUAGE plpgsql VOLATILE AS $$
+    DECLARE
+        alphabet constant text := '{REFERENCE_ALPHABET}';
+        reference text := '{REFERENCE_PREFIX}';
+        drawn int;
+    BEGIN
+        WHILE length(reference) < {len(REFERENCE_PREFIX) + REFERENCE_LENGTH} LOOP
+            drawn := get_byte(uuid_send(gen_random_uuid()), 0);
+            IF drawn < {_UNBIASED_BYTES} THEN
+                reference := reference
+                    || substr(alphabet, drawn % length(alphabet) + 1, 1);
+            END IF;
+        END LOOP;
+        RETURN reference;
+    END $$
+    """,
+    """
+    ALTER TABLE submission_gates
+        ALTER COLUMN public_reference SET DEFAULT s3_new_public_reference()
+    """,
 )
 _QUEUE = """
     UPDATE submission_gates
@@ -178,6 +236,9 @@ _QUEUE = """
       AND payment_state IN ('paid', 'not_required')
       AND expires_at > now()
 """
+_QUEUE_REVIEW_SAFE = _QUEUE.replace(
+    "AND payment_state", "AND source = 'upload'\n      AND payment_state"
+)
 
 
 @dataclass(frozen=True)
@@ -218,6 +279,44 @@ class SubmissionGate:
     voucher_id: str | None = None
     voucher_state: Literal["pending", "redeemed", "failed"] | None = None
     voucher_failure_reason: str | None = None
+    public_reference: str | None = None
+    source: str = "upload"
+
+
+class _Unset:
+    """Marks an upload limit the caller did not mention."""
+
+    def __repr__(self) -> str:
+        return "UNSET"
+
+
+UNSET = _Unset()
+_LIMIT_COLUMNS = (
+    ("account", "account_uploads_per_hour"),
+    ("guest", "guest_uploads_per_hour"),
+    ("network", "network_uploads_per_hour"),
+)
+
+
+@dataclass(frozen=True)
+class UploadLimits:
+    """Saved per-hour limits. ``None`` means the environment setting applies."""
+
+    account: int
+    guest: int | None
+    network: int | None
+
+
+@dataclass(frozen=True)
+class EffectiveUploadLimits:
+    """The limits enforced now, and whether each one is a saved admin setting."""
+
+    account: int
+    guest: int
+    network: int
+    account_saved: bool
+    guest_saved: bool
+    network_saved: bool
 
 
 @dataclass(frozen=True)
@@ -235,6 +334,7 @@ class PaymentStore:
 
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
+        self.source_column_available = False
 
     def ensure_schema(self) -> None:
         """Create the price, gate, and funnel tables when they are missing."""
@@ -242,6 +342,33 @@ class PaymentStore:
             conn.execute("SELECT pg_advisory_xact_lock(%s)", (_SCHEMA_LOCK,))
             for statement in _SCHEMA:
                 conn.execute(statement)
+            _backfill_references(conn)
+            conn.execute(
+                "ALTER TABLE submission_gates ALTER COLUMN public_reference SET NOT NULL"
+            )
+            self.source_column_available = self._source_column_exists(conn)
+
+    def refresh_source_schema(self, *, required: bool = False) -> None:
+        """Detect the optional review-code schema without modifying the database."""
+        with self._conn() as conn:
+            self.source_column_available = self._source_column_exists(conn)
+        if required and not self.source_column_available:
+            raise RuntimeError(
+                "Review-code schema is missing the submission_gates.source migration."
+            )
+
+    @staticmethod
+    def _source_column_exists(conn: psycopg.Connection) -> bool:
+        """Check whether the feature-gated source column has been migrated."""
+        return bool(
+            conn.execute(
+                """SELECT EXISTS (
+                       SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = current_schema()
+                         AND table_name = 'submission_gates' AND column_name = 'source'
+                   ) AS present"""
+            ).fetchone()["present"]
+        )
 
     def clear(self) -> None:
         """Delete payment rows. Used by tests, not by the public site."""
@@ -249,7 +376,7 @@ class PaymentStore:
             conn.execute(
                 """
                 TRUNCATE price_events, submission_gates, analysis_price,
-                    account_upload_limit
+                    account_upload_limit CASCADE
                 """
             )
 
@@ -281,6 +408,58 @@ class PaymentStore:
                 (per_hour,),
             )
         return per_hour
+
+    def upload_limits(self) -> UploadLimits:
+        """All saved limits in one read. Guest and network are None until saved."""
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT account_uploads_per_hour, guest_uploads_per_hour,
+                       network_uploads_per_hour
+                FROM account_upload_limit WHERE id = true
+                """
+            ).fetchone()
+        if row is None:
+            return UploadLimits(account=5, guest=None, network=None)
+        return _upload_limits(row)
+
+    def set_upload_limits(
+        self,
+        *,
+        account: int | _Unset = UNSET,
+        guest: int | None | _Unset = UNSET,
+        network: int | None | _Unset = UNSET,
+    ) -> UploadLimits:
+        """Save only the limits given.
+
+        An omitted limit is left as it is. ``None`` clears a guest or network
+        limit so the environment setting applies again. The account limit
+        cannot be cleared. Every value is checked before anything is written.
+        """
+        changes = _limit_changes({"account": account, "guest": guest, "network": network})
+        assignments = sql.SQL(", ").join(
+            sql.SQL("{} = %s").format(sql.Identifier(column)) for column in changes
+        )
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO account_upload_limit (id, account_uploads_per_hour)
+                VALUES (true, 5)
+                ON CONFLICT (id) DO NOTHING
+                """
+            )
+            row = conn.execute(
+                sql.SQL(
+                    """
+                    UPDATE account_upload_limit SET {}
+                    WHERE id = true
+                    RETURNING account_uploads_per_hour, guest_uploads_per_hour,
+                              network_uploads_per_hour
+                    """
+                ).format(assignments),
+                list(changes.values()),
+            ).fetchone()
+        return _upload_limits(row)
 
     def current_price(self) -> AnalysisPrice | None:
         """The live price, or None until an administrator saves one."""
@@ -349,34 +528,45 @@ class PaymentStore:
         quote: PriceQuote,
         expires_at: datetime,
         voucher_id: str | None = None,
+        *,
+        conn: psycopg.Connection | None = None,
+        source: str = "upload",
     ) -> None:
         """Insert the gate for a submission that was just created.
 
         A voucher id marks the code as attached. Payment stays on ``quote`` and
         is not authorized by that attachment.
         """
-        voucher_state = None if voucher_id is None else "pending"
-        with self._conn() as conn:
-            conn.execute(
-                """
-                INSERT INTO submission_gates (
-                    submission_id, status, uploaded, payment_state, checkout_attempt,
-                    price_cents, currency, pricing_version, expires_at,
-                    voucher_id, voucher_state
-                )
-                VALUES (%s, 'received', false, %s, 0, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    submission_id,
-                    quote.payment_state,
-                    quote.price_cents,
-                    quote.currency,
-                    quote.pricing_version,
-                    expires_at,
-                    voucher_id,
-                    voucher_state,
-                ),
+        if source != "upload" and not self.source_column_available:
+            raise RuntimeError(
+                "Review-code payment source requires the feature-gated schema migration."
             )
+        values = {
+            "submission_id": submission_id,
+            "status": "received",
+            "uploaded": False,
+            "payment_state": quote.payment_state,
+            "checkout_attempt": 0,
+            "price_cents": quote.price_cents,
+            "currency": quote.currency,
+            "pricing_version": quote.pricing_version,
+            "expires_at": expires_at,
+            "voucher_id": voucher_id,
+            "voucher_state": None if voucher_id is None else "pending",
+        }
+        if self.source_column_available:
+            values["source"] = source
+        with nullcontext(conn) if conn is not None else self._conn() as conn:
+            _insert_gate(conn, values)
+
+    def get_by_reference(self, reference: str) -> SubmissionGate | None:
+        """Load the gate with this support reference. Identification only."""
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM submission_gates WHERE public_reference = %s",
+                (reference,),
+            ).fetchone()
+        return None if row is None else _gate(row)
 
     def get(self, submission_id: str) -> SubmissionGate | None:
         """Load one gate, or None when this submission is not billed here."""
@@ -386,6 +576,23 @@ class PaymentStore:
                 (submission_id,),
             ).fetchone()
         return None if row is None else _gate(row)
+
+    def states(self, submission_ids: list[str]) -> dict[str, tuple[str, str | None]]:
+        """Payment and voucher state per billed submission, in one query."""
+        if not submission_ids:
+            return {}
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT submission_id, payment_state, voucher_state FROM submission_gates
+                WHERE submission_id = ANY(%s)
+                """,
+                (submission_ids,),
+            ).fetchall()
+        return {
+            str(row["submission_id"]): (row["payment_state"], row["voucher_state"])
+            for row in rows
+        }
 
     def get_by_session(self, session_id: str) -> SubmissionGate | None:
         """Load the gate that currently owns this Checkout Session id."""
@@ -400,12 +607,14 @@ class PaymentStore:
 
     def mark_uploaded(self, submission_id: str) -> bool:
         """Set the upload prerequisite. True only when this call changes the row."""
+        source_clause = "AND source = 'upload'" if self.source_column_available else ""
         with self._conn() as conn:
             updated = conn.execute(
-                """
+                f"""
                 UPDATE submission_gates
                 SET uploaded = true
                 WHERE submission_id = %s AND status = 'received' AND NOT uploaded
+                    {source_clause}
                 """,
                 (submission_id,),
             )
@@ -413,8 +622,9 @@ class PaymentStore:
 
     def try_queue(self, submission_id: str) -> bool:
         """Move an eligible gate from received to queued. Only one caller wins."""
+        statement = _QUEUE_REVIEW_SAFE if self.source_column_available else _QUEUE
         with self._conn() as conn:
-            updated = conn.execute(_QUEUE, (submission_id,))
+            updated = conn.execute(statement, (submission_id,))
         return updated.rowcount == 1
 
     def apply_paid(
@@ -442,25 +652,46 @@ class PaymentStore:
             ).fetchone()
             if row is None:
                 return "missing"
-            if row["status"] == "expired":
+            if row["status"] == "expired" and not self.source_column_available:
                 return "expired"
+            is_review = (
+                self.source_column_available and row["source"] == "nintendo_review_code"
+            )
+            if row["status"] == "expired" and not is_review:
+                return "expired"
+            if is_review and row["status"] == "expired":
+                acquisition = conn.execute(
+                    """SELECT sensitive_data_purged_at
+                       FROM review_code_acquisitions WHERE submission_id = %s""",
+                    (submission_id,),
+                ).fetchone()
+                if acquisition is None or acquisition["sensitive_data_purged_at"]:
+                    return "expired"
             if row["checkout_session_id"] != session_id:
                 return "stale"
             if not _amount_matches(row, amount_subtotal, amount_total, currency):
                 return "amount"
             if row["payment_state"] == "paid":
                 return "paid"
-            if row["payment_state"] != "checkout_created" or row["status"] != "received":
+            if row["payment_state"] != "checkout_created" or row["status"] not in {
+                "received",
+                "expired",
+            }:
                 return "stale"
+            source_condition = (
+                "(status = 'received' OR (source = 'nintendo_review_code' AND status = 'expired'))"
+                if self.source_column_available
+                else "status = 'received'"
+            )
             updated = conn.execute(
-                """
+                f"""
                 UPDATE submission_gates
-                SET payment_state = 'paid', payment_intent_id = %s
+                SET payment_state = 'paid', payment_intent_id = %s, status = 'received'
                 WHERE submission_id = %s
                   AND checkout_session_id = %s
                   AND checkout_attempt = %s
                   AND payment_state = 'checkout_created'
-                  AND status = 'received'
+                  AND {source_condition}
                 """,
                 (payment_intent_id, submission_id, session_id, row["checkout_attempt"]),
             )
@@ -477,7 +708,9 @@ class PaymentStore:
             )
         return "paid"
 
-    def claim_checkout(self, submission_id: str, replace_session_id: str | None) -> int | None:
+    def claim_checkout(
+        self, submission_id: str, replace_session_id: str | None
+    ) -> int | None:
         """Reserve an attempt number, or None when another request owns it.
 
         Replacing an expired session is conditional on the stored attempt and
@@ -504,7 +737,9 @@ class PaymentStore:
                 return _replace_attempt(conn, row, replace_session_id)
         return None
 
-    def attach_session(self, submission_id: str, attempt: int, session_id: str, url: str) -> bool:
+    def attach_session(
+        self, submission_id: str, attempt: int, session_id: str, url: str
+    ) -> bool:
         """Store the session for this attempt. A repeat of the same id is a no-op."""
         with self._conn() as conn:
             updated = conn.execute(
@@ -619,12 +854,14 @@ class PaymentStore:
 
     def ready_ids(self) -> list[str]:
         """Gates that can still be queued. Used to recover a crash after payment."""
+        source_clause = "AND source = 'upload'" if self.source_column_available else ""
         with self._conn() as conn:
             rows = conn.execute(
-                """
+                f"""
                 SELECT submission_id FROM submission_gates
                 WHERE status = 'received'
                   AND uploaded
+                  {source_clause}
                   AND payment_state IN ('paid', 'not_required')
                   AND expires_at > now()
                 """
@@ -678,8 +915,12 @@ class PaymentStore:
             ).fetchall()
         return [
             PriceEventCount(
-                pricing_version=None if row["pricing_version"] is None else int(row["pricing_version"]),
-                price_cents=None if row["price_cents"] is None else int(row["price_cents"]),
+                pricing_version=None
+                if row["pricing_version"] is None
+                else int(row["pricing_version"]),
+                price_cents=None
+                if row["price_cents"] is None
+                else int(row["price_cents"]),
                 kind=str(row["kind"]),
                 count=int(row["count"]),
             )
@@ -754,6 +995,31 @@ def _replace_attempt(conn: psycopg.Connection, row: dict, session_id: str) -> in
     return attempt
 
 
+def _limit_changes(given: dict[str, object]) -> dict[str, int | None]:
+    """Column to value for every limit the caller mentioned, after validation."""
+    changes: dict[str, int | None] = {}
+    for name, column in _LIMIT_COLUMNS:
+        value = given[name]
+        if value is UNSET:
+            continue
+        if value is None and name == "account":
+            raise ValueError("account upload limit cannot be cleared")
+        if value is not None and (type(value) is not int or not 1 <= value <= 100):
+            raise ValueError(f"{name} upload limit must be a whole number from 1 to 100")
+        changes[column] = value
+    if not changes:
+        raise ValueError("give at least one upload limit")
+    return changes
+
+
+def _upload_limits(row: dict) -> UploadLimits:
+    return UploadLimits(
+        account=int(row["account_uploads_per_hour"]),
+        guest=row["guest_uploads_per_hour"],
+        network=row["network_uploads_per_hour"],
+    )
+
+
 def _amount_matches(
     row: dict, amount_subtotal: int | None, amount_total: int | None, currency: str | None
 ) -> bool:
@@ -805,4 +1071,51 @@ def _gate(row: dict) -> SubmissionGate:
         voucher_id=None if row.get("voucher_id") is None else str(row["voucher_id"]),
         voucher_state=row.get("voucher_state"),
         voucher_failure_reason=row.get("voucher_failure_reason"),
+        public_reference=row.get("public_reference"),
+        source=row.get("source") or "upload",
     )
+
+
+def _insert_gate(conn: psycopg.Connection, values: dict[str, object]) -> None:
+    """Insert one gate with a fresh support reference, drawing again on a clash.
+
+    Only a clash on the reference index is retried; a duplicate submission id
+    still raises.
+    """
+    columns = sql.SQL(", ").join(
+        sql.Identifier(name) for name in [*values, "public_reference"]
+    )
+    placeholders = sql.SQL(", ").join([sql.Placeholder()] * (len(values) + 1))
+    statement = sql.SQL(
+        """INSERT INTO submission_gates ({}) VALUES ({})
+           ON CONFLICT (public_reference) DO NOTHING
+           RETURNING submission_id"""
+    ).format(columns, placeholders)
+    for _ in range(_REFERENCE_ATTEMPTS):
+        row = conn.execute(statement, [*values.values(), new_reference()]).fetchone()
+        if row is not None:
+            return
+    raise RuntimeError("could not allocate a unique support reference")
+
+
+def _backfill_references(conn: psycopg.Connection) -> None:
+    """Give every gate without a support reference a unique one. Never rewrites one."""
+    rows = conn.execute(
+        "SELECT submission_id FROM submission_gates WHERE public_reference IS NULL"
+    ).fetchall()
+    for row in rows:
+        for _ in range(_REFERENCE_ATTEMPTS):
+            updated = conn.execute(
+                """
+                UPDATE submission_gates SET public_reference = %(ref)s
+                WHERE submission_id = %(id)s AND public_reference IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM submission_gates WHERE public_reference = %(ref)s
+                  )
+                """,
+                {"ref": new_reference(), "id": row["submission_id"]},
+            )
+            if updated.rowcount == 1:
+                break
+        else:
+            raise RuntimeError("could not allocate a unique support reference")

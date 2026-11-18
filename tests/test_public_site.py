@@ -573,6 +573,45 @@ def test_expiry_deletes_media_and_email(tmp_path: Path) -> None:
     assert "player@example.com" not in client.get(f"/api/submissions/{token}").text
 
 
+def test_expiry_clears_identity_even_when_analysis_deletion_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from public_site import service as service_module
+
+    client = _client(tmp_path)
+    created = _create(client, notify=True, email="player@example.com", display_name="Rin")
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    store = client.app.state.store
+    stored = store.list_submissions()[0]
+    analysis = tmp_path / "analysis" / stored.id
+    analysis.mkdir(parents=True)
+    (analysis / "report.json").write_text("{}", encoding="utf-8")
+    stored.analysis_dir = str(analysis)
+    store.save_submission(stored)
+    real_remove = service_module._remove_tree
+    attempts = 0
+
+    def fail_once(path: Path) -> None:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise OSError("injected")
+        real_remove(path)
+
+    monkeypatch.setattr(service_module, "_remove_tree", fail_once)
+    later = datetime.now(UTC) + timedelta(days=31)
+    client.app.state.service.maintain(later)
+    failed = store.get(stored.id)
+    assert failed.status == "expired"
+    assert failed.email is None and failed.display_name is None
+    assert failed.analysis_dir == str(analysis) and analysis.exists()
+    assert client.get(f"/api/submissions/{token}").json()["result"] is None
+    client.app.state.service.maintain(later + timedelta(seconds=1))
+    assert store.get(stored.id).analysis_dir is None
+    assert not analysis.exists()
+
+
 def test_abandoned_upload_releases_the_queue(tmp_path: Path) -> None:
     client = _client(tmp_path, upload_url_seconds=60)
     _create(client)
@@ -984,6 +1023,20 @@ def test_dev_mode_keeps_regular_upload_limits(monkeypatch, tmp_path: Path) -> No
     assert production.account_submissions_per_hour == 5
     assert production.submission_window_seconds == 3600
     assert production.accounts_per_ip == 3
+
+
+def test_healthz_is_ok_in_dev_mode(tmp_path: Path) -> None:
+    client = _client(tmp_path, dev_mode=True)
+    response = client.get("/api/healthz")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_healthz_fails_closed_when_production_invariants_break(tmp_path: Path) -> None:
+    client = _client(tmp_path, dev_mode=False)
+    response = client.get("/api/healthz")
+    assert response.status_code == 503
+    assert "PUBLIC_STORAGE" in response.json()["detail"]
 
 
 def test_public_site_refuses_to_start_without_turnstile(monkeypatch) -> None:
