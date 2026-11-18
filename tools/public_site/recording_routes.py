@@ -72,31 +72,47 @@ def _register_verification(app, recordings, notice_cookie):
     @app.post("/api/submissions/{token}/verify-contact")
     def resend(token: str, request: Request) -> JSONResponse:
         try:
-            pending, fresh, retry = recordings.resend_contact(
+            arranged = recordings.resend_contact(
                 token, request.cookies.get("notice_browser", "")
             )
         except RequestRejected as exc:
             return _rejected(exc)
-        if retry is not None:
-            return _cooldown(retry)
-        response = JSONResponse({"notice_pending": pending})
-        if fresh:
-            notice_cookie(response, fresh)
+        # Browser cooldown is explicit (429 + Retry-After). Other suppressions
+        # stay 200 without claiming a send, so the per-address limit stays silent.
+        if (
+            arranged.mail_outcome == "cooldown"
+            and arranged.retry_after_seconds is not None
+            and arranged.retry_after_seconds > 0
+        ):
+            return _cooldown(arranged.retry_after_seconds)
+        response = JSONResponse(
+            {
+                "notice_pending": arranged.pending,
+                "confirm_mail_outcome": arranged.mail_outcome,
+                "retry_after_seconds": arranged.retry_after_seconds,
+            }
+        )
+        if arranged.cookie:
+            notice_cookie(response, arranged.cookie)
         return response
 
     @app.post("/api/submissions/{token}/contact-email")
     def change(token: str, body: ContactCorrection, request: Request) -> JSONResponse:
         try:
-            pending, fresh, retry = recordings.change_contact(
+            arranged = recordings.change_contact(
                 token, body.email, request.cookies.get("notice_browser", "")
             )
         except RequestRejected as exc:
             return _rejected(exc)
         response = JSONResponse(
-            {"notice_pending": pending, "retry_after_seconds": retry}
+            {
+                "notice_pending": arranged.pending,
+                "confirm_mail_outcome": arranged.mail_outcome,
+                "retry_after_seconds": arranged.retry_after_seconds,
+            }
         )
-        if fresh:
-            notice_cookie(response, fresh)
+        if arranged.cookie:
+            notice_cookie(response, arranged.cookie)
         return response
 
 
@@ -106,6 +122,7 @@ def _cooldown(seconds: int) -> JSONResponse:
         {
             "detail": "Another confirmation email cannot be sent yet.",
             "reason": "confirm_cooldown",
+            "confirm_mail_outcome": "cooldown",
             "retry_after_seconds": seconds,
         },
         status_code=429,

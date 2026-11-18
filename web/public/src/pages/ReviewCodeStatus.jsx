@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 import { changeReviewContact, resendReviewContact } from "../api.js";
 import { useT } from "../i18n/LocaleContext.jsx";
+import {
+  confirmMailActionMessageKey,
+  confirmMailDispatched,
+  contactVerifyLeadKey,
+} from "./contactConfirm.js";
 import { cooldownMinutes, cooldownUntil } from "./contactCooldown.js";
 import { recordingAuthorized, recordingQueued } from "./recordingForm.js";
-import { acquisitionStateKey, reviewExpired, voucherPending } from "./reviewPayment.js";
+import {
+  acquisitionStateKey,
+  awaitingPayment,
+  reviewExpired,
+  voucherPending,
+} from "./reviewPayment.js";
 
 export function ReviewCodeStatus({ view, token }) {
   const t = useT();
@@ -16,7 +26,12 @@ export function ReviewCodeStatus({ view, token }) {
         <h2>{t("review_code.received")}</h2>
         <p>{t("review_code.queue_confirmation")}</p>
       </> : null}
-      {!recordingAuthorized(view) && !pendingVoucher && !reviewExpired(view) ? <p>{t("review_code.price", { amount: (acquisition.price_cents / 100).toFixed(2) })}</p> : null}
+      {!recordingAuthorized(view)
+        && awaitingPayment(view)
+        && !pendingVoucher
+        && !reviewExpired(view) ? (
+        <p>{t("review_code.price", { amount: (acquisition.price_cents / 100).toFixed(2) })}</p>
+      ) : null}
       <p>{t(acquisitionStateKey(view))}</p>
       {!acquisition.contact_verified && !reviewExpired(view) ? (
         <ContactPending view={view} token={token} pendingVoucher={pendingVoucher} />
@@ -47,6 +62,12 @@ function ContactPending({ view, token, pendingVoucher }) {
   }, []);
 
   const minutes = cooldownMinutes(until, now);
+  const dispatched = confirmMailDispatched(acquisition);
+  const leadKey = contactVerifyLeadKey({
+    pendingVoucher,
+    dispatched,
+    coolingDown: minutes > 0,
+  });
 
   async function resend() {
     setBusy(true);
@@ -54,9 +75,13 @@ function ContactPending({ view, token, pendingVoucher }) {
       const result = await resendReviewContact(token);
       if (result.cooldown_seconds) {
         setUntil(cooldownUntil(result.cooldown_seconds));
-        setMessage("");
+        setMessage(t("review_code.verify_cooldown"));
       } else {
-        setMessage(t("review_code.email_sent"));
+        const key = confirmMailActionMessageKey(result.confirm_mail_outcome || "sent");
+        setMessage(key ? t(key) : t("review_code.email_sent"));
+        if ((result.confirm_mail_outcome || "sent") === "sent") {
+          setUntil(0);
+        }
       }
     } catch (exc) {
       setMessage(exc.message);
@@ -74,7 +99,9 @@ function ContactPending({ view, token, pendingVoucher }) {
       setEditing(false);
       setEmail("");
       setUntil(cooldownUntil(result.retry_after_seconds));
-      setMessage(t(result.retry_after_seconds ? "review_code.email_changed_later" : "review_code.email_changed"));
+      const key = confirmMailActionMessageKey(result.confirm_mail_outcome, { changed: true })
+        || (result.retry_after_seconds ? "review_code.email_changed_later" : "review_code.email_changed");
+      setMessage(t(key));
     } catch (exc) {
       setMessage(exc.message);
     } finally {
@@ -85,8 +112,9 @@ function ContactPending({ view, token, pendingVoucher }) {
 
   return (
     <>
-      <p>{t(pendingVoucher ? "review_code.verify_wait_voucher" : "review_code.verify_wait")}</p>
-      {acquisition.contact_email_masked ? (
+      <p>{t(leadKey)}</p>
+      {minutes > 0 ? <p className="note">{t("review_code.resend_cooldown", { minutes })}</p> : null}
+      {dispatched && acquisition.contact_email_masked ? (
         <p className="note">
           {t("review_code.sent_to", { email: acquisition.contact_email_masked })}
           {token && !editing ? <>
@@ -95,6 +123,13 @@ function ContactPending({ view, token, pendingVoucher }) {
               {t("review_code.change_email")}
             </button>
           </> : null}
+        </p>
+      ) : null}
+      {!dispatched && acquisition.contact_email_masked && token && !editing ? (
+        <p className="note">
+          <button type="button" className="linkish" onClick={() => { setEditing(true); setMessage(""); }}>
+            {t("review_code.change_email")}
+          </button>
         </p>
       ) : null}
       {editing ? (
@@ -109,7 +144,6 @@ function ContactPending({ view, token, pendingVoucher }) {
         </form>
       ) : null}
       {token ? <button onClick={resend} disabled={busy || minutes > 0}>{t("review_code.resend")}</button> : null}
-      {minutes > 0 ? <p className="note">{t("review_code.resend_cooldown", { minutes })}</p> : null}
       {message ? <p role="status">{message}</p> : null}
     </>
   );

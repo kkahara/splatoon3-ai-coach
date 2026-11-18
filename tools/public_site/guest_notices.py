@@ -10,12 +10,31 @@ import hashlib
 import hmac
 import uuid
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Literal
 
 import psycopg
 from psycopg.rows import dict_row
 
 from public_site.tokens import hash_token, new_token
+
+ConfirmMailOutcome = Literal["sent", "cooldown", "failed", "not_required"]
+
+
+@dataclass(frozen=True)
+class GuestNoticeArrange:
+    """Result of binding a guest notice request and optionally mailing a link.
+
+    ``pending`` means the address still needs confirmation. ``mail_outcome`` is
+    why a message was or was not sent; ``retry_after_seconds`` is set only for a
+    browser cooldown the client may display.
+    """
+
+    pending: bool
+    cookie: str | None
+    mail_outcome: ConfirmMailOutcome
+    retry_after_seconds: int | None = None
 
 _IDLE = timedelta(days=180)
 _ABSOLUTE = timedelta(days=365)
@@ -240,6 +259,29 @@ class GuestNotices:
                 "DELETE FROM guest_email_challenges WHERE id = %s", (challenge_id,)
             )
 
+    def has_open_challenge(self, submission_id: str, email: str | None = None) -> bool:
+        """True when an unused, unexpired confirmation challenge exists for the request.
+
+        When ``email`` is set, the challenge must match that normalized address so
+        a corrected address does not inherit a prior dispatch.
+        """
+        with self._conn() as conn:
+            if email is None:
+                row = conn.execute(
+                    """SELECT 1 FROM guest_email_challenges
+                       WHERE submission_id = %s AND used_at IS NULL
+                         AND expires_at > now()""",
+                    (submission_id,),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    """SELECT 1 FROM guest_email_challenges
+                       WHERE submission_id = %s AND normalized_email = %s
+                         AND used_at IS NULL AND expires_at > now()""",
+                    (submission_id, email),
+                ).fetchone()
+        return row is not None
+
     def consume(
         self,
         raw_token: str,
@@ -303,6 +345,34 @@ class GuestNotices:
                 (browser_id, email, since),
             ).fetchall()
         return [row["submission_id"] for row in rows]
+
+    def pending_confirmation_requests(self, now: datetime) -> list[dict[str, str]]:
+        """Return unconfirmed requests without a live challenge to retry."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT r.submission_id, r.browser_id, r.normalized_email
+                FROM guest_notice_requests AS r
+                WHERE r.confirmed_at IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM guest_email_challenges AS c
+                      WHERE c.submission_id = r.submission_id
+                        AND c.used_at IS NULL
+                        AND c.expires_at > %s
+                  )
+                ORDER BY r.created_at
+                """,
+                (now,),
+            ).fetchall()
+        return [
+            {
+                "submission_id": str(row["submission_id"]),
+                "browser_id": str(row["browser_id"]),
+                "email": str(row["normalized_email"]),
+            }
+            for row in rows
+        ]
 
     def mark_confirmed(self, submission_id: str, now: datetime) -> None:
         """Close one request after its submission was enabled."""

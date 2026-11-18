@@ -121,7 +121,11 @@ class StripeCheckout:
         """Read one existing session."""
         stripe = _stripe()
         stripe.api_key = self.secret_key
-        return _session(stripe.checkout.Session.retrieve(session_id))
+        try:
+            return _session(stripe.checkout.Session.retrieve(session_id))
+        except stripe.error.StripeError as exc:
+            message = getattr(exc, "user_message", None) or "Checkout could not be read."
+            raise CheckoutRequestError(str(message)) from exc
 
     def expire_session(self, session_id: str) -> CheckoutSession:
         """Expire one open session. Stripe refuses when it is no longer open."""

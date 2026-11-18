@@ -29,9 +29,8 @@ The submission form says:
 4. Keep that perspective for the whole recording.
 5. Stop recording and upload the video.
 
-The operator records with OBS on the capture Mac and uploads the finished
-MP4 or MOV file with the upload panel on the admin recording page. Nothing in
-the site selects or records a player.
+The operator uploads the finished MP4 or MOV file with the upload panel on the
+admin recording page. Nothing in the site selects or records a player.
 
 When `PUBLIC_ADMIN_ALERT_TO` lists one or more addresses, the worker emails them
 once per job after it reaches `awaiting_recording` (paid, voucher or

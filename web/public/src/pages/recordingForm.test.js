@@ -20,6 +20,7 @@ import {
   uploadIndicator,
   uploadPanelVisible,
   uploadPhase,
+  uploadUiFor,
 } from "./recordingForm.js";
 
 const NOW = new Date("2026-11-11T05:00:00Z");
@@ -246,6 +247,23 @@ test("an upload step in flight spins, and a queued recording shows the check", (
   for (const phase of ["none", "permitted", "verified", "rejected", "analysis_failed"]) {
     assert.equal(uploadIndicator(phase, ""), null, phase);
   }
+});
+
+test("upload UI is idle for other submissions while one transfer is tracked", () => {
+  const uploads = {
+    "job-a": {
+      transferring: true,
+      note: "Uploading… keep this page open.",
+      error: "",
+      file: null,
+      busy: true,
+    },
+  };
+  assert.equal(uploadUiFor(uploads, "job-a").transferring, true);
+  assert.equal(uploadUiFor(uploads, "job-a").note, "Uploading… keep this page open.");
+  assert.equal(uploadUiFor(uploads, "job-b").transferring, false);
+  assert.equal(uploadUiFor(uploads, "job-b").note, "");
+  assert.equal(uploadUiFor(uploads, null).transferring, false);
 });
 
 test("the analysis summary drops a step that repeats the status", () => {

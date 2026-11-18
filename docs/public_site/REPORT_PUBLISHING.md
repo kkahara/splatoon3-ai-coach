@@ -5,22 +5,36 @@ Release procedure and gates: `PHASE1B_B2_RELEASE.md`.
 
 ## Boundaries
 
-- **Local storage is the only thing that serves results.** Nothing in
-  `results.py`, `frames.py`, `history.py`, `localize.py`, the serving routes,
-  `models.Submission`, telemetry or the database changes. `PUBLIC_STORAGE`
-  stays `local`. A failing or absent R2 never changes what users see.
+- **PostgreSQL is authoritative once a report is `verified`.**
+  `published_reports` holds the coaching result projection, match identity,
+  and localization cache; `published_assets` holds object keys (never
+  presigned URLs). Guest token / session ownership is checked **before** any
+  PostgreSQL or filesystem media resolution.
+- **Increment 6 media delivery.** Moment `/frame`, `/clip`, and `/thumbnail`
+  routes return `302 Found` to a fresh presigned R2 GET URL
+  (`Cache-Control: private, no-store`, `Vary: Cookie, Accept`). FastAPI never
+  proxies media bytes. Browsers send unsigned `Range` requests **to the
+  presigned R2 URL** for seeking (`206 Partial Content`). Explicit
+  `Accept: application/json` returns `{url, expires_at, content_type}` only.
+  The Review UI retries a failed load at most once (`?refresh=1`).
+- **Local fallback by publication state only:**
+  - `verified` → PostgreSQL asset lookup only (missing asset → 404).
+  - `pending` / `publishing` → local `analysis_dir` only if still present.
+  - `blocked` / `delete_pending` / `deleted` → always 404 (no local fallback).
+  - No publication row / publishing off → local fallback when analysis exists
+    (historical / `PUBLIC_STORAGE=local` compatibility).
 - **Runs are immutable.** An object is written once and never overwritten. A
-  changed report is a new run.
-- **Report publishing adds no database migration and no telemetry change.**
-  (The P1-B release's own schema changes are listed in
-  `PHASE1B_B2_RELEASE.md`, Gate 4.) Publication state lives in
-  separate local records under `PUBLIC_ROOT/report_publications/` (Pydantic
-  projections drop unknown fields, so it cannot live on the projection).
+  changed report is a new generation under `attempt-<n>/`. Replacement
+  attempts keep the prior verified generation readable until
+  `commit_verified` switches `active_run_id`.
+- Local `report_publications/` records remain a same-machine fast path;
+  fencing and authority live in PostgreSQL (`003_published_report_assets.sql`).
 - **All report network work runs on one dedicated background thread**, never
-  inside `maintain()` or the job thread.
-- **The local analysis folder is never modified.**
-- Historical reports (completed before B2) are not published by B2; they are
-  B3 (sanitized copies, with their own approval).
+  inside `maintain()` or the job thread (except synchronous `publish_now`
+  after `.pipeline_ready.json`).
+- **The local analysis folder is temporary** after verified publication
+  (`local_cleanup_state`). Historical reports not yet migrated still use
+  local disk until the migration CLI (B3 / Milestone 3).
 
 ## Settings: three independent opt-ins, all off by default
 

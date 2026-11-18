@@ -8,6 +8,8 @@ import {
   loadSubmission,
   openCheckout,
   openOwnedCheckout,
+  reconcileOwnedPayment,
+  reconcilePayment,
   sendFeedback,
   shareOwnedReview,
 } from "../api.js";
@@ -18,8 +20,10 @@ import {
   failureMessageKey,
   formatDate,
   formatRemaining,
+  mediaResourceUrl,
   momentAnchor,
   nextGameTips,
+  nextMediaErrorState,
   reachedStep,
   REVIEW_STEPS,
   shownObservation,
@@ -28,11 +32,15 @@ import {
 import { ReviewCodeStatus } from "./ReviewCodeStatus.jsx";
 import {
   awaitingPayment,
+  paidAwaitingContact,
+  paymentConfirming,
   paymentOffered,
   reviewExpired,
   reviewHeadingKey,
   showsAnalysisProgress,
+  unpaidAwaitingContact,
   voucherFallbackKey,
+  voucherPending,
 } from "./reviewPayment.js";
 
 export function ReviewPage() {
@@ -47,11 +55,16 @@ export function ReviewPage() {
   const [payError, setPayError] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
+  const reconciled = useRef(false);
 
   useEffect(() => {
     loadConfig().then(setConfig).catch(() => setConfig(null));
     loadAccount().then(setAccount).catch(() => setAccount(null));
   }, []);
+
+  useEffect(() => {
+    reconciled.current = false;
+  }, [token, id, owned]);
 
   useEffect(() => {
     let stopped = false;
@@ -63,18 +76,49 @@ export function ReviewPage() {
         if (!stopped) {
           setView(next);
           setError("");
+          if (next.payment_state === "paid") {
+            setConfirming(false);
+          }
         }
-        return next.status;
+        return next;
       } catch (exc) {
         if (!stopped) {
           setError(exc.message);
         }
-        return "failed";
+        return null;
       }
+    }
+    async function maybeReconcile(next) {
+      if (
+        stopped
+        || reconciled.current
+        || !next
+        || next.payment_state !== "checkout_created"
+      ) {
+        return next;
+      }
+      reconciled.current = true;
+      try {
+        const paid = owned
+          ? await reconcileOwnedPayment(id)
+          : await reconcilePayment(token);
+        if (!stopped && paid?.payment_state) {
+          setView(paid);
+          if (paid.payment_state === "paid") {
+            setConfirming(false);
+          }
+          return paid;
+        }
+      } catch {
+        /* Keep polling; Stripe may still be settling. */
+      }
+      return next;
     }
     let timer = null;
     async function loop() {
-      const status = await poll();
+      const loaded = await poll();
+      const next = await maybeReconcile(loaded);
+      const status = next?.status || "failed";
       if (!stopped && !["complete", "failed", "expired"].includes(status)) {
         timer = setTimeout(loop, 3000);
       }
@@ -88,6 +132,9 @@ export function ReviewPage() {
 
   async function pay() {
     if (!token && !owned) {
+      return;
+    }
+    if (paymentConfirming(view, confirming)) {
       return;
     }
     setPayError("");
@@ -121,7 +168,28 @@ export function ReviewPage() {
       <AccountBar account={account} onChange={setAccount} />
       <p className="brand">{t("brand")}</p>
       <h1>{t(reviewHeadingKey(view))}</h1>
-      {view?.notice_pending ? <p className="note">{t("review.notice_pending")}</p> : null}
+      {voucherPending(view) && view?.acquisition && !view.acquisition.contact_verified ? (
+        <div className="notice-callout" role="status">
+          <p><strong>{t("review.email_confirmation_lead")}</strong></p>
+          <p>{t("review.email_confirmation_body")}</p>
+        </div>
+      ) : null}
+      {paidAwaitingContact(view) ? (
+        <div className="notice-callout" role="status">
+          <p>{t("review.paid_email_confirmation_body")}</p>
+        </div>
+      ) : null}
+      {unpaidAwaitingContact(view) ? (
+        <div className="notice-callout" role="status">
+          <p>{t("review.email_before_payment_body")}</p>
+        </div>
+      ) : null}
+      {view?.notice_pending && view?.confirm_mail_dispatched ? (
+        <p className="note">{t("review.notice_pending")}</p>
+      ) : null}
+      {view?.notice_pending && !view?.confirm_mail_dispatched ? (
+        <p className="note">{t("review_code.verify_not_sent")}</p>
+      ) : null}
       {reviewExpired(view) ? null : (
         <ReviewLink
           view={view}
@@ -143,11 +211,17 @@ export function ReviewPage() {
       ) : null}
       {(token || owned) && paymentOffered(view) && (!view?.acquisition || view.acquisition.contact_verified) ? (
         <p>
-          <button type="button" onClick={pay}>{t("review.pay")}</button>
+          <button
+            type="button"
+            onClick={pay}
+            disabled={paymentConfirming(view, confirming)}
+          >
+            {t("review.pay")}
+          </button>
         </p>
       ) : null}
       <ReviewCodeStatus view={view} token={token} />
-      {!view?.acquisition && (confirming || (view?.payment_state === "paid" && view.status === "received")) ? (
+      {paymentConfirming(view, confirming) ? (
         <p className="note">{t("review.waiting_payment")}</p>
       ) : null}
       {showsAnalysisProgress(view) ? <ReviewProgress view={view} /> : null}
@@ -810,35 +884,47 @@ function scenarioTitle(type, t) {
 }
 
 function MomentMedia({ moment, frameBase, index }) {
-  const [failed, setFailed] = useState(false);
-  if (!moment.clip || failed) {
+  const [state, setState] = useState({ retryCount: 0, failed: false });
+  useEffect(() => {
+    setState({ retryCount: 0, failed: false });
+  }, [frameBase, index]);
+  if (!moment.clip || state.failed) {
     return moment.frame ? <MomentStill frameBase={frameBase} index={index} /> : null;
   }
   return (
     <video
+      key={state.retryCount}
       className="still"
       controls
       playsInline
       preload="none"
-      poster={moment.frame ? `${frameBase}/moments/${index}/frame` : undefined}
-      src={`${frameBase}/moments/${index}/clip`}
-      onError={() => setFailed(true)}
+      poster={
+        moment.frame
+          ? mediaResourceUrl(frameBase, index, "frame", state.retryCount)
+          : undefined
+      }
+      src={mediaResourceUrl(frameBase, index, "clip", state.retryCount)}
+      onError={() => setState((current) => nextMediaErrorState(current))}
     />
   );
 }
 
 function MomentStill({ frameBase, index }) {
-  const [hidden, setHidden] = useState(false);
-  if (hidden) {
+  const [state, setState] = useState({ retryCount: 0, failed: false });
+  useEffect(() => {
+    setState({ retryCount: 0, failed: false });
+  }, [frameBase, index]);
+  if (state.failed) {
     return null;
   }
   return (
     <img
+      key={state.retryCount}
       className="still"
       alt=""
       loading="lazy"
-      src={`${frameBase}/moments/${index}/frame`}
-      onError={() => setHidden(true)}
+      src={mediaResourceUrl(frameBase, index, "frame", state.retryCount)}
+      onError={() => setState((current) => nextMediaErrorState(current))}
     />
   );
 }

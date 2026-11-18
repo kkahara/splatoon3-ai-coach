@@ -17,6 +17,7 @@ from loguru import logger
 from public_site.accounts import Account, account_email
 from public_site.admin_alerts import AdminAlertSender
 from public_site.errors import EXPIRED, RequestRejected
+from public_site.guest_notices import GuestNoticeArrange
 from public_site.models import Submission
 from public_site.payments import PriceQuote
 from public_site.recording_intake import RecordingIntake
@@ -119,9 +120,11 @@ class RecordingService:
         )
         fresh = None
         if account is None:
-            created.notice_pending, fresh = svc.arrange_guest_notice(
-                created, email, browser_cookie
-            )
+            arranged = svc.arrange_guest_notice(created, email, browser_cookie)
+            created.notice_pending = arranged.pending
+            created.confirm_mail_outcome = arranged.mail_outcome
+            created.confirm_mail_retry_after_seconds = arranged.retry_after_seconds
+            fresh = arranged.cookie
         self.reconcile()
         if voucher_id is not None:
             created.voucher_state = svc.payments.get(submission.id).voucher_state
@@ -368,16 +371,46 @@ class RecordingService:
         """Retry a missing handoff for a completed analysis, then its held notice.
 
         Uses the same reference as the worker. Notice delivery is idempotent and
-        reads nothing from the database once the notice was sent.
+        reads nothing from the database once the notice was sent. A submission
+        incorrectly marked failed after a verified publication is restored to
+        ``complete`` first so handoff can proceed without re-analysis.
         """
         svc = self.service
         current = svc.store.get(row["submission_id"])
-        if current is None or current.status != "complete":
+        if current is None:
             return
+        if current.status != "complete":
+            if not self._restore_complete_from_verified_report(current):
+                return
+            current = svc.store.get(row["submission_id"])
+            if current is None or current.status != "complete":
+                return
         if row["recording_handoff_at"] is None and not self.hand_off(current):
             return
         kind = "no_moments" if current.outcome == "no_deaths" else "ready"
         svc.note_terminal(current, kind)
+
+    def _restore_complete_from_verified_report(self, submission: Submission) -> bool:
+        """Undo a false interrupted failure when the report is already verified."""
+        from public_site.report_publications import load_verified_publication
+
+        if submission.status != "failed":
+            return False
+        if submission.outcome not in {"coached", "no_deaths"}:
+            return False
+        if load_verified_publication(self.service.settings.root, submission.id) is None:
+            return False
+
+        def restore(item: Submission) -> None:
+            if item.status != "failed" or item.outcome not in {"coached", "no_deaths"}:
+                return
+            item.status = "complete"
+            item.error = None
+            item.step = "ready"
+            item.updated_at = utc_now()
+
+        updated = self.service.store.update(submission.id, restore)
+        return updated is not None and updated.status == "complete"
 
     def _discard_correction(self, submission_id: str) -> None:
         try:
@@ -571,12 +604,16 @@ class RecordingService:
             return None
         verified = row["contact_verified_at"] is not None
         email = row["requested_email"]
+        dispatched = False
+        if not verified and email and self.service.guest is not None:
+            dispatched = self.service.guest.has_open_challenge(submission_id, email)
         return AcquisitionView(
             price_cents=self.service.payments.get(submission_id).price_cents,
             state=row["state"],
             contact_verified=verified,
             customer_message=row["customer_message"],
             contact_email_masked=None if verified or not email else mask_email(email),
+            confirm_mail_dispatched=dispatched,
             cancelled=row["state"] == "expired" and self.database.was_cancelled(submission_id),
         )
 
@@ -589,26 +626,27 @@ class RecordingService:
 
     def resend_contact(
         self, token: str, browser_cookie: str
-    ) -> tuple[bool, str | None, int | None]:
+    ) -> GuestNoticeArrange:
         """Send another confirmation link unless this browser is cooling down.
 
-        Returns notice pending, a new browser cookie, and the cooldown seconds
-        when nothing was sent because of this browser's own limit.
+        Cooldown is reported without claiming a send. SMTP failures raise.
         """
         submission, row, price_cents = self._contact_request(token)
         email = row["requested_email"]
         retry = self.service.guest_cooldown(browser_cookie, email)
         if retry is not None:
-            return True, None, retry
-        pending, fresh = self.service.arrange_guest_notice(
-            _created(token, submission.id, price_cents), email, browser_cookie
+            return GuestNoticeArrange(True, None, "cooldown", retry)
+        return self.service.arrange_guest_notice(
+            _created(token, submission.id, price_cents),
+            email,
+            browser_cookie,
+            propagate_mail_failure=True,
         )
-        return pending, fresh, None
 
     def change_contact(
         self, token: str, raw_email: str, browser_cookie: str
-    ) -> tuple[bool, str | None, int | None]:
-        """Correct the address of an unconfirmed request, then send a new link.
+    ) -> GuestNoticeArrange:
+        """Correct the address of an unconfirmed request, then try to send a new link.
 
         The request, its reference, voucher and payment state stay as they are.
         The new link follows the same limits as any other confirmation email.
@@ -621,11 +659,12 @@ class RecordingService:
         now = datetime.now(UTC)
         if svc.guest is not None:
             svc.guest.rebind_request(submission.id, email, now)
-        retry = svc.guest_cooldown(browser_cookie, email, now)
-        pending, fresh = svc.arrange_guest_notice(
-            _created(token, submission.id, price_cents), email, browser_cookie
+        return svc.arrange_guest_notice(
+            _created(token, submission.id, price_cents),
+            email,
+            browser_cookie,
+            propagate_mail_failure=True,
         )
-        return pending, fresh, retry if pending else None
 
     def _contact_request(self, token: str) -> tuple[Submission, dict, int]:
         """The review-code request behind a review link, while checkout is still open."""

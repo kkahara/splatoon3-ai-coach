@@ -7,7 +7,9 @@ import {
   formatDate,
   formatRemaining,
   isKeyMoment,
+  mediaResourceUrl,
   nextGameTips,
+  nextMediaErrorState,
   reachedStep,
   REVIEW_STEPS,
   shownObservation,
@@ -130,4 +132,27 @@ test("an undetermined game language shows the localized failure message", () => 
   assert.equal(failureMessageKey({ status: "failed", error: "Analysis failed." }), null);
   assert.equal(failureMessageKey({ status: "failed", error_key: "other" }), null);
   assert.equal(failureMessageKey(null), null);
+});
+
+test("media URLs refresh once then fail closed", () => {
+  assert.equal(
+    mediaResourceUrl("/api/submissions/tok", 0, "clip", 0),
+    "/api/submissions/tok/moments/0/clip",
+  );
+  assert.equal(
+    mediaResourceUrl("/api/submissions/tok", 0, "frame", 1),
+    "/api/submissions/tok/moments/0/frame?refresh=1",
+  );
+  assert.deepEqual(nextMediaErrorState({ retryCount: 0, failed: false }), {
+    retryCount: 1,
+    failed: false,
+  });
+  assert.deepEqual(nextMediaErrorState({ retryCount: 1, failed: false }), {
+    retryCount: 1,
+    failed: true,
+  });
+  assert.deepEqual(nextMediaErrorState({ retryCount: 1, failed: true }), {
+    retryCount: 1,
+    failed: true,
+  });
 });

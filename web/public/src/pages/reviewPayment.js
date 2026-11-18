@@ -25,6 +25,42 @@ export function paymentOffered(view) {
   return awaitingPayment(view) && !voucherPending(view);
 }
 
+/**
+ * True while checkout has returned and payment is still settling.
+ * ``confirming`` is the local flag after Stripe answers pending/paid without a URL.
+ */
+export function paymentConfirming(view, confirming = false) {
+  if (confirming) {
+    return true;
+  }
+  return view?.payment_state === "paid" && view.status === "received";
+}
+
+/** True while a review-code request still needs a confirmed contact address. */
+export function awaitingContact(view) {
+  return Boolean(view?.acquisition) && view.acquisition.contact_verified === false && !reviewExpired(view);
+}
+
+/**
+ * True when payment is already satisfied (card or not required) but contact is not.
+ * Distinct from a pending voucher that has not yet redeemed.
+ */
+export function paidAwaitingContact(view) {
+  return (
+    awaitingContact(view)
+    && (view.payment_state === "paid" || view.payment_state === "not_required")
+    && view.voucher_state !== "pending"
+  );
+}
+
+/**
+ * True when a review-code request still owes card payment and contact is unverified,
+ * with no pending voucher. Email confirmation is the next step before Stripe.
+ */
+export function unpaidAwaitingContact(view) {
+  return awaitingContact(view) && awaitingPayment(view) && !voucherPending(view);
+}
+
 /** Page heading key. Expiry is checked before payment, so a closed request never asks for payment. */
 export function reviewHeadingKey(view) {
   if (!view) {
@@ -33,8 +69,17 @@ export function reviewHeadingKey(view) {
   if (reviewExpired(view)) {
     return "review.heading.expired";
   }
+  if (voucherPending(view) && awaitingContact(view)) {
+    return "review.heading.email_confirmation";
+  }
   if (voucherPending(view)) {
     return "review.heading.default";
+  }
+  if (paidAwaitingContact(view)) {
+    return "review.heading.paid_email_confirmation";
+  }
+  if (unpaidAwaitingContact(view)) {
+    return "review.heading.email_before_payment";
   }
   if (awaitingPayment(view)) {
     return "review.heading.payment";
@@ -72,6 +117,9 @@ export function acquisitionStateKey(view) {
     return `review_code.state.${acquisition?.state}`;
   }
   if (!acquisition.contact_verified) {
+    if (view.payment_state === "paid") {
+      return "review_code.state.pending_email_after_payment";
+    }
     return paymentOffered(view)
       ? "review_code.state.pending_payment"
       : "review_code.state.pending_voucher";

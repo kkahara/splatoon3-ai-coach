@@ -129,6 +129,11 @@ class CreateSubmissionResponse(BaseModel):
     # Pending means a code is attached and unpaid. It is not payment authorization.
     voucher_state: Literal["pending", "redeemed", "failed"] | None = None
     notice_pending: bool = False
+    # Whether a confirmation message was accepted, suppressed, or failed to send.
+    confirm_mail_outcome: Literal["sent", "cooldown", "failed", "not_required"] | None = (
+        None
+    )
+    confirm_mail_retry_after_seconds: int | None = None
 
 
 class LifecycleMark(BaseModel):
@@ -230,6 +235,8 @@ class PublicSubmissionResponse(BaseModel):
         Literal["expired", "revoked", "exhausted", "inactive", "wrong_service"] | None
     ) = None
     notice_pending: bool = False
+    # True only when an unused confirmation challenge was mailed for this request.
+    confirm_mail_dispatched: bool = False
     # Support reference for contacting us; identifies, never authorizes.
     public_reference: str | None = None
 

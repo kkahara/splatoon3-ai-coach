@@ -395,15 +395,30 @@ class ReportStore:
         bundle_sha256: str,
         now: datetime,
     ) -> bool:
-        """Record that the generation prefix is fully verified in R2, PG pending."""
+        """Record that the generation prefix is fully verified in R2, PG pending.
+
+        When a replacement attempt runs against an already-``verified`` report,
+        keep ``publication_state``, ``bundle_key``, and ``bundle_sha256`` so
+        active customer reads continue serving the old generation until
+        ``commit_verified`` switches ``active_run_id``.
+        """
         with self._conn() as conn:
             row = conn.execute(
                 """
                 UPDATE published_reports
-                SET publication_state = 'verified_r2',
+                SET publication_state = CASE
+                        WHEN publication_state = 'verified' THEN 'verified'
+                        ELSE 'verified_r2'
+                    END,
                     attempt_run_id = %s,
-                    bundle_key = %s,
-                    bundle_sha256 = %s,
+                    bundle_key = CASE
+                        WHEN publication_state = 'verified' THEN bundle_key
+                        ELSE %s
+                    END,
+                    bundle_sha256 = CASE
+                        WHEN publication_state = 'verified' THEN bundle_sha256
+                        ELSE %s
+                    END,
                     updated_at = %s
                 WHERE submission_id = %s
                   AND attempt_run_id = %s

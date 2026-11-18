@@ -58,6 +58,10 @@ class ReviewCodeCreated(BaseModel):
     price_cents: int
     notice_pending: bool = False
     voucher_state: Literal["pending", "redeemed", "failed"] | None = None
+    confirm_mail_outcome: Literal["sent", "cooldown", "failed", "not_required"] | None = (
+        None
+    )
+    confirm_mail_retry_after_seconds: int | None = None
 
 
 class ContactCorrection(BaseModel):
@@ -83,6 +87,8 @@ class AcquisitionView(BaseModel):
     customer_message: str | None = None
     # Shown only until the address is confirmed, so a typo can be recognized.
     contact_email_masked: str | None = None
+    # True only when an unused confirmation challenge exists for this address.
+    confirm_mail_dispatched: bool = False
     # This browser's own confirmation-email cooldown; never the per-address limit.
     resend_retry_after_seconds: int | None = None
     # An operator closed this unpaid request (rather than its payment window lapsing).

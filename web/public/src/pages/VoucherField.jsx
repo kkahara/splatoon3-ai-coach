@@ -8,6 +8,9 @@ import {
   voucherResponseIsCurrent,
   voucherStateAfterCodeChange,
 } from "./submitForm.js";
+import { onVoucherEnter } from "./voucherField.js";
+
+export { onVoucherEnter };
 
 /**
  * Voucher code state for one form. `validate` is the form's own server route, so the
@@ -81,6 +84,7 @@ export function VoucherField({ voucher, disabled, inputId = "voucher-code" }) {
           autoComplete="off"
           spellCheck="false"
           onChange={(event) => voucher.change(event.target.value)}
+          onKeyDown={(event) => onVoucherEnter(event, voucher)}
         />
         {!voucher.accepted ? (
           <button

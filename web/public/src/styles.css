@@ -287,6 +287,18 @@ button:disabled {
   color: #f0a8a8;
 }
 
+.notice-callout {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(32 231 255 / 35%);
+  border-radius: 0.5rem;
+  background: rgb(32 231 255 / 8%);
+}
+
+.notice-callout p {
+  margin: 0.35rem 0;
+}
+
 .notice.stale {
   padding: 0.5rem 0.75rem;
   border: 1px solid rgb(217 164 65 / 45%);

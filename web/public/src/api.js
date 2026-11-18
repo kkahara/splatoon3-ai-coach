@@ -59,6 +59,23 @@ export async function openOwnedCheckout(id) {
   return readCheckout(response);
 }
 
+/** One-shot Stripe session reconcile while payment_state is checkout_created. */
+export async function reconcilePayment(token) {
+  const response = await fetch(
+    `/api/submissions/${encodeURIComponent(token)}/reconcile-payment`,
+    { method: "POST" },
+  );
+  return read(response, "Payment status could not be refreshed.");
+}
+
+export async function reconcileOwnedPayment(id) {
+  const response = await fetch(
+    `/api/me/submissions/${encodeURIComponent(id)}/reconcile-payment`,
+    { method: "POST" },
+  );
+  return read(response, "Payment status could not be refreshed.");
+}
+
 async function readCheckout(response) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -382,7 +399,10 @@ export async function resendReviewContact(token) {
   if (response.status === 429) {
     const payload = await response.clone().json().catch(() => ({}));
     if (payload.reason === "confirm_cooldown") {
-      return { cooldown_seconds: Number(payload.retry_after_seconds) || 0 };
+      return {
+        confirm_mail_outcome: "cooldown",
+        cooldown_seconds: Number(payload.retry_after_seconds) || 0,
+      };
     }
   }
   return read(response, "The verification message could not be sent.");

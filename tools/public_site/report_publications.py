@@ -183,3 +183,13 @@ def _thread_lock(submission_id: str) -> Iterator[None]:
         lock = _thread_locks.setdefault(submission_id, threading.Lock())
     with lock:
         yield
+
+
+def load_verified_publication(
+    public_root: Path, submission_id: str
+) -> ReportPublication | None:
+    """Return the local publication only when its state is ``verified``."""
+    record = PublicationStore(public_root).get(submission_id)
+    if record is None or record.state != "verified":
+        return None
+    return record

@@ -146,8 +146,12 @@ def test_guest_notice_stays_off_the_submission_until_confirm(
     other = TestClient(app)
     confirmed = other.post("/api/notices/confirm", json={"token": token})
     assert confirmed.status_code == 200, confirmed.text
-    assert confirmed.json() == {"confirmed": True}
-    assert "review" not in confirmed.text
+    assert confirmed.json() == {
+        "confirmed": True,
+        "review_path": f"/review/{created['token']}",
+    }
+    assert confirmed.headers.get("cache-control") == "private, no-store"
+    assert "ada@example.com" not in confirmed.text
     enabled = client.app.state.store.get(stored.id)
     assert enabled is not None
     assert enabled.email == "ada@example.com"
@@ -403,3 +407,107 @@ def test_failed_notice_claim_can_be_retried(tmp_path: Path) -> None:
     assert not (notices.secrets / submission.id).is_file()
     service.maintain(datetime.now(UTC))
     assert notices.attempts == 2
+
+
+def test_smtp_failure_drops_challenge_without_consuming_cooldown(
+    tmp_path: Path, accounts: AccountStore
+) -> None:
+    from public_site.errors import MAIL_FAILED, RequestRejected
+    from types import SimpleNamespace
+
+    app = _app(tmp_path, accounts)
+    client = TestClient(app)
+    service = client.app.state.service
+    assert service.notices is not None
+
+    def boom(_email: str, _url: str) -> None:
+        raise RequestRejected(502, MAIL_FAILED)
+
+    service.notices.send_confirm = boom  # type: ignore[method-assign]
+    created = _submit(client, "ada@example.com")
+    assert created["notice_pending"] is True
+    assert created["confirm_mail_outcome"] == "failed"
+    assert _confirm_files(client.app.state.settings.root) == []
+    assert _rows(accounts.database_url, "SELECT * FROM guest_email_challenges") == []
+
+    def ok(email: str, url: str) -> None:
+        NoticeSender.send_confirm(service.notices, email, url)
+
+    service.notices.send_confirm = ok  # type: ignore[method-assign]
+    arranged = service.arrange_guest_notice(
+        SimpleNamespace(token=created["token"]),
+        "ada@example.com",
+        client.cookies.get("notice_browser") or "",
+        propagate_mail_failure=True,
+    )
+    assert arranged.pending is True
+    assert arranged.mail_outcome == "sent"
+    assert len(_confirm_files(client.app.state.settings.root)) == 1
+    challenges = _rows(accounts.database_url, "SELECT * FROM guest_email_challenges")
+    assert len(challenges) == 1
+
+    token = _confirm_token(client.app.state.settings.root)
+    confirmed = client.post("/api/notices/confirm", json={"token": token})
+    assert confirmed.status_code == 200
+    assert confirmed.json()["review_path"] == f"/review/{created['token']}"
+
+
+def test_resend_propagates_smtp_failure_without_false_success(
+    tmp_path: Path, accounts: AccountStore
+) -> None:
+    from public_site.errors import MAIL_FAILED, RequestRejected
+    from types import SimpleNamespace
+
+    app = _app(tmp_path, accounts)
+    client = TestClient(app)
+    service = client.app.state.service
+
+    def boom(_email: str, _url: str) -> None:
+        raise RequestRejected(502, MAIL_FAILED)
+
+    service.notices.send_confirm = boom  # type: ignore[method-assign]
+    created = _submit(client, "ada@example.com")
+    assert created["notice_pending"] is True
+    assert created["confirm_mail_outcome"] == "failed"
+    assert _rows(accounts.database_url, "SELECT * FROM guest_email_challenges") == []
+
+    with pytest.raises(RequestRejected) as raised:
+        service.arrange_guest_notice(
+            SimpleNamespace(token=created["token"]),
+            "ada@example.com",
+            client.cookies.get("notice_browser") or "",
+            propagate_mail_failure=True,
+        )
+    assert raised.value.status_code == 502
+    assert raised.value.detail == MAIL_FAILED
+    assert _rows(accounts.database_url, "SELECT * FROM guest_email_challenges") == []
+    assert _confirm_files(client.app.state.settings.root) == []
+
+
+def test_create_reports_sent_cooldown_and_failed_mail_outcomes(
+    tmp_path: Path, accounts: AccountStore
+) -> None:
+    from public_site.errors import MAIL_FAILED, RequestRejected
+
+    app = _app(tmp_path, accounts)
+    client = TestClient(app)
+    sent = _submit(client, "ada@example.com")
+    assert sent["confirm_mail_outcome"] == "sent"
+    assert sent["confirm_mail_retry_after_seconds"] is None
+
+    cooled = _submit(client, "bea@example.com")
+    assert cooled["confirm_mail_outcome"] == "cooldown"
+    assert 0 < cooled["confirm_mail_retry_after_seconds"] <= 900
+    assert len(_confirm_files(client.app.state.settings.root)) == 1
+
+    other = TestClient(app)
+    service = other.app.state.service
+
+    def boom(_email: str, _url: str) -> None:
+        raise RequestRejected(502, MAIL_FAILED)
+
+    service.notices.send_confirm = boom  # type: ignore[method-assign]
+    failed = other.post("/api/submissions", json=_body("cara@example.com"))
+    assert failed.status_code == 200, failed.text
+    assert failed.json()["confirm_mail_outcome"] == "failed"
+    assert failed.json()["notice_pending"] is True

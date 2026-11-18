@@ -93,15 +93,24 @@ class NoticeSender:
         submission.notices_sent.append(kind)
 
     def send_confirm(self, email: str, url: str) -> None:
-        """Mail a confirmation link. The body has no review URL."""
+        """Mail a confirmation link. The body has no review URL.
+
+        Success means the SMTP provider accepted the message (or the local
+        outbox write finished). Delivery to the inbox is not claimed here.
+        """
         body = f"Confirm this address to receive a notice when your review is ready.\n\n{url}\n"
         if self.settings.smtp_host:
-            _smtp(self.settings, email, CONFIRM_SUBJECT, body)
+            try:
+                logger.info("notice confirmation send attempted")
+                _smtp(self.settings, email, CONFIRM_SUBJECT, body)
+            except smtplib.SMTPException:
+                logger.exception("notice confirmation SMTP rejected")
+                raise RequestRejected(502, MAIL_FAILED) from None
         else:
             name = f"confirm.{uuid.uuid4().hex}.txt"
             text = f"To: {email}\nSubject: {CONFIRM_SUBJECT}\n\n{body}"
             (self.outbox / name).write_text(text, encoding="utf-8")
-        logger.info("notice confirmation sent")
+        logger.info("notice confirmation SMTP accepted")
 
     def send_account(self, email: str, kind: str, url: str) -> None:
         """Send a verify or reset link. The raw token stays in the message body."""

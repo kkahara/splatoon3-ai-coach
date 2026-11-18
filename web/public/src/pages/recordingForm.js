@@ -171,6 +171,23 @@ export function uploadIndicator(phase, note) {
   return phase === "queued" ? "done" : null;
 }
 
+/** Idle upload UI for one submission when nothing is tracked for it. */
+export const EMPTY_UPLOAD_UI = Object.freeze({
+  transferring: false,
+  note: "",
+  error: "",
+  file: null,
+  busy: false,
+});
+
+/**
+ * Per-submission upload UI. Transfers for other jobs must not appear here.
+ */
+export function uploadUiFor(uploads, submissionId) {
+  if (!submissionId) return EMPTY_UPLOAD_UI;
+  return uploads?.[submissionId] || EMPTY_UPLOAD_UI;
+}
+
 /** Analysis status, with the step only when it adds something, and any public error. */
 export function analysisSummary(analysis) {
   const parts = [analysis.status];

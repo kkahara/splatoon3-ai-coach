@@ -5,10 +5,10 @@ import {
 } from "../api.js";
 import { formatDate } from "./AdminUi.jsx";
 import {
-  RECORDING_ACCEPT, analysisSummary, canCancelUpload, canCheckUpload, canRetryAnalysis, canUploadRecording,
-  fileMatchesAttempt, historyLine, nextUploadDeadline, normalizedReviewCode,
-  recordingContentType, stripeReference, uploadIndicator, uploadPanelVisible,
-  uploadPhase,
+  RECORDING_ACCEPT, analysisSummary, canCancelUpload, canCheckUpload, canRetryAnalysis,
+  canUploadRecording, fileMatchesAttempt, historyLine, nextUploadDeadline,
+  normalizedReviewCode, recordingContentType, stripeReference, uploadIndicator,
+  uploadPanelVisible, uploadPhase, uploadUiFor,
 } from "./recordingForm.js";
 
 export function AdminRecordingsPage() {
@@ -23,12 +23,28 @@ export function AdminRecordingsPage() {
   const [refund, setRefund] = useState("");
   const [wrongCode, setWrongCode] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [file, setFile] = useState(null);
-  const [transferring, setTransferring] = useState(false);
-  const [uploadNote, setUploadNote] = useState("");
-  const [uploadError, setUploadError] = useState("");
-  const uploadInFlight = useRef(false);
+  // Upload transfer UI is keyed by submission so one job's PUT cannot paint another.
+  const [uploads, setUploads] = useState({});
+  const uploadInFlight = useRef(new Set());
+  const selectedIdRef = useRef(null);
   const [closedNote, setClosedNote] = useState("");
+  function patchUpload(id, patch) {
+    setUploads((prev) => ({
+      ...prev,
+      [id]: { ...uploadUiFor(prev, id), ...patch },
+    }));
+  }
+  function clearUpload(id) {
+    setUploads((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }
+  function applyDetail(id, next) {
+    if (selectedIdRef.current === id) setDetail(next);
+  }
   async function refresh() {
     try {
       const listed = await loadRecordings();
@@ -40,10 +56,10 @@ export function AdminRecordingsPage() {
   async function select(id) {
     try {
       const next = await loadRecording(id);
-      if (next.job.submission_id !== detail?.job.submission_id) {
-        setUploadNote(""); setUploadError(""); setFile(null);
+      if (next.job.submission_id !== selectedIdRef.current) {
         setNote(""); setCode(""); setWrongCode(false); setMessage(""); setRefund("");
       }
+      selectedIdRef.current = next.job.submission_id;
       setDetail(next); setError(""); setTab("queue");
     } catch (exc) { setError(exc.message); }
   }
@@ -59,6 +75,8 @@ export function AdminRecordingsPage() {
     finally { setBusy(false); }
   }
   const selectedId = detail?.job.submission_id;
+  selectedIdRef.current = selectedId ?? null;
+  const upload = uploadUiFor(uploads, selectedId);
   const attemptId = detail?.upload_attempt?.attempt ?? detail?.upload_attempt?.issued_at;
   const uploadDeadline = nextUploadDeadline(detail);
   useEffect(() => {
@@ -67,46 +85,64 @@ export function AdminRecordingsPage() {
     return () => clearTimeout(timer);
   }, [selectedId, attemptId, uploadDeadline]);
   async function uploadRecording() {
-    if (uploadInFlight.current || !file) return;
+    const id = detail?.job.submission_id;
+    const file = upload.file;
+    if (!id || !file || uploadInFlight.current.has(id)) return;
     const contentType = recordingContentType(file);
-    if (!contentType) { setUploadError("Choose an MP4 or MOV file."); return; }
-    uploadInFlight.current = true;
-    setBusy(true); setUploadError(""); setUploadNote("Requesting an upload link…");
-    const id = detail.job.submission_id;
+    if (!contentType) {
+      patchUpload(id, { error: "Choose an MP4 or MOV file." });
+      return;
+    }
+    uploadInFlight.current.add(id);
+    patchUpload(id, { busy: true, error: "", note: "Requesting an upload link…" });
     try {
       const grant = await requestRecordingUpload(id, {
         expected_version: detail.job.version, filename: file.name,
         content_type: contentType, size_bytes: file.size,
       });
-      setTransferring(true); setUploadNote("Uploading… keep this page open.");
+      patchUpload(id, { transferring: true, note: "Uploading… keep this page open." });
       const sent = await putRecording(grant.upload, file);
-      setTransferring(false);
-      setUploadNote(sent === "already_stored" ? "This upload's file is already stored. Checking it…" : "Upload finished. Checking the file…");
-      setDetail(await confirmRecordingUpload(id, { expected_version: grant.version }));
-      setFile(null); setUploadNote(""); await refresh();
-    } catch (exc) { setUploadNote(""); setUploadError(exc.message); await select(id); }
-    finally { setTransferring(false); setBusy(false); uploadInFlight.current = false; }
+      patchUpload(id, {
+        transferring: false,
+        note: sent === "already_stored"
+          ? "This upload's file is already stored. Checking it…"
+          : "Upload finished. Checking the file…",
+      });
+      applyDetail(id, await confirmRecordingUpload(id, { expected_version: grant.version }));
+      clearUpload(id); await refresh();
+    } catch (exc) {
+      patchUpload(id, {
+        transferring: false, busy: false, note: "", error: exc.message, file: null,
+      });
+      await select(id);
+    } finally {
+      uploadInFlight.current.delete(id);
+    }
   }
   async function checkUpload() {
-    setBusy(true); setUploadError(""); setUploadNote("Checking the stored file…");
     const id = detail.job.submission_id;
+    patchUpload(id, { busy: true, error: "", note: "Checking the stored file…" });
     try {
-      setDetail(await confirmRecordingUpload(id, { expected_version: detail.job.version }));
-      setUploadNote(""); await refresh();
-    } catch (exc) { setUploadNote(""); setUploadError(exc.message); await select(id); }
-    finally { setBusy(false); }
+      applyDetail(id, await confirmRecordingUpload(id, { expected_version: detail.job.version }));
+      clearUpload(id); await refresh();
+    } catch (exc) {
+      patchUpload(id, { busy: false, note: "", error: exc.message });
+      await select(id);
+    }
   }
   async function cancelUpload() {
     const until = formatDate(detail.upload_attempt?.replace_after);
     const warning = `Cancelling does not revoke the signed upload link at storage, so a new file upload is blocked until ${until}. To send a file with the same type and size again, close this dialog and use Retry upload instead. Cancel this upload?`;
     if (!window.confirm(warning)) return;
-    setBusy(true); setUploadError(""); setUploadNote("");
     const id = detail.job.submission_id;
+    patchUpload(id, { busy: true, error: "", note: "" });
     try {
-      setDetail(await cancelRecordingUpload(id, { expected_version: detail.job.version }));
-      setFile(null); await refresh();
-    } catch (exc) { setUploadError(exc.message); await select(id); }
-    finally { setBusy(false); }
+      applyDetail(id, await cancelRecordingUpload(id, { expected_version: detail.job.version }));
+      clearUpload(id); await refresh();
+    } catch (exc) {
+      patchUpload(id, { busy: false, error: exc.message });
+      await select(id);
+    }
   }
   async function closeUnpaid(item, reason) {
     setBusy(true); setError(""); setClosedNote("");
@@ -144,8 +180,15 @@ export function AdminRecordingsPage() {
           <div><dt>Stripe payment reference</dt><dd>{stripeReference(detail)}</dd></div>
         </dl>
         {uploadPanelVisible(detail) ? <UploadPanel
-          detail={detail} transferring={transferring} busy={busy} file={file} note={uploadNote}
-          error={uploadError} onFile={setFile} onUpload={uploadRecording} onCheck={checkUpload}
+          detail={detail}
+          transferring={upload.transferring}
+          busy={busy || upload.busy}
+          file={upload.file}
+          note={upload.note}
+          error={upload.error}
+          onFile={(next) => patchUpload(selectedId, { file: next, error: "" })}
+          onUpload={uploadRecording}
+          onCheck={checkUpload}
           onCancel={cancelUpload}
         /> : null}
         {open ? <section>
@@ -267,7 +310,7 @@ function UploadPanel({ detail, transferring, busy, file, note, error, onFile, on
     <section>
       <h3>Upload a recording</h3>
       {canSend && indicator !== "working" ? <>
-        <p>Use this for a file recorded in OBS or QuickTime. Choose one MP4 or MOV file, up to the 750 MiB upload limit. The site checks it and queues this same job.</p>
+        <p>Choose one MP4 or MOV file, up to the 750 MiB upload limit. The site checks it and queues this same job.</p>
         <label>Recording (MP4 or MOV)<input type="file" accept={RECORDING_ACCEPT} onChange={(event) => onFile(event.target.files?.[0] || null)} /></label>
         <button type="button" disabled={busy || !file || mismatch} onClick={onUpload}>{retrying ? "Retry upload" : "Upload recording"}</button>
         {mismatch ? <p className="error" role="alert">{mismatchText(attempt)}</p> : null}

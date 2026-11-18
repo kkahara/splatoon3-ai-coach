@@ -1053,3 +1053,195 @@ def test_review_schema_is_gated_and_base_payment_flow_needs_no_acquisition_table
                     sql.Identifier(name)
                 )
             )
+
+
+def _open_checkout(tmp_path: Path, payments: PaymentStore, checkout: FakeCheckout):
+    payments.set_price(199)
+    client = _client(tmp_path, payments, checkout)
+    created = _create(client)
+    token = _put(client, created)
+    client.post(f"/api/submissions/{token}/uploaded")
+    opened = client.post(f"/api/submissions/{token}/checkout")
+    assert opened.status_code == 200, opened.text
+    gate, submission = _gate(client, token)
+    assert gate.payment_state == "checkout_created"
+    return client, token, submission, checkout.created[0]
+
+
+def test_reconcile_marks_paid_when_stripe_session_is_complete(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+    checkout.pay(session.id)
+    reconciled = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert reconciled.status_code == 200, reconciled.text
+    assert reconciled.json()["payment_state"] == "paid"
+    assert reconciled.json()["status"] == "queued"
+    assert payments.get(submission.id).payment_state == "paid"
+    again = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert again.status_code == 200
+    assert again.json()["payment_state"] == "paid"
+    assert again.json()["status"] == "queued"
+
+
+def test_reconcile_and_webhook_are_idempotent_under_concurrency(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+    checkout.pay(session.id)
+    service = client.app.state.service
+    results: list[str] = []
+    errors: list[BaseException] = []
+    barrier = threading.Barrier(3)
+
+    def reconcile() -> None:
+        try:
+            barrier.wait(timeout=5)
+            view = service.reconcile_checkout_for_token(token)
+            results.append(view.payment_state)
+        except BaseException as exc:  # noqa: BLE001 - collect for assertion
+            errors.append(exc)
+
+    def webhook() -> None:
+        try:
+            barrier.wait(timeout=5)
+            event = CheckoutEvent(
+                type="checkout.session.completed",
+                session=checkout.sessions[session.id],
+            )
+            results.append(service.apply_webhook(event))
+        except BaseException as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [
+        threading.Thread(target=reconcile),
+        threading.Thread(target=reconcile),
+        threading.Thread(target=webhook),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert errors == []
+    assert payments.get(submission.id).payment_state == "paid"
+    assert client.app.state.store.get(submission.id).status == "queued"
+    assert results.count("paid") >= 1
+
+
+def test_reconcile_leaves_gate_unchanged_when_stripe_retrieve_fails(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    from public_site.stripe_checkout import CheckoutRequestError
+
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+
+    def boom(_session_id: str):
+        raise CheckoutRequestError("timeout")
+
+    checkout.retrieve_session = boom  # type: ignore[method-assign]
+    reconciled = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert reconciled.status_code == 200, reconciled.text
+    assert reconciled.json()["payment_state"] == "checkout_created"
+    assert payments.get(submission.id).checkout_session_id == session.id
+    assert payments.get(submission.id).payment_state == "checkout_created"
+
+
+def test_reconcile_recovers_queue_after_paid_transition(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, session = _open_checkout(tmp_path, payments, checkout)
+    checkout.pay(session.id)
+    service = client.app.state.service
+    calls = {"n": 0}
+    original = service.attempt_queue
+
+    def flaky(submission_obj, token_value: str):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("probe temporarily unavailable")
+        return original(submission_obj, token_value)
+
+    service.attempt_queue = flaky  # type: ignore[method-assign]
+    first = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert first.status_code == 200
+    assert first.json()["payment_state"] == "paid"
+    assert first.json()["status"] == "received"
+    assert payments.get(submission.id).payment_state == "paid"
+
+    second = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert second.status_code == 200
+    assert second.json()["payment_state"] == "paid"
+    assert second.json()["status"] == "queued"
+
+
+def test_stale_checkout_session_cannot_pay_after_replacement(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    checkout = FakeCheckout()
+    client, token, submission, first_session = _open_checkout(tmp_path, payments, checkout)
+    checkout.expire(first_session.id)
+    replaced = client.post(f"/api/submissions/{token}/checkout")
+    assert replaced.status_code == 200
+    current = checkout.created[1]
+    checkout.pay(first_session.id)
+    stale = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert stale.status_code == 200
+    assert stale.json()["payment_state"] == "checkout_created"
+    assert payments.get(submission.id).checkout_session_id == current.id
+
+    checkout.pay(current.id)
+    paid = client.post(f"/api/submissions/{token}/reconcile-payment")
+    assert paid.json()["payment_state"] == "paid"
+
+
+def test_owned_reconcile_payment_requires_session_and_marks_paid(
+    tmp_path: Path, payments: PaymentStore
+) -> None:
+    accounts = AccountStore(payments.database_url)
+    accounts.ensure_schema()
+    accounts.clear()
+    payments.set_price(199)
+    checkout = FakeCheckout()
+    client = _client(tmp_path, payments, checkout, accounts=accounts)
+    now = datetime.now(UTC)
+    verify = accounts.register(
+        name="Ada", email="ada@example.com", password=_PASSWORD, now=now
+    )
+    _account, session = accounts.verify(verify, now)
+    client.cookies.set(SESSION_COOKIE, session)
+
+    created = client.post(
+        "/api/submissions",
+        json={
+            "turnstile_token": "ok",
+            "filename": "match.mp4",
+            "size_bytes": 8,
+            "content_type": "video/mp4",
+            "language": "en",
+        },
+    )
+    assert created.status_code == 200, created.text
+    body = created.json()
+    token = _put(client, body)
+    uploaded = client.post(f"/api/submissions/{token}/uploaded")
+    assert uploaded.status_code == 200
+    submission = client.app.state.store.get_by_hash(hash_token(token))
+    assert submission is not None and submission.user_id is not None
+
+    opened = client.post(f"/api/me/submissions/{submission.id}/checkout")
+    assert opened.status_code == 200, opened.text
+    checkout.pay(checkout.created[0].id)
+
+    anonymous = TestClient(client.app)
+    denied = anonymous.post(f"/api/me/submissions/{submission.id}/reconcile-payment")
+    assert denied.status_code == 401
+
+    paid = client.post(f"/api/me/submissions/{submission.id}/reconcile-payment")
+    assert paid.status_code == 200, paid.text
+    assert paid.json()["payment_state"] == "paid"
+    accounts.clear()
+

@@ -899,6 +899,84 @@ def test_recovery_fails_interrupted_review_code_and_never_reclaims_it(site) -> N
     assert row["state"] == "uploading"
 
 
+def test_recovery_resumes_a_verified_publication_without_pipeline_ready(site) -> None:
+    from public_site.report_publications import PublicationStore, ReportPublication
+
+    created = _verified(site)
+    claimed = _claim(site)
+    assert claimed is not None
+    store = site.app.state.service.store
+    store.update(
+        created["submission_id"],
+        lambda item: (
+            setattr(item, "status", "processing"),
+            setattr(item, "step", "ready"),
+            setattr(item, "outcome", "coached"),
+            setattr(item, "analysis_dir", None),
+            setattr(item, "error", None),
+        ),
+    )
+    PublicationStore(site.app.state.settings.root).save(
+        ReportPublication(
+            submission_id=created["submission_id"],
+            state="verified",
+            run_id="20261117T000000Z-deadbeef",
+            attempt_generation=1,
+            published_at="2026-11-17T00:00:00Z",
+            object_count=1,
+            total_bytes=10,
+            bundle_sha256="a" * 64,
+        )
+    )
+    failed = site.app.state.worker.recover()
+    assert failed == []
+    done = store.get(created["submission_id"])
+    assert done.status == "complete" and done.error is None
+    assert done.outcome == "coached"
+    _assert_handed_off(site, created, done)
+    site.app.state.service.maintain(datetime.now(UTC))
+    assert _events(site, created, "recording_handoff_verified") == 1
+
+
+def test_maintain_restores_false_failed_when_publication_is_verified(site) -> None:
+    from public_site.errors import REVIEW_CODE_INTERRUPTED
+    from public_site.report_publications import PublicationStore, ReportPublication
+
+    created = _verified(site)
+    claimed = _claim(site)
+    assert claimed is not None
+    store = site.app.state.service.store
+    store.update(
+        created["submission_id"],
+        lambda item: (
+            setattr(item, "status", "failed"),
+            setattr(item, "step", "ready"),
+            setattr(item, "outcome", "coached"),
+            setattr(item, "error", REVIEW_CODE_INTERRUPTED),
+            setattr(item, "analysis_dir", None),
+            setattr(item, "notices_sent", ["received", "failed"]),
+        ),
+    )
+    PublicationStore(site.app.state.settings.root).save(
+        ReportPublication(
+            submission_id=created["submission_id"],
+            state="verified",
+            run_id="20261117T000000Z-cafebabe",
+            attempt_generation=1,
+            published_at="2026-11-17T00:00:00Z",
+            object_count=1,
+            total_bytes=10,
+            bundle_sha256="b" * 64,
+        )
+    )
+    site.app.state.service.maintain(datetime.now(UTC))
+    done = store.get(created["submission_id"])
+    assert done.status == "complete" and done.error is None
+    _assert_handed_off(site, created, done)
+    site.app.state.service.maintain(datetime.now(UTC))
+    assert _events(site, created, "recording_handoff_verified") == 1
+
+
 def test_rerecording_after_failed_analysis_is_refused_not_silently_ignored(site) -> None:
     created = _verified(site)
     assert _claim(site) is not None

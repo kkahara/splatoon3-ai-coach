@@ -196,11 +196,17 @@ class PublicWorker:
                     return
 
     def recover(self) -> list[Submission]:
-        """Resume pipeline-ready publications; fail other in-flight work.
+        """Resume finished work; fail other in-flight work.
 
-        A ``.pipeline_ready.json`` receipt means vision/coaching already
-        finished — recover publishes without re-running LLM stages. Other
-        validating/processing orphans are failed as before.
+        Resume order for ``processing``:
+
+        1. ``.pipeline_ready.json`` — vision/coaching finished; publish without
+           re-running LLM stages.
+        2. A local ``verified`` publication with a successful ``outcome`` already
+           on the submission — publication finished before ``complete`` stuck;
+           finish handoff without re-analysis.
+
+        Other validating/processing orphans are failed as before.
         """
         from public_site.report_lifecycle import read_pipeline_ready
 
@@ -210,17 +216,24 @@ class PublicWorker:
             ready = read_pipeline_ready(
                 Path(submission.analysis_dir) if submission.analysis_dir else None
             )
-            if ready is None:
+            if ready is not None:
+                try:
+                    self._complete(
+                        submission,
+                        ready["outcome"],  # type: ignore[arg-type]
+                        ready["game_language"],  # type: ignore[arg-type]
+                    )
+                except Exception:
+                    logger.exception(
+                        "pipeline_ready recovery failed for submission {}",
+                        submission.id,
+                    )
                 continue
             try:
-                self._complete(
-                    submission,
-                    ready["outcome"],  # type: ignore[arg-type]
-                    ready["game_language"],  # type: ignore[arg-type]
-                )
+                self._resume_verified_publication(submission)
             except Exception:
                 logger.exception(
-                    "pipeline_ready recovery failed for submission {}",
+                    "verified publication recovery failed for submission {}",
                     submission.id,
                 )
         failed = self.store.fail_in_flight(
@@ -237,6 +250,32 @@ class PublicWorker:
             self.service.note_analysis_failed(submission.id, "processing")
             self.service.note_terminal(submission, "failed")
         return failed
+
+    def _resume_verified_publication(self, submission: Submission) -> bool:
+        """Finish a run whose report is already verified but status never stuck.
+
+        Requires a successful ``outcome`` already written before publication. Does
+        not re-run analyze or invent a game language. Idempotent with handoff and
+        terminal notices.
+        """
+        from public_site.report_publications import load_verified_publication
+
+        if load_verified_publication(self.service.settings.root, submission.id) is None:
+            return False
+        if submission.outcome not in {"coached", "no_deaths"}:
+            return False
+        submission.status = "complete"
+        submission.error = None
+        submission.step = "ready"
+        submission.updated_at = utc_now()
+        self._save(submission)
+        self.service.note_analysis_completed(submission.id)
+        if submission.input_type == "review_code":
+            self._hand_off_recording(submission)
+        notice = "no_moments" if submission.outcome == "no_deaths" else "ready"
+        self.service.note_terminal(submission, notice)
+        self.service.release_source_video(submission)
+        return True
 
     def tick(self) -> bool:
         """Expire old work, then start queued submissions into free slots."""

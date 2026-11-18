@@ -6,10 +6,10 @@ import math
 import re
 import uuid
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Literal, NoReturn
 
 from loguru import logger
 
@@ -25,6 +25,7 @@ from public_site.errors import (
     CAPACITY,
     EXPIRED,
     GAME_LANGUAGE_UNDETERMINED,
+    MAIL_FAILED,
     PAYMENT_NOT_REQUIRED,
     PAYMENT_UNAVAILABLE,
     PAYMENT_WINDOW,
@@ -39,7 +40,7 @@ from public_site.errors import (
     RequestRejected,
 )
 from public_site.frames import extract_frames, frame_path, missing_frames, ranked_entries
-from public_site.guest_notices import GuestNotices
+from public_site.guest_notices import GuestNoticeArrange, GuestNotices
 from public_site.keyed_locks import KeyedLocks
 from public_site.limits import RateLimiter
 from public_site.localize import Translator, localize_result
@@ -47,6 +48,7 @@ from public_site.media_probe import ProbeFacts, ProbeRejected, probe_file
 from public_site.models import (
     CreateSubmissionResponse,
     DisplayLocale,
+    PresignedDownload,
     PublicSubmissionResponse,
     Submission,
     VideoInput,
@@ -98,6 +100,33 @@ _SUFFIXES = frozenset({".mp4", ".mov"})
 Probe = Callable[[Path], ProbeFacts]
 Verifier = Callable[[str], bool]
 Storage = LocalStorage | R2Storage
+MediaAssetKind = Literal["frame", "clip", "thumbnail"]
+
+_LOCAL_FALLBACK_STATES = frozenset({"pending", "publishing"})
+_NO_FALLBACK_STATES = frozenset({"blocked", "delete_pending", "deleted"})
+_MEDIA_CONTENT_TYPES: dict[MediaAssetKind, str] = {
+    "frame": "image/jpeg",
+    "clip": "video/mp4",
+    "thumbnail": "image/jpeg",
+}
+
+
+@dataclass(frozen=True)
+class PresignedMedia:
+    """Browser media served as a fresh presigned GET redirect."""
+
+    download: PresignedDownload
+
+
+@dataclass(frozen=True)
+class LocalMedia:
+    """Legacy / local-mode media still served from disk."""
+
+    path: Path
+    content_type: str
+
+
+MediaTarget = PresignedMedia | LocalMedia
 
 
 class SubmissionService:
@@ -121,6 +150,9 @@ class SubmissionService:
         self.settings = settings
         self.store = store
         self.storage = storage
+        # Presigner for published media (R2 or LocalStorage). Distinct from
+        # ``storage`` when uploads are local but report media lives in R2.
+        self.media_storage: Storage = storage
         self.notices = notices
         self.accounts = accounts
         database_url = getattr(accounts, "database_url", None)
@@ -356,6 +388,7 @@ class SubmissionService:
             voucher_state=None if gate is None else gate.voucher_state,
             voucher_failure_reason=None if gate is None else gate.voucher_failure_reason,
             notice_pending=self._notice_pending(submission),
+            confirm_mail_dispatched=self._confirm_mail_dispatched(submission),
             public_reference=None if gate is None else gate.public_reference,
         )
 
@@ -458,6 +491,68 @@ class SubmissionService:
         """Resolve a clip through the guest token access boundary."""
         return self.clip_file(self._require(token), index)
 
+    def resolve_guest_media(
+        self, token: str, index: int, asset_type: MediaAssetKind
+    ) -> MediaTarget:
+        """Authorize via guest token, then resolve published or local media."""
+        return self.resolve_media(self._require(token), index, asset_type)
+
+    def resolve_media(
+        self, submission: Submission, index: int, asset_type: MediaAssetKind
+    ) -> MediaTarget:
+        """Resolve one moment media target after caller authorization.
+
+        Publication states:
+        - ``verified``: PostgreSQL asset only (missing → 404).
+        - ``pending`` / ``publishing``: local fallback only when analysis exists.
+        - ``blocked`` / ``delete_pending`` / ``deleted``: always 404.
+        - no row / no report store: local fallback when analysis exists.
+        """
+        if (
+            submission.status != "complete"
+            or submission.outcome == "no_deaths"
+            or index < 0
+        ):
+            raise RequestRejected(404, "not found")
+        if self.report_store is not None:
+            published = self.report_store.get(submission.id)
+            if published is not None:
+                state = published.publication_state
+                if state in _NO_FALLBACK_STATES:
+                    raise RequestRejected(404, "not found")
+                if state == "verified":
+                    return self._presigned_asset(submission.id, index, asset_type)
+                if state in _LOCAL_FALLBACK_STATES:
+                    return self._local_media(submission, index, asset_type)
+                raise RequestRejected(404, "not found")
+        return self._local_media(submission, index, asset_type)
+
+    def _presigned_asset(
+        self, submission_id: str, index: int, asset_type: MediaAssetKind
+    ) -> PresignedMedia:
+        assert self.report_store is not None
+        asset = self.report_store.media_asset(submission_id, asset_type, index)
+        if asset is None:
+            raise RequestRejected(404, "not found")
+        ttl = self.settings.media_url_seconds or self.settings.upload_url_seconds
+        download = self.media_storage.presign_get(
+            asset.object_key,
+            expires_seconds=ttl,
+            response_content_type=asset.content_type,
+        )
+        return PresignedMedia(download=download)
+
+    def _local_media(
+        self, submission: Submission, index: int, asset_type: MediaAssetKind
+    ) -> LocalMedia:
+        if asset_type == "clip":
+            path = self.clip_file(submission, index)
+        elif asset_type in {"frame", "thumbnail"}:
+            path = self.frame_file(submission, index)
+        else:
+            raise RequestRejected(404, "not found")
+        return LocalMedia(path=path, content_type=_MEDIA_CONTENT_TYPES[asset_type])
+
     def maintain(self, now: datetime) -> None:
         """Release abandoned uploads and expire old submissions."""
         if self.recordings is not None:
@@ -473,6 +568,7 @@ class SubmissionService:
         self._recover_ready()
         self._reconcile_report_cleanup(now)
         self._expire(now)
+        self.retry_pending_confirmations(now)
         self.retry_notices(now)
 
     def _reconcile_report_cleanup(self, now: datetime) -> None:
@@ -689,36 +785,56 @@ class SubmissionService:
         email: str,
         browser_cookie: str,
         now: datetime | None = None,
-    ) -> tuple[bool, str | None]:
-        """Bind a guest notice request. Returns pending, and a cookie when new."""
+        *,
+        propagate_mail_failure: bool = False,
+    ) -> GuestNoticeArrange:
+        """Bind a guest notice request and report whether a confirm mail was sent.
+
+        When ``propagate_mail_failure`` is true (resend/change), an SMTP rejection
+        is raised after the unused challenge is dropped so it does not consume the
+        confirmation cooldown. Create paths keep the request bound, return
+        ``mail_outcome="failed"``, and leave resend available instead of failing
+        the whole submission.
+        """
         if self.guest is None:
-            return False, None
+            return GuestNoticeArrange(False, None, "not_required")
         moment = now or datetime.now(UTC)
         submission = self.store.get_by_hash(hash_token(created.token))
         if submission is None:
-            return False, None
+            return GuestNoticeArrange(False, None, "not_required")
         self.notices.seal(submission.id, created.token)
         browser_id, fresh = self.guest.open_browser(browser_cookie or None, moment)
         if self.guest.is_verified(browser_id, email):
             if not self._enable_notice(submission, email):
-                return True, fresh
+                return GuestNoticeArrange(True, fresh, "not_required")
             self.guest.remember_verified(browser_id, email, moment)
-            return False, fresh
+            return GuestNoticeArrange(False, fresh, "not_required")
         browser_id, replacement_cookie = self.guest.add_request(
             browser_id, submission.id, email, moment
         )
         fresh = replacement_cookie or fresh
-        self._maybe_confirm(browser_id, email, submission.id, moment)
-        return True, fresh
+        try:
+            outcome, retry = self._maybe_confirm(browser_id, email, submission.id, moment)
+        except RequestRejected as exc:
+            if exc.status_code == 502 and not propagate_mail_failure:
+                return GuestNoticeArrange(True, fresh, "failed")
+            raise
+        return GuestNoticeArrange(True, fresh, outcome, retry)
 
-    def confirm_guest_notice(self, token: str, now: datetime | None = None) -> bool:
-        """Verify one address for the browser that requested it, then enable notices."""
+    def confirm_guest_notice(
+        self, token: str, now: datetime | None = None
+    ) -> dict[str, str | bool]:
+        """Verify one address for the browser that requested it, then enable notices.
+
+        On success returns ``confirmed`` and, when a sealed review capability
+        still exists for the challenge submission, a relative ``review_path``.
+        """
         if self.guest is None:
-            return False
+            return {"confirmed": False}
         moment = now or datetime.now(UTC)
         found = self.guest.consume(token, moment, self._guest_request_exists)
         if found is None:
-            return False
+            return {"confirmed": False}
         browser_id, email, challenge_submission_id = found
         since = moment - _BURST_WINDOW
         submission_ids = dict.fromkeys(
@@ -732,7 +848,19 @@ class SubmissionService:
             verified = self._confirm_request(submission_id, email, moment)
             if submission_id == challenge_submission_id:
                 target_verified = verified
-        return target_verified
+        if not target_verified:
+            return {"confirmed": False}
+        return {
+            "confirmed": True,
+            **self._confirm_review_path(challenge_submission_id),
+        }
+
+    def _confirm_review_path(self, submission_id: str) -> dict[str, str]:
+        """Relative review path for the challenge submission's sealed token only."""
+        sealed = self.notices.read_sealed(submission_id)
+        if not sealed or "/" in sealed or "://" in sealed or ".." in sealed:
+            return {}
+        return {"review_path": f"/review/{sealed}"}
 
     def _guest_request_exists(self, submission_id: str, email: str) -> bool:
         """Check the challenge's exact server-side submission/address binding."""
@@ -814,18 +942,52 @@ class SubmissionService:
                     continue
                 self.deliver_notice(submission, kind)
 
-    def _maybe_confirm(
-        self, browser_id: str, email: str, submission_id: str, now: datetime
-    ) -> None:
+    def retry_pending_confirmations(self, now: datetime) -> None:
+        """Send confirmation links whose browser cooldown has ended."""
         if self.guest is None:
             return
+        for request in self.guest.pending_confirmation_requests(now):
+            try:
+                self._maybe_confirm(
+                    request["browser_id"],
+                    request["email"],
+                    request["submission_id"],
+                    now,
+                )
+            except Exception:
+                logger.exception(
+                    "automatic confirmation retry failed for submission {}",
+                    request["submission_id"],
+                )
+
+    def _maybe_confirm(
+        self, browser_id: str, email: str, submission_id: str, now: datetime
+    ) -> tuple[Literal["sent", "cooldown"], int | None]:
+        """Create a challenge under the rate lock, then send. SMTP failure drops it.
+
+        Returns ``("sent", None)`` when SMTP accepts the message, or
+        ``("cooldown", seconds|None)`` when no new challenge was created.
+        """
+        if self.guest is None:
+            return "cooldown", None
         started = self.guest.begin_challenge(browser_id, email, submission_id, now)
         if started is None:
-            return
+            remaining = self.guest.browser_cooldown(browser_id, now)
+            seconds = (
+                None if remaining is None else math.ceil(remaining.total_seconds())
+            )
+            return "cooldown", seconds
         challenge_id, token = started
         url = f"{self.settings.public_base_url}/confirm-notices/{token}"
         try:
             self.notices.send_confirm(email, url)
+        except RequestRejected:
+            self.guest.drop_challenge(challenge_id)
+            logger.warning(
+                "notice confirmation failed for submission {} (mail rejected)",
+                submission_id,
+            )
+            raise
         except Exception as exc:
             self.guest.drop_challenge(challenge_id)
             logger.warning(
@@ -833,6 +995,8 @@ class SubmissionService:
                 submission_id,
                 type(exc).__name__,
             )
+            raise RequestRejected(502, MAIL_FAILED) from exc
+        return "sent", None
 
     def _confirm_request(self, submission_id: str, email: str, now: datetime) -> bool:
         if self.guest is None:
@@ -920,6 +1084,12 @@ class SubmissionService:
         if self.guest is None or submission.notify or submission.email:
             return False
         return self.guest.has_open_request(submission.id)
+
+    def _confirm_mail_dispatched(self, submission: Submission) -> bool:
+        """True when a confirmation challenge for this submission is still open."""
+        if self.guest is None or not self._notice_pending(submission):
+            return False
+        return self.guest.has_open_challenge(submission.id)
 
     def release_source_video(self, submission: Submission) -> None:
         """Delete the source video after a completed review is stored.
@@ -1360,6 +1530,8 @@ class SubmissionService:
 
         Shared by the webhook and by operator reconciliation. Idempotent: a
         session already recorded as paid returns ``paid`` and changes nothing.
+        Queue failures after a successful paid transition are logged and left for
+        a later reconcile or maintain pass; payment is never rolled back.
         """
         if self.payments is None or session.payment_status != "paid":
             return "ignored"
@@ -1375,11 +1547,87 @@ class SubmissionService:
         )
         if result != "paid":
             return result
-        submission = self.store.get(submission_id)
-        if submission is not None:
-            self.attempt_queue(submission, "")
+        self._queue_after_paid(submission_id)
         self._note_paid_past_window(submission_id)
         return "paid"
+
+    def _queue_after_paid(self, submission_id: str) -> None:
+        """Best-effort queue after payment. Failures leave payment intact."""
+        submission = self.store.get(submission_id)
+        if submission is None:
+            return
+        try:
+            self.attempt_queue(submission, "")
+        except Exception as exc:
+            logger.warning(
+                "queue after payment failed for submission {} ({})",
+                submission_id,
+                type(exc).__name__,
+            )
+
+    def reconcile_open_checkout(self, submission_id: str) -> PublicSubmissionResponse:
+        """Refresh an open Stripe checkout without creating a new session.
+
+        Stripe is contacted outside any payment-row transaction. Concurrent
+        webhook and reconcile callers share ``apply_paid`` idempotency. A
+        temporary Stripe failure leaves the gate unchanged. When payment is
+        already ``paid``, a queue retry recovers a prior queue failure.
+        """
+        submission = self.store.get(submission_id)
+        if submission is None:
+            raise RequestRejected(404, "not found")
+        if self.payments is None:
+            return self.project(submission)
+        gate = self.payments.get(submission_id)
+        if gate is None:
+            return self.project(submission)
+        if gate.payment_state == "paid":
+            self._queue_after_paid(submission_id)
+            current = self.store.get(submission_id) or submission
+            return self.project(current)
+        if gate.payment_state != "checkout_created" or not gate.checkout_session_id:
+            return self.project(submission)
+        if self.checkout is None:
+            return self.project(submission)
+        try:
+            session = self.checkout.retrieve_session(gate.checkout_session_id)
+        except CheckoutRequestError:
+            logger.warning(
+                "checkout reconcile retrieve failed for submission {}",
+                submission_id,
+            )
+            return self.project(submission)
+        except Exception as exc:
+            logger.warning(
+                "checkout reconcile retrieve failed for submission {} ({})",
+                submission_id,
+                type(exc).__name__,
+            )
+            return self.project(submission)
+        if session.payment_status == "paid":
+            if session.client_reference_id and session.client_reference_id != submission_id:
+                logger.warning(
+                    "checkout reconcile refused stale session association for {}",
+                    submission_id,
+                )
+                return self.project(submission)
+            self.record_paid_session(submission_id, session)
+        current = self.store.get(submission_id) or submission
+        return self.project(current)
+
+    def reconcile_checkout_for_token(self, token: str) -> PublicSubmissionResponse:
+        """Capability-auth reconcile for a guest review token."""
+        submission = self._require(token)
+        return self.reconcile_open_checkout(submission.id)
+
+    def reconcile_checkout_owned(
+        self, user_id: str, submission_id: str
+    ) -> PublicSubmissionResponse:
+        """Account-auth reconcile for an owned submission."""
+        submission = self.store.get(submission_id)
+        if submission is None or submission.user_id != user_id:
+            raise RequestRejected(404, "not found")
+        return self.reconcile_open_checkout(submission_id)
 
     def _owned_video(self, submission: Submission) -> VideoInput:
         video = self.store.get_video(submission.id)

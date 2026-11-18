@@ -6,6 +6,7 @@ COPY web/public/package.json web/public/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY web/public/index.html web/public/vite.config.js ./
+COPY web/public/public ./public
 COPY web/public/src ./src
 RUN npm run build
 

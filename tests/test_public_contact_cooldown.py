@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -71,26 +72,32 @@ def test_masked_address_keeps_the_domain(email: str, masked: str) -> None:
 
 
 def test_browser_cooldown_is_reported_and_refused(site: TestClient) -> None:  # noqa: F811
-    _create(site, email="first@example.com")
+    first = _create(site, email="first@example.com")
+    assert first["confirm_mail_outcome"] == "sent"
+    assert _view(site, first)["acquisition"]["confirm_mail_dispatched"] is True
+
     second = _create(site, email="second@example.com")
+    assert second["confirm_mail_outcome"] == "cooldown"
+    assert 0 < second["confirm_mail_retry_after_seconds"] <= 900
     assert _sent_to(site) == ["first@example.com"]
     acquisition = _view(site, second)["acquisition"]
     assert acquisition["contact_email_masked"] == "se•••d@example.com"
+    assert acquisition["confirm_mail_dispatched"] is False
     assert 0 < acquisition["resend_retry_after_seconds"] <= 900
 
     refused = _resend(site, second)
     assert refused.status_code == 429
     assert refused.json()["reason"] == "confirm_cooldown"
+    assert refused.json()["confirm_mail_outcome"] == "cooldown"
     assert 0 < refused.json()["retry_after_seconds"] <= 900
     assert refused.headers["Retry-After"] == str(refused.json()["retry_after_seconds"])
     assert _sent_to(site) == ["first@example.com"]
 
     _age_all_challenges(site)
     assert _view(site, second)["acquisition"]["resend_retry_after_seconds"] is None
-    sent = _resend(site, second)
-    assert sent.status_code == 200, sent.text
-    assert sent.json() == {"notice_pending": True}
+    site.app.state.service.maintain(datetime.now(UTC))
     assert _sent_to(site) == ["first@example.com", "second@example.com"]
+    assert _view(site, second)["acquisition"]["confirm_mail_dispatched"] is True
     assert _view(site, second)["acquisition"]["resend_retry_after_seconds"] > 890
 
 
@@ -101,8 +108,11 @@ def test_address_limit_stays_silent(site: TestClient) -> None:  # noqa: F811
     assert _view(other, created)["acquisition"]["resend_retry_after_seconds"] is None
     response = _resend(other, created)
     assert response.status_code == 200, response.text
-    assert response.json() == {"notice_pending": True}
+    assert response.json()["notice_pending"] is True
+    assert response.json()["confirm_mail_outcome"] == "cooldown"
+    assert response.json().get("retry_after_seconds") is None
     assert _sent_to(site) == ["shared@example.com"]
+    assert _view(other, created)["acquisition"]["confirm_mail_dispatched"] is False
 
 
 def test_corrected_address_keeps_the_request_and_retires_old_links(
@@ -116,11 +126,16 @@ def test_corrected_address_keeps_the_request_and_retires_old_links(
 
     changed = _change(site, created, " Fixed@Example.com ")
     assert changed.status_code == 200, changed.text
-    assert changed.json() == {"notice_pending": True, "retry_after_seconds": None}
+    assert changed.json() == {
+        "notice_pending": True,
+        "confirm_mail_outcome": "sent",
+        "retry_after_seconds": None,
+    }
     assert _sent_to(site) == ["typo@exmaple.com", "fixed@example.com"]
     assert _challenge_count(site) == challenges + 1
     after = _view(site, created)
     assert after["acquisition"]["contact_email_masked"] == "fi•••d@example.com"
+    assert after["acquisition"]["confirm_mail_dispatched"] is True
     assert after["public_reference"] == before["public_reference"]
     assert after["payment_state"] == before["payment_state"] == "unpaid"
 
@@ -151,10 +166,12 @@ def test_correction_during_cooldown_sends_nothing(site: TestClient) -> None:  # 
     created = _create(site, email="typo@exmaple.com")
     changed = _change(site, created, "fixed@example.com")
     assert changed.status_code == 200, changed.text
+    assert changed.json()["confirm_mail_outcome"] == "cooldown"
     assert 0 < changed.json()["retry_after_seconds"] <= 900
     assert _sent_to(site) == ["typo@exmaple.com"]
     acquisition = _view(site, created)["acquisition"]
     assert acquisition["contact_email_masked"] == "fi•••d@example.com"
+    assert acquisition["confirm_mail_dispatched"] is False
     assert _resend(site, created).status_code == 429
 
 

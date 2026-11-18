@@ -3,10 +3,13 @@ import test from "node:test";
 import {
   acquisitionStateKey,
   awaitingPayment,
+  paidAwaitingContact,
+  paymentConfirming,
   paymentOffered,
   reviewExpired,
   reviewHeadingKey,
   showsAnalysisProgress,
+  unpaidAwaitingContact,
   voucherFallbackKey,
   voucherPending,
 } from "./reviewPayment.js";
@@ -56,6 +59,14 @@ test("the pay button stays hidden while a voucher is pending", () => {
   assert.equal(voucherPending({ voucher_state: "pending", payment_state: "unpaid" }), true);
   assert.equal(voucherPending({ voucher_state: "redeemed", payment_state: "not_required" }), false);
   assert.equal(voucherPending({ voucher_state: "failed", payment_state: "unpaid" }), false);
+});
+
+test("payment confirming disables a second checkout while Stripe is settling", () => {
+  assert.equal(paymentConfirming({ payment_state: "unpaid", status: "received" }, false), false);
+  assert.equal(paymentConfirming({ payment_state: "checkout_created", status: "received" }, true), true);
+  assert.equal(paymentConfirming({ payment_state: "paid", status: "received" }, false), true);
+  assert.equal(paymentConfirming({ payment_state: "paid", status: "queued" }, false), false);
+  assert.equal(paymentConfirming(null, true), true);
 });
 
 function reviewCode(contactVerified, paymentState, voucherState = null, state = "pending_payment") {
@@ -165,6 +176,36 @@ test("other headings are unchanged", () => {
   );
   assert.equal(reviewHeadingKey({ status: "failed", payment_state: "paid" }), "review.heading.failed");
   assert.equal(reviewHeadingKey({ status: "queued", payment_state: "paid" }), "review.heading.processing");
+});
+
+test("a pending voucher with unverified contact asks for email confirmation", () => {
+  const view = reviewCode(false, "unpaid", "pending");
+  assert.equal(reviewHeadingKey(view), "review.heading.email_confirmation");
+  assert.equal(paymentOffered(view), false);
+  assert.equal(acquisitionStateKey(view), "review_code.state.pending_voucher");
+});
+
+test("a paid review-code request with unverified contact does not offer payment", () => {
+  const view = reviewCode(false, "paid");
+  assert.equal(paidAwaitingContact(view), true);
+  assert.equal(reviewHeadingKey(view), "review.heading.paid_email_confirmation");
+  assert.equal(paymentOffered(view), false);
+  assert.equal(acquisitionStateKey(view), "review_code.state.pending_email_after_payment");
+});
+
+test("unpaid review-code without a voucher asks for email before payment", () => {
+  for (const paymentState of ["unpaid", "checkout_created"]) {
+    const view = reviewCode(false, paymentState);
+    assert.equal(unpaidAwaitingContact(view), true);
+    assert.equal(reviewHeadingKey(view), "review.heading.email_before_payment");
+    assert.equal(paymentOffered(view), true);
+    assert.equal(acquisitionStateKey(view), "review_code.state.pending_payment");
+  }
+  const verified = reviewCode(true, "unpaid");
+  assert.equal(unpaidAwaitingContact(verified), false);
+  assert.equal(reviewHeadingKey(verified), "review.heading.payment");
+  assert.equal(paymentOffered(verified), true);
+  assert.equal(acquisitionStateKey(verified), "review_code.state.pending_payment_only");
 });
 
 test("pending and redeemed vouchers never show the fallback", () => {
