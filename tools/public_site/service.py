@@ -943,7 +943,11 @@ class SubmissionService:
                 self.deliver_notice(submission, kind)
 
     def retry_pending_confirmations(self, now: datetime) -> None:
-        """Send confirmation links whose browser cooldown has ended."""
+        """Send the first confirmation when cooldown/SMTP left a request unchallenged.
+
+        Does not resend after a challenge already exists (including expired
+        links). Manual resend/change remains available on the review page.
+        """
         if self.guest is None:
             return
         for request in self.guest.pending_confirmation_requests(now):

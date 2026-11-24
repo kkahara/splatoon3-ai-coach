@@ -347,7 +347,15 @@ class GuestNotices:
         return [row["submission_id"] for row in rows]
 
     def pending_confirmation_requests(self, now: datetime) -> list[dict[str, str]]:
-        """Return unconfirmed requests without a live challenge to retry."""
+        """Unconfirmed requests that never got a confirmation challenge.
+
+        Used by maintain to finish a first send that was blocked by cooldown or
+        dropped after SMTP failure. Requests that already produced a challenge
+        (even an expired one) are excluded so maintain does not mail forever.
+        Manual resend/change still creates new challenges via ``begin_challenge``.
+        ``now`` is accepted for call-site symmetry with other maintain helpers.
+        """
+        del now  # retry eligibility is "never challenged", not time-windowed
         with self._conn() as conn:
             rows = conn.execute(
                 """
@@ -358,12 +366,9 @@ class GuestNotices:
                       SELECT 1
                       FROM guest_email_challenges AS c
                       WHERE c.submission_id = r.submission_id
-                        AND c.used_at IS NULL
-                        AND c.expires_at > %s
                   )
                 ORDER BY r.created_at
-                """,
-                (now,),
+                """
             ).fetchall()
         return [
             {

@@ -511,3 +511,74 @@ def test_create_reports_sent_cooldown_and_failed_mail_outcomes(
     assert failed.status_code == 200, failed.text
     assert failed.json()["confirm_mail_outcome"] == "failed"
     assert failed.json()["notice_pending"] is True
+
+
+def test_maintain_does_not_resend_after_challenge_expires(
+    tmp_path: Path, accounts: AccountStore
+) -> None:
+    """Expired confirmation links must not trigger endless maintain mail."""
+    app = _app(tmp_path, accounts)
+    client = TestClient(app)
+    service = client.app.state.service
+    created = _submit(client, "ada@example.com")
+    assert created["confirm_mail_outcome"] == "sent"
+    assert len(_confirm_files(client.app.state.settings.root)) == 1
+    assert len(_rows(accounts.database_url, "SELECT * FROM guest_email_challenges")) == 1
+
+    with psycopg.connect(accounts.database_url) as conn:
+        conn.execute(
+            """
+            UPDATE guest_email_challenges
+            SET expires_at = %s, created_at = %s
+            """,
+            (
+                datetime.now(UTC) - timedelta(minutes=1),
+                datetime.now(UTC) - timedelta(hours=2),
+            ),
+        )
+        conn.commit()
+
+    service.maintain(datetime.now(UTC))
+    assert len(_confirm_files(client.app.state.settings.root)) == 1
+    assert len(_rows(accounts.database_url, "SELECT * FROM guest_email_challenges")) == 1
+
+
+def test_maintain_sends_first_confirm_after_cooldown(
+    tmp_path: Path, accounts: AccountStore
+) -> None:
+    """A cooldown-blocked first challenge is finished once by maintain."""
+    app = _app(tmp_path, accounts)
+    client = TestClient(app)
+    service = client.app.state.service
+    first = _submit(client, "ada@example.com")
+    assert first["confirm_mail_outcome"] == "sent"
+    cooled = _submit(client, "bea@example.com")
+    assert cooled["confirm_mail_outcome"] == "cooldown"
+    assert len(_confirm_files(client.app.state.settings.root)) == 1
+    challenges = _rows(accounts.database_url, "SELECT * FROM guest_email_challenges")
+    assert len(challenges) == 1
+    assert challenges[0]["normalized_email"] == "ada@example.com"
+
+    with psycopg.connect(accounts.database_url) as conn:
+        conn.execute(
+            """
+            UPDATE guest_email_challenges
+            SET created_at = %s, expires_at = %s
+            """,
+            (
+                datetime.now(UTC) - timedelta(minutes=20),
+                datetime.now(UTC) + timedelta(minutes=40),
+            ),
+        )
+        conn.commit()
+
+    service.maintain(datetime.now(UTC))
+    assert len(_confirm_files(client.app.state.settings.root)) == 2
+    emails = {
+        row["normalized_email"]
+        for row in _rows(accounts.database_url, "SELECT * FROM guest_email_challenges")
+    }
+    assert emails == {"ada@example.com", "bea@example.com"}
+
+    service.maintain(datetime.now(UTC))
+    assert len(_confirm_files(client.app.state.settings.root)) == 2

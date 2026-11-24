@@ -12,6 +12,8 @@ something the vision pipeline actually observed in the footage.
 - Imports Splatoon 3's in-game Review timeline (screenshots or video) as a
   second, elapsed-clock-indexed evidence source.
 
+Demo site: [https://s3-coach.com](https://s3-coach.com)
+
 New here? Read [CONTRIBUTING.md](CONTRIBUTING.md) and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
